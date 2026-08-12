@@ -13,6 +13,8 @@ export const authConfig = {
   providers: [],
   callbacks: {
     authorized({ auth, request }) {
+      // Локальный тест без логина (AUTH_BYPASS=1). В production не включать.
+      if (process.env.AUTH_BYPASS === "1") return true;
       const isLoggedIn = Boolean(auth?.user);
       const { pathname } = request.nextUrl;
       if (pathname.startsWith("/login")) {

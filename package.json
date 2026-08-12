@@ -14,6 +14,8 @@
     "db:backup": "powershell -File scripts/backup-postgres.ps1",
     "db:restore": "powershell -File scripts/restore-postgres.ps1",
     "test": "tsx --test tests/costing.test.ts tests/tz-rules.test.ts",
+    "smoke:tz76": "tsx scripts/smoke-tz76.ts",
+    "smoke:http": "tsx scripts/smoke-http.ts",
     "db:backup-daily": "powershell -File scripts/register-daily-backup.ps1"
   },
   "prisma": {

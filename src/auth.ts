@@ -4,8 +4,9 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { writeAudit } from "@/lib/audit";
 import { authConfig } from "@/auth.config";
+import { bypassOwnerSession, isAuthBypass } from "@/lib/dev-auth";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+const nextAuth = NextAuth({
   ...authConfig,
   providers: [
     Credentials({
@@ -66,3 +67,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
 });
+
+export const { handlers, signIn, signOut } = nextAuth;
+
+export async function auth(...args: Parameters<typeof nextAuth.auth>) {
+  if (isAuthBypass() && args.length === 0) {
+    return bypassOwnerSession();
+  }
+  return nextAuth.auth(...args);
+}

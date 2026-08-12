@@ -3,8 +3,10 @@ import bcrypt from "bcryptjs";
 import { Decimal } from "decimal.js";
 import { PERMISSIONS, ROLE_PERMISSIONS } from "../src/lib/permissions";
 import { DEFAULT_SETTINGS, SETTING_KEYS } from "../src/lib/settings";
+import { receiveMaterial } from "../src/lib/stock";
 
 const prisma = new PrismaClient();
+const D = (v: string) => new Decimal(v);
 
 async function main() {
   for (const [code, meta] of Object.entries(PERMISSIONS)) {
@@ -310,6 +312,10 @@ async function main() {
     });
   }
   void prodScheme;
+
+  const demoHash = await bcrypt.hash("ChangeMeNow!", 12);
+  await seedDemoUsers(demoHash, prodScheme.id, salesScheme.id);
+  await seedOpeningStock();
 }
 
 async function seedCatalog() {
@@ -391,6 +397,7 @@ async function seedCatalog() {
     minStock: "15",
   });
   const sand = await prisma.material.findFirst({ where: { name: "Песок" } });
+  const sandPrice = "15"; // условно за ведро — уточнить при первой закупке
   const sandRow =
     sand ??
     (await prisma.material.create({
@@ -400,10 +407,41 @@ async function seedCatalog() {
         storageUnitId: kg.id,
         purchaseUnitId: bucket.id,
         packageWeight: "1",
-        packagePrice: "0",
+        packagePrice: sandPrice,
         minStock: "0",
       },
     }));
+  if (sandRow && D(String(sandRow.packagePrice)).lte(0)) {
+    const unitPrice = new Decimal(sandPrice).div(sandRow.packageWeight).toFixed(6);
+    await prisma.material.update({
+      where: { id: sandRow.id },
+      data: {
+        packagePrice: sandPrice,
+        lastPurchasePrice: unitPrice,
+        averagePurchasePrice: unitPrice,
+      },
+    });
+    await prisma.materialPriceHistory.create({
+      data: {
+        materialId: sandRow.id,
+        packageWeight: sandRow.packageWeight,
+        packagePrice: sandPrice,
+        unitPrice,
+      },
+    });
+  }
+
+  async function ensureProductPrice(productId: string, price: string) {
+    const current = await prisma.productPrice.findFirst({
+      where: { productId, validTo: null },
+      orderBy: { validFrom: "desc" },
+    });
+    if (current && D(String(current.price)).eq(price)) return;
+    if (current) {
+      await prisma.productPrice.update({ where: { id: current.id }, data: { validTo: new Date() } });
+    }
+    await prisma.productPrice.create({ data: { productId, price } });
+  }
 
   let tile = await prisma.product.findFirst({ where: { name: "Фасадная плитка" } });
   if (!tile) {
@@ -415,12 +453,12 @@ async function seedCatalog() {
         outputUnitId: pcs.id,
         recipeBaseQty: "1",
         outputPerBase: "10",
-        minPrice: "0",
+        minPrice: "120",
         recipe: { create: {} },
       },
     });
     await prisma.productPrice.create({
-      data: { productId: tile.id, price: "0" },
+      data: { productId: tile.id, price: "150" },
     });
     const recipe = await prisma.recipe.findUniqueOrThrow({ where: { productId: tile.id } });
     await prisma.recipeVersion.create({
@@ -438,6 +476,12 @@ async function seedCatalog() {
         },
       },
     });
+  } else {
+    await ensureProductPrice(tile.id, "150");
+    await prisma.product.update({
+      where: { id: tile.id },
+      data: { minPrice: "120" },
+    });
   }
 
   const stone = await prisma.product.findFirst({ where: { name: "Декоративный камень" } });
@@ -453,7 +497,83 @@ async function seedCatalog() {
         recipe: { create: {} },
       },
     });
-    await prisma.productPrice.create({ data: { productId: created.id, price: "0" } });
+    await prisma.productPrice.create({ data: { productId: created.id, price: "180" } });
+  } else {
+    await ensureProductPrice(stone.id, "180");
+  }
+}
+
+async function seedDemoUsers(passwordHash: string, productionSchemeId: string, salesSchemeId: string) {
+  const roles = await prisma.role.findMany({
+    where: { code: { in: ["sales_manager", "worker", "warehouse_manager"] } },
+  });
+  const byCode = Object.fromEntries(roles.map((r) => [r.code, r]));
+  const users = [
+    {
+      email: "sales@workshop.local",
+      name: "Менеджер продаж",
+      roleCode: "sales_manager",
+      paySchemeId: salesSchemeId,
+    },
+    {
+      email: "worker@workshop.local",
+      name: "Рабочий цеха",
+      roleCode: "worker",
+      paySchemeId: productionSchemeId,
+    },
+    {
+      email: "warehouse@workshop.local",
+      name: "Кладовщик",
+      roleCode: "warehouse_manager",
+      paySchemeId: null,
+    },
+  ] as const;
+  for (const user of users) {
+    const role = byCode[user.roleCode];
+    if (!role) continue;
+    await prisma.user.upsert({
+      where: { email: user.email },
+      update: { paySchemeId: user.paySchemeId },
+      create: {
+        email: user.email,
+        name: user.name,
+        passwordHash,
+        roleId: role.id,
+        paySchemeId: user.paySchemeId,
+      },
+    });
+  }
+}
+
+async function seedOpeningStock() {
+  const raw = await prisma.warehouse.findUnique({ where: { code: "RAW" } });
+  const owner = await prisma.user.findFirst({ where: { email: process.env.OWNER_EMAIL ?? "owner@workshop.local" } });
+  if (!raw || !owner) return;
+
+  const amounts: Record<string, string> = {
+    "Белый цемент": "2000",
+    "Краска": "500",
+    "Клей": "300",
+    "Песок": "500",
+  };
+
+  for (const [name, quantity] of Object.entries(amounts)) {
+    const material = await prisma.material.findFirst({ where: { name } });
+    if (!material) continue;
+    const stock = await prisma.stockItem.findFirst({
+      where: { warehouseId: raw.id, materialId: material.id },
+    });
+    if (stock && D(String(stock.qtyOnHand)).gt(0)) continue;
+    const unitCost = material.averagePurchasePrice ?? material.lastPurchasePrice ?? "1";
+    await receiveMaterial({
+      warehouseId: raw.id,
+      materialId: material.id,
+      quantity,
+      unitCost: String(unitCost),
+      userId: owner.id,
+      reason: "Начальный остаток (seed)",
+      idempotencyKey: `seed-opening-${material.id}`,
+    });
   }
 }
 

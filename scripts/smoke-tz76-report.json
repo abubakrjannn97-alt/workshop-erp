@@ -1,0 +1,128 @@
+{
+  "ranAt": "2026-08-12T13:05:13.453Z",
+  "steps": [
+    {
+      "name": "Seed prices",
+      "ok": true,
+      "detail": "плитка 150 с/м²"
+    },
+    {
+      "name": "1. Клиент",
+      "ok": true,
+      "detail": "Smoke клиент 1786539910482"
+    },
+    {
+      "name": "2. Сумма заказа",
+      "ok": true,
+      "detail": "7500 ≈ 7500.0000"
+    },
+    {
+      "name": "2. Заказ",
+      "ok": true,
+      "detail": "#1003, 50 м²"
+    },
+    {
+      "name": "3. Норма Белый цемент",
+      "ok": true,
+      "detail": "350 ≈ 350"
+    },
+    {
+      "name": "3. Норма Краска",
+      "ok": true,
+      "detail": "20 ≈ 20"
+    },
+    {
+      "name": "3. Норма Клей",
+      "ok": true,
+      "detail": "3 ≈ 3"
+    },
+    {
+      "name": "3. Норма Песок",
+      "ok": true,
+      "detail": "50 ≈ 50"
+    },
+    {
+      "name": "3. Confirm",
+      "ok": true,
+      "detail": "резерв материалов"
+    },
+    {
+      "name": "3. Production order",
+      "ok": true,
+      "detail": "cmsq3qhju000subf0x5ug3jf1"
+    },
+    {
+      "name": "4. Партия",
+      "ok": true,
+      "detail": "№1, план 50 м²"
+    },
+    {
+      "name": "4. Зарплата",
+      "ok": true,
+      "detail": "1056 ≈ 1056.0000"
+    },
+    {
+      "name": "5. Частичная оплата",
+      "ok": true,
+      "detail": "5000 из 7500.0000"
+    },
+    {
+      "name": "5. Фонды (часть)",
+      "ok": true,
+      "detail": "{\"MATERIALS\":\"1793.3333\",\"LABOR\":\"3206.6667\"}"
+    },
+    {
+      "name": "5. Комиссия",
+      "ok": true,
+      "detail": "150 ≈ 150.0000"
+    },
+    {
+      "name": "6. Полная оплата",
+      "ok": true,
+      "detail": "оплачено 7500"
+    },
+    {
+      "name": "7. Dashboard profit fund",
+      "ok": true,
+      "detail": "0.0000"
+    },
+    {
+      "name": "7. Contribution",
+      "ok": true,
+      "detail": "выручка 7500.0000, себестоимость 2690.0000, contribution 4810.0000"
+    },
+    {
+      "name": "RBAC sales",
+      "ok": true,
+      "detail": "нет finance.view"
+    },
+    {
+      "name": "RBAC sales",
+      "ok": true,
+      "detail": "нет materials.manage"
+    },
+    {
+      "name": "RBAC worker",
+      "ok": true,
+      "detail": "нет orders.create"
+    },
+    {
+      "name": "RBAC worker",
+      "ok": true,
+      "detail": "есть production.report"
+    },
+    {
+      "name": "RBAC warehouse",
+      "ok": true,
+      "detail": "нет finance.view"
+    },
+    {
+      "name": "RBAC warehouse",
+      "ok": true,
+      "detail": "есть inventory.receive"
+    }
+  ],
+  "issues": [],
+  "passed": 24,
+  "failed": 0
+}
