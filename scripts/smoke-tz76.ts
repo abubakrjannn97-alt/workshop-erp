@@ -149,7 +149,11 @@ async function confirmOrderFlow(orderId: string, userId: string) {
 async function addPaymentFlow(orderId: string, amount: string, userId: string, key: string) {
   const order = await prisma.order.findUniqueOrThrow({
     where: { id: orderId },
-    include: { payments: true, seller: { include: { payScheme: { include: { tiers: true } } } } },
+    include: {
+      items: true,
+      payments: true,
+      seller: { include: { payScheme: { include: { tiers: true } } } },
+    },
   });
 
   await prisma.$transaction(async (tx) => {
@@ -169,9 +173,10 @@ async function addPaymentFlow(orderId: string, amount: string, userId: string, k
       where: { id: orderId },
       data: { paidAmount: money(paid), paymentStatus: paymentStatusOf(order.total, paid, hadRefund) },
     });
+    const saleQty = order.items.reduce((s, item) => s.add(String(item.quantity)), D(0));
     const scheme = order.seller.payScheme;
     const laborAmount = scheme?.productionRate
-      ? money(D(String(order.outputQty)).mul(scheme.productionRate))
+      ? money(saleQty.mul(scheme.productionRate))
       : "0";
     let commissionAmount = "0";
     if (scheme && (scheme.kind === "SALES_COMMISSION" || scheme.kind === "MIXED") && scheme.tiers.length) {
@@ -187,7 +192,7 @@ async function addPaymentFlow(orderId: string, amount: string, userId: string, k
     }
     const prodScheme = await tx.payScheme.findUnique({ where: { code: "production_m2" } });
     const laborFromProd = prodScheme?.productionRate
-      ? money(D(String(order.outputQty)).mul(prodScheme.productionRate))
+      ? money(saleQty.mul(prodScheme.productionRate))
       : laborAmount;
     await postClientPayment(tx, {
       orderId,
@@ -508,15 +513,29 @@ async function main() {
   const entries = await prisma.ledgerEntry.findMany({ where: { orderId: order.id, status: "POSTED" } });
   const profitFund = await prisma.financialFund.findUniqueOrThrow({ where: { code: FUND.PROFIT } });
   const profit = entries.reduce((s, e) => s.add(fundDelta(e, profitFund.id)), D(0));
-  pass("7. Dashboard profit fund", money(profit));
+  if (profit.lte(0)) {
+    fail("7. Dashboard profit fund", `ожидалось > 0, получено ${money(profit)}`);
+  } else {
+    pass("7. Dashboard profit fund", money(profit));
+  }
 
   const matCost = D(String(order.materialCost ?? quote.materialCost ?? "0"));
   const revenue = D(orderTotal);
-  const contribution = revenue.sub(matCost);
+  const saleQty = D("50");
+  const laborExpected = saleQty.mul("22");
+  const commAccruals = await prisma.payrollAccrual.findMany({
+    where: { orderId: order.id, kind: "COMMISSION", status: "ACCRUED" },
+  });
+  const commTotal = commAccruals.reduce((s, a) => s.add(String(a.amount)), D(0));
+  const contribution = revenue.sub(matCost).sub(laborExpected).sub(commTotal);
   pass(
     "7. Contribution",
-    `выручка ${money(revenue)}, себестоимость ${money(matCost)}, contribution ${money(contribution)}`,
+    `выручка ${money(revenue)} − мат ${money(matCost)} − труд ${money(laborExpected)} − комиссия ${money(commTotal)} = ${money(contribution)}`,
   );
+  // Прибыль в фонде ≈ доля оплат после материалов/труда/комиссии (opex 0)
+  if (profit.gt(0) && contribution.gt(0)) {
+    pass("7. Profit vs contribution", `фонд ${money(profit)}, contribution ${money(contribution)}`);
+  }
 
   checkRbac();
   writeReport();

@@ -2,8 +2,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/authz";
 import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
-import { FUND } from "@/lib/finance";
-import { fundDelta } from "@/lib/finance";
+import { FUND, LEDGER, fundDelta } from "@/lib/finance";
+import { contributionAndNet } from "@/lib/profit";
 import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@/lib/alerts";
 
 export default async function HomePage() {
@@ -77,6 +77,17 @@ export default async function HomePage() {
     : D(0);
   const labor = D(String(accruals.find((a) => a.kind === "PRODUCTION")?._sum.amount ?? 0));
   const commission = D(String(accruals.find((a) => a.kind === "COMMISSION")?._sum.amount ?? 0));
+  const materialCost = monthOrders.reduce((s, o) => s.add(String(o.materialCost ?? 0)), D(0));
+  const fixedExpenses = entries
+    .filter((e) => e.type === LEDGER.CASH_OUT && e.categoryId)
+    .reduce((s, e) => s.add(String(e.amount)), D(0));
+  const { contribution, net } = contributionAndNet({
+    revenue: sold,
+    materialCost,
+    labor,
+    commission,
+    fixedExpenses,
+  });
   const scrapQty = scraps.reduce((s, r) => s.add(String(r.quantity)), D(0));
   const critical = lowMaterials.filter((m) => {
     const onHand = m.stockItems.reduce((s, i) => s.add(i.qtyOnHand), D(0));
@@ -99,7 +110,17 @@ export default async function HomePage() {
         <Stat href="/sales" label="Реально получили" value={`${moneyDisplay(received)} с`} />
         <Stat href="/sales" label="Должны клиенты" value={`${moneyDisplay(clientDebt)} с`} />
         <Stat href="/purchasing" label="Должны мы" value={`${moneyDisplay(weOwe)} с`} />
-        <Stat href="/finance" label="Доступная прибыль" value={`${moneyDisplay(profit)} с`} />
+        <Stat
+          href="/analytics"
+          label="Маржинальная прибыль (без постоянных расходов)"
+          value={`${moneyDisplay(contribution)} с`}
+        />
+        <Stat
+          href="/analytics"
+          label="Чистая прибыль (после всех расходов)"
+          value={`${moneyDisplay(net)} с`}
+        />
+        <Stat href="/finance" label="Фонд доступной прибыли" value={`${moneyDisplay(profit)} с`} />
         <Stat href="/employees" label="Начислено рабочим" value={`${moneyDisplay(labor)} с`} />
         <Stat href="/employees" label="Начислено продавцам" value={`${moneyDisplay(commission)} с`} />
         <Stat href="/production" label="Брак за месяц" value={qtyDisplay(scrapQty)} />

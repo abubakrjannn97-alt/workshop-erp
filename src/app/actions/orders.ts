@@ -381,7 +381,11 @@ export async function addPayment(formData: FormData) {
 
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    include: { payments: true, seller: { include: { payScheme: { include: { tiers: true } } } } },
+    include: {
+      items: true,
+      payments: true,
+      seller: { include: { payScheme: { include: { tiers: true } } } },
+    },
   });
   if (!order) return { error: "Заказ не найден." };
   if (!(await canSeeOrder(session.user.id, session.user.roleCode, order.sellerId))) {
@@ -406,9 +410,11 @@ export async function addPayment(formData: FormData) {
       where: { id: orderId },
       data: { paidAmount: money(paid), paymentStatus: paymentStatusOf(order.total, paid, hadRefund) },
     });
+    // Ставка productionRate — за м² продажи, не за штуки готовой продукции (outputQty).
+    const saleQty = order.items.reduce((s, item) => s.add(String(item.quantity)), D(0));
     const scheme = order.seller.payScheme;
     const laborAmount = scheme?.productionRate
-      ? money(D(String(order.outputQty)).mul(scheme.productionRate))
+      ? money(saleQty.mul(scheme.productionRate))
       : "0";
     let commissionAmount = "0";
     if (scheme && (scheme.kind === "SALES_COMMISSION" || scheme.kind === "MIXED") && scheme.tiers.length) {
@@ -424,7 +430,7 @@ export async function addPayment(formData: FormData) {
     }
     const prodScheme = await tx.payScheme.findUnique({ where: { code: "production_m2" } });
     const laborFromProd = prodScheme?.productionRate
-      ? money(D(String(order.outputQty)).mul(prodScheme.productionRate))
+      ? money(saleQty.mul(prodScheme.productionRate))
       : laborAmount;
     await postClientPayment(tx, {
       orderId,
@@ -458,7 +464,7 @@ export async function reversePayment(formData: FormData) {
   const paymentId = String(formData.get("paymentId") ?? "");
   const payment = await prisma.payment.findUnique({
     where: { id: paymentId },
-    include: { reversedBy: true, order: true },
+    include: { reversedBy: true, order: { include: { items: true } } },
   });
   if (!payment) return { error: "Оплата не найдена." };
   if (payment.reversedBy) return { error: "Оплата уже сторнирована." };
@@ -500,6 +506,7 @@ export async function reversePayment(formData: FormData) {
     });
     await reverseCommissionForPayment(tx, payment.id);
     const prodScheme = await tx.payScheme.findUnique({ where: { code: "production_m2" } });
+    const saleQty = payment.order.items.reduce((s, item) => s.add(String(item.quantity)), D(0));
     await postClientPayment(tx, {
       orderId: payment.orderId,
       paymentId: reversal.id,
@@ -508,7 +515,7 @@ export async function reversePayment(formData: FormData) {
       orderTotal: String(payment.order.total),
       materialCost: payment.order.materialCost ? String(payment.order.materialCost) : null,
       laborAmount: prodScheme?.productionRate
-        ? money(D(String(payment.order.outputQty)).mul(prodScheme.productionRate))
+        ? money(saleQty.mul(prodScheme.productionRate))
         : "0",
       commissionAmount: commSum._sum.amount ? money(commSum._sum.amount) : "0",
       userId: session.user.id,

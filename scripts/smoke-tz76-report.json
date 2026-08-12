@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-08-12T13:05:13.453Z",
+  "ranAt": "2026-08-12T13:38:47.864Z",
   "steps": [
     {
       "name": "Seed prices",
@@ -9,7 +9,7 @@
     {
       "name": "1. Клиент",
       "ok": true,
-      "detail": "Smoke клиент 1786539910482"
+      "detail": "Smoke клиент 1786541924229"
     },
     {
       "name": "2. Сумма заказа",
@@ -19,7 +19,7 @@
     {
       "name": "2. Заказ",
       "ok": true,
-      "detail": "#1003, 50 м²"
+      "detail": "#1004, 50 м²"
     },
     {
       "name": "3. Норма Белый цемент",
@@ -49,7 +49,7 @@
     {
       "name": "3. Production order",
       "ok": true,
-      "detail": "cmsq3qhju000subf0x5ug3jf1"
+      "detail": "cmsq4xneq000subfox0n3n7h8"
     },
     {
       "name": "4. Партия",
@@ -69,7 +69,7 @@
     {
       "name": "5. Фонды (часть)",
       "ok": true,
-      "detail": "{\"MATERIALS\":\"1793.3333\",\"LABOR\":\"3206.6667\"}"
+      "detail": "{\"MATERIALS\":\"1793.3333\",\"LABOR\":\"733.3333\",\"COMMISSION\":\"150.0000\",\"PROFIT\":\"2323.3333\"}"
     },
     {
       "name": "5. Комиссия",
@@ -84,12 +84,17 @@
     {
       "name": "7. Dashboard profit fund",
       "ok": true,
-      "detail": "0.0000"
+      "detail": "3485.0000"
     },
     {
       "name": "7. Contribution",
       "ok": true,
-      "detail": "выручка 7500.0000, себестоимость 2690.0000, contribution 4810.0000"
+      "detail": "выручка 7500.0000 − мат 2690.0000 − труд 1100.0000 − комиссия 225.0000 = 3485.0000"
+    },
+    {
+      "name": "7. Profit vs contribution",
+      "ok": true,
+      "detail": "фонд 3485.0000, contribution 3485.0000"
     },
     {
       "name": "RBAC sales",
@@ -123,6 +128,6 @@
     }
   ],
   "issues": [],
-  "passed": 24,
+  "passed": 25,
   "failed": 0
 }

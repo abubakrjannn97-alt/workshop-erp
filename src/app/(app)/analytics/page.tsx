@@ -2,8 +2,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
-import { FUND, LEDGER } from "@/lib/finance";
-import { fundDelta } from "@/lib/finance";
+import { FUND, LEDGER, fundDelta } from "@/lib/finance";
+import { contributionAndNet } from "@/lib/profit";
 import { coverageAndPurchaseNeed } from "@/lib/alerts";
 
 export default async function AnalyticsPage() {
@@ -27,6 +27,8 @@ export default async function AnalyticsPage() {
     overUses,
     scrapsFull,
     cover,
+    productItems,
+    prodScheme,
   ] = await Promise.all([
     prisma.order.findMany({
       where: { createdAt: { gte: monthStart }, status: { code: { not: "CANCELLED" } } },
@@ -78,6 +80,22 @@ export default async function AnalyticsPage() {
       },
     }),
     coverageAndPurchaseNeed(),
+    prisma.orderItem.findMany({
+      where: {
+        order: { createdAt: { gte: monthStart }, status: { code: { not: "CANCELLED" } } },
+      },
+      include: {
+        product: true,
+        order: {
+          include: {
+            materials: true,
+            payments: true,
+            seller: { include: { payScheme: { include: { tiers: true } } } },
+          },
+        },
+      },
+    }),
+    prisma.payScheme.findUnique({ where: { code: "production_m2" } }),
   ]);
 
   const sold = monthOrders.reduce((s, o) => s.add(String(o.total)), D(0));
@@ -110,6 +128,51 @@ export default async function AnalyticsPage() {
   const expenses = entries
     .filter((e) => e.type === LEDGER.CASH_OUT && e.categoryId)
     .reduce((s, e) => s.add(String(e.amount)), D(0));
+  const { contribution, net } = contributionAndNet({
+    revenue: sold,
+    materialCost,
+    labor,
+    commission,
+    fixedExpenses: expenses,
+  });
+  const rate = D(String(prodScheme?.productionRate ?? "22"));
+
+  type ProdRow = {
+    name: string;
+    qty: ReturnType<typeof D>;
+    revenue: ReturnType<typeof D>;
+    materials: ReturnType<typeof D>;
+    labor: ReturnType<typeof D>;
+    commission: ReturnType<typeof D>;
+  };
+  const byProduct = new Map<string, ProdRow>();
+  for (const item of productItems) {
+    const key = item.productId;
+    const row =
+      byProduct.get(key) ??
+      ({
+        name: item.product.name,
+        qty: D(0),
+        revenue: D(0),
+        materials: D(0),
+        labor: D(0),
+        commission: D(0),
+      } satisfies ProdRow);
+    const qtySale = D(String(item.quantity));
+    const amount = D(String(item.amount));
+    row.qty = row.qty.add(qtySale);
+    row.revenue = row.revenue.add(amount);
+    const orderTotal = D(String(item.order.total));
+    const share = orderTotal.gt(0) ? amount.div(orderTotal) : D(0);
+    row.materials = row.materials.add(D(String(item.order.materialCost ?? 0)).mul(share));
+    row.labor = row.labor.add(qtySale.mul(rate));
+    const paid = item.order.payments.reduce((s, p) => s.add(String(p.amount)), D(0));
+    const paidShare = orderTotal.gt(0) ? paid.mul(share) : D(0);
+    // комиссия приблизительно 3% с доли оплат (точная по тирам — в payroll)
+    row.commission = row.commission.add(paidShare.mul("0.03"));
+    byProduct.set(key, row);
+  }
+
   const scrapByUser = new Map<string, ReturnType<typeof D>>();
   const scrapByProduct = new Map<string, ReturnType<typeof D>>();
   for (const r of scrapsFull) {
@@ -143,7 +206,17 @@ export default async function AnalyticsPage() {
         <Stat href="/sales" label="Реально получили" value={`${moneyDisplay(received)} с`} />
         <Stat href="/sales" label="Должны клиенты" value={`${moneyDisplay(clientDebt)} с`} />
         <Stat href="/purchasing" label="Должны мы" value={`${moneyDisplay(weOwe)} с`} />
-        <Stat href="/finance" label="Доступная прибыль" value={`${moneyDisplay(profit)} с`} />
+        <Stat
+          href="/finance"
+          label="Маржинальная прибыль (без постоянных расходов)"
+          value={`${moneyDisplay(contribution)} с`}
+        />
+        <Stat
+          href="/finance"
+          label="Чистая прибыль (после всех расходов)"
+          value={`${moneyDisplay(net)} с`}
+        />
+        <Stat href="/finance" label="Фонд доступной прибыли" value={`${moneyDisplay(profit)} с`} />
         <Stat href="/finance" label="Зарезервировано" value={`${moneyDisplay(reserved)} с`} />
         <Stat href="/employees" label="Начислено рабочим" value={`${moneyDisplay(labor)} с`} />
         <Stat href="/employees" label="Начислено продавцам" value={`${moneyDisplay(commission)} с`} />
@@ -160,12 +233,66 @@ export default async function AnalyticsPage() {
         <ul className="mt-2 space-y-1 text-sm">
           <li>Продажа: {moneyDisplay(sold)} с</li>
           <li>Себестоимость сырья: {moneyDisplay(materialCost)} с</li>
-          <li>Маржа по сырью: {moneyDisplay(sold.sub(materialCost))} с</li>
           <li>Зарплаты: {moneyDisplay(labor)} с</li>
           <li>Комиссия: {moneyDisplay(commission)} с</li>
-          <li>Расходы: {moneyDisplay(expenses)} с</li>
-          <li className="font-semibold">Чистая прибыль (фонд): {moneyDisplay(profit)} с</li>
+          <li>Маржинальная прибыль: {moneyDisplay(contribution)} с</li>
+          <li>Постоянные расходы: {moneyDisplay(expenses)} с</li>
+          <li className="font-semibold">Чистая прибыль: {moneyDisplay(net)} с</li>
+          <li className="text-xs text-slate-500">Фонд прибыли в кассе: {moneyDisplay(profit)} с</li>
         </ul>
+      </section>
+
+      <section className="overflow-x-auto rounded-2xl border border-[var(--line)] bg-white">
+        <div className="border-b border-[var(--line)] px-5 py-3">
+          <h2 className="text-sm font-semibold">По продукции (месяц)</h2>
+          <p className="text-xs text-slate-500">TZ §44 — что реально приносит деньги</p>
+        </div>
+        <table className="w-full min-w-[720px] text-left text-sm">
+          <thead className="bg-slate-50 text-xs text-slate-500">
+            <tr>
+              <th className="px-4 py-2">Изделие</th>
+              <th className="px-4 py-2">Продано</th>
+              <th className="px-4 py-2">Выручка</th>
+              <th className="px-4 py-2">Ср. цена</th>
+              <th className="px-4 py-2">Материалы</th>
+              <th className="px-4 py-2">Труд</th>
+              <th className="px-4 py-2">Комиссия</th>
+              <th className="px-4 py-2">Себест.</th>
+              <th className="px-4 py-2">Прибыль</th>
+              <th className="px-4 py-2">Маржа %</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {[...byProduct.values()].length === 0 ? (
+              <tr>
+                <td colSpan={10} className="px-4 py-6 text-slate-500">
+                  Нет продаж за месяц.
+                </td>
+              </tr>
+            ) : (
+              [...byProduct.values()].map((row) => {
+                const fullCost = row.materials.add(row.labor).add(row.commission);
+                const profitRow = row.revenue.sub(fullCost);
+                const margin = row.revenue.gt(0) ? profitRow.div(row.revenue).mul(100) : D(0);
+                const avg = row.qty.gt(0) ? row.revenue.div(row.qty) : D(0);
+                return (
+                  <tr key={row.name}>
+                    <td className="px-4 py-2 font-medium">{row.name}</td>
+                    <td className="px-4 py-2 font-mono text-xs">{qtyDisplay(row.qty)}</td>
+                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(row.revenue)}</td>
+                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(avg)}</td>
+                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(row.materials)}</td>
+                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(row.labor)}</td>
+                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(row.commission)}</td>
+                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(fullCost)}</td>
+                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(profitRow)}</td>
+                    <td className="px-4 py-2 font-mono text-xs">{margin.toFixed(1)}%</td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
       </section>
 
       {cover.purchaseNeed.length > 0 ? (

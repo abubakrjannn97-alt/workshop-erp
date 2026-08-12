@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "before": {
+    "orders": 3,
+    "payments": 5,
+    "stock": 6,
+    "materials": 5,
+    "ledger": 12
+  },
+  "after": {
+    "orders": 3,
+    "payments": 5,
+    "stock": 6,
+    "materials": 5,
+    "ledger": 12
+  },
+  "markerAfterRestore": 0,
+  "at": "2026-08-12T13:37:59.917Z"
+}
