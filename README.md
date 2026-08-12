@@ -1,26 +1,45 @@
-# Система автоматизации производственного цеха
+# Workshop ERP / MRP
 
-Рабочая копия проекта: `E:\workshop-erp`
+Система автоматизации производственного цеха (плитка / камень) по `TZ.md`.
 
-Техническое задание: `TZ.md`
+Рабочая копия: `E:\workshop-erp`
 
-Сейчас выполняется **PHASE 3 — Inventory** (ТЗ §77). PHASE 1–2 завершены.
+## Что внутри (по фазам ТЗ §77)
+
+- PHASE 1–8: foundation, продукция/рецептуры, склад/закупки, CRM/заказы, производство, финансы, payroll, approvals
+- PHASE 9: отчёты и KPI — раздел **Аналитика** (`/analytics`) + сводка на главной
+- PHASE 10: PWA (`public/manifest.webmanifest`, `public/sw.js`), mobile nav, печать, backup-скрипты, unit-тесты
+
+## Отчёты
+
+Откройте в приложении:
+
+1. **Аналитика** — `/analytics` (продажи, долги, маржа/фонды, брак, покрытие сырья)
+2. **Главная** — `/` (сводка владельца)
+3. CSV / печать — из карточек заказа, производства и склада (`…/print`)
 
 ## Запуск
 
 ```powershell
 cd E:\workshop-erp
 .\scripts\start-postgres.ps1
+npm install
 npx prisma migrate deploy
 npm run db:seed
 npm run dev
 ```
 
-PostgreSQL слушает `127.0.0.1:5433`. Данные кластера: `E:\workshop-erp\.data\pgdata`.
+PostgreSQL: `127.0.0.1:5433`, данные: `E:\workshop-erp\.data\pgdata` (не в git).
 
-Вход по умолчанию:
+Демо-вход после seed:
 
 - email: `owner@workshop.local`
-- пароль: `ChangeMeNow!`
+- password: `ChangeMeNow!`
 
-PostgreSQL хранится на диске E: в `.data/postgres`.
+Скопируйте `.env.example` → `.env` и задайте свой `AUTH_SECRET`.
+
+## Тесты
+
+```powershell
+npm test
+```
