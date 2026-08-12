@@ -66,8 +66,7 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-800">PHASE 7</p>
-        <h1 className="mt-1 text-2xl font-semibold">{user.name}</h1>
+<h1 className="mt-1 text-2xl font-semibold">{user.name}</h1>
         <p className="text-sm text-slate-600">
           {user.role.name} · {user.phone ?? user.email}
           {user.hiredAt ? ` · с ${user.hiredAt.toLocaleDateString("ru-RU")}` : ""}
@@ -106,7 +105,7 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
               className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
             />
           </label>
-          <button className="rounded-lg bg-teal-800 px-3 py-2 text-sm text-white">Сохранить</button>
+          <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Сохранить</button>
         </form>
       ) : null}
 
@@ -123,7 +122,7 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
             ))}
           </select>
           <input name="comment" placeholder="Комментарий" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <button className="rounded-lg bg-teal-800 px-3 py-2 text-sm text-white">Выплатить</button>
+          <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Выплатить</button>
         </form>
       ) : null}
 
@@ -149,7 +148,7 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
       </section>
 
       <p className="text-sm">
-        <Link href="/employees" className="text-teal-800 hover:underline">
+        <Link href="/employees" className="text-[var(--titan-dark)] hover:underline">
           Все сотрудники
         </Link>
       </p>

@@ -5,9 +5,11 @@ import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { FUND, LEDGER, fundDelta } from "@/lib/finance";
 import { contributionAndNet } from "@/lib/profit";
 import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@/lib/alerts";
+import { getTranslator } from "@/lib/locale";
 
 export default async function HomePage() {
   await requireSession();
+  const { t } = await getTranslator();
   const monthStart = new Date();
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
@@ -95,59 +97,42 @@ export default async function HomePage() {
   });
 
   return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-800">PHASE 10</p>
-        <h1 className="mt-1 text-2xl font-semibold">Сводка цеха</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-          Каждая цифра открывается в исходные операции. PWA ставится на телефон. Печать заказа и CSV —
-          из карточки заказа и аналитики.
-        </p>
-      </div>
+    <div className="space-y-4">
+      <h1 className="page-title">{t("home.title")}</h1>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat href="/analytics" label="Продали за месяц" value={`${moneyDisplay(sold)} с`} />
-        <Stat href="/sales" label="Реально получили" value={`${moneyDisplay(received)} с`} />
-        <Stat href="/sales" label="Должны клиенты" value={`${moneyDisplay(clientDebt)} с`} />
-        <Stat href="/purchasing" label="Должны мы" value={`${moneyDisplay(weOwe)} с`} />
-        <Stat
-          href="/analytics"
-          label="Маржинальная прибыль (без постоянных расходов)"
-          value={`${moneyDisplay(contribution)} с`}
-        />
-        <Stat
-          href="/analytics"
-          label="Чистая прибыль (после всех расходов)"
-          value={`${moneyDisplay(net)} с`}
-        />
-        <Stat href="/finance" label="Фонд доступной прибыли" value={`${moneyDisplay(profit)} с`} />
-        <Stat href="/employees" label="Начислено рабочим" value={`${moneyDisplay(labor)} с`} />
-        <Stat href="/employees" label="Начислено продавцам" value={`${moneyDisplay(commission)} с`} />
-        <Stat href="/production" label="Брак за месяц" value={qtyDisplay(scrapQty)} />
-        <Stat
-          href="/warehouse"
-          label="Сырья хватит на"
-          value={cover.coverQty ? `${cover.coverQty}` : "—"}
-        />
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        <Stat href="/analytics" label={t("home.sold")} value={`${moneyDisplay(sold)} с`} />
+        <Stat href="/sales" label={t("home.received")} value={`${moneyDisplay(received)} с`} />
+        <Stat href="/sales" label={t("home.clientDebt")} value={`${moneyDisplay(clientDebt)} с`} />
+        <Stat href="/purchasing" label={t("home.weOwe")} value={`${moneyDisplay(weOwe)} с`} />
+        <Stat href="/analytics" label={t("home.contribution")} value={`${moneyDisplay(contribution)} с`} />
+        <Stat href="/analytics" label={t("home.net")} value={`${moneyDisplay(net)} с`} />
+        <Stat href="/finance" label={t("home.profitFund")} value={`${moneyDisplay(profit)} с`} />
+        <Stat href="/employees" label={t("home.labor")} value={`${moneyDisplay(labor)} с`} />
+        <Stat href="/employees" label={t("home.commission")} value={`${moneyDisplay(commission)} с`} />
+        <Stat href="/production" label={t("home.scrap")} value={qtyDisplay(scrapQty)} />
+        <Stat href="/warehouse" label={t("home.cover")} value={cover.coverQty ? `${cover.coverQty}` : "—"} />
         <Stat
           href="/purchasing"
-          label="Позиций к закупке"
+          label={t("home.purchaseNeed")}
           value={String(cover.purchaseNeed.length)}
         />
       </div>
 
-      <section className="rounded-2xl border border-[var(--line)] bg-white p-5">
-        <h2 className="text-sm font-semibold">Сейчас в производстве</h2>
+      <section className="ui-card p-4">
+        <h2 className="section-title">{t("home.inProduction")}</h2>
         <ul className="mt-2 space-y-1 text-sm">
           {inProd.length === 0 ? (
-            <li className="text-slate-500">Нет открытых заданий.</li>
+            <li className="muted">{t("home.noJobs")}</li>
           ) : (
             inProd.map((j) => (
               <li key={j.id}>
-                <Link href={`/production/${j.id}`} className="text-teal-800 hover:underline">
+                <Link href={`/production/${j.id}`} className="font-medium text-[var(--titan-dark)] hover:underline">
                   #{j.order.number}
                 </Link>{" "}
-                {j.order.items[0]?.product.name} · {qtyDisplay(j.producedQty)} / {qtyDisplay(j.plannedQty)}
+                <span className="text-[var(--text-secondary)]">
+                  {j.order.items[0]?.product.name} · {qtyDisplay(j.producedQty)} / {qtyDisplay(j.plannedQty)}
+                </span>
               </li>
             ))
           )}
@@ -155,12 +140,12 @@ export default async function HomePage() {
       </section>
 
       {overdue.length > 0 ? (
-        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-          <h2 className="text-sm font-semibold">Опаздывают</h2>
+        <section className="rounded-[var(--radius-md)] border border-[var(--warning)]/40 bg-[var(--warning)]/10 p-4">
+          <h2 className="section-title">{t("home.overdue")}</h2>
           <ul className="mt-2 space-y-1 text-sm">
             {overdue.map((o) => (
               <li key={o.id}>
-                <Link href={`/orders/${o.id}`} className="text-teal-800 hover:underline">
+                <Link href={`/orders/${o.id}`} className="font-medium text-[var(--titan-dark)] hover:underline">
                   #{o.number}
                 </Link>{" "}
                 {o.customer.name} · {o.status.name}
@@ -171,8 +156,8 @@ export default async function HomePage() {
       ) : null}
 
       {critical.length > 0 ? (
-        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-          <h2 className="text-sm font-semibold">Сырьё ниже минимума</h2>
+        <section className="rounded-[var(--radius-md)] border border-[var(--warning)]/40 bg-[var(--warning)]/10 p-4">
+          <h2 className="section-title">{t("home.lowStock")}</h2>
           <ul className="mt-2 space-y-1 text-sm">
             {critical.map((m) => (
               <li key={m.id}>
@@ -191,9 +176,12 @@ export default async function HomePage() {
 
 function Stat({ label, value, href }: { label: string; value: string; href: string }) {
   return (
-    <Link href={href} className="rounded-2xl border border-[var(--line)] bg-white p-5 hover:border-teal-700">
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="mt-2 text-xl font-semibold">{value}</p>
+    <Link
+      href={href}
+      className="ui-card block p-3 transition-colors hover:border-[var(--titan)]"
+    >
+      <p className="text-[11px] text-[var(--muted)]">{label}</p>
+      <p className="mt-1 text-lg font-semibold tabular-nums">{value}</p>
     </Link>
   );
 }

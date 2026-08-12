@@ -26,7 +26,7 @@ export default async function RolesPage() {
         <p className="mt-1 text-sm text-slate-600">
           Owner, Director, Sales Manager, Production Manager, Worker, Warehouse Manager, Accountant.
         </p>
-        <Link className="mt-3 inline-block text-sm text-teal-800" href="/settings">
+        <Link className="mt-3 inline-block text-sm text-[var(--titan-dark)]" href="/settings">
           ← Настройки
         </Link>
       </div>
@@ -48,7 +48,7 @@ export default async function RolesPage() {
               {role.code === "owner" ? (
                 <span className="text-xs text-slate-400">полный доступ</span>
               ) : canManage ? (
-                <button className="rounded-lg bg-teal-800 px-3 py-1.5 text-sm text-white">Сохранить права</button>
+                <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-1.5 text-sm text-white">Сохранить права</button>
               ) : null}
             </div>
             {modules.map((moduleName) => (

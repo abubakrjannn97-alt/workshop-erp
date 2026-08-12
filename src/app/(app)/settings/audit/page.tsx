@@ -17,7 +17,7 @@ export default async function AuditPage() {
         <p className="mt-1 text-sm text-slate-600">
           Пользователь, действие, дата, время, IP, устройство, старое и новое значение.
         </p>
-        <Link className="mt-3 inline-block text-sm text-teal-800" href="/settings">
+        <Link className="mt-3 inline-block text-sm text-[var(--titan-dark)]" href="/settings">
           ← Настройки
         </Link>
       </div>
@@ -43,7 +43,7 @@ export default async function AuditPage() {
               <pre className="overflow-x-auto rounded-lg bg-slate-50 p-3 text-xs">
                 {JSON.stringify(log.oldValue ?? null, null, 2)}
               </pre>
-              <pre className="overflow-x-auto rounded-lg bg-teal-50 p-3 text-xs">
+              <pre className="overflow-x-auto rounded-lg bg-[var(--bg-secondary)] p-3 text-xs">
                 {JSON.stringify(log.newValue ?? null, null, 2)}
               </pre>
             </div>

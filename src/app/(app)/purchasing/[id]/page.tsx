@@ -38,7 +38,7 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
         <p className="text-xs text-slate-500">{STATUS[order.status]}</p>
         <h1 className="text-2xl font-semibold">{order.number}</h1>
         <p className="text-sm text-slate-600">{order.supplier.name}</p>
-        <Link href={`/purchasing/${order.id}/print`} className="mt-2 inline-block text-sm text-teal-800 hover:underline">
+        <Link href={`/purchasing/${order.id}/print`} className="mt-2 inline-block text-sm text-[var(--titan-dark)] hover:underline">
           Печать накладной / PDF
         </Link>
       </div>
@@ -74,13 +74,13 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
         {canManage && order.status === "REQUEST" ? (
           <form action={confirmPurchaseOrder}>
             <input type="hidden" name="id" value={order.id} />
-            <button className="rounded-lg bg-teal-800 px-4 py-2 text-sm text-white">Подтвердить заказ поставщику</button>
+            <button className="rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm text-white">Подтвердить заказ поставщику</button>
           </form>
         ) : null}
         {canReceive && (order.status === "ORDERED" || order.status === "REQUEST") ? (
           <form action={receivePurchaseOrder}>
             <input type="hidden" name="id" value={order.id} />
-            <button className="rounded-lg bg-teal-800 px-4 py-2 text-sm text-white">Принять и оприходовать</button>
+            <button className="rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm text-white">Принять и оприходовать</button>
           </form>
         ) : null}
         {canManage && order.status !== "POSTED" && order.status !== "CANCELLED" ? (

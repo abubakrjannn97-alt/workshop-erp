@@ -26,10 +26,9 @@ export default async function ApprovalsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-800">PHASE 8</p>
-        <h1 className="mt-1 text-2xl font-semibold">Согласования и период</h1>
+<h1 className="mt-1 text-2xl font-semibold">Согласования и период</h1>
       </div>
-      <Link href="/settings" className="text-sm text-teal-800 hover:underline">
+      <Link href="/settings" className="text-sm text-[var(--titan-dark)] hover:underline">
         ← Настройки
       </Link>
 
@@ -51,7 +50,7 @@ export default async function ApprovalsPage() {
                     <form action={decide}>
                       <input type="hidden" name="id" value={a.id} />
                       <input type="hidden" name="decision" value="APPROVED" />
-                      <button className="rounded-lg bg-teal-800 px-3 py-1 text-xs text-white">Подтвердить</button>
+                      <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-1 text-xs text-white">Подтвердить</button>
                     </form>
                     <form action={decide}>
                       <input type="hidden" name="id" value={a.id} />
@@ -79,7 +78,7 @@ export default async function ApprovalsPage() {
             defaultValue={String(now.getMonth() + 1)}
             className="w-20 rounded-lg border border-slate-200 px-3 py-2 text-sm"
           />
-          <button className="rounded-lg bg-teal-800 px-3 py-2 text-sm text-white">Закрыть месяц</button>
+          <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Закрыть месяц</button>
           <ul className="w-full text-xs text-slate-500">
             {periods.map((p) => (
               <li key={p.id}>

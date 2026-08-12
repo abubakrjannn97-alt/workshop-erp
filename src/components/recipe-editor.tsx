@@ -87,7 +87,7 @@ export function RecipeEditor({
       <button
         type="button"
         onClick={() => setRows((prev) => [...prev, { materialId: "", quantity: "", unitId: units[0]?.id ?? "" }])}
-        className="text-sm font-medium text-teal-800"
+        className="text-sm font-medium text-[var(--titan-dark)]"
       >
         + компонент
       </button>
@@ -100,7 +100,7 @@ export function RecipeEditor({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-teal-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+        className="rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
       >
         {pending ? "Сохранение…" : "Опубликовать новую версию"}
       </button>

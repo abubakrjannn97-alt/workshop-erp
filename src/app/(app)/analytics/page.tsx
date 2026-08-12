@@ -189,15 +189,14 @@ export default async function AnalyticsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-800">PHASE 9</p>
-        <h1 className="mt-1 text-2xl font-semibold">Аналитика владельца</h1>
+<h1 className="mt-1 text-2xl font-semibold">Аналитика владельца</h1>
         <p className="mt-2 flex flex-wrap gap-3 text-sm">
-          <a href="/api/export/sales" className="text-teal-800 hover:underline">Продажи CSV</a>
-          <a href="/api/export/sales?format=xls" className="text-teal-800 hover:underline">Excel</a>
-          <a href="/api/export/warehouse" className="text-teal-800 hover:underline">Склад CSV</a>
-          <a href="/api/export/payroll" className="text-teal-800 hover:underline">Зарплаты CSV</a>
-          <a href="/api/export/profit" className="text-teal-800 hover:underline">Прибыль CSV</a>
-          <a href="/api/export/debts" className="text-teal-800 hover:underline">Долги CSV</a>
+          <a href="/api/export/sales" className="text-[var(--titan-dark)] hover:underline">Продажи CSV</a>
+          <a href="/api/export/sales?format=xls" className="text-[var(--titan-dark)] hover:underline">Excel</a>
+          <a href="/api/export/warehouse" className="text-[var(--titan-dark)] hover:underline">Склад CSV</a>
+          <a href="/api/export/payroll" className="text-[var(--titan-dark)] hover:underline">Зарплаты CSV</a>
+          <a href="/api/export/profit" className="text-[var(--titan-dark)] hover:underline">Прибыль CSV</a>
+          <a href="/api/export/debts" className="text-[var(--titan-dark)] hover:underline">Долги CSV</a>
         </p>
       </div>
 
@@ -305,7 +304,7 @@ export default async function AnalyticsPage() {
               </li>
             ))}
           </ul>
-          <Link href="/purchasing" className="mt-2 inline-block text-sm text-teal-800">
+          <Link href="/purchasing" className="mt-2 inline-block text-sm text-[var(--titan-dark)]">
             Закупки
           </Link>
         </section>
@@ -319,7 +318,7 @@ export default async function AnalyticsPage() {
           ) : (
             inProd.map((j) => (
               <li key={j.id}>
-                <Link href={`/production/${j.id}`} className="text-teal-800 hover:underline">
+                <Link href={`/production/${j.id}`} className="text-[var(--titan-dark)] hover:underline">
                   #{j.order.number}
                 </Link>{" "}
                 {j.order.items[0]?.product.name} · {qtyDisplay(j.producedQty)} / {qtyDisplay(j.plannedQty)}
@@ -335,7 +334,7 @@ export default async function AnalyticsPage() {
           <ul className="mt-2 space-y-1 text-sm">
             {overdue.map((o) => (
               <li key={o.id}>
-                <Link href={`/orders/${o.id}`} className="text-teal-800 hover:underline">
+                <Link href={`/orders/${o.id}`} className="text-[var(--titan-dark)] hover:underline">
                   #{o.number}
                 </Link>{" "}
                 {o.customer.name} · {o.status.name}
@@ -403,7 +402,7 @@ export default async function AnalyticsPage() {
 
 function Stat({ label, value, href }: { label: string; value: string; href: string }) {
   return (
-    <Link href={href} className="rounded-2xl border border-[var(--line)] bg-white p-5 hover:border-teal-700">
+    <Link href={href} className="rounded-2xl border border-[var(--line)] bg-white p-5 hover:border-[var(--titan)]">
       <p className="text-xs text-slate-500">{label}</p>
       <p className="mt-2 text-xl font-semibold">{value}</p>
     </Link>

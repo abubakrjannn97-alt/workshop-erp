@@ -57,7 +57,7 @@ export default async function NewProductPage() {
         <Field name="outputPerBase" label="Выход с базы (напр. 10 плиток / 1 м²)" defaultValue="10" />
         <Field name="price" label="Цена продажи, сомони" defaultValue="0" />
         <Field name="minPrice" label="Минимальная цена" defaultValue="0" />
-        <button className="rounded-lg bg-teal-800 px-4 py-2 text-sm font-medium text-white">Создать</button>
+        <button className="rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm font-medium text-white">Создать</button>
       </form>
     </div>
   );

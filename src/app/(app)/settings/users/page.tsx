@@ -26,7 +26,7 @@ export default async function UsersPage() {
       <div>
         <h1 className="text-2xl font-semibold">Пользователи</h1>
         <p className="mt-1 text-sm text-slate-600">Учётные записи не удаляются — только архив.</p>
-        <Link className="mt-3 inline-block text-sm text-teal-800" href="/settings">
+        <Link className="mt-3 inline-block text-sm text-[var(--titan-dark)]" href="/settings">
           ← Настройки
         </Link>
       </div>
@@ -44,7 +44,7 @@ export default async function UsersPage() {
             ))}
           </select>
           <input name="password" type="password" required minLength={8} placeholder="Пароль" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <button className="sm:col-span-5 rounded-lg bg-teal-800 px-4 py-2 text-sm font-medium text-white">
+          <button className="sm:col-span-5 rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm font-medium text-white">
             Создать пользователя
           </button>
         </form>
@@ -75,7 +75,7 @@ export default async function UsersPage() {
             <input name="password" type="password" placeholder="Новый пароль" disabled={!canEdit} className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
             <div className="sm:col-span-6 flex gap-3">
               {canEdit ? (
-                <button className="rounded-lg bg-teal-800 px-3 py-1.5 text-sm text-white">Сохранить</button>
+                <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-1.5 text-sm text-white">Сохранить</button>
               ) : null}
               {canArchive && user.id !== session.user.id ? (
                 <button formAction={archiveUser} className="text-sm text-red-700">

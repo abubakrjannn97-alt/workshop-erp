@@ -37,10 +37,9 @@ export default async function PurchasingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-800">PHASE 3</p>
-        <h1 className="mt-1 text-2xl font-semibold">Закупки</h1>
+<h1 className="mt-1 text-2xl font-semibold">Закупки</h1>
         <p className="mt-1 text-sm text-slate-600">
-          Потребность → заявка → поставщик → получение → приход на склад. Оплата фиксирует долг; полный ledger — PHASE 6.
+          Потребность → заявка → поставщик → получение → приход на склад.
         </p>
       </div>
 
@@ -67,7 +66,7 @@ export default async function PurchasingPage() {
             <input name="name" required placeholder="Название" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
             <input name="phone" placeholder="Телефон" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
             <input name="contact" placeholder="Контакт" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-            <button className="rounded-lg bg-teal-800 px-3 py-2 text-sm text-white">Добавить</button>
+            <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Добавить</button>
           </form>
         ) : null}
       </section>

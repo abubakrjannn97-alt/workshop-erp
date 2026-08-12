@@ -37,14 +37,13 @@ export default async function ProductsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-800">PHASE 2</p>
-          <h1 className="mt-1 text-2xl font-semibold">Продукция</h1>
+<h1 className="mt-1 text-2xl font-semibold">Продукция</h1>
           <p className="mt-1 text-sm text-slate-600">
             Цена хранится с периодом действия. Себестоимость считается из рецептуры, не вводится вручную.
           </p>
         </div>
         {canManage ? (
-          <Link href="/products/new" className="rounded-lg bg-teal-800 px-4 py-2 text-sm font-medium text-white">
+          <Link href="/products/new" className="rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm font-medium text-white">
             Новое изделие
           </Link>
         ) : null}
@@ -80,7 +79,7 @@ export default async function ProductsPage() {
                 return (
                   <tr key={product.id} className="border-t border-slate-100">
                     <td className="px-4 py-3">
-                      <Link href={`/products/${product.id}`} className="font-medium text-teal-900 hover:underline">
+                      <Link href={`/products/${product.id}`} className="font-medium text-[var(--titan-dark)] hover:underline">
                         {product.name}
                       </Link>
                       <p className="text-xs text-slate-500">{product.category}</p>

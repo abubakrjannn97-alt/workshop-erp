@@ -69,7 +69,7 @@ export default async function SearchPage({
           placeholder="Заказ, клиент, телефон, изделие…"
           className="w-full max-w-md rounded-lg border border-slate-200 px-3 py-2 text-sm"
         />
-        <button className="rounded-lg bg-teal-800 px-3 py-2 text-sm text-white">Найти</button>
+        <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Найти</button>
       </form>
       {!term ? (
         <p className="text-sm text-slate-500">Например, 1054 — откроет заказ.</p>
@@ -98,7 +98,7 @@ function Block({ title, items }: { title: string; items: { href: string; label: 
       <ul className="mt-2 space-y-1">
         {items.map((i) => (
           <li key={i.href + i.label}>
-            <Link href={i.href} className="text-teal-800 hover:underline">
+            <Link href={i.href} className="text-[var(--titan-dark)] hover:underline">
               {i.label}
             </Link>
           </li>

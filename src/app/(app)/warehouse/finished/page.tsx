@@ -85,7 +85,7 @@ export default async function FinishedWarehousePage() {
           <input name="quantity" required placeholder="Количество" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
           <input name="unitCost" required placeholder="Себестоимость ед." className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
           <input name="comment" placeholder="Начальный остаток / партия" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <button className="rounded-lg bg-teal-800 px-3 py-2 text-sm text-white">Приход</button>
+          <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Приход</button>
         </form>
       ) : null}
     </div>

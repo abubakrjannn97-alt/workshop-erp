@@ -12,12 +12,16 @@ export function WarehouseNav({
     { href: "/warehouse/inventory", id: "inventory", label: "Инвентаризация" },
   ] as const;
   return (
-    <div className="flex flex-wrap gap-2 text-sm">
+    <div className="flex flex-wrap gap-1.5 text-[13px]">
       {items.map((item) => (
         <Link
           key={item.id}
           href={item.href}
-          className={`rounded-full px-3 py-1 ${current === item.id ? "bg-teal-800 text-white" : "bg-white ring-1 ring-slate-200"}`}
+          className={`rounded-[var(--radius-sm)] px-2.5 py-1 ${
+            current === item.id
+              ? "bg-[var(--titan-dark)] text-white"
+              : "border border-[var(--line)] bg-[var(--surface)] text-[var(--text-secondary)]"
+          }`}
         >
           {item.label}
         </Link>

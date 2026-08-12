@@ -51,7 +51,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-800">Изделие</p>
+        <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--titan-dark)]">Изделие</p>
         <h1 className="mt-1 text-2xl font-semibold">{product.name}</h1>
       </div>
       <CatalogNav current="products" />
@@ -86,7 +86,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         <Field name="price" label="Цена продажи, сомони" defaultValue={currentPrice?.price.toString() ?? "0"} disabled={!canManage} />
         <Field name="minPrice" label="Минимальная цена" defaultValue={product.minPrice.toString()} disabled={!canManage} />
         {canManage ? (
-          <button className="sm:col-span-2 rounded-lg bg-teal-800 px-4 py-2 text-sm font-medium text-white">
+          <button className="sm:col-span-2 rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm font-medium text-white">
             Сохранить. Старая цена останется в истории.
           </button>
         ) : null}

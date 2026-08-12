@@ -44,12 +44,11 @@ export default async function WarehousePage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-800">PHASE 3</p>
-        <h1 className="mt-1 text-2xl font-semibold">Склад сырья</h1>
+<h1 className="mt-1 text-2xl font-semibold">Склад сырья</h1>
         <p className="mt-1 text-sm text-slate-600">
           Доступно = остаток − резерв. Оценка по средневзвешенной (WAC). Движения не удаляются.
         </p>
-        <a href="/warehouse/print?warehouse=RAW" className="mt-2 inline-block text-sm text-teal-800 hover:underline">
+        <a href="/warehouse/print?warehouse=RAW" className="mt-2 inline-block text-sm text-[var(--titan-dark)] hover:underline">
           Печать остатков / PDF
         </a>
       </div>
@@ -101,7 +100,7 @@ export default async function WarehousePage() {
                           name="quantity"
                           value={D(String(material.minStock)).sub(onHand).abs().toFixed(6)}
                         />
-                        <button className="text-xs text-teal-800">Заявка на закупку</button>
+                        <button className="text-xs text-[var(--titan-dark)]">Заявка на закупку</button>
                       </form>
                     ) : null}
                   </td>
@@ -126,7 +125,7 @@ export default async function WarehousePage() {
           <input name="quantity" required placeholder="Количество" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
           <input name="unitCost" required placeholder="Цена за ед." className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
           <input name="comment" placeholder="Комментарий" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <button className="rounded-lg bg-teal-800 px-3 py-2 text-sm text-white">Приход</button>
+          <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Приход</button>
         </form>
       ) : null}
 

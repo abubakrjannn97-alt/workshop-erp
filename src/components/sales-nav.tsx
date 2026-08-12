@@ -1,25 +1,22 @@
 import Link from "next/link";
 
 const ITEMS = [
-  { href: "/sales", label: "Продажи" },
-  { href: "/crm", label: "CRM" },
-  { href: "/orders", label: "Заказы" },
-];
+  { href: "/sales", id: "sales", label: "Продажи" },
+  { href: "/crm", id: "crm", label: "CRM" },
+  { href: "/orders", id: "orders", label: "Заказы" },
+] as const;
 
 export function SalesNav({ current }: { current: "sales" | "crm" | "orders" }) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-1.5">
       {ITEMS.map((item) => (
         <Link
           key={item.href}
           href={item.href}
-          className={`rounded-full px-3 py-1 text-sm ${
-            current === item.label.toLowerCase() ||
-            (current === "sales" && item.href === "/sales") ||
-            (current === "crm" && item.href === "/crm") ||
-            (current === "orders" && item.href === "/orders")
-              ? "bg-teal-800 text-white"
-              : "bg-white text-slate-700 ring-1 ring-slate-200"
+          className={`rounded-[var(--radius-sm)] px-2.5 py-1 text-[13px] ${
+            current === item.id
+              ? "bg-[var(--titan-dark)] text-white"
+              : "border border-[var(--line)] bg-[var(--surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
           }`}
         >
           {item.label}

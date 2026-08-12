@@ -26,8 +26,7 @@ export default async function ProductionPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-800">PHASE 5</p>
-        <h1 className="mt-1 text-2xl font-semibold">Производство</h1>
+<h1 className="mt-1 text-2xl font-semibold">Производство</h1>
         <p className="mt-1 text-sm text-slate-600">
           Задание создаётся при подтверждении заказа. Партии, факт сырья, брак и выпуск на склад ГП.
         </p>
@@ -56,7 +55,7 @@ export default async function ProductionPage() {
                 return (
                   <tr key={job.id}>
                     <td className="px-4 py-2">
-                      <Link href={`/production/${job.id}`} className="font-medium text-teal-800 hover:underline">
+                      <Link href={`/production/${job.id}`} className="font-medium text-[var(--titan-dark)] hover:underline">
                         #{job.order.number}
                       </Link>
                       <p className="text-xs text-slate-500">{job.order.customer.name}</p>

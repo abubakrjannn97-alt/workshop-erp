@@ -4,8 +4,8 @@
   "description": "ERP/MRP производственного цеха",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f4f6f8",
-  "theme_color": "#0f766e",
+  "background_color": "#F3F4F5",
+  "theme_color": "#4F565D",
   "lang": "ru",
   "icons": [
     {

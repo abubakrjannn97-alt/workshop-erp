@@ -43,7 +43,7 @@ export default async function SettingsPage() {
       </div>
 
       <div className="flex flex-wrap gap-2 text-sm">
-        <Link className="rounded-full bg-teal-800 px-3 py-1 text-white" href="/settings">
+        <Link className="rounded-full bg-[var(--titan-dark)] px-3 py-1 text-white" href="/settings">
           Бизнес
         </Link>
         <Link className="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200" href="/settings/units">
@@ -91,7 +91,7 @@ export default async function SettingsPage() {
           disabled={!canEdit}
         />
         {canEdit ? (
-          <button type="submit" className="rounded-lg bg-teal-800 px-4 py-2 text-sm font-medium text-white">
+          <button type="submit" className="rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm font-medium text-white">
             Сохранить
           </button>
         ) : null}
@@ -112,7 +112,7 @@ export default async function SettingsPage() {
                   className="rounded-lg border border-slate-200 px-2 py-1 text-sm"
                 />
                 {canEdit ? (
-                  <button className="text-xs text-teal-800 hover:underline">Сохранить</button>
+                  <button className="text-xs text-[var(--titan-dark)] hover:underline">Сохранить</button>
                 ) : null}
               </form>
             </li>
@@ -135,7 +135,7 @@ export default async function SettingsPage() {
                   className="rounded-lg border border-slate-200 px-2 py-1 text-sm"
                 />
                 {canEdit ? (
-                  <button className="text-xs text-teal-800 hover:underline">Сохранить</button>
+                  <button className="text-xs text-[var(--titan-dark)] hover:underline">Сохранить</button>
                 ) : null}
               </form>
             </li>
@@ -164,7 +164,7 @@ function Field({
         name={name}
         defaultValue={defaultValue}
         disabled={disabled}
-        className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-teal-700 focus:ring-2 disabled:bg-slate-50"
+        className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-[var(--titan-2)] focus:ring-2 disabled:bg-slate-50"
       />
     </label>
   );

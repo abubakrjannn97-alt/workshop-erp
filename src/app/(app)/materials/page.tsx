@@ -23,8 +23,7 @@ export default async function MaterialsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-800">PHASE 2</p>
-        <h1 className="mt-1 text-2xl font-semibold">Сырьё и материалы</h1>
+<h1 className="mt-1 text-2xl font-semibold">Сырьё и материалы</h1>
         <p className="mt-1 text-sm text-slate-600">
           Стоимость единицы = цена упаковки / вес упаковки. История цен не перезаписывается.
         </p>
@@ -53,7 +52,7 @@ export default async function MaterialsPage() {
           <input name="packageWeight" required placeholder="Вес упаковки" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
           <input name="packagePrice" required placeholder="Цена упаковки, с" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
           <input name="minStock" placeholder="Мин. остаток" defaultValue="0" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <button className="rounded-lg bg-teal-800 px-3 py-2 text-sm font-medium text-white sm:col-span-4">
+          <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm font-medium text-white sm:col-span-4">
             Добавить материал
           </button>
         </form>
@@ -76,7 +75,7 @@ export default async function MaterialsPage() {
               return (
                 <tr key={material.id} className="border-t border-slate-100">
                   <td className="px-4 py-3">
-                    <Link href={`/materials/${material.id}`} className="font-medium text-teal-900 hover:underline">
+                    <Link href={`/materials/${material.id}`} className="font-medium text-[var(--titan-dark)] hover:underline">
                       {material.name}
                     </Link>
                     <p className="text-xs text-slate-500">{material.category}</p>

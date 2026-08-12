@@ -39,11 +39,10 @@ export default async function OrdersPage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-800">PHASE 4</p>
-          <h1 className="mt-1 text-2xl font-semibold">Заказы</h1>
+<h1 className="mt-1 text-2xl font-semibold">Заказы</h1>
         </div>
         {canCreate ? (
-          <Link href="/orders/new" className="rounded-lg bg-teal-800 px-4 py-2 text-sm font-medium text-white">
+          <Link href="/orders/new" className="rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm font-medium text-white">
             Новый заказ
           </Link>
         ) : null}
@@ -93,7 +92,7 @@ export default async function OrdersPage({
                 return (
                   <tr key={o.id} className={overdue ? "bg-amber-50" : undefined}>
                     <td className="px-4 py-2">
-                      <Link href={`/orders/${o.id}`} className="font-medium text-teal-800 hover:underline">
+                      <Link href={`/orders/${o.id}`} className="font-medium text-[var(--titan-dark)] hover:underline">
                         #{o.number}
                       </Link>
                     </td>

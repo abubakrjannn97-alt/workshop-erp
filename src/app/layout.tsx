@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { PwaRegister } from "@/components/pwa-register";
+import { getLocale } from "@/lib/locale";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,15 +19,16 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0f766e",
+  themeColor: "#4F565D",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const locale = await getLocale();
   return (
-    <html lang="ru" className="h-full antialiased">
+    <html lang={locale === "tj" ? "tg" : "ru"} className="h-full antialiased">
       <body className="min-h-full">
         <PwaRegister />
         {children}

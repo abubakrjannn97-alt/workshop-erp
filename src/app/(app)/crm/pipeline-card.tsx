@@ -37,7 +37,7 @@ export function PipelineCard({
           </option>
         ))}
       </select>
-      <button className="mt-2 text-xs font-medium text-teal-800 hover:underline">Переместить</button>
+      <button className="mt-2 text-xs font-medium text-[var(--titan-dark)] hover:underline">Переместить</button>
     </form>
   );
 }

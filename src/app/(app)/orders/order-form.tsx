@@ -162,7 +162,7 @@ export function OrderForm({
       <p className="text-sm">
         Сумма: <span className="font-semibold">{moneyDisplay(totals.total)} с</span>
       </p>
-      <PendingButton className="rounded-lg bg-teal-800 px-4 py-2 text-sm font-medium text-white">
+      <PendingButton className="rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm font-medium text-white">
         Создать заказ
       </PendingButton>
     </form>

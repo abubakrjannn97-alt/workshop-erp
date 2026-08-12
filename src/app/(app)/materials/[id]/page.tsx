@@ -66,7 +66,7 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
         <Field name="packagePrice" label="Цена упаковки, сомони" defaultValue={material.packagePrice.toString()} disabled={!canManage} />
         <Field name="minStock" label="Минимальный остаток" defaultValue={material.minStock.toString()} disabled={!canManage} />
         {canManage ? (
-          <button className="sm:col-span-2 rounded-lg bg-teal-800 px-4 py-2 text-sm font-medium text-white">
+          <button className="sm:col-span-2 rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm font-medium text-white">
             Сохранить. Прежняя цена останется в истории.
           </button>
         ) : null}

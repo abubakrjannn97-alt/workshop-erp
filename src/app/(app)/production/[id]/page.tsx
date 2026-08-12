@@ -55,8 +55,7 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-800">PHASE 5</p>
-        <h1 className="mt-1 text-2xl font-semibold">Заказ #{job.order.number}</h1>
+<h1 className="mt-1 text-2xl font-semibold">Заказ #{job.order.number}</h1>
         <p className="mt-1 text-sm text-slate-600">
           {job.order.customer.name}
           {product ? ` · ${product.product.name} ${qtyDisplay(product.quantity)} ${product.product.saleUnit.symbol}` : null}
@@ -66,7 +65,7 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
           Прогресс: {qtyDisplay(job.producedQty)} / {qtyDisplay(job.plannedQty)}
           {product ? ` ${product.product.saleUnit.symbol}` : ""}
         </p>
-        <Link href={`/production/${job.id}/print`} className="mt-2 inline-block text-sm text-teal-800 hover:underline">
+        <Link href={`/production/${job.id}/print`} className="mt-2 inline-block text-sm text-[var(--titan-dark)] hover:underline">
           Печать задания / PDF
         </Link>
       </div>
@@ -106,7 +105,7 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
             </select>
           </label>
           <input name="comment" placeholder="Комментарий" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <button className="rounded-lg bg-teal-800 px-3 py-2 text-sm text-white">Создать партию</button>
+          <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Создать партию</button>
         </form>
       ) : null}
 
@@ -179,7 +178,7 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
                   </label>
                 ))}
                 <textarea name="comment" placeholder="Комментарий" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-                <PendingButton className="rounded-lg bg-teal-800 px-3 py-2 text-sm text-white">
+                <PendingButton className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">
                   Закрыть партию (выдача сырья + ГП)
                 </PendingButton>
               </form>
@@ -191,7 +190,7 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
       })}
 
       <p className="text-sm">
-        <Link href={`/orders/${job.orderId}`} className="text-teal-800 hover:underline">
+        <Link href={`/orders/${job.orderId}`} className="text-[var(--titan-dark)] hover:underline">
           Открыть заказ
         </Link>
       </p>

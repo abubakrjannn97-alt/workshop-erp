@@ -37,7 +37,7 @@ export default async function UnitsPage() {
             ))}
           </select>
           <input name="toBaseFactor" defaultValue="1" placeholder="К базовой" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <button className="rounded-lg bg-teal-800 px-3 py-2 text-sm font-medium text-white">Добавить</button>
+          <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm font-medium text-white">Добавить</button>
           <label className="sm:col-span-6 flex items-center gap-2 text-sm text-slate-600">
             <input type="checkbox" name="isBase" /> Базовая единица
           </label>
@@ -73,7 +73,7 @@ export default async function UnitsPage() {
                         defaultValue={unit.toBaseFactor.toString()}
                         className="w-24 rounded border border-slate-200 px-2 py-1"
                       />
-                      <button className="text-xs font-medium text-teal-800">Сохранить</button>
+                      <button className="text-xs font-medium text-[var(--titan-dark)]">Сохранить</button>
                     </form>
                   ) : (
                     unit.name
@@ -111,7 +111,7 @@ function Header() {
         <Link className="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200" href="/settings">
           Бизнес
         </Link>
-        <Link className="rounded-full bg-teal-800 px-3 py-1 text-white" href="/settings/units">
+        <Link className="rounded-full bg-[var(--titan-dark)] px-3 py-1 text-white" href="/settings/units">
           Единицы
         </Link>
       </div>

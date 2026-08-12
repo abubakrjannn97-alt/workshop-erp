@@ -110,29 +110,28 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-800">PHASE 4</p>
-        <h1 className="mt-1 text-2xl font-semibold">Заказ #{order.number}</h1>
+<h1 className="mt-1 text-2xl font-semibold">Заказ #{order.number}</h1>
         <p className="mt-1 text-sm text-slate-600">
           {order.customer.name} · {order.status.name} ·{" "}
           {PAYMENT_STATUS[order.paymentStatus as keyof typeof PAYMENT_STATUS] ?? order.paymentStatus}
         </p>
         <p className="mt-2 flex gap-3 text-sm">
-          <Link href={`/orders/${order.id}/print?doc=order`} className="text-teal-800 hover:underline">
+          <Link href={`/orders/${order.id}/print?doc=order`} className="text-[var(--titan-dark)] hover:underline">
             Заказ
           </Link>
-          <Link href={`/orders/${order.id}/print?doc=invoice`} className="text-teal-800 hover:underline">
+          <Link href={`/orders/${order.id}/print?doc=invoice`} className="text-[var(--titan-dark)] hover:underline">
             Счёт
           </Link>
-          <Link href={`/orders/${order.id}/print?doc=receipt`} className="text-teal-800 hover:underline">
+          <Link href={`/orders/${order.id}/print?doc=receipt`} className="text-[var(--titan-dark)] hover:underline">
             Квитанция
           </Link>
-          <Link href={`/orders/${order.id}/print?doc=waybill`} className="text-teal-800 hover:underline">
+          <Link href={`/orders/${order.id}/print?doc=waybill`} className="text-[var(--titan-dark)] hover:underline">
             Накладная
           </Link>
-          <a href={`/api/export/order?id=${order.id}`} className="text-teal-800 hover:underline">
+          <a href={`/api/export/order?id=${order.id}`} className="text-[var(--titan-dark)] hover:underline">
             CSV
           </a>
-          <a href={`/api/export/order?id=${order.id}&format=xls`} className="text-teal-800 hover:underline">
+          <a href={`/api/export/order?id=${order.id}&format=xls`} className="text-[var(--titan-dark)] hover:underline">
             Excel
           </a>
         </p>
@@ -203,12 +202,12 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
             {canPurchase ? (
               <form action={deficitAction} className="mt-2">
                 <input type="hidden" name="orderId" value={order.id} />
-                <button className="text-sm font-medium text-teal-800 hover:underline">
+                <button className="text-sm font-medium text-[var(--titan-dark)] hover:underline">
                   Создать заявку на закупку
                 </button>
               </form>
             ) : (
-              <Link href="/purchasing" className="mt-2 inline-block text-sm text-teal-800">
+              <Link href="/purchasing" className="mt-2 inline-block text-sm text-[var(--titan-dark)]">
                 Открыть закупки
               </Link>
             )}
@@ -223,7 +222,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
             {canCreate && (order.status.code === "NEW" || order.status.code === "AWAITING_PAYMENT") ? (
               <form action={confirmAction}>
                 <input type="hidden" name="id" value={order.id} />
-                <button className="rounded-lg bg-teal-800 px-3 py-2 text-sm text-white">Подтвердить</button>
+                <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Подтвердить</button>
               </form>
             ) : null}
             {canCreate && nextStatuses.length > 0
@@ -238,7 +237,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
             {canIssue && (order.status.code === "IN_FG" || order.status.code === "READY") ? (
               <form action={issueAction}>
                 <input type="hidden" name="id" value={order.id} />
-                <button className="rounded-lg bg-teal-800 px-3 py-2 text-sm text-white">Выдать клиенту</button>
+                <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Выдать клиенту</button>
               </form>
             ) : null}
             {canCancel && order.status.code !== "CANCELLED" ? (
@@ -277,7 +276,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                 placeholder="Комментарий"
                 className="sm:col-span-2 rounded-lg border border-slate-200 px-3 py-2 text-sm"
               />
-              <PendingButton className="rounded-lg bg-teal-800 px-3 py-2 text-sm text-white">
+              <PendingButton className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">
                 Принять оплату
               </PendingButton>
             </form>
@@ -306,13 +305,13 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       </section>
 
       <p className="text-sm">
-        <Link href={`/crm/customers/${order.customerId}`} className="text-teal-800 hover:underline">
+        <Link href={`/crm/customers/${order.customerId}`} className="text-[var(--titan-dark)] hover:underline">
           Карточка клиента
         </Link>
         {order.production ? (
           <>
             {" · "}
-            <Link href={`/production/${order.production.id}`} className="text-teal-800 hover:underline">
+            <Link href={`/production/${order.production.id}`} className="text-[var(--titan-dark)] hover:underline">
               Производство
             </Link>
           </>

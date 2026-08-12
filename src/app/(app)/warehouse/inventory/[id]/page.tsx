@@ -63,7 +63,7 @@ export default async function InventoryDetailPage({ params }: { params: Promise<
         {count.status === "DRAFT" && canConfirm ? (
           <>
             <input name="reason" required placeholder="Причина расхождений" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-            <button className="rounded-lg bg-teal-800 px-4 py-2 text-sm text-white">
+            <button className="rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm text-white">
               Подтвердить и провести корректировку
             </button>
           </>

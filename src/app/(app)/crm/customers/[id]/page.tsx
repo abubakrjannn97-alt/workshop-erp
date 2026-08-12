@@ -42,8 +42,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-800">PHASE 4</p>
-        <h1 className="mt-1 text-2xl font-semibold">{customer.name}</h1>
+<h1 className="mt-1 text-2xl font-semibold">{customer.name}</h1>
       </div>
       <SalesNav current="crm" />
 
@@ -71,7 +70,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
             />
           </label>
           <div className="flex gap-2">
-            <button className="rounded-lg bg-teal-800 px-3 py-2 text-sm text-white">Сохранить</button>
+            <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Сохранить</button>
           </div>
         </form>
       ) : null}

@@ -37,8 +37,7 @@ export default async function EmployeesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-800">PHASE 7</p>
-        <h1 className="mt-1 text-2xl font-semibold">Сотрудники</h1>
+<h1 className="mt-1 text-2xl font-semibold">Сотрудники</h1>
         <p className="mt-1 text-sm text-slate-600">
           Схемы оплаты: 22 с/м² за годные, комиссия продавца 3/4/5% с оплат. Брак в выработку не входит.
         </p>
@@ -63,7 +62,7 @@ export default async function EmployeesPage() {
               return (
                 <tr key={u.id}>
                   <td className="px-4 py-2">
-                    <Link href={`/employees/${u.id}`} className="font-medium text-teal-800 hover:underline">
+                    <Link href={`/employees/${u.id}`} className="font-medium text-[var(--titan-dark)] hover:underline">
                       {u.name}
                     </Link>
                     <p className="text-xs text-slate-500">{u.phone ?? u.email}</p>
@@ -125,7 +124,7 @@ export default async function EmployeesPage() {
                   ))}
                 </>
               ) : null}
-              <button className="rounded-lg bg-teal-800 px-3 py-2 text-sm text-white">Сохранить схему</button>
+              <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Сохранить схему</button>
             </form>
           ) : (
             <ul className="mt-2 text-sm">

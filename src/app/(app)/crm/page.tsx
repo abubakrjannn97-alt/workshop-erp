@@ -43,8 +43,7 @@ export default async function CrmPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-800">PHASE 4</p>
-        <h1 className="mt-1 text-2xl font-semibold">CRM</h1>
+<h1 className="mt-1 text-2xl font-semibold">CRM</h1>
       </div>
       <SalesNav current="crm" />
 
@@ -58,7 +57,7 @@ export default async function CrmPage() {
             <input name="address" placeholder="Адрес" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
             <input name="source" placeholder="Источник" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
             <textarea name="comment" placeholder="Комментарий" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-            <button className="rounded-lg bg-teal-800 px-3 py-2 text-sm text-white">Сохранить</button>
+            <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Сохранить</button>
           </form>
           <form action={leadAction} className="space-y-2 rounded-2xl border border-[var(--line)] bg-white p-5">
             <h2 className="text-sm font-semibold">Новый лид</h2>
@@ -73,7 +72,7 @@ export default async function CrmPage() {
               ))}
             </select>
             <textarea name="comment" placeholder="Комментарий" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-            <button className="rounded-lg bg-teal-800 px-3 py-2 text-sm text-white">В воронку</button>
+            <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">В воронку</button>
           </form>
         </div>
       ) : null}
@@ -105,7 +104,7 @@ export default async function CrmPage() {
                       {canManage && !stage.isLost ? (
                         <Link
                           href={`/orders/new?leadId=${lead.id}`}
-                          className="mt-1 inline-block text-[11px] text-teal-800 hover:underline"
+                          className="mt-1 inline-block text-[11px] text-[var(--titan-dark)] hover:underline"
                         >
                           Создать заказ
                         </Link>

@@ -65,8 +65,7 @@ export default async function FinancePage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-800">PHASE 6</p>
-        <h1 className="mt-1 text-2xl font-semibold">Финансы</h1>
+<h1 className="mt-1 text-2xl font-semibold">Финансы</h1>
         <p className="mt-1 text-sm text-slate-600">
           Баланс касс — где лежат деньги. Фонды — на что они уже предназначены. Не три физических кошелька.
         </p>
@@ -114,7 +113,7 @@ export default async function FinancePage() {
             ))}
           </select>
           <input name="openingAmount" placeholder="Остаток на начало" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <button className="rounded-lg bg-teal-800 px-3 py-2 text-sm text-white">Открыть смену</button>
+          <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Открыть смену</button>
         </form>
         <ul className="mt-3 space-y-3 text-sm">
           {shifts.length === 0 ? (
@@ -166,7 +165,7 @@ export default async function FinancePage() {
               </select>
               <input name="amount" placeholder="Сумма" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
               <input name="comment" placeholder="Комментарий" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-              <button className="rounded-lg bg-teal-800 px-3 py-2 text-sm text-white">Провести расход</button>
+              <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Провести расход</button>
             </form>
           ) : null}
           {canTransfer ? (
@@ -188,7 +187,7 @@ export default async function FinancePage() {
               </select>
               <input name="amount" placeholder="Сумма" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
               <input name="comment" placeholder="Комментарий" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-              <button className="rounded-lg bg-teal-800 px-3 py-2 text-sm text-white">Перевести</button>
+              <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Перевести</button>
             </form>
           ) : null}
         </section>
@@ -205,7 +204,7 @@ export default async function FinancePage() {
               <option value="tax">Налог</option>
             </select>
             <input name="amount" placeholder="Сумма" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-            <button className="rounded-lg bg-teal-800 px-3 py-2 text-sm text-white">Добавить</button>
+            <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Добавить</button>
           </form>
           <form action={categoryAction} className="space-y-2 rounded-2xl border border-[var(--line)] bg-white p-5">
             <h2 className="text-sm font-semibold">Категория расхода</h2>
@@ -218,7 +217,7 @@ export default async function FinancePage() {
                 </option>
               ))}
             </select>
-            <button className="rounded-lg bg-teal-800 px-3 py-2 text-sm text-white">Сохранить категорию</button>
+            <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Сохранить категорию</button>
           </form>
         </section>
       ) : null}

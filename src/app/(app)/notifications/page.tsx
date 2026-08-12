@@ -20,11 +20,10 @@ export default async function NotificationsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-800">PHASE 8</p>
-          <h1 className="mt-1 text-2xl font-semibold">Уведомления</h1>
+<h1 className="mt-1 text-2xl font-semibold">Уведомления</h1>
         </div>
         <form action={readAll}>
-          <button className="text-sm text-teal-800 hover:underline">Отметить прочитанными</button>
+          <button className="text-sm text-[var(--titan-dark)] hover:underline">Отметить прочитанными</button>
         </form>
       </div>
       <ul className="divide-y divide-slate-100 rounded-2xl border border-[var(--line)] bg-white">
@@ -37,7 +36,7 @@ export default async function NotificationsPage() {
               <p className="text-xs">{n.body}</p>
               <p className="mt-1 text-[11px] text-slate-400">{n.createdAt.toLocaleString("ru-RU")}</p>
               {n.entityType === "approval" && n.entityId ? (
-                <Link href="/settings/approvals" className="text-xs text-teal-800 hover:underline">
+                <Link href="/settings/approvals" className="text-xs text-[var(--titan-dark)] hover:underline">
                   Открыть согласования
                 </Link>
               ) : null}

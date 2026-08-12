@@ -36,7 +36,7 @@ export default async function BackupsPage() {
           ) : (
             rows.map((r, i) => (
               <li key={i} className="px-5 py-3">
-                <p className={r.ok ? "font-medium text-teal-800" : "font-medium text-red-800"}>
+                <p className={r.ok ? "font-medium text-[var(--titan-dark)]" : "font-medium text-red-800"}>
                   {r.ok ? "Успешно" : "Ошибка"} · {r.at ?? "—"}
                 </p>
                 <p className="text-xs text-slate-500">

@@ -52,8 +52,7 @@ export default async function NewOrderPage({
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-800">PHASE 4</p>
-        <h1 className="mt-1 text-2xl font-semibold">Новый заказ</h1>
+<h1 className="mt-1 text-2xl font-semibold">Новый заказ</h1>
       </div>
       <SalesNav current="orders" />
       {customers.length === 0 ? (

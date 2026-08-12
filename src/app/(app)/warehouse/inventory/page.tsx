@@ -30,7 +30,7 @@ export default async function InventoryListPage() {
             </option>
           ))}
         </select>
-        <button className="rounded-lg bg-teal-800 px-4 py-2 text-sm text-white">Начать пересчёт</button>
+        <button className="rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm text-white">Начать пересчёт</button>
       </form>
       <ul className="space-y-2">
         {counts.map((c) => (
