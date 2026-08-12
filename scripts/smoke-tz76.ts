@@ -513,29 +513,27 @@ async function main() {
   const entries = await prisma.ledgerEntry.findMany({ where: { orderId: order.id, status: "POSTED" } });
   const profitFund = await prisma.financialFund.findUniqueOrThrow({ where: { code: FUND.PROFIT } });
   const profit = entries.reduce((s, e) => s.add(fundDelta(e, profitFund.id)), D(0));
-  if (profit.lte(0)) {
-    fail("7. Dashboard profit fund", `ожидалось > 0, получено ${money(profit)}`);
-  } else {
-    pass("7. Dashboard profit fund", money(profit));
-  }
 
   const matCost = D(String(order.materialCost ?? quote.materialCost ?? "0"));
   const revenue = D(orderTotal);
-  const saleQty = D("50");
+  const saleQty = D(quantity);
   const laborExpected = saleQty.mul("22");
   const commAccruals = await prisma.payrollAccrual.findMany({
     where: { orderId: order.id, kind: "COMMISSION", status: "ACCRUED" },
   });
   const commTotal = commAccruals.reduce((s, a) => s.add(String(a.amount)), D(0));
-  const contribution = revenue.sub(matCost).sub(laborExpected).sub(commTotal);
+  // Оплата полная, opex 0 → фонд прибыли = contribution
+  const expectedProfit = revenue.sub(matCost).sub(laborExpected).sub(commTotal);
+  if (profit.lte(0)) {
+    fail("7. Dashboard profit fund", `ожидалось > 0, получено ${money(profit)}`);
+  } else {
+    assertEq("7. Dashboard profit fund", money(profit), money(expectedProfit), "0.02");
+  }
   pass(
     "7. Contribution",
-    `выручка ${money(revenue)} − мат ${money(matCost)} − труд ${money(laborExpected)} − комиссия ${money(commTotal)} = ${money(contribution)}`,
+    `выручка ${money(revenue)} − мат ${money(matCost)} − труд ${money(laborExpected)} − комиссия ${money(commTotal)} = ${money(expectedProfit)}`,
   );
-  // Прибыль в фонде ≈ доля оплат после материалов/труда/комиссии (opex 0)
-  if (profit.gt(0) && contribution.gt(0)) {
-    pass("7. Profit vs contribution", `фонд ${money(profit)}, contribution ${money(contribution)}`);
-  }
+  assertEq("7. Profit vs contribution", money(profit), money(expectedProfit), "0.02");
 
   checkRbac();
   writeReport();
