@@ -1,0 +1,21 @@
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import type { PermissionCode } from "./permissions";
+export { hasPermission } from "./permissions";
+
+export async function requireSession() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
+  return session;
+}
+
+export async function requirePermission(code: PermissionCode) {
+  const session = await requireSession();
+  const permissions = session.user.permissions ?? [];
+  if (session.user.roleCode !== "owner" && !permissions.includes(code)) {
+    redirect("/");
+  }
+  return session;
+}

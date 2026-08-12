@@ -1,0 +1,105 @@
+{
+  "ok": true,
+  "rows": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/products",
+      "status": 200
+    },
+    {
+      "path": "/materials",
+      "status": 200
+    },
+    {
+      "path": "/sales",
+      "status": 200
+    },
+    {
+      "path": "/crm",
+      "status": 200
+    },
+    {
+      "path": "/orders",
+      "status": 200
+    },
+    {
+      "path": "/orders/new",
+      "status": 200
+    },
+    {
+      "path": "/production",
+      "status": 200
+    },
+    {
+      "path": "/warehouse",
+      "status": 200
+    },
+    {
+      "path": "/warehouse/finished",
+      "status": 200
+    },
+    {
+      "path": "/warehouse/movements",
+      "status": 200
+    },
+    {
+      "path": "/purchasing",
+      "status": 200
+    },
+    {
+      "path": "/finance",
+      "status": 200
+    },
+    {
+      "path": "/employees",
+      "status": 200
+    },
+    {
+      "path": "/analytics",
+      "status": 200
+    },
+    {
+      "path": "/notifications",
+      "status": 200
+    },
+    {
+      "path": "/settings",
+      "status": 200
+    },
+    {
+      "path": "/settings/users",
+      "status": 200
+    },
+    {
+      "path": "/settings/roles",
+      "status": 200
+    },
+    {
+      "path": "/settings/units",
+      "status": 200
+    },
+    {
+      "path": "/settings/audit",
+      "status": 200
+    },
+    {
+      "path": "/settings/approvals",
+      "status": 200
+    },
+    {
+      "path": "/settings/backups",
+      "status": 200
+    },
+    {
+      "path": "/search",
+      "status": 200
+    },
+    {
+      "path": "/more",
+      "status": 200
+    }
+  ]
+}
