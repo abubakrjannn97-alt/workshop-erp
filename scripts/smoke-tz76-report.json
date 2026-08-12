@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-08-12T14:01:30.113Z",
+  "ranAt": "2026-08-12T14:24:12.909Z",
   "steps": [
     {
       "name": "Seed prices",
@@ -9,7 +9,7 @@
     {
       "name": "1. Клиент",
       "ok": true,
-      "detail": "Smoke клиент 1786543287431"
+      "detail": "Smoke клиент 1786544650056"
     },
     {
       "name": "2. Сумма заказа",
@@ -19,7 +19,7 @@
     {
       "name": "2. Заказ",
       "ok": true,
-      "detail": "#1005, 50 м²"
+      "detail": "#1006, 50 м²"
     },
     {
       "name": "3. Норма Белый цемент",
@@ -49,7 +49,7 @@
     {
       "name": "3. Production order",
       "ok": true,
-      "detail": "cmsq5qv65000subls27ghwl7a"
+      "detail": "cmsq6k2o3000subsw3wqcgw9i"
     },
     {
       "name": "4. Партия",
