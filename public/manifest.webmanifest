@@ -1,16 +1,29 @@
 {
-  "name": "Производственный цех",
-  "short_name": "Цех",
-  "description": "ERP/MRP производственного цеха",
-  "start_url": "/",
+  "id": "/",
+  "name": "Produsion — Производственный цех",
+  "short_name": "Produsion",
+  "description": "ERP/MRP производственного цеха: заказы, склад, производство, финансы",
+  "start_url": "/?source=pwa",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#f8fafc",
-  "theme_color": "#0f172a",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "portrait-primary",
+  "background_color": "#0B0E1A",
+  "theme_color": "#0B0E1A",
   "lang": "ru",
+  "dir": "ltr",
+  "categories": ["business", "productivity"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
     },
@@ -25,12 +38,32 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Главная",
+      "short_name": "Главная",
+      "url": "/?source=pwa-shortcut",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "src": "/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
+      "name": "Заказы",
+      "short_name": "Заказы",
+      "url": "/orders?source=pwa-shortcut",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Новый заказ",
+      "short_name": "Заказ",
+      "url": "/orders/new?source=pwa-shortcut",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Склад",
+      "short_name": "Склад",
+      "url": "/warehouse?source=pwa-shortcut",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

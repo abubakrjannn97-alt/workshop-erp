@@ -1086,3 +1086,9 @@ main .ui-card > .section-title {
     padding: 14px;
   }
 }
+
+@media (display-mode: standalone) {
+  html {
+    overscroll-behavior-y: none;
+  }
+}

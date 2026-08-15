@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { PwaRegister } from "@/components/pwa-register";
+import { PwaInstall } from "@/components/pwa-install";
 import { getTranslator } from "@/lib/locale";
 import "./globals.css";
 
@@ -33,6 +34,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
@@ -41,6 +43,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html lang={locale === "tj" ? "tg" : "ru"} className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full bg-[var(--color-background)] font-sans text-[var(--color-text-primary)]">
         <PwaRegister />
+        <PwaInstall locale={locale} />
         {children}
       </body>
     </html>
