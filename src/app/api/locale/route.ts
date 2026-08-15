@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { LOCALE_COOKIE } from "@/lib/locale";
+import { LOCALE_COOKIE } from "@/lib/locale-cookie";
 import { LOCALES, type Locale } from "@/lib/i18n";
 
 export async function POST(request: Request) {

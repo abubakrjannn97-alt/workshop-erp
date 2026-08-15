@@ -1,9 +1,8 @@
 import { cookies } from "next/headers";
 import { DEFAULT_LOCALE, type Locale, LOCALES, createT, intlLocale, named } from "@/lib/i18n";
+import { LOCALE_COOKIE } from "@/lib/locale-cookie";
 
-export { intlLocale };
-
-export const LOCALE_COOKIE = "workshop_locale";
+export { intlLocale, LOCALE_COOKIE };
 
 export async function getLocale(): Promise<Locale> {
   const jar = await cookies();

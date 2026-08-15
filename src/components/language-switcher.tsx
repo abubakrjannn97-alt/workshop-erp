@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { createT, type Locale } from "@/lib/i18n";
-import { LOCALE_COOKIE } from "@/lib/locale";
+import { LOCALE_COOKIE } from "@/lib/locale-cookie";
 
 function writeLocaleCookie(locale: Locale) {
   const maxAge = 60 * 60 * 24 * 365;

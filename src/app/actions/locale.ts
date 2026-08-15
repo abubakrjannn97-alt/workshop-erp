@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { LOCALE_COOKIE } from "@/lib/locale";
+import { LOCALE_COOKIE } from "@/lib/locale-cookie";
 import { LOCALES, type Locale } from "@/lib/i18n";
 
 export async function setLocaleAction(formData: FormData) {
