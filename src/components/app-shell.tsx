@@ -116,7 +116,7 @@ export function AppShell({
           className={
             isHome
               ? "relative z-10 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-transparent lg:bg-[var(--color-background)] lg:px-3 lg:py-3 lg:pb-4"
-              : "relative z-10 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-transparent px-3 py-3 pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:bg-[var(--color-background)] lg:px-3 lg:py-3 lg:pb-4"
+              : "relative z-10 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-transparent px-3 py-3 pb-[calc(5.25rem+env(safe-area-inset-bottom))] lg:bg-[var(--color-background)] lg:px-3 lg:py-3 lg:pb-4"
           }
         >
           {children}

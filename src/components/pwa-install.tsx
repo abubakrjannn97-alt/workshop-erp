@@ -78,7 +78,7 @@ export function PwaInstall({ locale }: { locale: Locale }) {
   return (
     <div
       className="fixed inset-x-3 z-[60] print:hidden lg:hidden"
-      style={{ bottom: "calc(5.75rem + env(safe-area-inset-bottom))" }}
+      style={{ bottom: "calc(5.5rem + env(safe-area-inset-bottom))" }}
     >
       <div className="rounded-2xl border border-[rgba(232,201,120,0.35)] bg-[#0e1522] p-4 text-white shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
         <p className="text-sm font-semibold text-[#E8C978]">{t("pwa.installTitle")}</p>

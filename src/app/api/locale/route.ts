@@ -1,7 +1,37 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { LOCALE_COOKIE } from "@/lib/locale-cookie";
 import { LOCALES, type Locale } from "@/lib/i18n";
+
+export const dynamic = "force-dynamic";
+
+function cookieOptions() {
+  return {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+    sameSite: "lax" as const,
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",
+  };
+}
+
+function safeRedirect(raw: string | null) {
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/";
+  return raw;
+}
+
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const locale = String(url.searchParams.get("locale") ?? "");
+  const redirectTo = safeRedirect(url.searchParams.get("redirect"));
+
+  if (!(LOCALES as string[]).includes(locale)) {
+    return NextResponse.redirect(new URL(redirectTo, request.url));
+  }
+
+  const res = NextResponse.redirect(new URL(redirectTo, request.url));
+  res.cookies.set(LOCALE_COOKIE, locale as Locale, cookieOptions());
+  return res;
+}
 
 export async function POST(request: Request) {
   let body: { locale?: string };
@@ -16,14 +46,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false }, { status: 400 });
   }
 
-  const jar = await cookies();
-  jar.set(LOCALE_COOKIE, locale as Locale, {
-    path: "/",
-    maxAge: 60 * 60 * 24 * 365,
-    sameSite: "lax",
-    httpOnly: false,
-    secure: process.env.NODE_ENV === "production",
-  });
-
-  return NextResponse.json({ ok: true });
+  const res = NextResponse.json({ ok: true });
+  res.cookies.set(LOCALE_COOKIE, locale as Locale, cookieOptions());
+  return res;
 }

@@ -27,6 +27,7 @@ import {
   IconCart,
   IconBox,
 } from "@/components/icons";
+import styles from "./bottom-nav.module.css";
 
 const ICONS: Record<NavIcon, typeof IconHome> = {
   home: IconHome,
@@ -92,33 +93,33 @@ export function BottomNav({
   if (tabs.length === 0) return null;
 
   return (
-    <nav
-      className="fixed inset-x-0 bottom-0 z-50 flex border-t border-dark-border bg-dark-950 print:hidden lg:hidden"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-    >
-      {tabs.map((tab) => {
-        const active = isTabActive(activePath, tab, tabs);
-        const Icon = ICONS[tab.icon] ?? IconMenu;
-        return (
-          <Link
-            key={tab.id}
-            href={tab.href}
-            prefetch
-            onMouseEnter={() => warm(tab.href)}
-            onTouchStart={() => warm(tab.href)}
-            onClick={() => setPendingHref(tab.href)}
-            data-tour={tab.tour ?? `nav-${tab.id}`}
-            className={`flex min-h-16 flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] transition-[color,transform,opacity] duration-150 active:scale-[0.97] ${
-              active ? "font-semibold text-accent-500" : "font-medium text-[var(--text-500)]"
-            } ${pendingHref === tab.href ? "opacity-70" : ""}`}
-          >
-            <Icon size={22} />
-            <span className="max-w-[4.8rem] truncate">{t(tab.labelKey)}</span>
-            {active ? <span className="mt-0.5 h-1 w-1 rounded-full bg-accent-500" /> : <span className="mt-0.5 h-1 w-1" />}
-          </Link>
-        );
-      })}
-    </nav>
+    <div className={`${styles.shell} print:hidden lg:hidden`}>
+      <nav className={styles.bar} aria-label={t("nav.menu")}>
+        {tabs.map((tab) => {
+          const active = isTabActive(activePath, tab, tabs);
+          const Icon = ICONS[tab.icon] ?? IconMenu;
+          const pending = pendingHref === tab.href;
+          return (
+            <Link
+              key={tab.id}
+              href={tab.href}
+              prefetch
+              onMouseEnter={() => warm(tab.href)}
+              onTouchStart={() => warm(tab.href)}
+              onClick={() => setPendingHref(tab.href)}
+              data-tour={tab.tour ?? `nav-${tab.id}`}
+              className={`${styles.tab} ${active ? styles.tabActive : ""} ${pending ? styles.tabPending : ""}`}
+            >
+              <span className={styles.iconWrap}>
+                <Icon size={21} />
+              </span>
+              <span className={styles.label}>{t(tab.labelKey)}</span>
+              <span className={styles.dot} aria-hidden="true" />
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
   );
 }
 
