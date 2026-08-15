@@ -24,7 +24,7 @@ export default async function LoginPage() {
       </div>
       <div className="relative w-full max-w-sm">
         <div className="mb-6 flex flex-col items-center gap-2 text-center">
-          <WorkshopMark size={40} />
+          <WorkshopMark size={72} className="rounded-[22%]" />
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-gold)]">
             Produsion System
           </p>

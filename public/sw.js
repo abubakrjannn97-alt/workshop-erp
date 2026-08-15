@@ -1,9 +1,9 @@
-const CACHE = "workshop-shell-v3";
+const CACHE = "workshop-shell-v4";
 const OFFLINE_URL = "/offline.html";
 const PRECACHE = [
   OFFLINE_URL,
   "/manifest.webmanifest",
-  "/icon.svg",
+  "/logo.png",
   "/icon-192.png",
   "/icon-512.png",
   "/apple-touch-icon.png",
@@ -51,7 +51,7 @@ self.addEventListener("fetch", (event) => {
 
   if (
     url.pathname.startsWith("/_next/static/") ||
-    url.pathname === "/icon.svg" ||
+    url.pathname === "/logo.png" ||
     url.pathname.endsWith(".png") ||
     url.pathname.endsWith(".webmanifest")
   ) {

@@ -71,9 +71,7 @@ export function AppShell({
             }}
           >
             <div className="flex min-w-0 items-center gap-2.5">
-              <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-[rgba(232,201,120,0.35)] bg-[rgba(18,16,12,0.55)]">
-                <WorkshopMark size={20} plain color="#E8C978" />
-              </span>
+              <WorkshopMark size={36} className="rounded-[22%]" />
               <p className="min-w-0 flex-1 text-[11px] font-semibold leading-[1.2] text-white line-clamp-2">
                 {companyName}
               </p>

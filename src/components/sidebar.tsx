@@ -138,7 +138,7 @@ export function Sidebar({
       }`}
     >
       <div className={`flex h-10 shrink-0 items-center ${collapsed ? "justify-center px-1" : "gap-1.5 px-2"}`}>
-        <WorkshopMark size={collapsed ? 18 : 20} />
+        <WorkshopMark size={collapsed ? 28 : 32} className="rounded-[22%]" />
         {!collapsed ? (
           <div className="min-w-0 leading-tight">
             <p className="truncate text-[9px] font-semibold uppercase tracking-[0.12em] text-[#D4AF37]">

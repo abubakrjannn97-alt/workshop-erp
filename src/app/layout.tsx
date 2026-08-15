@@ -22,9 +22,9 @@ export async function generateMetadata(): Promise<Metadata> {
     appleWebApp: { capable: true, title: t("meta.short"), statusBarStyle: "black-translucent" },
     icons: {
       icon: [
+        { url: "/favicon.png", sizes: "32x32", type: "image/png" },
         { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
         { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
-        { url: "/icon.svg", type: "image/svg+xml" },
       ],
       apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
     },
