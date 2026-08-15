@@ -40,6 +40,20 @@ export function CashShiftControl({
   const dark = variant === "dark";
 
   useEffect(() => {
+    if (!open || !window.matchMedia("(max-width: 1023px)").matches) return;
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverflow = body.style.overflow;
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    return () => {
+      html.style.overflow = prevHtmlOverflow;
+      body.style.overflow = prevBodyOverflow;
+    };
+  }, [open]);
+
+  useEffect(() => {
     if (!open) return;
     function onPointerDown(event: MouseEvent | TouchEvent) {
       if (!wrapRef.current?.contains(event.target as Node)) {
@@ -74,69 +88,77 @@ export function CashShiftControl({
       </button>
 
       {open ? (
-        <div className={styles.panel} role="dialog" aria-label={t("fin.shift")}>
-          <p className={styles.title}>{t("fin.shift")}</p>
+        <>
+          <button
+            type="button"
+            className={styles.backdrop}
+            aria-label={t("help.close")}
+            onClick={() => setOpen(false)}
+          />
+          <div className={styles.panel} role="dialog" aria-label={t("fin.shift")}>
+            <p className={styles.title}>{t("fin.shift")}</p>
 
-          {activeShift && activeAccount ? (
-            <>
-              <p className={styles.meta}>
-                {activeAccount.name} · {t("fin.openedAt")}{" "}
-                {new Date(activeShift.openedAt).toLocaleString(intl)} · {t("fin.start")}{" "}
-                {activeShift.openingAmount} с
-              </p>
-              {activeShift.expectedBalance ? (
+            {activeShift && activeAccount ? (
+              <>
                 <p className={styles.meta}>
-                  {t("fin.expectedNow")}: {activeShift.expectedBalance} с
+                  {activeAccount.name} · {t("fin.openedAt")}{" "}
+                  {new Date(activeShift.openedAt).toLocaleString(intl)} · {t("fin.start")}{" "}
+                  {activeShift.openingAmount} с
                 </p>
-              ) : null}
-              <form
-                action={closeCashShift}
-                className={styles.form}
-                onSubmit={() => setOpen(false)}
-              >
-                <input type="hidden" name="id" value={activeShift.id} />
+                {activeShift.expectedBalance ? (
+                  <p className={styles.meta}>
+                    {t("fin.expectedNow")}: {activeShift.expectedBalance} с
+                  </p>
+                ) : null}
+                <form
+                  action={closeCashShift}
+                  className={styles.form}
+                  onSubmit={() => setOpen(false)}
+                >
+                  <input type="hidden" name="id" value={activeShift.id} />
+                  <input
+                    name="closingActual"
+                    placeholder={t("fin.closeBalance")}
+                    className={styles.field}
+                    inputMode="decimal"
+                    required
+                  />
+                  <input
+                    name="comment"
+                    placeholder={t("fin.diffReason")}
+                    className={styles.field}
+                  />
+                  <div className={styles.actions}>
+                    <PendingButton className={styles.secondary}>{t("fin.closeShift")}</PendingButton>
+                  </div>
+                </form>
+              </>
+            ) : (
+              <form action={openCashShift} className={styles.form} onSubmit={() => setOpen(false)}>
+                <select name="accountId" className={styles.field} defaultValue={data.accounts[0]?.id}>
+                  {data.accounts.map((account) => (
+                    <option key={account.id} value={account.id}>
+                      {account.name} · {account.balance} с
+                    </option>
+                  ))}
+                </select>
                 <input
-                  name="closingActual"
-                  placeholder={t("fin.closeBalance")}
+                  name="openingAmount"
+                  placeholder={t("fin.openBalance")}
                   className={styles.field}
                   inputMode="decimal"
-                  required
-                />
-                <input
-                  name="comment"
-                  placeholder={t("fin.diffReason")}
-                  className={styles.field}
                 />
                 <div className={styles.actions}>
-                  <PendingButton className={styles.secondary}>{t("fin.closeShift")}</PendingButton>
+                  <PendingButton className={styles.primary}>{t("fin.openShift")}</PendingButton>
                 </div>
               </form>
-            </>
-          ) : (
-            <form action={openCashShift} className={styles.form} onSubmit={() => setOpen(false)}>
-              <select name="accountId" className={styles.field} defaultValue={data.accounts[0]?.id}>
-                {data.accounts.map((account) => (
-                  <option key={account.id} value={account.id}>
-                    {account.name} · {account.balance} с
-                  </option>
-                ))}
-              </select>
-              <input
-                name="openingAmount"
-                placeholder={t("fin.openBalance")}
-                className={styles.field}
-                inputMode="decimal"
-              />
-              <div className={styles.actions}>
-                <PendingButton className={styles.primary}>{t("fin.openShift")}</PendingButton>
-              </div>
-            </form>
-          )}
+            )}
 
-          <Link href="/finance" className={styles.link} onClick={() => setOpen(false)}>
-            {t("nav.finance")} →
-          </Link>
-        </div>
+            <Link href="/finance" className={styles.link} onClick={() => setOpen(false)}>
+              {t("nav.finance")} →
+            </Link>
+          </div>
+        </>
       ) : null}
     </div>
   );

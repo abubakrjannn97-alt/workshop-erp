@@ -28,42 +28,88 @@ export async function clearDemoHistory(prisma: PrismaClient) {
     select: { id: true },
   });
   const customerIds = seedCustomers.map((c) => c.id);
-  const orderIds =
-    customerIds.length > 0
-      ? (
-          await prisma.order.findMany({
-            where: { customerId: { in: customerIds } },
-            select: { id: true },
-          })
-        ).map((o) => o.id)
-      : [];
 
-  await prisma.ledgerEntry.deleteMany({
+  const seedPayments = await prisma.payment.findMany({
+    where: { idempotencyKey: { startsWith: "seed-pay-" } },
+    select: { orderId: true },
+  });
+  const seedOrderIdsFromPayments = seedPayments.map((p) => p.orderId);
+
+  const linkedOrders = await prisma.order.findMany({
     where: {
       OR: [
-        { idempotencyKey: { startsWith: "seed-" } },
-        ...(orderIds.length ? [{ orderId: { in: orderIds } }] : []),
+        ...(customerIds.length ? [{ customerId: { in: customerIds } }] : []),
+        ...(seedOrderIdsFromPayments.length ? [{ id: { in: seedOrderIdsFromPayments } }] : []),
       ],
     },
+    select: { id: true, customerId: true },
   });
+  const linkedOrderIds = [...new Set(linkedOrders.map((o) => o.id))];
 
-  if (orderIds.length) {
-    await prisma.payment.deleteMany({ where: { orderId: { in: orderIds } } });
-    const productionIds = (
-      await prisma.productionOrder.findMany({
-        where: { orderId: { in: orderIds } },
+  if (linkedOrderIds.length) {
+    const linkedProduction = await prisma.productionOrder.findMany({
+      where: { orderId: { in: linkedOrderIds } },
+      select: { id: true },
+    });
+    const linkedProductionIds = linkedProduction.map((p) => p.id);
+
+    if (linkedProductionIds.length) {
+      const linkedBatches = await prisma.productionBatch.findMany({
+        where: { productionOrderId: { in: linkedProductionIds } },
         select: { id: true },
-      })
-    ).map((p) => p.id);
-    if (productionIds.length) {
-      await prisma.productionBatch.deleteMany({ where: { productionOrderId: { in: productionIds } } });
-      await prisma.productionOrder.deleteMany({ where: { id: { in: productionIds } } });
+      });
+      const linkedBatchIds = linkedBatches.map((b) => b.id);
+
+      if (linkedBatchIds.length) {
+        await prisma.payrollAccrual.deleteMany({ where: { batchId: { in: linkedBatchIds } } });
+        await prisma.batchMaterialUse.deleteMany({ where: { batchId: { in: linkedBatchIds } } });
+        await prisma.scrapRecord.deleteMany({ where: { batchId: { in: linkedBatchIds } } });
+        await prisma.productionBatch.deleteMany({ where: { id: { in: linkedBatchIds } } });
+      }
+
+      await prisma.productionOrder.deleteMany({ where: { id: { in: linkedProductionIds } } });
     }
-    await prisma.orderItem.deleteMany({ where: { orderId: { in: orderIds } } });
-    await prisma.order.deleteMany({ where: { id: { in: orderIds } } });
+
+    await prisma.productionOrder.deleteMany({ where: { orderId: { in: linkedOrderIds } } });
+
+    await prisma.payrollAccrual.deleteMany({ where: { orderId: { in: linkedOrderIds } } });
+
+    const linkedPayments = await prisma.payment.findMany({
+      where: { orderId: { in: linkedOrderIds } },
+      select: { id: true },
+    });
+    const linkedPaymentIds = linkedPayments.map((p) => p.id);
+
+    if (linkedPaymentIds.length) {
+      await prisma.payrollAccrual.deleteMany({ where: { paymentId: { in: linkedPaymentIds } } });
+    }
+
+    await prisma.ledgerEntry.deleteMany({
+      where: {
+        OR: [
+          { idempotencyKey: { startsWith: "seed-" } },
+          { orderId: { in: linkedOrderIds } },
+          ...(linkedPaymentIds.length ? [{ paymentId: { in: linkedPaymentIds } }] : []),
+        ],
+      },
+    });
+
+    if (linkedPaymentIds.length) {
+      await prisma.payment.deleteMany({ where: { id: { in: linkedPaymentIds } } });
+    }
+
+    await prisma.orderMaterialNeed.deleteMany({ where: { orderId: { in: linkedOrderIds } } });
+    await prisma.orderItem.deleteMany({ where: { orderId: { in: linkedOrderIds } } });
+    await prisma.order.deleteMany({ where: { id: { in: linkedOrderIds } } });
   }
 
-  await prisma.customer.deleteMany({ where: { source: "seed" } });
+  if (customerIds.length) {
+    await prisma.lead.updateMany({
+      where: { customerId: { in: customerIds } },
+      data: { customerId: null },
+    });
+    await prisma.customer.deleteMany({ where: { source: "seed" } });
+  }
 
   const seedPos = await prisma.purchaseOrder.findMany({
     where: { number: { startsWith: "PO-SEED" } },
