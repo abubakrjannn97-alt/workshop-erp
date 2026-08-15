@@ -39,10 +39,13 @@ yarn-error.log*
 
 # vercel
 .vercel
+.env.local
+
+# cursor hook logs
+.cursor/hooks/auto-sync.log
+.cursor/hooks/auto-sync.lock
+.cursor/hooks/last-*.log
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-.vercel
-.env*

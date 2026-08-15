@@ -8,10 +8,8 @@ import {
   ClipboardList,
   Users,
   Package,
-  Factory,
   TrendingUp,
   MoreHorizontal,
-  Zap,
   Bell,
   ChevronDown,
   ChevronRight,
@@ -306,18 +304,11 @@ export async function MobileOwnerHome() {
   }));
 
   const shortcuts = [
-    { href: "/orders/new", label: t("sales.newOrder"), icon: ShoppingCart, color: "var(--accent-500)" },
-    { href: "/crm", label: t("nav.crm"), icon: Users, color: "var(--success-500)" },
-    { href: "/products", label: t("nav.products"), icon: Package, color: "var(--info-500)" },
-    { href: "/production", label: t("nav.production"), icon: TrendingUp, color: "var(--violet-500)" },
-    { href: "/more", label: t("home.more"), icon: MoreHorizontal, color: "var(--text-400)" },
-  ] as const;
-
-  const actions = [
-    { href: "/orders/new", label: t("sales.newOrder"), icon: ShoppingCart, color: "var(--accent-500)", bg: "var(--accent-100)" },
-    { href: "/crm", label: t("nav.crm"), icon: Users, color: "var(--success-500)", bg: "var(--success-100)" },
-    { href: "/products", label: t("nav.products"), icon: Package, color: "var(--info-500)", bg: "var(--info-100)" },
-    { href: "/production", label: t("nav.production"), icon: Factory, color: "var(--violet-500)", bg: "var(--violet-100)" },
+    { href: "/orders/new", label: t("sales.newOrder"), icon: ShoppingCart, glow: styles.iconGold },
+    { href: "/crm", label: t("nav.crm"), icon: Users, glow: styles.iconGreen },
+    { href: "/products", label: t("nav.products"), icon: Package, glow: styles.iconBlue },
+    { href: "/production", label: t("nav.production"), icon: TrendingUp, glow: styles.iconPurple },
+    { href: "/more", label: t("home.more"), icon: MoreHorizontal, glow: styles.iconGray },
   ] as const;
 
   const tiles = [
@@ -445,88 +436,53 @@ export async function MobileOwnerHome() {
         </div>
       </div>
 
-      <div className={`${styles.sheet} flex gap-3 overflow-x-auto px-5 no-scrollbar snap-x`}>
-        {shortcuts.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="flex min-w-14 flex-1 snap-start flex-col items-center gap-2 no-underline"
-            >
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--bg-card-border)] bg-white/95 shadow-sm">
-                <Icon size={22} color={item.color} strokeWidth={1.8} />
-              </span>
-              <span className="text-center text-xs font-medium leading-tight text-[var(--text-900)]">{item.label}</span>
-            </Link>
-          );
-        })}
+      <div className={styles.shortcutStrip}>
+        <div className={`${styles.shortcuts} no-scrollbar snap-x`}>
+          {shortcuts.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link key={item.href} href={item.href} className={`${styles.shortcut} snap-start`}>
+                <span className={`${styles.shortcutIcon} ${item.glow}`}>
+                  <Icon size={20} strokeWidth={2.2} />
+                </span>
+                <span className={styles.shortcutLabel}>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="mx-5 mt-6 space-y-6">
-        <section className="rounded-3xl border border-[var(--bg-card-border)] bg-white p-4 shadow-sm">
-          <h2 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.04em] text-[var(--text-500)]">
-            <Zap size={14} color="var(--accent-500)" strokeWidth={1.8} />
-            {t("home.quickActions")}
-          </h2>
-          <div className="grid grid-cols-2 gap-3">
-            {actions.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={`act-${item.href}`}
-                  href={item.href}
-                  className="flex items-center gap-3 rounded-2xl border border-[var(--bg-card-border)] px-3 py-3 no-underline"
-                >
-                  <span
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
-                    style={{ background: item.bg }}
-                  >
-                    <Icon size={18} color={item.color} strokeWidth={1.8} />
-                  </span>
-                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-[var(--text-900)]">
-                    {item.label}
-                  </span>
-                  <ChevronRight size={16} className="shrink-0 text-[var(--text-400)]" />
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="rounded-3xl border border-[var(--bg-card-border)] bg-white p-4 shadow-sm">
-          <div className="mb-1 flex items-center justify-between gap-2">
-            <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.04em] text-[var(--text-500)]">
-              <ClipboardList size={14} strokeWidth={1.8} />
+      <div className="mx-5 mt-5 space-y-5">
+        <section className={styles.lightCard}>
+          <div className={styles.sectionHead}>
+            <h2 className={styles.sectionTitle}>
+              <ClipboardList size={13} strokeWidth={1.8} />
               {t("home.recentOrders")}
             </h2>
-            <Link href="/orders?period=all" className="text-[13px] font-semibold text-accent-500 no-underline">
+            <Link href="/orders?period=all" className={styles.sectionLink}>
               {t("home.allOrders")} →
             </Link>
           </div>
           {orders.length === 0 ? (
             <p className="py-3 text-sm text-[var(--text-500)]">{t("crm.noOrders")}</p>
           ) : (
-            <ul className="m-0 list-none p-0">
+            <ul className={styles.listCards}>
               {orders.map((o) => (
                 <li key={o.id}>
-                  <Link
-                    href={`/orders/${o.id}`}
-                    className="flex items-center gap-3 border-b border-[var(--bg-card-border)] py-3 no-underline last:border-0"
-                  >
+                  <Link href={`/orders/${o.id}`} className={styles.listRow}>
                     <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: orderDot(o.statusCode) }} />
                     <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-semibold text-[var(--text-900)]">{o.number}</span>
-                      <span className="block truncate text-xs text-[var(--text-500)]">{o.client}</span>
+                      <span className={styles.neonTitle}>{o.number}</span>
+                      <span className={styles.neonSub}>{o.client}</span>
                     </span>
-                    <span className="hidden w-14 shrink-0 text-xs text-[var(--text-500)] [font-variant-numeric:tabular-nums] min-[360px]:block">
+                    <span className="hidden shrink-0 text-[11px] text-[var(--text-500)] min-[360px]:block">
                       {o.date}
                     </span>
-                    <span className="w-16 shrink-0 text-right text-sm font-semibold text-[var(--text-900)] [font-variant-numeric:tabular-nums]">
+                    <span className="shrink-0 text-[13px] font-bold text-[var(--text-900)] [font-variant-numeric:tabular-nums]">
                       {moneyInt(o.amount)}
                     </span>
                     <span
-                      className="max-w-[5.6rem] shrink-0 truncate rounded-full px-2 py-0.5 text-xs font-semibold"
+                      className="max-w-[5rem] shrink-0 truncate rounded-full px-2 py-0.5 text-[11px] font-semibold"
                       style={badgeStyle(o.statusCode)}
                     >
                       {o.statusLabel}
@@ -538,38 +494,33 @@ export async function MobileOwnerHome() {
           )}
         </section>
 
-        <section className="rounded-3xl border border-[var(--bg-card-border)] bg-white p-4 shadow-sm">
-          <div className="mb-1 flex items-center justify-between gap-2">
-            <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.04em] text-[var(--text-500)]">
-              <Bell size={14} color="var(--accent-500)" strokeWidth={1.8} />
+        <section className={styles.lightCard}>
+          <div className={styles.sectionHead}>
+            <h2 className={styles.sectionTitle}>
+              <Bell size={13} strokeWidth={1.8} color="var(--accent-500)" />
               {t("home.attention")}
             </h2>
-            <Link href="/orders?period=month" className="text-[13px] font-semibold text-accent-500 no-underline">
+            <Link href="/orders?period=month" className={styles.sectionLink}>
               {t("home.seeAllArrow")} →
             </Link>
           </div>
           {alerts.length === 0 ? (
             <p className="py-3 text-sm text-[var(--text-500)]">{t("home.noAlerts")}</p>
           ) : (
-            <ul className="m-0 list-none p-0">
+            <ul className={styles.listCards}>
               {alerts.map((a) => (
                 <li key={a.id}>
-                  <Link
-                    href={a.href}
-                    className="flex items-center gap-3 border-b border-[var(--bg-card-border)] py-3 no-underline last:border-0"
-                  >
+                  <Link href={a.href} className={styles.listRow}>
                     <span
                       className="mt-0.5 h-2 w-2 shrink-0 rounded-full"
                       style={{ background: a.severity === "critical" ? "var(--danger-500)" : "var(--accent-500)" }}
                     />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold text-[var(--text-900)]">{a.title}</span>
-                      {a.subtitle ? (
-                        <span className="block truncate text-xs text-[var(--text-500)]">{a.subtitle}</span>
-                      ) : null}
+                      <span className={styles.neonTitle}>{a.title}</span>
+                      {a.subtitle ? <span className={styles.neonSub}>{a.subtitle}</span> : null}
                     </span>
                     {a.amount != null ? (
-                      <span className="text-sm font-semibold text-[var(--danger-500)] [font-variant-numeric:tabular-nums]">
+                      <span className="shrink-0 text-[13px] font-bold text-[var(--danger-500)] [font-variant-numeric:tabular-nums]">
                         {moneyInt(a.amount)}
                       </span>
                     ) : null}

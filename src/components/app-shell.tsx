@@ -74,11 +74,12 @@ export function AppShell({
               <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-[rgba(232,201,120,0.35)] bg-[rgba(18,16,12,0.55)]">
                 <WorkshopMark size={20} plain color="#E8C978" />
               </span>
-              <p className="min-w-0 truncate text-[15px] font-semibold tracking-[-0.02em] leading-tight text-white">
+              <p className="min-w-0 flex-1 text-[11px] font-semibold leading-[1.2] text-white line-clamp-2">
                 {companyName}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
+              <LanguageSwitcher locale={locale} variant="dark" />
               <NotificationBell unread={unread} locale={locale} variant="dark" />
               <span className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(232,201,120,0.55)] bg-[#14110D] text-[13px] font-semibold text-[#E8C978]">
                 {roleLetter}
