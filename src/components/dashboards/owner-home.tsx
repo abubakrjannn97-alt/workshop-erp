@@ -13,7 +13,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { FUND, fundDelta, LEDGER } from "@/lib/finance";
-import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@/lib/alerts";
+import { coverageAndPurchaseNeed, maybeRefreshOwnerAlerts } from "@/lib/alerts";
 import { getTranslator, intlLocale } from "@/lib/locale";
 import { KpiCard } from "@/components/kpi-card";
 import { DashPanel } from "@/components/dash-panel";
@@ -80,7 +80,7 @@ export async function OwnerHome() {
       _sum: { actualQty: true },
     }),
   ]);
-  await refreshOwnerAlerts();
+  await maybeRefreshOwnerAlerts();
 
   const fundBalances = funds.map((f) => ({
     ...f,

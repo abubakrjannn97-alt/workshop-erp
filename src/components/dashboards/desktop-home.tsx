@@ -16,7 +16,7 @@ import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/authz";
 import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { FUND, fundDelta } from "@/lib/finance";
-import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@/lib/alerts";
+import { coverageAndPurchaseNeed, maybeRefreshOwnerAlerts } from "@/lib/alerts";
 import { getTranslator, intlLocale } from "@/lib/locale";
 import { StatisticsCards } from "@/components/dashboard/StatisticsCards";
 import type { StatisticsCardData, StatisticsCardTrend } from "@/components/dashboard/StatisticsCards";
@@ -130,7 +130,7 @@ export async function DesktopHome() {
       take: 20,
     }),
   ]);
-  await refreshOwnerAlerts();
+  await maybeRefreshOwnerAlerts();
 
   const sold = monthOrders.reduce((s, o) => s.add(String(o.total)), D(0));
   const received = monthOrders.reduce(

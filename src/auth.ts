@@ -76,7 +76,8 @@ export async function auth() {
     return session;
   }
   if (isAuthBypass()) {
-    return bypassOwnerSession();
+    const bypass = await bypassOwnerSession();
+    if (bypass) return bypass;
   }
   return session;
 }
