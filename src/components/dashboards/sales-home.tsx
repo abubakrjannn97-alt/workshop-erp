@@ -54,13 +54,13 @@ export async function SalesHome() {
   return (
     <div className="page-stack">
       <PageHeader title={t("nav.home")} description={t("me.commissionHint")} />
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid gap-2 sm:grid-cols-2" data-tour="home-kpis">
         <KpiCard href="/orders" label={t("dash.planFact")} value={`${moneyDisplay(paid)} / ${moneyDisplay(fact)} с`} hint={t("home.period")} tone="in" />
         <KpiCard href="/me/commission" label={t("me.earned")} value={`${moneyDisplay(earned)} с`} tone="in" />
         <KpiCard href="/crm" label={t("dash.myLeads")} value={String(leads.length)} tone="ink" />
         <KpiCard href="/crm" label={t("dash.myClients")} value={String(customers.length)} tone="ink" />
       </div>
-      <section className="ui-card overflow-hidden">
+      <section className="ui-card overflow-hidden" data-tour="home-work">
         <h2 className="text-sm font-semibold">{t("dash.myLeads")}</h2>
         {leads.length === 0 ? (
           <DataListEmpty>{t("common.empty")}</DataListEmpty>

@@ -9,7 +9,7 @@ export function StatisticsCards({
   cards?: StatisticsCardData[];
 }) {
   return (
-    <section className={styles["stat-cards"]} data-tour="home-kpis" aria-label="Statistics">
+    <section className={styles["stat-cards"]} data-tour="home-income" aria-label="Statistics">
       {cards.map((card) => (
         <StatisticsCard
           key={card.id}

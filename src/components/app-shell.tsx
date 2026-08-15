@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
+import { BackButton } from "@/components/back-button";
 import { BottomNav } from "@/components/bottom-nav";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { HelpGuide, HelpHeaderLink } from "@/components/help-guide";
@@ -82,11 +83,17 @@ export function AppShell({
               paddingBottom: 6,
             }}
           >
-            <div className="flex min-w-0 items-center gap-2.5">
-              <WorkshopMark size={36} className="rounded-[22%]" />
-              <p className="min-w-0 flex-1 text-[11px] font-semibold leading-[1.2] text-white line-clamp-2">
-                {companyName}
-              </p>
+            <div className="flex min-w-0 flex-1 items-center gap-2.5">
+              {isHome ? (
+                <>
+                  <WorkshopMark size={36} className="rounded-[22%]" />
+                  <p className="min-w-0 flex-1 text-[11px] font-semibold leading-[1.2] text-white line-clamp-2">
+                    {companyName}
+                  </p>
+                </>
+              ) : (
+                <BackButton locale={locale} variant="dark" />
+              )}
             </div>
             <div className="flex shrink-0 items-center gap-2">
               {mobileShiftBar}
@@ -102,6 +109,7 @@ export function AppShell({
 
         <div className="sticky top-0 z-10 hidden print:hidden lg:block">
           <header className="app-topbar flex h-10 items-center gap-2 px-3">
+            {!isHome ? <BackButton locale={locale} /> : null}
             <div className="flex min-w-0 flex-1">
               <HeaderSearch locale={locale} />
             </div>

@@ -28,7 +28,7 @@ export async function ProductionHome() {
   return (
     <div className="page-stack">
       <PageHeader title={t("nav.home")} />
-      <div className="grid gap-2 sm:grid-cols-3">
+      <div className="grid gap-2 sm:grid-cols-3" data-tour="home-kpis">
         <KpiCard href="/production" label={t("dash.openJobs")} value={String(openJobs.length)} tone="ink" />
         <KpiCard href="/production/batches" label={t("nav.batches")} value={String(openBatches)} tone="ink" />
         <KpiCard href="/production/scrap" label={t("nav.scrap")} value={`${qtyDisplay(scrap._sum.quantity ?? 0)} м²`} tone="out" />
@@ -47,7 +47,7 @@ export async function ProductionHome() {
           </ul>
         </section>
       ) : null}
-      <section className="ui-card">
+      <section className="ui-card" data-tour="home-work">
         <h2 className="text-sm font-semibold">{t("dash.openJobs")}</h2>
         <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={6}>
           {openJobs.map((j) => (

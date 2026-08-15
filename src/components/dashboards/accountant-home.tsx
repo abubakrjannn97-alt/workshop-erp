@@ -34,11 +34,11 @@ export async function AccountantHome() {
   return (
     <div className="page-stack">
       <PageHeader title={t("nav.home")} />
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid gap-2 sm:grid-cols-2" data-tour="home-kpis">
         <KpiCard href="/finance/expenses" label={t("fin.monthExpenses")} value={`${moneyDisplay(monthExp)} с`} tone="out" />
         <KpiCard href="/finance" label={t("fin.supplierDebt")} value={`${moneyDisplay(supplierDebt)} с`} tone="out" />
       </div>
-      <section className="ui-card">
+      <section className="ui-card" data-tour="home-work">
         <h2 className="text-sm font-semibold">{t("dash.threeFunds")}</h2>
         <ul className="mt-2 space-y-2 text-sm">
           {fundBalances.map((f) => (

@@ -7,15 +7,17 @@ export function DashPanel({
   children,
   className = "",
   action,
+  tour,
 }: {
   title: string;
   icon?: LucideIcon;
   children: ReactNode;
   className?: string;
   action?: ReactNode;
+  tour?: string;
 }) {
   return (
-    <section className={`ui-card ui-card-panel ${className}`.trim()}>
+    <section className={`ui-card ui-card-panel ${className}`.trim()} data-tour={tour}>
       <div className="ui-card-head">
         <h2 className="section-title">
           {Icon ? (

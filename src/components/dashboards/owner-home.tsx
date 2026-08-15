@@ -148,7 +148,7 @@ export async function OwnerHome() {
 
   return (
     <div className="page-stack">
-      <DashPanel title={t("home.attention")} icon={Bell}>
+      <DashPanel title={t("home.attention")} icon={Bell} tour="home-attention">
         {alerts.length === 0 ? (
           <p className="text-[12px] text-[#98A2B3]">{t("home.noAlerts")}</p>
         ) : (
@@ -175,7 +175,7 @@ export async function OwnerHome() {
         )}
       </DashPanel>
 
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5" data-tour="home-income">
         <KpiCard href="/sales" label={t("dash.todaySales")} value={`${moneyDisplay(sold)} с`} hint={t("home.period")} tone="in" />
         <KpiCard href="/sales" label={t("dash.todayPaid")} value={`${moneyDisplay(paid)} с`} hint={t("home.period")} tone="in" />
         <KpiCard href="/production" label={t("dash.todayProd")} value={`${qtyDisplay(produced)} м²`} hint={t("home.period")} tone="ink" />
@@ -198,7 +198,7 @@ export async function OwnerHome() {
           </ul>
         </DashPanel>
 
-        <DashPanel title={t("home.quickActions")} icon={Zap} className="lg:col-span-2">
+        <DashPanel title={t("home.quickActions")} icon={Zap} className="lg:col-span-2" tour="home-shortcuts">
           <div className="grid grid-cols-2 gap-2">
             <QuickAction href="/orders/new" label={t("sales.newOrder")} icon={ClipboardList} />
             <QuickAction href="/crm" label={t("nav.crm")} icon={Users} />
@@ -210,7 +210,7 @@ export async function OwnerHome() {
         </DashPanel>
       </div>
 
-      <DashPanel title={t("home.recentOrders")} icon={ClipboardList} className="overflow-x-auto">
+      <DashPanel title={t("home.recentOrders")} icon={ClipboardList} className="overflow-x-auto" tour="home-orders">
         {recentOrders.length === 0 ? (
           <p className="text-[13px] text-[#98A2B3]">{t("crm.noOrders")}</p>
         ) : (

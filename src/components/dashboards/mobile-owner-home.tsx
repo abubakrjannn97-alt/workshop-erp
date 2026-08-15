@@ -452,7 +452,7 @@ export async function MobileOwnerHome() {
         </div>
       </div>
 
-      <div className="mx-5 mt-5 space-y-5">
+      <div className="mx-5 mt-5 space-y-5" data-tour="home-work">
         <section className={styles.lightCard} data-tour="home-orders">
           <div className={styles.sectionHead}>
             <h2 className={styles.sectionTitle}>

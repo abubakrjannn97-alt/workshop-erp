@@ -16,8 +16,8 @@ export type HelpPageId =
   | "notifications"
   | "search";
 
-export const HINTS_OFF_KEY = "workshop_hints_off_v2";
-export const HINT_HIDDEN_KEY = "workshop_hint_hidden_v2";
+export const HINTS_OFF_KEY = "workshop_hints_off_v3";
+export const HINT_HIDDEN_KEY = "workshop_hint_hidden_v3";
 export const HELP_REPLAY = "workshop:help-replay";
 export const HELP_RESTORE = "workshop:help-restore";
 

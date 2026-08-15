@@ -30,11 +30,11 @@ export async function WarehouseHome() {
   return (
     <div className="page-stack">
       <PageHeader title={t("nav.home")} />
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid gap-2 sm:grid-cols-2" data-tour="home-kpis">
         <KpiCard href="/warehouse" label={t("home.alert.stock")} value={String(low.length)} tone="out" />
         <KpiCard href="/purchasing" label={t("home.alert.purchase")} value={String(cover.purchaseNeed.length)} tone="out" />
       </div>
-      <section className="ui-card">
+      <section className="ui-card" data-tour="home-work">
         <h2 className="text-sm font-semibold">{t("home.alert.stock")}</h2>
         {low.length === 0 && cover.purchaseNeed.length === 0 ? (
           <p className="mt-2 text-sm text-[var(--muted)]">{t("home.noAlerts")}</p>
