@@ -102,8 +102,8 @@ export function AppShell({
           </header>
         </div>
 
-        <div className="sticky top-0 z-10 hidden print:hidden lg:block">
-          <header className="app-topbar flex h-10 items-center gap-2 px-3">
+        <div className="sticky top-0 z-30 overflow-visible hidden print:hidden lg:block">
+          <header className="app-topbar relative flex h-10 items-center gap-2 overflow-visible px-3">
             {!isHome ? <BackButton locale={locale} /> : null}
             <div className="flex min-w-0 flex-1">
               <HeaderSearch locale={locale} />
