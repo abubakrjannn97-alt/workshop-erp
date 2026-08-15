@@ -10,7 +10,7 @@ import {
   type FinancePeriod,
   financePeriodLabel,
 } from "@/lib/order-period";
-import styles from "./mobile-owner-home.module.css";
+import styles from "@/components/dashboards/mobile-owner-home.module.css";
 
 export function FinancePeriodPicker({
   locale,
