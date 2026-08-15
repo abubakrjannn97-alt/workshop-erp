@@ -9,27 +9,102 @@ function monthsAgo(months: number, day: number, hour = 10) {
   const d = new Date();
   d.setMonth(d.getMonth() - months);
   d.setDate(Math.min(day, 28));
-  d.setHours(hour, 18, 0, 0);
+  d.setHours(hour, 30, 0, 0);
   return d;
 }
 
 function daysAgo(n: number, hour = 11) {
   const d = new Date();
   d.setDate(d.getDate() - n);
-  d.setHours(hour, 25, 0, 0);
+  d.setHours(hour, 30, 0, 0);
   return d;
 }
 
-export async function seedWorkshopHistory(prisma: PrismaClient) {
+const SEED_LEAD_PHONES = ["+992 92 111 0001", "+992 90 222 0002", "+992 37 221 0003", "+992 93 333 0004"];
+
+export async function clearDemoHistory(prisma: PrismaClient) {
+  const seedCustomers = await prisma.customer.findMany({
+    where: { source: "seed" },
+    select: { id: true },
+  });
+  const customerIds = seedCustomers.map((c) => c.id);
+  const orderIds =
+    customerIds.length > 0
+      ? (
+          await prisma.order.findMany({
+            where: { customerId: { in: customerIds } },
+            select: { id: true },
+          })
+        ).map((o) => o.id)
+      : [];
+
+  await prisma.ledgerEntry.deleteMany({
+    where: {
+      OR: [
+        { idempotencyKey: { startsWith: "seed-" } },
+        ...(orderIds.length ? [{ orderId: { in: orderIds } }] : []),
+      ],
+    },
+  });
+
+  if (orderIds.length) {
+    await prisma.payment.deleteMany({ where: { orderId: { in: orderIds } } });
+    const productionIds = (
+      await prisma.productionOrder.findMany({
+        where: { orderId: { in: orderIds } },
+        select: { id: true },
+      })
+    ).map((p) => p.id);
+    if (productionIds.length) {
+      await prisma.productionBatch.deleteMany({ where: { productionOrderId: { in: productionIds } } });
+      await prisma.productionOrder.deleteMany({ where: { id: { in: productionIds } } });
+    }
+    await prisma.orderItem.deleteMany({ where: { orderId: { in: orderIds } } });
+    await prisma.order.deleteMany({ where: { id: { in: orderIds } } });
+  }
+
+  await prisma.customer.deleteMany({ where: { source: "seed" } });
+
+  const seedPos = await prisma.purchaseOrder.findMany({
+    where: { number: { startsWith: "PO-SEED" } },
+    select: { id: true },
+  });
+  if (seedPos.length) {
+    const poIds = seedPos.map((p) => p.id);
+    await prisma.purchasePayment.deleteMany({ where: { purchaseOrderId: { in: poIds } } });
+    await prisma.purchaseItem.deleteMany({ where: { purchaseOrderId: { in: poIds } } });
+    await prisma.purchaseOrder.deleteMany({ where: { id: { in: poIds } } });
+  }
+
+  const seedSupplier = await prisma.supplier.findFirst({ where: { name: "ООО «Цемент и краска»" } });
+  if (seedSupplier) {
+    await prisma.supplierMaterial.deleteMany({ where: { supplierId: seedSupplier.id } });
+    await prisma.supplier.delete({ where: { id: seedSupplier.id } });
+  }
+
+  await prisma.lead.deleteMany({ where: { phone: { in: SEED_LEAD_PHONES } } });
+  await prisma.obligation.deleteMany({ where: { comment: "Тестовое обязательство" } });
+  await prisma.notification.deleteMany({ where: { type: { startsWith: "seed_" } } });
+  await prisma.cashShift.deleteMany({ where: { comment: "seed" } });
+
+  console.log("Demo history cleared.");
+}
+
+export async function seedWorkshopHistory(prisma: PrismaClient, opts?: { force?: boolean }) {
+  const force = opts?.force ?? process.env.FORCE_DEMO_SEED === "1";
   const already = await prisma.customer.findFirst({ where: { source: "seed" } });
-  if (already) {
-    console.log("Demo history already present — skip.");
+  if (already && !force) {
+    console.log("Demo history already present — skip. Run: npm run db:seed:demo");
     return;
+  }
+  if (already && force) {
+    await clearDemoHistory(prisma);
   }
 
   const owner = await prisma.user.findFirst({ where: { email: process.env.OWNER_EMAIL ?? "owner@workshop.local" } });
   const sales = await prisma.user.findFirst({ where: { email: "sales@workshop.local" } });
   const worker = await prisma.user.findFirst({ where: { email: "worker@workshop.local" } });
+  const accountant = await prisma.user.findFirst({ where: { email: "accountant@workshop.local" } });
   if (!owner || !sales) {
     console.warn("Demo history skipped: owner/sales user missing.");
     return;
@@ -45,6 +120,7 @@ export async function seedWorkshopHistory(prisma: PrismaClient) {
   const statuses = await prisma.orderStatus.findMany();
   const statusId = Object.fromEntries(statuses.map((s) => [s.code, s.id]));
   const cash = await prisma.cashAccount.findUnique({ where: { code: "CASH" } });
+  const bank = await prisma.cashAccount.findUnique({ where: { code: "BANK" } });
   const funds = await prisma.financialFund.findMany();
   const fundId = Object.fromEntries(funds.map((f) => [f.code, f.id]));
   const rent = await prisma.expenseCategory.findUnique({ where: { code: "RENT" } });
@@ -53,8 +129,10 @@ export async function seedWorkshopHistory(prisma: PrismaClient) {
   const stageId = Object.fromEntries(stages.map((s) => [s.code, s.id]));
   const white = await prisma.material.findFirst({ where: { name: "Белый цемент" } });
   const paint = await prisma.material.findFirst({ where: { name: "Краска" } });
+  const glue = await prisma.material.findFirst({ where: { name: "Клей" } });
+  const rawWh = await prisma.warehouse.findUnique({ where: { code: "RAW" } });
 
-  if (!cash || !fundId.MATERIALS || !fundId.PROFIT || !fundId.OPEX) {
+  if (!cash || !fundId.MATERIALS || !fundId.PROFIT || !fundId.OPEX || !fundId.LABOR) {
     console.warn("Demo history skipped: finance catalog missing.");
     return;
   }
@@ -70,18 +148,24 @@ export async function seedWorkshopHistory(prisma: PrismaClient) {
     { name: "Меҳмонхона «Ватан»", phone: "+992 37 227 1001", address: "ул. Айнӣ 12" },
     { name: "Хусейнов Р.", phone: "+992 91 800 2323", address: "Ҳисор" },
     { name: "«Ориён Керамика»", phone: "+992 90 612 7878", address: "Душанбе" },
+    { name: "ЧДММ «Сомон»", phone: "+992 55 100 2200", address: "Душанбе, р. Шохмансур" },
+    { name: "Гуломова Ф.", phone: "+992 97 440 8890", address: "Кулоб" },
+    { name: "ООО «Бунёд Сервис»", phone: "+992 37 250 3311", address: "пр. И. Сомони 88" },
+    { name: "Алиев Т.", phone: "+992 88 900 1122", address: "Душанбе" },
+    { name: "«Фасад-2020»", phone: "+992 90 770 4455", address: "Варзоб" },
   ];
 
   const customers = [];
-  for (const row of customerDefs) {
+  for (let i = 0; i < customerDefs.length; i++) {
+    const row = customerDefs[i];
     customers.push(
       await prisma.customer.create({
         data: {
           ...row,
           source: "seed",
           managerId: sales.id,
-          comment: "Тестовый клиент (несколько месяцев работы цеха)",
-          createdAt: monthsAgo(4, 2),
+          comment: "Тестовый клиент — демо-данные цеха",
+          createdAt: monthsAgo(3, 2 + (i % 20)),
         },
       }),
     );
@@ -104,26 +188,26 @@ export async function seedWorkshopHistory(prisma: PrismaClient) {
   };
 
   const drafts: Draft[] = [
-    { monthAgo: 4, day: 4, customer: 0, kind: "tile", qty: 48, status: "COMPLETED", pay: "paid" },
-    { monthAgo: 4, day: 9, customer: 1, kind: "stone", qty: 22, status: "ISSUED", pay: "paid" },
-    { monthAgo: 4, day: 14, customer: 2, kind: "tile", qty: 80, status: "COMPLETED", pay: "paid" },
-    { monthAgo: 4, day: 21, customer: 3, kind: "tile", qty: 36, status: "COMPLETED", pay: "paid" },
-    { monthAgo: 4, day: 27, customer: 4, kind: "stone", qty: 18, status: "ISSUED", pay: "paid" },
-    { monthAgo: 3, day: 3, customer: 5, kind: "tile", qty: 60, status: "COMPLETED", pay: "paid" },
-    { monthAgo: 3, day: 8, customer: 6, kind: "tile", qty: 28, status: "COMPLETED", pay: "paid" },
-    { monthAgo: 3, day: 13, customer: 7, kind: "stone", qty: 40, status: "ISSUED", pay: "paid" },
-    { monthAgo: 3, day: 19, customer: 8, kind: "tile", qty: 52, status: "COMPLETED", pay: "paid" },
-    { monthAgo: 3, day: 25, customer: 9, kind: "tile", qty: 24, status: "COMPLETED", pay: "paid" },
-    { monthAgo: 2, day: 2, customer: 0, kind: "stone", qty: 30, status: "COMPLETED", pay: "paid" },
-    { monthAgo: 2, day: 7, customer: 2, kind: "tile", qty: 90, status: "COMPLETED", pay: "paid" },
-    { monthAgo: 2, day: 12, customer: 1, kind: "tile", qty: 16, status: "ISSUED", pay: "paid" },
-    { monthAgo: 2, day: 18, customer: 5, kind: "tile", qty: 44, status: "COMPLETED", pay: "paid" },
-    { monthAgo: 2, day: 24, customer: 3, kind: "stone", qty: 26, status: "COMPLETED", pay: "paid" },
-    { monthAgo: 1, day: 4, customer: 7, kind: "tile", qty: 70, status: "COMPLETED", pay: "paid" },
-    { monthAgo: 1, day: 9, customer: 4, kind: "tile", qty: 32, status: "ISSUED", pay: "paid" },
-    { monthAgo: 1, day: 15, customer: 8, kind: "stone", qty: 20, status: "COMPLETED", pay: "paid" },
-    { monthAgo: 1, day: 20, customer: 6, kind: "tile", qty: 55, status: "COMPLETED", pay: "partial" },
-    { monthAgo: 1, day: 26, customer: 9, kind: "tile", qty: 38, status: "ISSUED", pay: "paid" },
+    { monthAgo: 3, day: 4, customer: 0, kind: "tile", qty: 48, status: "COMPLETED", pay: "paid" },
+    { monthAgo: 3, day: 9, customer: 1, kind: "stone", qty: 22, status: "ISSUED", pay: "paid" },
+    { monthAgo: 3, day: 14, customer: 2, kind: "tile", qty: 80, status: "COMPLETED", pay: "paid" },
+    { monthAgo: 3, day: 21, customer: 3, kind: "tile", qty: 36, status: "COMPLETED", pay: "paid" },
+    { monthAgo: 3, day: 27, customer: 4, kind: "stone", qty: 18, status: "ISSUED", pay: "paid" },
+    { monthAgo: 2, day: 3, customer: 5, kind: "tile", qty: 60, status: "COMPLETED", pay: "paid" },
+    { monthAgo: 2, day: 8, customer: 6, kind: "tile", qty: 28, status: "COMPLETED", pay: "paid" },
+    { monthAgo: 2, day: 13, customer: 7, kind: "stone", qty: 40, status: "ISSUED", pay: "paid" },
+    { monthAgo: 2, day: 19, customer: 8, kind: "tile", qty: 52, status: "COMPLETED", pay: "paid" },
+    { monthAgo: 2, day: 25, customer: 9, kind: "tile", qty: 24, status: "COMPLETED", pay: "paid" },
+    { monthAgo: 1, day: 2, customer: 10, kind: "stone", qty: 30, status: "COMPLETED", pay: "paid" },
+    { monthAgo: 1, day: 7, customer: 11, kind: "tile", qty: 90, status: "COMPLETED", pay: "paid" },
+    { monthAgo: 1, day: 12, customer: 12, kind: "tile", qty: 16, status: "ISSUED", pay: "paid" },
+    { monthAgo: 1, day: 18, customer: 13, kind: "tile", qty: 44, status: "COMPLETED", pay: "paid" },
+    { monthAgo: 1, day: 24, customer: 14, kind: "stone", qty: 26, status: "COMPLETED", pay: "paid" },
+    { agoDays: 27, customer: 0, kind: "tile", qty: 70, status: "COMPLETED", pay: "paid" },
+    { agoDays: 22, customer: 2, kind: "tile", qty: 32, status: "ISSUED", pay: "paid" },
+    { agoDays: 18, customer: 5, kind: "stone", qty: 20, status: "COMPLETED", pay: "paid" },
+    { agoDays: 15, customer: 8, kind: "tile", qty: 55, status: "COMPLETED", pay: "partial" },
+    { agoDays: 11, customer: 10, kind: "tile", qty: 38, status: "ISSUED", pay: "paid" },
     { agoDays: 12, customer: 0, kind: "tile", qty: 42, status: "COMPLETED", pay: "paid" },
     { agoDays: 9, customer: 2, kind: "stone", qty: 18, status: "ISSUED", pay: "paid" },
     { agoDays: 6, customer: 5, kind: "tile", qty: 50, status: "READY", pay: "paid" },
@@ -131,6 +215,8 @@ export async function seedWorkshopHistory(prisma: PrismaClient) {
     { agoDays: 3, customer: 7, kind: "stone", qty: 24, status: "IN_PRODUCTION", pay: "partial" },
     { agoDays: 2, customer: 3, kind: "tile", qty: 20, status: "CONFIRMED", pay: "unpaid" },
     { agoDays: 1, customer: 8, kind: "tile", qty: 28, status: "NEW", pay: "unpaid" },
+    { agoDays: 0, customer: 14, kind: "tile", qty: 45, status: "NEW", pay: "unpaid" },
+    { agoDays: 0, customer: 11, kind: "stone", qty: 12, status: "CONFIRMED", pay: "partial" },
   ];
 
   const maxNo = await prisma.order.aggregate({ _max: { number: true } });
@@ -189,7 +275,7 @@ export async function seedWorkshopHistory(prisma: PrismaClient) {
         data: {
           orderId: order.id,
           amount: money(paid),
-          method: "cash",
+          method: draft.pay === "partial" && bank ? "bank" : "cash",
           comment: "Тестовая оплата",
           idempotencyKey: `seed-pay-${order.id}`,
           createdById: sales.id,
@@ -201,8 +287,9 @@ export async function seedWorkshopHistory(prisma: PrismaClient) {
       const restAfterMat = paid - toMat;
       const toLabor = Math.min(restAfterMat, labor * share);
       const toProfit = paid - toMat - toLabor;
+      const account = payment.method === "bank" && bank ? bank.id : cash.id;
       const ledgers = [
-        { type: "CASH_IN", amount: paid, accountId: cash.id, fundId: null as string | null, comment: "Оплата клиента", key: "cash" },
+        { type: "CASH_IN", amount: paid, accountId: account, fundId: null as string | null, comment: "Оплата клиента", key: "cash" },
         { type: "FUND_IN", amount: toMat, accountId: null, fundId: fundId.MATERIALS, comment: "Резерв сырья", key: "mat" },
         { type: "FUND_IN", amount: toLabor, accountId: null, fundId: fundId.LABOR, comment: "Резерв зарплаты", key: "lab" },
         { type: "FUND_IN", amount: toProfit, accountId: null, fundId: fundId.PROFIT, comment: "Доступная прибыль", key: "prf" },
@@ -257,7 +344,7 @@ export async function seedWorkshopHistory(prisma: PrismaClient) {
             plannedQty: qty(draft.qty),
             actualQty: qty(produced),
             responsibleUserId: worker?.id ?? owner.id,
-            producedAt: produced >= draft.qty ? daysAgo(Math.max(1, (draft.agoDays ?? 10) - 2)) : null,
+            producedAt: produced >= draft.qty ? daysAgo(Math.max(0, (draft.agoDays ?? 10) - 1)) : null,
             createdAt,
           },
         });
@@ -266,7 +353,7 @@ export async function seedWorkshopHistory(prisma: PrismaClient) {
   }
 
   if (rent && power && fundId.OPEX) {
-    for (let m = 4; m >= 0; m--) {
+    for (let m = 3; m >= 0; m--) {
       const when = monthsAgo(m, 5, 9);
       const rentAmt = 4500;
       const powerAmt = 980 + m * 40;
@@ -318,7 +405,7 @@ export async function seedWorkshopHistory(prisma: PrismaClient) {
       name: "ООО «Цемент и краска»",
       phone: "+992 37 236 4500",
       contact: "Азизов",
-      createdAt: monthsAgo(4, 1),
+      createdAt: monthsAgo(3, 1),
     },
   });
   if (white && paint) {
@@ -326,6 +413,7 @@ export async function seedWorkshopHistory(prisma: PrismaClient) {
       data: [
         { supplierId: supplier.id, materialId: white.id },
         { supplierId: supplier.id, materialId: paint.id },
+        ...(glue ? [{ supplierId: supplier.id, materialId: glue.id }] : []),
       ],
     });
     const poTotal = 50 * 4 + 25 * 24;
@@ -386,10 +474,10 @@ export async function seedWorkshopHistory(prisma: PrismaClient) {
 
   if (stageId.CONTACTED && stageId.CALC && stageId.OFFER && stageId.THINKING) {
     const leadRows = [
-      { name: "ЧДММ «Суғд Фасад»", phone: "+992 92 111 0001", stage: "CONTACTED", comment: "Хотят 120 м² плитки" },
-      { name: "Назаров Д.", phone: "+992 90 222 0002", stage: "CALC", comment: "Расчёт на камень" },
-      { name: "ООО «Бунёд»", phone: "+992 37 221 0003", stage: "OFFER", comment: "КП отправлено" },
-      { name: "Шарифзода А.", phone: "+992 93 333 0004", stage: "THINKING", comment: "Думает до пятницы" },
+      { name: "ЧДММ «Суғд Фасад»", phone: SEED_LEAD_PHONES[0], stage: "CONTACTED", comment: "Хотят 120 м² плитки" },
+      { name: "Назаров Д.", phone: SEED_LEAD_PHONES[1], stage: "CALC", comment: "Расчёт на камень" },
+      { name: "ООО «Бунёд»", phone: SEED_LEAD_PHONES[2], stage: "OFFER", comment: "КП отправлено" },
+      { name: "Шарифзода А.", phone: SEED_LEAD_PHONES[3], stage: "THINKING", comment: "Думает до пятницы" },
     ];
     for (const row of leadRows) {
       await prisma.lead.create({
@@ -428,5 +516,64 @@ export async function seedWorkshopHistory(prisma: PrismaClient) {
     ],
   });
 
-  console.log("Demo history seeded: ~4 months of workshop operations.");
+  if (rawWh && paint) {
+    const paintStock = await prisma.stockItem.findFirst({
+      where: { warehouseId: rawWh.id, materialId: paint.id },
+    });
+    if (paintStock) {
+      await prisma.stockItem.update({
+        where: { id: paintStock.id },
+        data: { qtyOnHand: "12" },
+      });
+    }
+    if (glue) {
+      const glueStock = await prisma.stockItem.findFirst({
+        where: { warehouseId: rawWh.id, materialId: glue.id },
+      });
+      if (glueStock) {
+        await prisma.stockItem.update({
+          where: { id: glueStock.id },
+          data: { qtyOnHand: "18" },
+        });
+      }
+    }
+  }
+
+  const openedAt = daysAgo(0, 8);
+  await prisma.cashShift.create({
+    data: {
+      accountId: cash.id,
+      openedById: owner.id,
+      openingAmount: money(85000),
+      status: "OPEN",
+      comment: "seed",
+      openedAt,
+    },
+  });
+
+  const notifyUsers = [owner, sales, accountant].filter(Boolean) as Array<{ id: string }>;
+  for (const user of notifyUsers) {
+    await prisma.notification.create({
+      data: {
+        userId: user.id,
+        type: "seed_low_stock",
+        title: "Сырьё ниже минимума",
+        body: "Краска: остаток 12 кг при минимуме 20 кг. Пора закупить.",
+        createdAt: daysAgo(0, 9),
+      },
+    });
+    await prisma.notification.create({
+      data: {
+        userId: user.id,
+        type: "seed_overdue",
+        title: "Просроченный заказ",
+        body: "Заказ с просроченным сроком — проверьте раздел «Заказы».",
+        createdAt: daysAgo(0, 10),
+      },
+    });
+  }
+
+  console.log(
+    `Demo history seeded: ${customers.length} clients, ${drafts.length} orders, leads, purchases, open cash shift.`,
+  );
 }
