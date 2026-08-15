@@ -5,6 +5,39 @@ import { prisma } from "@/lib/prisma";
 import { writeAudit } from "@/lib/audit";
 import { authConfig } from "@/auth.config";
 import { bypassOwnerSession, isAuthBypass } from "@/lib/dev-auth";
+import { resolveUserPermissions } from "@/lib/permissions";
+import { isValidPhone, normalizePhone } from "@/lib/phone";
+
+const userInclude = {
+  role: {
+    include: {
+      permissions: { include: { permission: true } },
+    },
+  },
+  permissions: { include: { permission: true } },
+} as const;
+
+async function loadAuthUser(user: {
+  id: string;
+  email: string;
+  name: string;
+  role: { code: string; name: string; permissions: { permission: { code: string } }[] };
+  permissions?: { permission: { code: string } }[];
+}) {
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { lastLoginAt: new Date() },
+  });
+
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    roleCode: user.role.code,
+    roleName: user.role.name,
+    permissions: resolveUserPermissions(user),
+  };
+}
 
 const nextAuth = NextAuth({
   ...authConfig,
@@ -14,8 +47,29 @@ const nextAuth = NextAuth({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        phone: { label: "Phone", type: "tel" },
+        pin: { label: "PIN", type: "password" },
       },
       async authorize(credentials) {
+        const phoneRaw = String(credentials?.phone ?? "").trim();
+        const pin = String(credentials?.pin ?? "").trim();
+
+        if (phoneRaw && pin) {
+          if (!isValidPhone(phoneRaw)) return null;
+          const phone = normalizePhone(phoneRaw);
+
+          const user = await prisma.user.findFirst({
+            where: { phone, archivedAt: null, isActive: true },
+            include: userInclude,
+          });
+          if (!user) return null;
+
+          const valid = await bcrypt.compare(pin, user.passwordHash);
+          if (!valid) return null;
+
+          return loadAuthUser(user);
+        }
+
         const email = String(credentials?.email ?? "")
           .trim()
           .toLowerCase();
@@ -24,13 +78,7 @@ const nextAuth = NextAuth({
 
         const user = await prisma.user.findUnique({
           where: { email },
-          include: {
-            role: {
-              include: {
-                permissions: { include: { permission: true } },
-              },
-            },
-          },
+          include: userInclude,
         });
 
         if (!user || user.archivedAt || !user.isActive) return null;
@@ -38,19 +86,7 @@ const nextAuth = NextAuth({
         const valid = await bcrypt.compare(password, user.passwordHash);
         if (!valid) return null;
 
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { lastLoginAt: new Date() },
-        });
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          roleCode: user.role.code,
-          roleName: user.role.name,
-          permissions: user.role.permissions.map((rp) => rp.permission.code),
-        };
+        return loadAuthUser(user);
       },
     }),
   ],

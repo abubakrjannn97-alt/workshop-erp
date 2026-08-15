@@ -1,4 +1,4 @@
-import { hasPermission } from "@/lib/permissions";
+import { hasPermission, usesWorkerMobileExperience } from "@/lib/permissions";
 import { requireSession } from "@/lib/authz";
 import { DesktopHome } from "@/components/dashboards/desktop-home";
 import { OwnerHome } from "@/components/dashboards/owner-home";
@@ -23,6 +23,18 @@ function MobileRoleHome({
   if (role === "accountant") return <AccountantHome />;
   if (role === "production_manager") return <ProductionHome />;
   if (role === "owner" || role === "director") return <MobileOwnerHome financePeriod={financePeriod} />;
+  if (role === "employee") {
+    if (hasPermission(perms, role, "finance.view")) {
+      return <MobileOwnerHome financePeriod={financePeriod} />;
+    }
+    if (hasPermission(perms, role, "crm.view") || hasPermission(perms, role, "orders.view")) {
+      return <SalesHome />;
+    }
+    if (hasPermission(perms, role, "inventory.view")) return <WarehouseHome />;
+    if (hasPermission(perms, role, "production.manage") || hasPermission(perms, role, "production.view")) {
+      return <ProductionHome />;
+    }
+  }
   if (hasPermission(perms, role, "finance.view")) return <MobileOwnerHome financePeriod={financePeriod} />;
   if (hasPermission(perms, role, "crm.view")) return <SalesHome />;
   if (hasPermission(perms, role, "inventory.view")) return <WarehouseHome />;
@@ -39,15 +51,18 @@ export default async function HomePage({
   const role = session.user.roleCode;
   const perms = session.user.permissions;
   const { fp } = await searchParams;
+  const workerMobile = usesWorkerMobileExperience(role, perms);
 
   return (
     <>
-      {role === "worker" ? <MobileWorkerGate /> : null}
+      {workerMobile ? <MobileWorkerGate /> : null}
       <div className="hidden lg:block">
         <DesktopHome />
       </div>
       <div className="lg:hidden">
-        {role === "worker" ? null : <MobileRoleHome role={role} perms={perms} financePeriod={fp} />}
+        {workerMobile ? null : (
+          <MobileRoleHome role={role} perms={perms} financePeriod={fp} />
+        )}
       </div>
     </>
   );

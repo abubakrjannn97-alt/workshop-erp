@@ -30,6 +30,7 @@ async function main() {
     { code: "sales_manager", name: "Sales Manager", description: "CRM и продажи" },
     { code: "production_manager", name: "Production Manager", description: "Производство" },
     { code: "worker", name: "Worker", description: "Только свои задания" },
+    { code: "employee", name: "Employee", description: "Сотрудник с индивидуальными правами" },
     { code: "warehouse_manager", name: "Warehouse Manager", description: "Склад" },
     { code: "accountant", name: "Accountant", description: "Финансы" },
   ];

@@ -10,10 +10,15 @@ import { getTranslator } from "@/lib/locale";
 import { intlLocale } from "@/lib/i18n";
 import { KpiCard } from "@/components/kpi-card";
 import { PageHeader } from "@/components/page-header";
+import { EmployeeAccessForm } from "@/components/employee-access-form";
+import { EMPLOYEE_ASSIGNABLE, type PermissionCode } from "@/lib/permissions";
+import { formatPhoneDisplay } from "@/lib/phone";
+import { archiveEmployee } from "@/app/actions/employees";
 
 export default async function EmployeePage({ params }: { params: Promise<{ id: string }> }) {
   const { t, locale, n } = await getTranslator();
   const session = await requirePermission("users.view");
+  const isOwner = session.user.roleCode === "owner";
   const { id } = await params;
   const user = await prisma.user.findUnique({
     where: { id },
@@ -21,6 +26,7 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
       role: true,
       payScheme: { include: { tiers: { orderBy: { fromCount: "asc" } } } },
       soldOrders: { include: { status: true } },
+      permissions: { include: { permission: true } },
     },
   });
   if (!user || user.archivedAt) notFound();
@@ -30,7 +36,8 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
   const key = periodKey();
   const { start, end } = periodRange(key);
 
-  const [schemes, accounts, accruals, payouts, m2, accruedAgg, paidAgg] = await Promise.all([
+  const [schemes, accounts, accruals, payouts, m2, accruedAgg, paidAgg, assignablePerms] =
+    await Promise.all([
     prisma.payScheme.findMany({ orderBy: { name: "asc" } }),
     prisma.cashAccount.findMany({ where: { archivedAt: null } }),
     prisma.payrollAccrual.findMany({
@@ -48,7 +55,22 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
       _sum: { amount: true },
     }),
     prisma.payrollPayout.aggregate({ where: { userId: id }, _sum: { amount: true } }),
+    isOwner && user.role.code === "employee"
+      ? prisma.permission.findMany({
+          where: { code: { in: [...EMPLOYEE_ASSIGNABLE] } },
+          orderBy: [{ module: "asc" }, { code: "asc" }],
+        })
+      : Promise.resolve([]),
   ]);
+  const permModules = [...new Set(assignablePerms.map((p) => p.module))];
+  const selectedPermCodes = user.permissions.map(
+    (up) => up.permission.code as PermissionCode,
+  );
+
+  async function archiveAction(formData: FormData) {
+    "use server";
+    await archiveEmployee(formData);
+  }
 
   const accrued = D(String(accruedAgg._sum.amount ?? 0));
   const paid = D(String(paidAgg._sum.amount ?? 0));
@@ -73,10 +95,25 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
       <div>
         <PageHeader title={user.name} />
         <p className="text-sm text-[var(--text-muted)]">
-          {n("role", user.role.code, user.role.name)} · {user.phone ?? user.email}
+          {n("role", user.role.code, user.role.name)} ·{" "}
+          {user.phone ? formatPhoneDisplay(user.phone) : user.email}
           {user.hiredAt ? ` · ${t("common.from")} ${user.hiredAt.toLocaleDateString(intlLocale(locale))}` : ""}
         </p>
       </div>
+
+      {isOwner && user.role.code === "employee" ? (
+        <EmployeeAccessForm
+          locale={locale}
+          userId={user.id}
+          permissions={assignablePerms.map((p) => ({
+            id: p.id,
+            code: p.code as PermissionCode,
+            module: p.module,
+          }))}
+          modules={permModules}
+          selectedCodes={selectedPermCodes}
+        />
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-4">
         <KpiCard label={t("emp.monthSales")} value={`${moneyDisplay(monthTurnover)} с`} tone="in" />
@@ -156,10 +193,16 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
         </ul>
       </section>
 
-      <p className="text-sm">
+      <p className="flex flex-wrap items-center gap-3 text-sm">
         <Link href="/employees" className="text-[var(--titan-dark)] hover:underline">
           {t("emp.allEmployees")}
         </Link>
+        {isOwner && user.role.code === "employee" ? (
+          <form action={archiveAction}>
+            <input type="hidden" name="id" value={user.id} />
+            <button className="text-sm text-[var(--danger)]">{t("emp.archiveEmployee")}</button>
+          </form>
+        ) : null}
       </p>
     </div>
   );

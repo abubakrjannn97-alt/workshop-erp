@@ -54,6 +54,50 @@ export function hasPermission(
   return Boolean(permissions?.includes(code));
 }
 
+/** Permissions the owner can grant when adding an employee (no admin/user management). */
+export const EMPLOYEE_ASSIGNABLE: PermissionCode[] = (
+  Object.keys(PERMISSIONS) as PermissionCode[]
+).filter(
+  (code) =>
+    !code.startsWith("users.") &&
+    !code.startsWith("roles.") &&
+    code !== "settings.edit" &&
+    code !== "approvals.decide",
+);
+
+type UserWithPerms = {
+  role: {
+    code: string;
+    permissions: { permission: { code: string } }[];
+  };
+  permissions?: { permission: { code: string } }[];
+};
+
+export function resolveUserPermissions(user: UserWithPerms): string[] {
+  const rolePerms = user.role.permissions.map((rp) => rp.permission.code);
+  const extra = user.permissions?.map((up) => up.permission.code) ?? [];
+  if (user.role.code === "employee") {
+    return extra;
+  }
+  return [...new Set([...rolePerms, ...extra])];
+}
+
+export function usesWorkerMobileExperience(roleCode: string, permissions: string[]): boolean {
+  if (roleCode === "worker") return true;
+  if (roleCode !== "employee") return false;
+  const hasDashboard =
+    hasPermission(permissions, roleCode, "finance.view") ||
+    hasPermission(permissions, roleCode, "crm.view") ||
+    hasPermission(permissions, roleCode, "inventory.view") ||
+    hasPermission(permissions, roleCode, "orders.view") ||
+    hasPermission(permissions, roleCode, "production.manage");
+  if (hasDashboard) return false;
+  return (
+    hasPermission(permissions, roleCode, "production.view") ||
+    hasPermission(permissions, roleCode, "production.report")
+  );
+}
+
 export const ROLE_PERMISSIONS: Record<string, PermissionCode[]> = {
   owner: Object.keys(PERMISSIONS) as PermissionCode[],
   director: [
@@ -121,6 +165,7 @@ export const ROLE_PERMISSIONS: Record<string, PermissionCode[]> = {
     "recipes.manage",
   ],
   worker: ["production.view", "production.report"],
+  employee: [],
   warehouse_manager: [
     "inventory.view",
     "inventory.adjust",

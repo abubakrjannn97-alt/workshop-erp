@@ -12,7 +12,7 @@ datasource db {
 model User {
   id           String    @id @default(cuid())
   email        String    @unique
-  phone        String?
+  phone        String?   @unique
   name         String
   passwordHash String
   roleId       String
@@ -24,16 +24,17 @@ model User {
 
   hiredAt           DateTime?
   paySchemeId       String?
-  role              Role       @relation(fields: [roleId], references: [id])
+  role              Role             @relation(fields: [roleId], references: [id])
   sessions          Session[]
   auditLogs         AuditLog[]
-  managedCustomers  Customer[] @relation("CustomerManager")
-  soldOrders        Order[]    @relation("OrderSeller")
-  managedLeads      Lead[]     @relation("LeadManager")
-  payScheme         PayScheme? @relation(fields: [paySchemeId], references: [id])
+  managedCustomers  Customer[]       @relation("CustomerManager")
+  soldOrders        Order[]          @relation("OrderSeller")
+  managedLeads      Lead[]           @relation("LeadManager")
+  payScheme         PayScheme?       @relation(fields: [paySchemeId], references: [id])
   accruals          PayrollAccrual[]
   payouts           PayrollPayout[]
   notifications     Notification[]
+  permissions       UserPermission[]
 
   @@index([roleId])
   @@index([archivedAt])
@@ -63,9 +64,21 @@ model Permission {
   module      String
 
   roles RolePermission[]
+  users UserPermission[]
 
   @@index([module])
   @@map("permissions")
+}
+
+model UserPermission {
+  userId       String
+  permissionId String
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, permissionId])
+  @@map("user_permissions")
 }
 
 model RolePermission {

@@ -15,7 +15,11 @@ export default async function ProfilePage() {
       <section className="ui-card space-y-2 p-4 text-sm">
         <p className="text-[16px] font-semibold">{session.user.name}</p>
         <p className="text-[var(--text-muted)]">{n("role", session.user.roleCode, session.user.roleName)}</p>
-        <p className="text-[var(--text-muted)]">{session.user.email}</p>
+        <p className="text-[var(--text-muted)]">
+          {session.user.email?.includes("@staff.internal")
+            ? t("login.modeEmployee")
+            : session.user.email}
+        </p>
         <div className="pt-2">
           <p className="ui-label">{t("lang.switch")}</p>
           <LanguageSwitcher locale={locale} />

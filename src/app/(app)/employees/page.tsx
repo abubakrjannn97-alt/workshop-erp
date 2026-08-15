@@ -7,13 +7,17 @@ import { hasPermission } from "@/lib/authz";
 import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { updatePayScheme } from "@/app/actions/payroll";
 import { RevealList } from "@/components/reveal-list";
+import { AddEmployeeForm } from "@/components/add-employee-form";
+import { EMPLOYEE_ASSIGNABLE, type PermissionCode } from "@/lib/permissions";
+import { formatPhoneDisplay } from "@/lib/phone";
 
 export default async function EmployeesPage() {
   const { t, locale, n } = await getTranslator();
   const session = await requirePermission("users.view");
+  const isOwner = session.user.roleCode === "owner";
   const canEditScheme = hasPermission(session.user.permissions, session.user.roleCode, "settings.edit");
 
-  const [users, schemes, accruals, payouts] = await Promise.all([
+  const [users, schemes, accruals, payouts, assignablePerms] = await Promise.all([
     prisma.user.findMany({
       where: { archivedAt: null },
       include: { role: true, payScheme: true },
@@ -29,9 +33,16 @@ export default async function EmployeesPage() {
       by: ["userId"],
       _sum: { amount: true },
     }),
+    isOwner
+      ? prisma.permission.findMany({
+          where: { code: { in: [...EMPLOYEE_ASSIGNABLE] } },
+          orderBy: [{ module: "asc" }, { code: "asc" }],
+        })
+      : Promise.resolve([]),
   ]);
   const accMap = new Map(accruals.map((a) => [a.userId, a]));
   const payMap = new Map(payouts.map((p) => [p.userId, p]));
+  const permModules = [...new Set(assignablePerms.map((p) => p.module))];
 
   async function schemeAction(formData: FormData) {
     "use server";
@@ -41,6 +52,18 @@ export default async function EmployeesPage() {
   return (
     <div className="page-stack">
       <PageHeader title={t("page.employees")} description={t("emp.hint")} />
+
+      {isOwner ? (
+        <AddEmployeeForm
+          locale={locale}
+          permissions={assignablePerms.map((p) => ({
+            id: p.id,
+            code: p.code as PermissionCode,
+            module: p.module,
+          }))}
+          modules={permModules}
+        />
+      ) : null}
 
       <section className="overflow-hidden ui-card" data-tour="emp-list">
         <table className="w-full text-left text-sm">
@@ -64,7 +87,9 @@ export default async function EmployeesPage() {
                     <Link href={`/employees/${u.id}`} className="font-medium text-[var(--titan-dark)] hover:underline">
                       {u.name}
                     </Link>
-                    <p className="text-xs text-[var(--muted)]">{u.phone ?? u.email}</p>
+                    <p className="text-xs text-[var(--muted)]">
+                      {u.phone ? formatPhoneDisplay(u.phone) : u.email}
+                    </p>
                   </td>
                   <td className="px-4 py-2">{n("role", u.role.code, u.role.name)}</td>
                   <td className="px-4 py-2 text-xs">
