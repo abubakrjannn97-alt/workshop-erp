@@ -133,6 +133,7 @@ export async function openCashShift(formData: FormData) {
     },
   });
   revalidatePath("/finance");
+  revalidatePath("/", "layout");
   return { ok: true };
 }
 
@@ -190,6 +191,7 @@ export async function closeCashShift(formData: FormData) {
     }
   }
   revalidatePath("/finance");
+  revalidatePath("/", "layout");
   return { ok: true };
 }
 

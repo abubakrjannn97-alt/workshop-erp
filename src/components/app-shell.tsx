@@ -20,6 +20,8 @@ type Props = {
   permissions: string[];
   unread?: number;
   locale: Locale;
+  shiftBar?: React.ReactNode;
+  mobileShiftBar?: React.ReactNode;
   children: React.ReactNode;
 };
 
@@ -31,6 +33,8 @@ export function AppShell({
   permissions,
   unread = 0,
   locale,
+  shiftBar,
+  mobileShiftBar,
   children,
 }: Props) {
   const path = usePathname();
@@ -85,6 +89,7 @@ export function AppShell({
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
+              {mobileShiftBar}
               <LanguageSwitcher locale={locale} variant="dark" />
               <NotificationBell unread={unread} locale={locale} variant="dark" />
               <span className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(232,201,120,0.55)] bg-[#14110D] text-[13px] font-semibold text-[#E8C978]">
@@ -101,6 +106,7 @@ export function AppShell({
               <HeaderSearch locale={locale} />
             </div>
             <div className="flex shrink-0 items-center gap-1">
+              {shiftBar}
               <NotificationBell unread={unread} locale={locale} />
               <HelpHeaderLink locale={locale} />
               <LanguageSwitcher locale={locale} />

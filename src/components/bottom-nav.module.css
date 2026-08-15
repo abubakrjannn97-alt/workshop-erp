@@ -3,7 +3,7 @@
   left: 50%;
   bottom: calc(8px + env(safe-area-inset-bottom));
   z-index: 50;
-  width: min(calc(100% - 32px), 380px);
+  width: min(calc(100% - 56px), 520px);
   transform: translateX(-50%);
   pointer-events: none;
 }
@@ -17,7 +17,7 @@
   gap: 0;
   overflow: visible;
   border-radius: 999px;
-  padding: 6px 22px;
+  padding: 6px 14px;
   border: 1px solid rgba(232, 201, 120, 0.34);
   background:
     linear-gradient(125deg, rgba(255, 248, 230, 0.18) 0%, rgba(255, 255, 255, 0.05) 32%, transparent 50%),
@@ -91,7 +91,7 @@
 }
 
 .label {
-  max-width: 4.4rem;
+  max-width: 5rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
