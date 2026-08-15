@@ -46,7 +46,6 @@ export function AppShell({
     .slice(0, 2)
     .map((p) => p[0]?.toUpperCase() ?? "")
     .join("");
-  const roleLetter = (roleName.trim()[0] ?? initials[0] ?? "U").toUpperCase();
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#0B0E1A] text-[var(--color-text-primary)]">
@@ -99,10 +98,6 @@ export function AppShell({
               {mobileShiftBar}
               <LanguageSwitcher locale={locale} variant="dark" />
               <NotificationBell unread={unread} locale={locale} variant="dark" />
-              <span className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(232,201,120,0.55)] bg-[#14110D] text-[13px] font-semibold text-[#E8C978]">
-                {roleLetter}
-                <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[var(--success-500)] ring-2 ring-[#0B0E1A]" />
-              </span>
             </div>
           </header>
         </div>

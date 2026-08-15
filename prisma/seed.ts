@@ -5,6 +5,7 @@ import { DEMO_PASSWORD, DEMO_USERS } from "../src/lib/demo-users";
 import { PERMISSIONS, ROLE_PERMISSIONS } from "../src/lib/permissions";
 import { DEFAULT_SETTINGS, SETTING_KEYS } from "../src/lib/settings";
 import { receiveMaterial } from "../src/lib/stock";
+import { seedWorkshopHistory } from "./seed-history";
 
 const prisma = new PrismaClient({
   transactionOptions: {
@@ -322,6 +323,7 @@ async function main() {
   const demoHash = await bcrypt.hash("ChangeMeNow!", 12);
   await seedDemoUsers(demoHash, prodScheme.id, salesScheme.id);
   await seedOpeningStock();
+  await seedWorkshopHistory(prisma);
 }
 
 async function seedCatalog() {

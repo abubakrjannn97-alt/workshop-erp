@@ -371,7 +371,7 @@ export async function MobileOwnerHome() {
         </span>
       </div>
 
-      <div className={styles.card}>
+      <div className={styles.card} data-tour="home-income">
         <div className={styles.cardInner}>
           <div className={styles.cardTop}>
             <p className={styles.cardTitle}>

@@ -366,6 +366,15 @@ export function HelpGuide({ locale }: { locale: Locale }) {
 
   const focusStep = useCallback(
     async (index: number, stepDef: TourStep) => {
+      if (stepDef.intro) {
+        targetRef.current = null;
+        setStep(index);
+        setLiveStep(stepDef);
+        setBox(null);
+        setTipLayout(null);
+        return true;
+      }
+
       const el = findTarget(stepDef.targets);
       if (!el) return false;
 
@@ -461,10 +470,14 @@ export function HelpGuide({ locale }: { locale: Locale }) {
     targetRef.current = null;
   }
 
+  function stepReady(s: TourStep) {
+    return !!s.intro || !!findTarget(s.targets);
+  }
+
   function next() {
     const from = step + 1;
     for (let i = from; i < tour.length; i++) {
-      if (findTarget(tour[i].targets)) {
+      if (stepReady(tour[i])) {
         setStep(i);
         return;
       }
@@ -474,79 +487,102 @@ export function HelpGuide({ locale }: { locale: Locale }) {
 
   function back() {
     for (let i = step - 1; i >= 0; i--) {
-      if (findTarget(tour[i].targets)) {
+      if (stepReady(tour[i])) {
         setStep(i);
         return;
       }
     }
   }
 
-  if (!active || !box || !liveStep || !tipLayout || !pageId) return null;
+  if (!active || !liveStep || !pageId) return null;
+  if (!liveStep.intro && (!box || !tipLayout)) return null;
 
-  const { hole } = tipLayout;
   const total = tour.length;
   const index = tour.findIndex((s) => s === liveStep);
   const n = (index >= 0 ? index : step) + 1;
-  const last = !tour.slice(n).some((s) => findTarget(s.targets));
+  const last = !tour.slice(n).some(stepReady);
+  const hole = tipLayout?.hole;
+  const intro = !!liveStep.intro;
+
+  const card = (
+    <>
+      <div className="tour-tip-progress" aria-hidden="true">
+        {tour.map((item, i) => (
+          <span
+            key={`${item.title}-${i}`}
+            className={`tour-tip-dot ${i === index ? "is-active" : i < index ? "is-done" : ""}`}
+          />
+        ))}
+      </div>
+      <p className="tour-tip-step">{t("help.step", { n, total })}</p>
+      <h2 id="tour-title" className="tour-tip-title">
+        {liveStep.title}
+      </h2>
+      <p className="tour-tip-text">{liveStep.text}</p>
+      <div className="tour-tip-actions">
+        {n > 1 ? (
+          <button type="button" className="tour-btn-ghost" onClick={back}>
+            {t("help.back")}
+          </button>
+        ) : (
+          <button type="button" className="tour-btn-ghost" onClick={() => finish(false, true)}>
+            {t("help.skip")}
+          </button>
+        )}
+        <button type="button" className="tour-btn-next ml-auto" onClick={next}>
+          {last ? t("help.done") : intro && n === 1 ? t("help.start") : t("help.next")}
+        </button>
+      </div>
+      <div className="tour-tip-footer">
+        <button type="button" className="tour-tip-muted" onClick={() => finish(true)}>
+          {t("help.dontShow")}
+        </button>
+        <Link href="/help" className="tour-tip-link" onClick={() => finish(false, true)}>
+          {t("help.allQuestions")}
+        </Link>
+      </div>
+    </>
+  );
+
+  if (intro) {
+    return (
+      <div className="print:hidden" role="dialog" aria-modal="true" aria-labelledby="tour-title">
+        <div
+          className="fixed inset-0 z-[100] bg-[rgba(11,14,26,0.72)]"
+          onWheel={(e) => e.preventDefault()}
+          onTouchMove={(e) => e.preventDefault()}
+        />
+        <div className="tour-tip tour-intro fixed left-1/2 top-[16%] z-[101] w-[min(340px,calc(100vw-32px))] -translate-x-1/2">
+          {card}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="print:hidden" role="dialog" aria-modal="true" aria-labelledby="tour-title">
       <div
-        className="fixed inset-0 z-[69]"
+        className="fixed inset-0 z-[100]"
         onWheel={(e) => e.preventDefault()}
         onTouchMove={(e) => e.preventDefault()}
       />
 
       <div
-        className="tour-cutout pointer-events-none fixed z-[70]"
+        className="tour-cutout pointer-events-none fixed z-[101]"
         style={{
-          top: hole.top,
-          left: hole.left,
-          width: hole.width,
-          height: hole.height,
-          borderRadius: box.radius,
+          top: hole!.top,
+          left: hole!.left,
+          width: hole!.width,
+          height: hole!.height,
+          borderRadius: box!.radius,
         }}
       />
 
       <div
-        className={`tour-tip tour-tip--${tipLayout.place} fixed z-[73]`}
-        style={{ top: tipLayout.top, left: tipLayout.left, width: TIP_W }}
+        className={`tour-tip tour-tip--${tipLayout!.place} fixed z-[102]`}
+        style={{ top: tipLayout!.top, left: tipLayout!.left, width: TIP_W }}
       >
-        <div className="tour-tip-progress" aria-hidden="true">
-          {tour.map((item, i) => (
-            <span
-              key={`${item.title}-${i}`}
-              className={`tour-tip-dot ${i === index ? "is-active" : i < index ? "is-done" : ""}`}
-            />
-          ))}
-        </div>
-        <p className="tour-tip-step">{t("help.step", { n, total })}</p>
-        <h2 id="tour-title" className="tour-tip-title">
-          {liveStep.title}
-        </h2>
-        <p className="tour-tip-text">{liveStep.text}</p>
-        <div className="tour-tip-actions">
-          {n > 1 ? (
-            <button type="button" className="tour-btn-ghost" onClick={back}>
-              {t("help.back")}
-            </button>
-          ) : (
-            <button type="button" className="tour-btn-ghost" onClick={() => finish(false, true)}>
-              {t("help.skip")}
-            </button>
-          )}
-          <button type="button" className="tour-btn-next ml-auto" onClick={next}>
-            {last ? t("help.done") : t("help.next")}
-          </button>
-        </div>
-        <div className="tour-tip-footer">
-          <button type="button" className="tour-tip-muted" onClick={() => finish(true)}>
-            {t("help.dontShow")}
-          </button>
-          <Link href="/help" className="tour-tip-link" onClick={() => finish(false, true)}>
-            {t("help.allQuestions")}
-          </Link>
-        </div>
+        {card}
       </div>
     </div>
   );
