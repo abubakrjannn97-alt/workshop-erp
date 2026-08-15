@@ -1,4 +1,4 @@
-const CACHE = "workshop-shell-v2";
+const CACHE = "workshop-shell-v3";
 const OFFLINE_URL = "/offline.html";
 const PRECACHE = [
   OFFLINE_URL,

@@ -8,7 +8,6 @@ import { createT } from "@/lib/i18n";
 import {
   bottomTabsForRole,
   isTabActive,
-  prefetchHrefs,
   type NavIcon,
   type BottomTab,
 } from "@/lib/nav";
@@ -85,10 +84,10 @@ export function BottomNav({
   }, [path]);
 
   useEffect(() => {
-    for (const href of prefetchHrefs(roleCode, permissions)) {
-      router.prefetch(href);
+    for (const tab of tabs) {
+      router.prefetch(tab.href);
     }
-  }, [router, roleCode, permissions]);
+  }, [router, tabs]);
 
   if (tabs.length === 0) return null;
 

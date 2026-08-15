@@ -1,8 +1,14 @@
 "use client";
 
-import { useTransition } from "react";
-import { setLocaleAction } from "@/app/actions/locale";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { createT, type Locale } from "@/lib/i18n";
+import { LOCALE_COOKIE } from "@/lib/locale";
+
+function writeLocaleCookie(locale: Locale) {
+  const maxAge = 60 * 60 * 24 * 365;
+  document.cookie = `${LOCALE_COOKIE}=${encodeURIComponent(locale)};path=/;max-age=${maxAge};SameSite=Lax`;
+}
 
 export function LanguageSwitcher({
   locale,
@@ -11,21 +17,39 @@ export function LanguageSwitcher({
   locale: Locale;
   variant?: "light" | "dark";
 }) {
+  const router = useRouter();
   const t = createT(locale);
-  const [pending, start] = useTransition();
+  const [pending, setPending] = useState(false);
   const dark = variant === "dark";
   const btn =
-    "min-w-[1.75rem] rounded-md px-1.5 py-1 text-[10px] font-semibold leading-none transition-[background,color] duration-150";
+    "min-w-[1.75rem] rounded-md px-1.5 py-1 text-[10px] font-semibold leading-none transition-[background,color] duration-150 touch-manipulation";
 
-  function pick(next: Locale) {
-    if (next === locale || pending) return;
-    start(async () => {
-      const fd = new FormData();
-      fd.set("locale", next);
-      await setLocaleAction(fd);
-      window.location.reload();
-    });
-  }
+  useEffect(() => {
+    setPending(false);
+  }, [locale]);
+
+  const pick = useCallback(
+    async (next: Locale) => {
+      if (next === locale || pending) return;
+      setPending(true);
+      writeLocaleCookie(next);
+
+      try {
+        await fetch("/api/locale", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ locale: next }),
+          credentials: "same-origin",
+          cache: "no-store",
+        });
+      } catch {
+        /* cookie already set — refresh will still pick it up */
+      }
+
+      router.refresh();
+    },
+    [locale, pending, router],
+  );
 
   return (
     <div
@@ -41,7 +65,7 @@ export function LanguageSwitcher({
       <button
         type="button"
         disabled={pending}
-        onClick={() => pick("ru")}
+        onClick={() => void pick("ru")}
         className={`${btn} ${
           locale === "ru"
             ? dark
@@ -59,7 +83,7 @@ export function LanguageSwitcher({
       <button
         type="button"
         disabled={pending}
-        onClick={() => pick("tj")}
+        onClick={() => void pick("tj")}
         className={`${btn} ${
           locale === "tj"
             ? dark

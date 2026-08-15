@@ -2,14 +2,14 @@
 
 import { useEffect, useRef } from "react";
 import type { Locale } from "@/lib/i18n";
-import { createT } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 
 type Item = { id: string; title: string; body: string };
 
 export function NotificationWatch({ locale }: { locale: Locale }) {
-  const t = createT(locale);
   const seen = useRef(new Set<string>());
   const ready = useRef(false);
+  const titleFallback = translate(locale, "notif.webTitle");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -33,7 +33,7 @@ export function NotificationWatch({ locale }: { locale: Locale }) {
           if (seen.current.has(item.id)) continue;
           seen.current.add(item.id);
           if (!("Notification" in window) || Notification.permission !== "granted") continue;
-          const n = new Notification(item.title || t("notif.webTitle"), {
+          const n = new Notification(item.title || titleFallback, {
             body: item.body,
             tag: item.id,
             icon: "/icon-192.png",
@@ -59,7 +59,7 @@ export function NotificationWatch({ locale }: { locale: Locale }) {
       window.clearInterval(id);
       document.removeEventListener("visibilitychange", onVis);
     };
-  }, [t]);
+  }, [locale, titleFallback]);
 
   return null;
 }
