@@ -9,23 +9,36 @@ import { AccountantHome } from "@/components/dashboards/accountant-home";
 import { ProductionHome } from "@/components/dashboards/production-home";
 import { MobileWorkerGate } from "@/components/mobile-worker-gate";
 
-function MobileRoleHome({ role, perms }: { role: string; perms: string[] }) {
+function MobileRoleHome({
+  role,
+  perms,
+  financePeriod,
+}: {
+  role: string;
+  perms: string[];
+  financePeriod?: string;
+}) {
   if (role === "sales_manager") return <SalesHome />;
   if (role === "warehouse_manager") return <WarehouseHome />;
   if (role === "accountant") return <AccountantHome />;
   if (role === "production_manager") return <ProductionHome />;
-  if (role === "owner" || role === "director") return <MobileOwnerHome />;
-  if (hasPermission(perms, role, "finance.view")) return <MobileOwnerHome />;
+  if (role === "owner" || role === "director") return <MobileOwnerHome financePeriod={financePeriod} />;
+  if (hasPermission(perms, role, "finance.view")) return <MobileOwnerHome financePeriod={financePeriod} />;
   if (hasPermission(perms, role, "crm.view")) return <SalesHome />;
   if (hasPermission(perms, role, "inventory.view")) return <WarehouseHome />;
   if (hasPermission(perms, role, "production.view")) return <ProductionHome />;
   return <OwnerHome />;
 }
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ fp?: string }>;
+}) {
   const session = await requireSession();
   const role = session.user.roleCode;
   const perms = session.user.permissions;
+  const { fp } = await searchParams;
 
   return (
     <>
@@ -33,7 +46,9 @@ export default async function HomePage() {
       <div className="hidden lg:block">
         <DesktopHome />
       </div>
-      <div className="lg:hidden">{role === "worker" ? null : <MobileRoleHome role={role} perms={perms} />}</div>
+      <div className="lg:hidden">
+        {role === "worker" ? null : <MobileRoleHome role={role} perms={perms} financePeriod={fp} />}
+      </div>
     </>
   );
 }

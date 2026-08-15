@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import {
   Wallet,
   ShoppingCart,
@@ -11,7 +12,6 @@ import {
   TrendingUp,
   MoreHorizontal,
   Bell,
-  ChevronDown,
   ChevronRight,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
@@ -23,9 +23,13 @@ import { getTranslator, intlLocale } from "@/lib/locale";
 import { orderNo } from "@/lib/format";
 import { CURRENCY_SYMBOL } from "@/lib/settings";
 import { orderTone } from "@/components/status-badge";
+import { FinancePeriodPicker } from "@/components/finance-period-picker";
+import {
+  financePeriodCompareHint,
+  resolveFinanceDateRange,
+  type FinancePeriod,
+} from "@/lib/order-period";
 import styles from "./mobile-owner-home.module.css";
-
-export type FinancePeriod = "month" | "quarter" | "year";
 
 export type FinanceOverview = {
   period: FinancePeriod;
@@ -129,20 +133,27 @@ function orderDot(code: string) {
   return "var(--text-400)";
 }
 
-export async function MobileOwnerHome() {
+export async function MobileOwnerHome({ financePeriod }: { financePeriod?: string }) {
   await requireSession();
   const { t, n, locale } = await getTranslator();
-  const monthStart = new Date();
-  monthStart.setDate(1);
-  monthStart.setHours(0, 0, 0, 0);
-  const prevStart = new Date(monthStart);
-  prevStart.setMonth(prevStart.getMonth() - 1);
+  const range = resolveFinanceDateRange(financePeriod);
   const weekStart = new Date();
   weekStart.setDate(weekStart.getDate() - 6);
   weekStart.setHours(0, 0, 0, 0);
 
+  const periodWhere =
+    range.from && range.to
+      ? { createdAt: { gte: range.from, lte: range.to } }
+      : range.from
+        ? { createdAt: { gte: range.from } }
+        : {};
+  const prevWhere =
+    range.prevFrom && range.prevTo
+      ? { createdAt: { gte: range.prevFrom, lte: range.prevTo } }
+      : {};
+
   const [
-    monthOrders,
+    periodOrders,
     prevOrders,
     unpaid,
     overdue,
@@ -153,16 +164,15 @@ export async function MobileOwnerHome() {
     recentOrders,
   ] = await Promise.all([
     prisma.order.findMany({
-      where: { createdAt: { gte: monthStart }, status: { code: { not: "CANCELLED" } } },
+      where: { ...periodWhere, status: { code: { not: "CANCELLED" } } },
       include: { payments: true },
     }),
-    prisma.order.findMany({
-      where: {
-        createdAt: { gte: prevStart, lt: monthStart },
-        status: { code: { not: "CANCELLED" } },
-      },
-      include: { payments: true },
-    }),
+    range.prevFrom
+      ? prisma.order.findMany({
+          where: { ...prevWhere, status: { code: { not: "CANCELLED" } } },
+          include: { payments: true },
+        })
+      : Promise.resolve([]),
     prisma.order.findMany({
       where: { paymentStatus: { in: ["unpaid", "partial"] }, status: { code: { not: "CANCELLED" } } },
       include: { customer: true },
@@ -191,8 +201,8 @@ export async function MobileOwnerHome() {
   ]);
   await refreshOwnerAlerts();
 
-  const sold = monthOrders.reduce((s, o) => s.add(String(o.total)), D(0));
-  const received = monthOrders.reduce(
+  const sold = periodOrders.reduce((s, o) => s.add(String(o.total)), D(0));
+  const received = periodOrders.reduce(
     (s, o) => s.add(o.payments.reduce((p, pay) => p.add(String(pay.amount)), D(0))),
     D(0),
   );
@@ -206,15 +216,26 @@ export async function MobileOwnerHome() {
   const profit = profitFund
     ? entries.reduce((s, e) => s.add(fundDelta(e, profitFund.id)), D(0))
     : D(0);
-  const profitThisMonth = profitFund
-    ? entries.filter((e) => e.createdAt >= monthStart).reduce((s, e) => s.add(fundDelta(e, profitFund.id)), D(0))
-    : D(0);
-  const profitPrevMonth = profitFund
+  const profitInPeriod = profitFund
     ? entries
-        .filter((e) => e.createdAt >= prevStart && e.createdAt < monthStart)
+        .filter((e) => {
+          if (range.period === "all") return true;
+          if (!range.from) return true;
+          const afterFrom = e.createdAt >= range.from;
+          const beforeTo = range.to ? e.createdAt <= range.to : true;
+          return afterFrom && beforeTo;
+        })
         .reduce((s, e) => s.add(fundDelta(e, profitFund.id)), D(0))
     : D(0);
-  const debtNow = monthOrders.reduce((s, o) => {
+  const profitPrevPeriod = profitFund
+    ? entries
+        .filter((e) => {
+          if (!range.prevFrom || !range.prevTo) return false;
+          return e.createdAt >= range.prevFrom && e.createdAt <= range.prevTo;
+        })
+        .reduce((s, e) => s.add(fundDelta(e, profitFund.id)), D(0))
+    : D(0);
+  const debtNow = periodOrders.reduce((s, o) => {
     const due = D(String(o.total)).sub(o.paidAmount);
     return due.gt(0) ? s.add(due) : s;
   }, D(0));
@@ -229,21 +250,21 @@ export async function MobileOwnerHome() {
     return d.toISOString().slice(0, 10);
   });
   const byDay = new Map(days.map((d) => [d, 0]));
-  for (const o of monthOrders) {
+  for (const o of periodOrders) {
     const key = o.createdAt.toISOString().slice(0, 10);
     if (byDay.has(key)) byDay.set(key, (byDay.get(key) ?? 0) + Number(o.total));
   }
 
   const overview: FinanceOverview = {
-    period: "month",
+    period: range.period,
     income: Number(sold),
-    incomeChangePct: pctOf(sold, prevSold),
+    incomeChangePct: range.prevFrom ? pctOf(sold, prevSold) : 0,
     sparkline: days.map((d) => byDay.get(d) ?? 0),
     stats: {
-      sales: { amount: Number(sold), changePct: pctOf(sold, prevSold) },
-      received: { amount: Number(received), changePct: pctOf(received, prevReceived) },
-      debts: { amount: Number(clientDebt), changePct: pctOf(debtNow, debtPrev) },
-      free: { amount: Number(profit), changePct: pctOf(profitThisMonth, profitPrevMonth) },
+      sales: { amount: Number(sold), changePct: range.prevFrom ? pctOf(sold, prevSold) : 0 },
+      received: { amount: Number(received), changePct: range.prevFrom ? pctOf(received, prevReceived) : 0 },
+      debts: { amount: Number(clientDebt), changePct: range.prevFrom ? pctOf(debtNow, debtPrev) : 0 },
+      free: { amount: Number(profit), changePct: range.prevFrom ? pctOf(profitInPeriod, profitPrevPeriod) : 0 },
     },
   };
   const spark = sparkLine(overview.sparkline);
@@ -380,10 +401,13 @@ export async function MobileOwnerHome() {
               </span>
               {t("home.financeOverview")}
             </p>
-            <Link href="/orders?period=month" className={styles.period}>
-              {t("home.thisMonth")}
-              <ChevronDown size={14} strokeWidth={1.8} />
-            </Link>
+            <Suspense
+              fallback={
+                <span className={styles.period}>{t("home.periodMonth")}</span>
+              }
+            >
+              <FinancePeriodPicker locale={locale} current={range.period} />
+            </Suspense>
           </div>
 
           <div className={styles.incomeRow}>
@@ -395,7 +419,7 @@ export async function MobileOwnerHome() {
                 {formatPct(overview.incomeChangePct)}
               </span>
             </p>
-            <span className={styles.incomeHint}>{t("home.vsPrev")}</span>
+            <span className={styles.incomeHint}>{financePeriodCompareHint(range.period, t)}</span>
             <svg className={styles.spark} viewBox="0 0 140 68" aria-hidden>
               <defs>
                 <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">

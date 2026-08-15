@@ -1,5 +1,9 @@
 export type OrderPeriod = "month" | "prev" | "all" | "custom";
 
+export type FinancePeriod = "month" | "prev" | "2m" | "3m" | "quarter" | "year" | "all";
+
+export const FINANCE_PERIODS: FinancePeriod[] = ["month", "prev", "2m", "3m", "quarter", "year", "all"];
+
 function startOfDay(d: Date) {
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);
@@ -71,4 +75,129 @@ export function buildOrdersQuery(base: Record<string, string | undefined>) {
   }
   const s = q.toString();
   return s ? `?${s}` : "";
+}
+
+export function resolveFinanceDateRange(periodRaw?: string): {
+  period: FinancePeriod;
+  from?: Date;
+  to?: Date;
+  prevFrom?: Date;
+  prevTo?: Date;
+} {
+  const period = (FINANCE_PERIODS.includes(periodRaw as FinancePeriod) ? periodRaw : "month") as FinancePeriod;
+  const now = new Date();
+
+  if (period === "all") return { period };
+
+  if (period === "prev") {
+    const from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const to = new Date(now.getFullYear(), now.getMonth(), 0);
+    const prevFrom = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    const prevTo = new Date(now.getFullYear(), now.getMonth() - 1, 0);
+    return {
+      period,
+      from: startOfDay(from),
+      to: endOfDay(to),
+      prevFrom: startOfDay(prevFrom),
+      prevTo: endOfDay(prevTo),
+    };
+  }
+
+  if (period === "2m") {
+    const from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const prevFrom = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+    const prevTo = new Date(now.getFullYear(), now.getMonth() - 1, 0);
+    return {
+      period,
+      from: startOfDay(from),
+      to: endOfDay(now),
+      prevFrom: startOfDay(prevFrom),
+      prevTo: endOfDay(prevTo),
+    };
+  }
+
+  if (period === "3m") {
+    const from = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    const prevFrom = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+    const prevTo = new Date(now.getFullYear(), now.getMonth() - 2, 0);
+    return {
+      period,
+      from: startOfDay(from),
+      to: endOfDay(now),
+      prevFrom: startOfDay(prevFrom),
+      prevTo: endOfDay(prevTo),
+    };
+  }
+
+  if (period === "quarter") {
+    const q = Math.floor(now.getMonth() / 3);
+    const from = new Date(now.getFullYear(), q * 3, 1);
+    const prevFrom = new Date(now.getFullYear(), (q - 1) * 3, 1);
+    const prevTo = new Date(now.getFullYear(), q * 3, 0);
+    return {
+      period,
+      from: startOfDay(from),
+      to: endOfDay(now),
+      prevFrom: startOfDay(prevFrom),
+      prevTo: endOfDay(prevTo),
+    };
+  }
+
+  if (period === "year") {
+    const from = new Date(now.getFullYear(), 0, 1);
+    const prevFrom = new Date(now.getFullYear() - 1, 0, 1);
+    const prevTo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+    return {
+      period,
+      from: startOfDay(from),
+      to: endOfDay(now),
+      prevFrom: startOfDay(prevFrom),
+      prevTo: endOfDay(prevTo),
+    };
+  }
+
+  const from = new Date(now.getFullYear(), now.getMonth(), 1);
+  const prevFrom = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const prevTo = new Date(now.getFullYear(), now.getMonth(), 0);
+  return {
+    period: "month",
+    from: startOfDay(from),
+    to: endOfDay(now),
+    prevFrom: startOfDay(prevFrom),
+    prevTo: endOfDay(prevTo),
+  };
+}
+
+export function financePeriodLabel(period: FinancePeriod, t: (key: string) => string) {
+  switch (period) {
+    case "month":
+      return t("home.periodMonth");
+    case "prev":
+      return t("home.periodPrev");
+    case "2m":
+      return t("home.period2m");
+    case "3m":
+      return t("home.period3m");
+    case "quarter":
+      return t("home.periodQuarter");
+    case "year":
+      return t("home.periodYear");
+    case "all":
+      return t("home.periodAll");
+    default:
+      return t("home.periodMonth");
+  }
+}
+
+export function financePeriodCompareHint(period: FinancePeriod, t: (key: string) => string) {
+  switch (period) {
+    case "year":
+      return t("home.vsPrevYear");
+    case "quarter":
+      return t("home.vsPrevQuarter");
+    case "all":
+      return t("home.vsAll");
+    default:
+      return t("home.vsPrev");
+  }
 }
