@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { IconHelp } from "@/components/icons";
 import type { Locale } from "@/lib/i18n";
 import { createT } from "@/lib/i18n";
@@ -19,9 +20,9 @@ import {
 
 type Box = { top: number; left: number; width: number; height: number; radius: string };
 
-const DESKTOP_TIP_W = 300;
-const MOBILE_TIP_H = 230;
-const GAP = 12;
+const TIP_W = 320;
+const TIP_H = 236;
+const GAP = 14;
 
 function readFlag(key: string): boolean {
   try {
@@ -131,8 +132,8 @@ function measure(el: HTMLElement): Box {
 function viewportPad() {
   const mobile = isMobileViewport();
   return {
-    top: mobile ? 72 : 52,
-    bottom: mobile ? 112 : 28,
+    top: mobile ? 72 : 48,
+    bottom: mobile ? 108 : 24,
     horizontal: 16,
   };
 }
@@ -162,9 +163,7 @@ function nudgeIntoView(el: HTMLElement) {
   if (boxFitsViewport(measure(el))) return;
 
   const pad = viewportPad();
-  const box = measure(el);
   const vh = window.innerHeight;
-  const vw = window.innerWidth;
 
   const main = getMainScroller();
   if (main instanceof HTMLElement) {
@@ -179,14 +178,10 @@ function nudgeIntoView(el: HTMLElement) {
   }
 
   const next = measure(el);
-  let dy = 0;
-  if (next.top < pad.top) dy = next.top - pad.top - 8;
-  if (next.top + next.height > vh - pad.bottom) dy = next.top + next.height - (vh - pad.bottom) + 8;
-  if (dy !== 0) window.scrollBy({ top: dy, behavior: "smooth" });
-
-  const dxLeft = next.left < pad.horizontal ? pad.horizontal - next.left : 0;
-  const dxRight = next.left + next.width > vw - pad.horizontal ? next.left + next.width - (vw - pad.horizontal) : 0;
-  if (dxLeft > 0 || dxRight > 0) window.scrollBy({ left: dxRight - dxLeft, behavior: "smooth" });
+  if (next.top < pad.top) window.scrollBy({ top: next.top - pad.top - 8, behavior: "smooth" });
+  if (next.top + next.height > vh - pad.bottom) {
+    window.scrollBy({ top: next.top + next.height - (vh - pad.bottom) + 8, behavior: "smooth" });
+  }
 }
 
 async function waitForStableBox(el: HTMLElement, attempts = 10, delay = 50): Promise<Box> {
@@ -218,77 +213,62 @@ type TipLayout = {
   top: number;
   left: number;
   width: number;
-  place: "right" | "left" | "bottom" | "top" | "sheet";
-  hole: Box;
+  place: "center-bottom" | "center-top" | "center";
 };
 
-function tipLayoutFor(box: Box, tipHeight = MOBILE_TIP_H): TipLayout {
-  const hole = { ...box };
+function rectsOverlap(
+  a: { top: number; left: number; width: number; height: number },
+  b: { top: number; left: number; width: number; height: number },
+) {
+  return !(
+    a.top + a.height <= b.top ||
+    b.top + b.height <= a.top ||
+    a.left + a.width <= b.left ||
+    b.left + b.width <= a.left
+  );
+}
+
+function tipLayoutFor(box: Box, tipHeight = TIP_H): TipLayout {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const pad = viewportPad();
   const margin = 16;
+  const width = Math.min(TIP_W, vw - margin * 2);
+  const left = Math.round((vw - width) / 2);
 
-  if (isMobileViewport()) {
-    const width = vw - margin * 2;
-    const below = hole.top + hole.height + GAP;
-    const fitsBelow = below + tipHeight <= vh - pad.bottom;
-    const top = fitsBelow ? below : Math.max(pad.top, vh - tipHeight - pad.bottom);
-    return {
-      top,
-      left: margin,
-      width,
-      place: "sheet",
-      hole,
-    };
+  const hole = {
+    top: box.top - GAP,
+    left: box.left - GAP,
+    width: box.width + GAP * 2,
+    height: box.height + GAP * 2,
+  };
+
+  const candidates: Array<{ place: TipLayout["place"]; top: number }> = [
+    { place: "center-bottom", top: vh - tipHeight - pad.bottom },
+    { place: "center-top", top: pad.top },
+    { place: "center", top: Math.round((vh - tipHeight) / 2) },
+  ];
+
+  for (const candidate of candidates) {
+    const tip = { top: candidate.top, left, width, height: tipHeight };
+    if (!rectsOverlap(tip, hole)) {
+      return { top: candidate.top, left, width, place: candidate.place };
+    }
   }
 
-  const tipW = Math.min(DESKTOP_TIP_W, vw - margin * 2);
+  return {
+    top: Math.min(vh - tipHeight - margin, Math.max(margin, box.top + box.height + GAP)),
+    left,
+    width,
+    place: "center-bottom",
+  };
+}
 
-  const candidates: Array<{ place: TipLayout["place"]; top: number; left: number; score: number }> = [];
-
-  function score(top: number, left: number, width: number, height: number) {
-    return (
-      Math.max(0, pad.top - top) +
-      Math.max(0, top + height - (vh - pad.bottom)) +
-      Math.max(0, pad.horizontal - left) +
-      Math.max(0, left + width - (vw - pad.horizontal))
-    );
-  }
-
-  const centeredLeft = hole.left + hole.width / 2 - tipW / 2;
-
-  candidates.push({
-    place: "bottom",
-    top: hole.top + hole.height + GAP,
-    left: centeredLeft,
-    score: score(hole.top + hole.height + GAP, centeredLeft, tipW, tipHeight),
-  });
-  candidates.push({
-    place: "top",
-    top: hole.top - tipHeight - GAP,
-    left: centeredLeft,
-    score: score(hole.top - tipHeight - GAP, centeredLeft, tipW, tipHeight),
-  });
-  candidates.push({
-    place: "right",
-    top: hole.top + hole.height / 2 - tipHeight / 2,
-    left: hole.left + hole.width + GAP,
-    score: score(hole.top + hole.height / 2 - tipHeight / 2, hole.left + hole.width + GAP, tipW, tipHeight),
-  });
-  candidates.push({
-    place: "left",
-    top: hole.top + hole.height / 2 - tipHeight / 2,
-    left: hole.left - tipW - GAP,
-    score: score(hole.top + hole.height / 2 - tipHeight / 2, hole.left - tipW - GAP, tipW, tipHeight),
-  });
-
-  candidates.sort((a, b) => a.score - b.score);
-  const best = candidates[0];
-  const top = Math.min(Math.max(margin, best.top), vh - tipHeight - margin);
-  const left = Math.min(Math.max(margin, best.left), vw - tipW - margin);
-
-  return { top, left, width: tipW, place: best.place, hole };
+function TourPortal({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return createPortal(children, document.body);
 }
 
 export function HelpGuide({ locale }: { locale: Locale }) {
@@ -353,6 +333,15 @@ export function HelpGuide({ locale }: { locale: Locale }) {
     setStep(0);
     setActive(true);
   }, [shouldRun, pageId]);
+
+  useEffect(() => {
+    if (!active) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [active]);
 
   const focusStep = useCallback(async (index: number, stepDef: TourStep) => {
     if (stepDef.intro) {
@@ -432,6 +421,7 @@ export function HelpGuide({ locale }: { locale: Locale }) {
     }
 
     window.addEventListener("resize", refresh);
+    window.addEventListener("scroll", refresh, true);
     const main = getMainScroller();
     main?.addEventListener("scroll", refresh, { passive: true });
     const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(refresh) : null;
@@ -439,6 +429,7 @@ export function HelpGuide({ locale }: { locale: Locale }) {
 
     return () => {
       window.removeEventListener("resize", refresh);
+      window.removeEventListener("scroll", refresh, true);
       main?.removeEventListener("scroll", refresh);
       ro?.disconnect();
     };
@@ -535,37 +526,39 @@ export function HelpGuide({ locale }: { locale: Locale }) {
 
   if (intro) {
     return (
-      <div className="print:hidden" role="dialog" aria-modal="true" aria-labelledby="tour-title">
-        <div className="tour-backdrop fixed inset-0 z-[100]" />
-        <div className="tour-tip tour-intro fixed left-1/2 top-[14%] z-[101] w-[min(340px,calc(100vw-32px))] -translate-x-1/2">
-          {card}
+      <TourPortal>
+        <div className="print:hidden tour-root" role="dialog" aria-modal="true" aria-labelledby="tour-title">
+          <div className="tour-backdrop" />
+          <div className="tour-intro-wrap">
+            <div className="tour-tip tour-intro">{card}</div>
+          </div>
         </div>
-      </div>
+      </TourPortal>
     );
   }
 
   return (
-    <div className="print:hidden" role="dialog" aria-modal="true" aria-labelledby="tour-title">
-      <div className="tour-backdrop fixed inset-0 z-[100]" />
+    <TourPortal>
+      <div className="print:hidden tour-root" role="dialog" aria-modal="true" aria-labelledby="tour-title">
+        <div
+          className="tour-cutout pointer-events-none"
+          style={{
+            top: box!.top,
+            left: box!.left,
+            width: box!.width,
+            height: box!.height,
+            borderRadius: box!.radius,
+          }}
+        />
 
-      <div
-        className="tour-ring pointer-events-none fixed z-[101]"
-        style={{
-          top: box!.top,
-          left: box!.left,
-          width: box!.width,
-          height: box!.height,
-          borderRadius: box!.radius,
-        }}
-      />
-
-      <div
-        className={`tour-tip ${tipLayout!.place === "sheet" ? "tour-tip--sheet" : `tour-tip--${tipLayout!.place}`} fixed z-[102]`}
-        style={{ top: tipLayout!.top, left: tipLayout!.left, width: tipLayout!.width }}
-      >
-        {card}
+        <div
+          className="tour-tip"
+          style={{ top: tipLayout!.top, left: tipLayout!.left, width: tipLayout!.width }}
+        >
+          {card}
+        </div>
       </div>
-    </div>
+    </TourPortal>
   );
 }
 

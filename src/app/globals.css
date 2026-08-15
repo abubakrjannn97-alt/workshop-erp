@@ -739,100 +739,66 @@ h4 {
   }
 }
 
-.tour-backdrop {
-  background: rgba(11, 14, 26, 0.58);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+.tour-root {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  pointer-events: none;
 }
 
-.tour-ring {
-  box-sizing: border-box;
-  border: 2px solid #e8c978;
-  background: transparent;
-  box-shadow:
-    0 0 0 1px rgba(255, 244, 214, 0.28) inset,
-    0 0 0 4px rgba(245, 166, 35, 0.14),
-    0 0 24px rgba(245, 166, 35, 0.22);
+.tour-backdrop {
+  position: fixed;
+  inset: 0;
+  pointer-events: auto;
+  background: rgba(11, 14, 26, 0.72);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.tour-intro-wrap {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  pointer-events: none;
 }
 
 .tour-cutout {
+  position: fixed;
+  z-index: 100001;
   box-sizing: border-box;
   border: 2px solid #e8c978;
   background: transparent;
   box-shadow:
-    0 0 0 9999px rgba(11, 14, 26, 0.58),
+    0 0 0 9999px rgba(11, 14, 26, 0.72),
     0 0 0 1px rgba(255, 244, 214, 0.35) inset,
-    0 0 18px rgba(245, 166, 35, 0.28);
+    0 0 22px rgba(245, 166, 35, 0.28);
 }
 
 .tour-tip {
-  position: relative;
-  max-width: calc(100vw - 32px);
-  border-radius: 18px;
+  position: fixed;
+  z-index: 100002;
+  pointer-events: auto;
+  width: min(320px, calc(100vw - 32px));
+  border-radius: 20px;
   background:
-    linear-gradient(145deg, rgba(255, 248, 230, 0.14) 0%, transparent 42%),
+    linear-gradient(145deg, rgba(255, 248, 230, 0.16) 0%, transparent 42%),
     linear-gradient(165deg, rgba(42, 36, 28, 0.98) 0%, rgba(22, 19, 16, 0.99) 100%);
-  border: 1px solid rgba(232, 201, 120, 0.36);
+  border: 1px solid rgba(232, 201, 120, 0.4);
   padding: 16px 16px 14px;
   box-shadow:
-    0 20px 48px rgba(12, 10, 8, 0.38),
+    0 24px 56px rgba(12, 10, 8, 0.42),
     inset 0 1px 0 rgba(255, 244, 214, 0.24);
   backdrop-filter: blur(18px) saturate(1.2);
   -webkit-backdrop-filter: blur(18px) saturate(1.2);
 }
 
 .tour-intro {
+  width: min(360px, calc(100vw - 32px));
   border-radius: 22px;
-}
-
-.tour-tip--sheet {
-  border-radius: 22px 22px 18px 18px;
-}
-
-.tour-tip--sheet::before {
-  display: none;
-}
-
-.tour-tip::before {
-  content: "";
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  transform: rotate(45deg);
-  background: linear-gradient(165deg, rgba(42, 36, 28, 0.98) 0%, rgba(22, 19, 16, 0.98) 100%);
-  border: 1px solid rgba(232, 201, 120, 0.28);
-}
-
-.tour-tip--bottom::before {
-  top: -7px;
-  left: 24px;
-  border-bottom: none;
-  border-right: none;
-}
-
-.tour-tip--top::before {
-  bottom: -7px;
-  left: 24px;
-  border-top: none;
-  border-left: none;
-}
-
-.tour-tip--right::before {
-  left: -7px;
-  top: 24px;
-  border-top: none;
-  border-right: none;
-}
-
-.tour-tip--left::before {
-  right: -7px;
-  top: 24px;
-  border-bottom: none;
-  border-left: none;
-}
-
-.tour-intro::before {
-  display: none;
+  pointer-events: auto;
 }
 
 .tour-tip-progress {
