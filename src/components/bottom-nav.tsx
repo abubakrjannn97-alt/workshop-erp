@@ -111,7 +111,7 @@ export function BottomNav({
               className={`${styles.tab} ${active ? styles.tabActive : ""} ${pending ? styles.tabPending : ""}`}
             >
               <span className={styles.iconWrap}>
-                <Icon size={21} />
+                <Icon size={19} />
               </span>
               <span className={styles.label}>{t(tab.labelKey)}</span>
               <span className={styles.dot} aria-hidden="true" />

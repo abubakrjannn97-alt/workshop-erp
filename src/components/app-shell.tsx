@@ -57,7 +57,7 @@ export function AppShell({
           className="pointer-events-none absolute inset-0 z-0 hidden lg:block"
           style={{
             background:
-              "linear-gradient(135deg, #0B0E1A 0%, #16130F 16%, #2a241c 30%, #F3F4F7 58%, #FFFFFF 100%)",
+              "linear-gradient(100deg, #FFFFFF 0%, #FAF8F5 28%, #F0EBE4 52%, #E4DAD0 72%, #D8CBBE 88%, #CFC0B0 100%)",
           }}
         />
         <div
@@ -124,7 +124,7 @@ export function AppShell({
           className={
             isHome
               ? "relative z-10 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-transparent lg:px-3 lg:py-3 lg:pb-4"
-              : "relative z-10 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-transparent px-3 py-3 pb-[calc(5.25rem+env(safe-area-inset-bottom))] lg:px-3 lg:py-3 lg:pb-4"
+              : "relative z-10 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-transparent px-3 py-3 pb-[calc(4.75rem+env(safe-area-inset-bottom))] lg:px-3 lg:py-3 lg:pb-4"
           }
         >
           {children}

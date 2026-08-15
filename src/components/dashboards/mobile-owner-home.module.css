@@ -2,7 +2,7 @@
   position: relative;
   z-index: 1;
   min-height: 100%;
-  padding: 10px 0 calc(5.25rem + env(safe-area-inset-bottom));
+  padding: 10px 0 calc(4.75rem + env(safe-area-inset-bottom));
   font-family: var(--font-sans), Inter, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
