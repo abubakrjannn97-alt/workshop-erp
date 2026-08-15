@@ -65,7 +65,13 @@
 }
 
 .backdrop {
-  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  border: 0;
+  background: rgba(11, 14, 26, 0.58);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .panel {
@@ -85,58 +91,21 @@
   -webkit-backdrop-filter: blur(16px);
 }
 
-@media (max-width: 1023px) {
-  .backdrop {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: 120;
-    border: 0;
-    background: rgba(11, 14, 26, 0.58);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-  }
-
-  .panel {
-    position: fixed;
-    top: auto;
-    right: 12px;
-    bottom: calc(12px + env(safe-area-inset-bottom));
-    left: 12px;
-    z-index: 121;
-    width: auto;
-    max-height: min(72dvh, calc(100dvh - 96px));
-    overflow-y: auto;
-    border-radius: 18px;
-    padding: 16px;
-    box-shadow:
-      0 24px 48px rgba(12, 10, 8, 0.32),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  }
-
-  .title {
-    font-size: 14px;
-  }
-
-  .meta {
-    font-size: 11px;
-  }
-
-  .field {
-    padding: 10px 12px;
-    font-size: 13px;
-  }
-
-  .primary,
-  .secondary {
-    flex: 1;
-    padding: 10px 12px;
-    font-size: 13px;
-  }
-
-  .actions {
-    margin-top: 2px;
-  }
+.panelSheet {
+  position: fixed;
+  top: auto;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  left: 12px;
+  z-index: 201;
+  width: auto;
+  max-height: min(72dvh, calc(100dvh - 96px));
+  overflow-y: auto;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow:
+    0 24px 48px rgba(12, 10, 8, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .title {
@@ -205,4 +174,30 @@
 
 .link:hover {
   text-decoration: underline;
+}
+
+@media (max-width: 1023px) {
+  .panelSheet .title {
+    font-size: 15px;
+  }
+
+  .panelSheet .meta {
+    font-size: 12px;
+  }
+
+  .panelSheet .field {
+    padding: 11px 12px;
+    font-size: 14px;
+  }
+
+  .panelSheet .primary,
+  .panelSheet .secondary {
+    flex: 1;
+    padding: 11px 12px;
+    font-size: 14px;
+  }
+
+  .panelSheet .link {
+    font-size: 12px;
+  }
 }

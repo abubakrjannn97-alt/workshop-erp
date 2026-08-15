@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Wallet } from "lucide-react";
 import { closeCashShift, openCashShift } from "@/app/actions/control";
 import { PendingButton } from "@/components/pending-button";
@@ -20,6 +21,20 @@ export type CashShiftControlData = {
   }[];
 };
 
+function useMobileSheet() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const sync = () => setIsMobile(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  return isMobile;
+}
+
 export function CashShiftControl({
   data,
   locale,
@@ -32,7 +47,9 @@ export function CashShiftControl({
   const t = createT(locale);
   const intl = intlLocale(locale);
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const isMobile = useMobileSheet();
   const activeShift = data.shifts.find((shift) => data.accounts.some((account) => account.id === shift.accountId));
   const activeAccount = activeShift
     ? data.accounts.find((account) => account.id === activeShift.accountId)
@@ -40,7 +57,11 @@ export function CashShiftControl({
   const dark = variant === "dark";
 
   useEffect(() => {
-    if (!open || !window.matchMedia("(max-width: 1023px)").matches) return;
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!open || !isMobile) return;
     const html = document.documentElement;
     const body = document.body;
     const prevHtmlOverflow = html.style.overflow;
@@ -51,10 +72,10 @@ export function CashShiftControl({
       html.style.overflow = prevHtmlOverflow;
       body.style.overflow = prevBodyOverflow;
     };
-  }, [open]);
+  }, [open, isMobile]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || isMobile) return;
     function onPointerDown(event: MouseEvent | TouchEvent) {
       if (!wrapRef.current?.contains(event.target as Node)) {
         setOpen(false);
@@ -66,7 +87,79 @@ export function CashShiftControl({
       document.removeEventListener("mousedown", onPointerDown);
       document.removeEventListener("touchstart", onPointerDown);
     };
-  }, [open]);
+  }, [open, isMobile]);
+
+  const panel = (
+    <>
+      {isMobile ? (
+        <button
+          type="button"
+          className={styles.backdrop}
+          aria-label={t("help.close")}
+          onClick={() => setOpen(false)}
+        />
+      ) : null}
+      <div
+        className={`${styles.panel} ${isMobile ? styles.panelSheet : ""}`}
+        role="dialog"
+        aria-label={t("fin.shift")}
+      >
+        <p className={styles.title}>{t("fin.shift")}</p>
+
+        {activeShift && activeAccount ? (
+          <>
+            <p className={styles.meta}>
+              {activeAccount.name} · {t("fin.openedAt")}{" "}
+              {new Date(activeShift.openedAt).toLocaleString(intl)} · {t("fin.start")}{" "}
+              {activeShift.openingAmount} с
+            </p>
+            {activeShift.expectedBalance ? (
+              <p className={styles.meta}>
+                {t("fin.expectedNow")}: {activeShift.expectedBalance} с
+              </p>
+            ) : null}
+            <form action={closeCashShift} className={styles.form} onSubmit={() => setOpen(false)}>
+              <input type="hidden" name="id" value={activeShift.id} />
+              <input
+                name="closingActual"
+                placeholder={t("fin.closeBalance")}
+                className={styles.field}
+                inputMode="decimal"
+                required
+              />
+              <input name="comment" placeholder={t("fin.diffReason")} className={styles.field} />
+              <div className={styles.actions}>
+                <PendingButton className={styles.secondary}>{t("fin.closeShift")}</PendingButton>
+              </div>
+            </form>
+          </>
+        ) : (
+          <form action={openCashShift} className={styles.form} onSubmit={() => setOpen(false)}>
+            <select name="accountId" className={styles.field} defaultValue={data.accounts[0]?.id}>
+              {data.accounts.map((account) => (
+                <option key={account.id} value={account.id}>
+                  {account.name} · {account.balance} с
+                </option>
+              ))}
+            </select>
+            <input
+              name="openingAmount"
+              placeholder={t("fin.openBalance")}
+              className={styles.field}
+              inputMode="decimal"
+            />
+            <div className={styles.actions}>
+              <PendingButton className={styles.primary}>{t("fin.openShift")}</PendingButton>
+            </div>
+          </form>
+        )}
+
+        <Link href="/finance" className={styles.link} onClick={() => setOpen(false)}>
+          {t("nav.finance")} →
+        </Link>
+      </div>
+    </>
+  );
 
   return (
     <div className={styles.wrap} ref={wrapRef}>
@@ -81,85 +174,12 @@ export function CashShiftControl({
         <span className={`${styles.dot} ${activeShift ? styles.dotOpen : ""}`} aria-hidden="true" />
         <Wallet size={13} strokeWidth={2} className="shrink-0 opacity-80" />
         <span className={styles.label}>
-          {activeShift && activeAccount
-            ? activeAccount.name
-            : t("fin.openShift")}
+          {activeShift && activeAccount ? activeAccount.name : t("fin.openShift")}
         </span>
       </button>
 
-      {open ? (
-        <>
-          <button
-            type="button"
-            className={styles.backdrop}
-            aria-label={t("help.close")}
-            onClick={() => setOpen(false)}
-          />
-          <div className={styles.panel} role="dialog" aria-label={t("fin.shift")}>
-            <p className={styles.title}>{t("fin.shift")}</p>
-
-            {activeShift && activeAccount ? (
-              <>
-                <p className={styles.meta}>
-                  {activeAccount.name} · {t("fin.openedAt")}{" "}
-                  {new Date(activeShift.openedAt).toLocaleString(intl)} · {t("fin.start")}{" "}
-                  {activeShift.openingAmount} с
-                </p>
-                {activeShift.expectedBalance ? (
-                  <p className={styles.meta}>
-                    {t("fin.expectedNow")}: {activeShift.expectedBalance} с
-                  </p>
-                ) : null}
-                <form
-                  action={closeCashShift}
-                  className={styles.form}
-                  onSubmit={() => setOpen(false)}
-                >
-                  <input type="hidden" name="id" value={activeShift.id} />
-                  <input
-                    name="closingActual"
-                    placeholder={t("fin.closeBalance")}
-                    className={styles.field}
-                    inputMode="decimal"
-                    required
-                  />
-                  <input
-                    name="comment"
-                    placeholder={t("fin.diffReason")}
-                    className={styles.field}
-                  />
-                  <div className={styles.actions}>
-                    <PendingButton className={styles.secondary}>{t("fin.closeShift")}</PendingButton>
-                  </div>
-                </form>
-              </>
-            ) : (
-              <form action={openCashShift} className={styles.form} onSubmit={() => setOpen(false)}>
-                <select name="accountId" className={styles.field} defaultValue={data.accounts[0]?.id}>
-                  {data.accounts.map((account) => (
-                    <option key={account.id} value={account.id}>
-                      {account.name} · {account.balance} с
-                    </option>
-                  ))}
-                </select>
-                <input
-                  name="openingAmount"
-                  placeholder={t("fin.openBalance")}
-                  className={styles.field}
-                  inputMode="decimal"
-                />
-                <div className={styles.actions}>
-                  <PendingButton className={styles.primary}>{t("fin.openShift")}</PendingButton>
-                </div>
-              </form>
-            )}
-
-            <Link href="/finance" className={styles.link} onClick={() => setOpen(false)}>
-              {t("nav.finance")} →
-            </Link>
-          </div>
-        </>
-      ) : null}
+      {open && !isMobile ? panel : null}
+      {open && isMobile && mounted ? createPortal(panel, document.body) : null}
     </div>
   );
 }
