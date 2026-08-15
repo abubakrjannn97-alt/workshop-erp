@@ -19,9 +19,9 @@ import {
 
 type Box = { top: number; left: number; width: number; height: number; radius: string };
 
-const TIP_W = 300;
-const TIP_H = 248;
-const GAP = 14;
+const DESKTOP_TIP_W = 300;
+const MOBILE_TIP_H = 230;
+const GAP = 12;
 
 function readFlag(key: string): boolean {
   try {
@@ -59,35 +59,57 @@ function writeHidden(map: Record<string, boolean>) {
   }
 }
 
+function isMobileViewport() {
+  return typeof window !== "undefined" && window.innerWidth < 1024;
+}
+
+function getMainScroller() {
+  return document.querySelector("main");
+}
+
 function isVisible(el: HTMLElement) {
   const r = el.getBoundingClientRect();
-  if (r.width < 2 || r.height < 2) return false;
+  if (r.width < 24 || r.height < 20) return false;
   const style = getComputedStyle(el);
   if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0) return false;
+  let node: HTMLElement | null = el;
+  while (node) {
+    const s = getComputedStyle(node);
+    if (s.display === "none" || s.visibility === "hidden") return false;
+    node = node.parentElement;
+  }
   return true;
 }
 
 function findTarget(ids: string[]) {
+  const matches: HTMLElement[] = [];
   for (const id of ids) {
-    const nodes = document.querySelectorAll<HTMLElement>(`[data-tour="${id}"]`);
-    for (const el of nodes) {
-      if (isVisible(el)) return el;
+    for (const el of document.querySelectorAll<HTMLElement>(`[data-tour="${id}"]`)) {
+      if (isVisible(el)) matches.push(el);
     }
   }
-  return null;
+  if (matches.length === 0) return null;
+
+  matches.sort((a, b) => {
+    const ra = a.getBoundingClientRect();
+    const rb = b.getBoundingClientRect();
+    return rb.width * rb.height - ra.width * ra.height;
+  });
+
+  return matches[0];
 }
 
 function readRadius(el: HTMLElement, width: number, height: number) {
   const style = getComputedStyle(el);
   const raw = style.borderRadius.trim();
-  if (!raw || raw === "0px") return "8px";
+  if (!raw || raw === "0px") return "10px";
 
   const parts = raw.split(/\s+/).map((part) => parseFloat(part)).filter((n) => !Number.isNaN(n));
   const max = parts.length ? Math.max(...parts) : 0;
   const minSide = Math.min(width, height);
 
   if (minSide > 0 && max >= minSide / 2 - 0.5) {
-    return `${minSide / 2}px`;
+    return `${Math.round(minSide / 2)}px`;
   }
 
   return raw;
@@ -107,10 +129,10 @@ function measure(el: HTMLElement): Box {
 }
 
 function viewportPad() {
-  const mobile = window.innerWidth < 1024;
+  const mobile = isMobileViewport();
   return {
-    top: mobile ? 76 : 56,
-    bottom: mobile ? 108 : 36,
+    top: mobile ? 72 : 52,
+    bottom: mobile ? 112 : 28,
     horizontal: 16,
   };
 }
@@ -130,141 +152,143 @@ function revealTarget(el: HTMLElement) {
   const pad = viewportPad();
   const prev = el.style.scrollMargin;
   el.style.scrollMargin = `${pad.top}px ${pad.horizontal}px ${pad.bottom}px ${pad.horizontal}px`;
-  el.scrollIntoView({ block: "center", inline: "center", behavior: "smooth" });
-
+  el.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
   window.setTimeout(() => {
     el.style.scrollMargin = prev;
-  }, 700);
+  }, 500);
 }
 
 function nudgeIntoView(el: HTMLElement) {
-  const box = measure(el);
-  if (boxFitsViewport(box)) return;
+  if (boxFitsViewport(measure(el))) return;
 
   const pad = viewportPad();
+  const box = measure(el);
   const vh = window.innerHeight;
   const vw = window.innerWidth;
-  let dy = 0;
-  let dx = 0;
 
-  if (box.top < pad.top) dy = box.top - pad.top - 8;
-  if (box.top + box.height > vh - pad.bottom) dy = box.top + box.height - (vh - pad.bottom) + 8;
-  if (box.left < pad.horizontal) dx = box.left - pad.horizontal - 8;
-  if (box.left + box.width > vw - pad.horizontal) dx = box.left + box.width - (vw - pad.horizontal) + 8;
-
-  if (dy !== 0 || dx !== 0) {
-    window.scrollBy({ top: dy, left: dx, behavior: "smooth" });
-  }
-
-  let parent = el.parentElement;
-  while (parent) {
-    const style = getComputedStyle(parent);
-    const scrollable =
-      parent.scrollHeight > parent.clientHeight + 1 &&
-      (style.overflowY === "auto" || style.overflowY === "scroll" || style.overflow === "auto");
-    if (scrollable) {
-      const pr = parent.getBoundingClientRect();
-      const er = el.getBoundingClientRect();
-      if (er.top < pr.top + pad.top) parent.scrollTop -= pr.top + pad.top - er.top + 8;
-      if (er.bottom > pr.bottom - pad.bottom) parent.scrollTop += er.bottom - (pr.bottom - pad.bottom) + 8;
+  const main = getMainScroller();
+  if (main instanceof HTMLElement) {
+    const mr = main.getBoundingClientRect();
+    const er = el.getBoundingClientRect();
+    if (er.top < mr.top + pad.top) {
+      main.scrollTop -= mr.top + pad.top - er.top + 10;
     }
-    parent = parent.parentElement;
+    if (er.bottom > mr.bottom - pad.bottom) {
+      main.scrollTop += er.bottom - (mr.bottom - pad.bottom) + 10;
+    }
   }
+
+  const next = measure(el);
+  let dy = 0;
+  if (next.top < pad.top) dy = next.top - pad.top - 8;
+  if (next.top + next.height > vh - pad.bottom) dy = next.top + next.height - (vh - pad.bottom) + 8;
+  if (dy !== 0) window.scrollBy({ top: dy, behavior: "smooth" });
+
+  const dxLeft = next.left < pad.horizontal ? pad.horizontal - next.left : 0;
+  const dxRight = next.left + next.width > vw - pad.horizontal ? next.left + next.width - (vw - pad.horizontal) : 0;
+  if (dxLeft > 0 || dxRight > 0) window.scrollBy({ left: dxRight - dxLeft, behavior: "smooth" });
 }
 
-function waitForStableBox(el: HTMLElement, attempts = 8, delay = 60): Promise<Box> {
-  return new Promise((resolve) => {
-    let last: Box | null = null;
-    let stable = 0;
-    let left = attempts;
+async function waitForStableBox(el: HTMLElement, attempts = 10, delay = 50): Promise<Box> {
+  let last: Box | null = null;
+  let stable = 0;
 
-    function tick() {
-      const next = measure(el);
-      if (
-        last &&
-        Math.abs(last.top - next.top) < 1 &&
-        Math.abs(last.left - next.left) < 1 &&
-        Math.abs(last.width - next.width) < 1 &&
-        Math.abs(last.height - next.height) < 1
-      ) {
-        stable += 1;
-      } else {
-        stable = 0;
-      }
-      last = next;
-      left -= 1;
-
-      if (stable >= 2 || left <= 0) {
-        resolve(next);
-        return;
-      }
-      window.setTimeout(tick, delay);
+  for (let i = 0; i < attempts; i++) {
+    await new Promise((resolve) => window.setTimeout(resolve, delay));
+    const next = measure(el);
+    if (
+      last &&
+      Math.abs(last.top - next.top) < 1 &&
+      Math.abs(last.left - next.left) < 1 &&
+      Math.abs(last.width - next.width) < 1 &&
+      Math.abs(last.height - next.height) < 1
+    ) {
+      stable += 1;
+      if (stable >= 2) return next;
+    } else {
+      stable = 0;
     }
+    last = next;
+  }
 
-    tick();
-  });
+  return measure(el);
 }
 
 type TipLayout = {
   top: number;
   left: number;
-  place: "right" | "left" | "bottom" | "top";
+  width: number;
+  place: "right" | "left" | "bottom" | "top" | "sheet";
   hole: Box;
 };
 
-function tipPos(box: Box, tipHeight = TIP_H): TipLayout {
+function tipLayoutFor(box: Box, tipHeight = MOBILE_TIP_H): TipLayout {
   const hole = { ...box };
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const pad = viewportPad();
-  const margin = 12;
+  const margin = 16;
+
+  if (isMobileViewport()) {
+    const width = vw - margin * 2;
+    const below = hole.top + hole.height + GAP;
+    const fitsBelow = below + tipHeight <= vh - pad.bottom;
+    const top = fitsBelow ? below : Math.max(pad.top, vh - tipHeight - pad.bottom);
+    return {
+      top,
+      left: margin,
+      width,
+      place: "sheet",
+      hole,
+    };
+  }
+
+  const tipW = Math.min(DESKTOP_TIP_W, vw - margin * 2);
 
   const candidates: Array<{ place: TipLayout["place"]; top: number; left: number; score: number }> = [];
 
   function score(top: number, left: number, width: number, height: number) {
-    const overflow =
+    return (
       Math.max(0, pad.top - top) +
       Math.max(0, top + height - (vh - pad.bottom)) +
       Math.max(0, pad.horizontal - left) +
-      Math.max(0, left + width - (vw - pad.horizontal));
-    const centerBias = Math.abs(top + height / 2 - vh / 2) * 0.02;
-    return overflow * 100 + centerBias;
+      Math.max(0, left + width - (vw - pad.horizontal))
+    );
   }
 
-  const centeredLeft = hole.left + hole.width / 2 - TIP_W / 2;
+  const centeredLeft = hole.left + hole.width / 2 - tipW / 2;
 
   candidates.push({
     place: "bottom",
     top: hole.top + hole.height + GAP,
     left: centeredLeft,
-    score: score(hole.top + hole.height + GAP, centeredLeft, TIP_W, tipHeight),
+    score: score(hole.top + hole.height + GAP, centeredLeft, tipW, tipHeight),
   });
   candidates.push({
     place: "top",
     top: hole.top - tipHeight - GAP,
     left: centeredLeft,
-    score: score(hole.top - tipHeight - GAP, centeredLeft, TIP_W, tipHeight),
+    score: score(hole.top - tipHeight - GAP, centeredLeft, tipW, tipHeight),
   });
   candidates.push({
     place: "right",
     top: hole.top + hole.height / 2 - tipHeight / 2,
     left: hole.left + hole.width + GAP,
-    score: score(hole.top + hole.height / 2 - tipHeight / 2, hole.left + hole.width + GAP, TIP_W, tipHeight),
+    score: score(hole.top + hole.height / 2 - tipHeight / 2, hole.left + hole.width + GAP, tipW, tipHeight),
   });
   candidates.push({
     place: "left",
     top: hole.top + hole.height / 2 - tipHeight / 2,
-    left: hole.left - TIP_W - GAP,
-    score: score(hole.top + hole.height / 2 - tipHeight / 2, hole.left - TIP_W - GAP, TIP_W, tipHeight),
+    left: hole.left - tipW - GAP,
+    score: score(hole.top + hole.height / 2 - tipHeight / 2, hole.left - tipW - GAP, tipW, tipHeight),
   });
 
   candidates.sort((a, b) => a.score - b.score);
   const best = candidates[0];
-
   const top = Math.min(Math.max(margin, best.top), vh - tipHeight - margin);
-  const left = Math.min(Math.max(margin, best.left), vw - TIP_W - margin);
+  const left = Math.min(Math.max(margin, best.left), vw - tipW - margin);
 
-  return { top, left, place: best.place, hole };
+  return { top, left, width: tipW, place: best.place, hole };
 }
 
 export function HelpGuide({ locale }: { locale: Locale }) {
@@ -330,72 +354,35 @@ export function HelpGuide({ locale }: { locale: Locale }) {
     setActive(true);
   }, [shouldRun, pageId]);
 
-  useEffect(() => {
-    if (!active) return;
-    const html = document.documentElement;
-    const body = document.body;
-    const prevHtmlOverflow = html.style.overflow;
-    const prevBodyOverflow = body.style.overflow;
-    const prevHtmlOverscroll = html.style.overscrollBehavior;
-    const prevBodyOverscroll = body.style.overscrollBehavior;
-    html.style.overflow = "hidden";
-    body.style.overflow = "hidden";
-    html.style.overscrollBehavior = "none";
-    body.style.overscrollBehavior = "none";
-
-    function block(e: Event) {
-      e.preventDefault();
-    }
-    function onKey(e: KeyboardEvent) {
-      const keys = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "PageUp", "PageDown", "Home", "End", " ", "Spacebar"];
-      if (keys.includes(e.key)) e.preventDefault();
-    }
-    window.addEventListener("wheel", block, { passive: false });
-    window.addEventListener("touchmove", block, { passive: false });
-    window.addEventListener("keydown", onKey);
-    return () => {
-      html.style.overflow = prevHtmlOverflow;
-      body.style.overflow = prevBodyOverflow;
-      html.style.overscrollBehavior = prevHtmlOverscroll;
-      body.style.overscrollBehavior = prevBodyOverscroll;
-      window.removeEventListener("wheel", block);
-      window.removeEventListener("touchmove", block);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [active]);
-
-  const focusStep = useCallback(
-    async (index: number, stepDef: TourStep) => {
-      if (stepDef.intro) {
-        targetRef.current = null;
-        setStep(index);
-        setLiveStep(stepDef);
-        setBox(null);
-        setTipLayout(null);
-        return true;
-      }
-
-      const el = findTarget(stepDef.targets);
-      if (!el) return false;
-
-      targetRef.current = el;
-      revealTarget(el);
-      nudgeIntoView(el);
-
-      const measured = await waitForStableBox(el);
-      if (!boxFitsViewport(measured)) {
-        nudgeIntoView(el);
-      }
-
-      const finalBox = await waitForStableBox(el, 6, 50);
+  const focusStep = useCallback(async (index: number, stepDef: TourStep) => {
+    if (stepDef.intro) {
+      targetRef.current = null;
       setStep(index);
       setLiveStep(stepDef);
-      setBox(finalBox);
-      setTipLayout(tipPos(finalBox));
+      setBox(null);
+      setTipLayout(null);
       return true;
-    },
-    [],
-  );
+    }
+
+    const el = findTarget(stepDef.targets);
+    if (!el) return false;
+
+    targetRef.current = el;
+    revealTarget(el);
+    nudgeIntoView(el);
+
+    const finalBox = await waitForStableBox(el);
+    if (!boxFitsViewport(finalBox)) {
+      nudgeIntoView(el);
+    }
+
+    const settled = await waitForStableBox(el, 6, 40);
+    setStep(index);
+    setLiveStep(stepDef);
+    setBox(settled);
+    setTipLayout(tipLayoutFor(settled));
+    return true;
+  }, []);
 
   useEffect(() => {
     if (!active || !shouldRun) return;
@@ -415,7 +402,7 @@ export function HelpGuide({ locale }: { locale: Locale }) {
       if (tries++ < 16) {
         window.setTimeout(() => {
           void run(from);
-        }, 100);
+        }, 120);
         return;
       }
 
@@ -434,22 +421,25 @@ export function HelpGuide({ locale }: { locale: Locale }) {
 
   useEffect(() => {
     const el = targetRef.current;
-    if (!active || !el) return;
+    if (!active || !el || !liveStep || liveStep.intro) return;
 
     function refresh() {
-      const current = findTarget(liveStep?.targets ?? []) ?? el;
+      const current = findTarget(liveStep.targets) ?? el;
       if (!current) return;
       const next = measure(current);
       setBox(next);
-      setTipLayout(tipPos(next));
+      setTipLayout(tipLayoutFor(next));
     }
 
     window.addEventListener("resize", refresh);
+    const main = getMainScroller();
+    main?.addEventListener("scroll", refresh, { passive: true });
     const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(refresh) : null;
     ro?.observe(el);
 
     return () => {
       window.removeEventListener("resize", refresh);
+      main?.removeEventListener("scroll", refresh);
       ro?.disconnect();
     };
   }, [active, liveStep]);
@@ -501,7 +491,6 @@ export function HelpGuide({ locale }: { locale: Locale }) {
   const index = tour.findIndex((s) => s === liveStep);
   const n = (index >= 0 ? index : step) + 1;
   const last = !tour.slice(n).some(stepReady);
-  const hole = tipLayout?.hole;
   const intro = !!liveStep.intro;
 
   const card = (
@@ -547,12 +536,8 @@ export function HelpGuide({ locale }: { locale: Locale }) {
   if (intro) {
     return (
       <div className="print:hidden" role="dialog" aria-modal="true" aria-labelledby="tour-title">
-        <div
-          className="fixed inset-0 z-[100] bg-[rgba(11,14,26,0.72)]"
-          onWheel={(e) => e.preventDefault()}
-          onTouchMove={(e) => e.preventDefault()}
-        />
-        <div className="tour-tip tour-intro fixed left-1/2 top-[16%] z-[101] w-[min(340px,calc(100vw-32px))] -translate-x-1/2">
+        <div className="tour-backdrop fixed inset-0 z-[100]" />
+        <div className="tour-tip tour-intro fixed left-1/2 top-[14%] z-[101] w-[min(340px,calc(100vw-32px))] -translate-x-1/2">
           {card}
         </div>
       </div>
@@ -561,26 +546,22 @@ export function HelpGuide({ locale }: { locale: Locale }) {
 
   return (
     <div className="print:hidden" role="dialog" aria-modal="true" aria-labelledby="tour-title">
-      <div
-        className="fixed inset-0 z-[100]"
-        onWheel={(e) => e.preventDefault()}
-        onTouchMove={(e) => e.preventDefault()}
-      />
+      <div className="tour-backdrop fixed inset-0 z-[100]" />
 
       <div
-        className="tour-cutout pointer-events-none fixed z-[101]"
+        className="tour-ring pointer-events-none fixed z-[101]"
         style={{
-          top: hole!.top,
-          left: hole!.left,
-          width: hole!.width,
-          height: hole!.height,
+          top: box!.top,
+          left: box!.left,
+          width: box!.width,
+          height: box!.height,
           borderRadius: box!.radius,
         }}
       />
 
       <div
-        className={`tour-tip tour-tip--${tipLayout!.place} fixed z-[102]`}
-        style={{ top: tipLayout!.top, left: tipLayout!.left, width: TIP_W }}
+        className={`tour-tip ${tipLayout!.place === "sheet" ? "tour-tip--sheet" : `tour-tip--${tipLayout!.place}`} fixed z-[102]`}
+        style={{ top: tipLayout!.top, left: tipLayout!.left, width: tipLayout!.width }}
       >
         {card}
       </div>
