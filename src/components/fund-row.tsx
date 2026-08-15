@@ -52,14 +52,14 @@ export function FundRow({
   const Icon = style.icon;
 
   return (
-    <li className="ui-list-row flex h-7 items-center gap-2">
-      <span className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border ${style.box}`}>
-        <Icon size={12} strokeWidth={1.6} className={style.iconColor} />
+    <li className="ui-list-row ui-fund-row flex min-h-[44px] items-center gap-3">
+      <span className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border ${style.box}`}>
+        <Icon size={14} strokeWidth={1.7} className={style.iconColor} />
       </span>
-      <span className={`min-w-0 flex-1 truncate text-[12px] ${highlight ? "font-semibold text-[#D4AF37]" : "text-[#101828]"}`}>
+      <span className={`min-w-0 flex-1 truncate text-[13px] leading-snug ${highlight ? "font-semibold text-[#D4AF37]" : "font-medium text-[#101828]"}`}>
         {label}
       </span>
-      <span className={`shrink-0 font-mono text-[12px] tabular-nums ${highlight ? "font-semibold text-[#D4AF37]" : "text-[#101828]"}`}>
+      <span className={`shrink-0 font-mono text-[13px] tabular-nums ${highlight ? "font-semibold text-[#D4AF37]" : "font-semibold text-[#101828]"}`}>
         {amount}
       </span>
     </li>

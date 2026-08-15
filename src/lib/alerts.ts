@@ -1,4 +1,3 @@
-import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { D } from "@/lib/decimal";
 import { notifyRoles } from "@/lib/control";
@@ -152,22 +151,4 @@ export async function coverageAndPurchaseNeed() {
       symbol: r.symbol,
     })),
   };
-}
-
-const refreshOwnerAlertsThrottled = unstable_cache(
-  async () => {
-    await refreshOwnerAlerts();
-    return true;
-  },
-  ["refresh-owner-alerts"],
-  { revalidate: 300 },
-);
-
-/** Refreshes alert notifications without blocking the page on DB pressure. */
-export async function maybeRefreshOwnerAlerts() {
-  try {
-    await refreshOwnerAlertsThrottled();
-  } catch (error) {
-    console.error("refreshOwnerAlerts failed:", error);
-  }
 }

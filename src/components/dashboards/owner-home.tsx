@@ -13,7 +13,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { FUND, fundDelta, LEDGER } from "@/lib/finance";
-import { coverageAndPurchaseNeed, maybeRefreshOwnerAlerts } from "@/lib/alerts";
+import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@/lib/alerts";
 import { getTranslator, intlLocale } from "@/lib/locale";
 import { KpiCard } from "@/components/kpi-card";
 import { DashPanel } from "@/components/dash-panel";
@@ -80,7 +80,7 @@ export async function OwnerHome() {
       _sum: { actualQty: true },
     }),
   ]);
-  await maybeRefreshOwnerAlerts();
+  await refreshOwnerAlerts();
 
   const fundBalances = funds.map((f) => ({
     ...f,
@@ -183,9 +183,9 @@ export async function OwnerHome() {
         <KpiCard href="/finance" label={t("dash.todayProfit")} value={`${moneyDisplay(profit)} с`} tone="in" />
       </div>
 
-      <div className="grid grid-cols-1 gap-2 lg:grid-cols-5">
+      <div className="grid grid-cols-1 items-start gap-2 lg:grid-cols-5">
         <DashPanel title={t("home.funds")} icon={Landmark} className="lg:col-span-3">
-          <ul className="ui-list">
+          <ul className="ui-list ui-fund-list">
             {fundBalances.map((f) => (
               <FundRow
                 key={f.id}

@@ -18,7 +18,7 @@ import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/authz";
 import { D, qtyDisplay } from "@/lib/decimal";
 import { FUND, fundDelta } from "@/lib/finance";
-import { coverageAndPurchaseNeed, maybeRefreshOwnerAlerts } from "@/lib/alerts";
+import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@/lib/alerts";
 import { getTranslator, intlLocale } from "@/lib/locale";
 import { orderNo } from "@/lib/format";
 import { CURRENCY_SYMBOL } from "@/lib/settings";
@@ -189,7 +189,7 @@ export async function MobileOwnerHome() {
       take: 3,
     }),
   ]);
-  await maybeRefreshOwnerAlerts();
+  await refreshOwnerAlerts();
 
   const sold = monthOrders.reduce((s, o) => s.add(String(o.total)), D(0));
   const received = monthOrders.reduce(

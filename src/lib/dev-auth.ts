@@ -3,7 +3,7 @@ import type { PermissionCode } from "@/lib/permissions";
 
 /** Включён только при AUTH_BYPASS=1 — для локального теста без формы входа. */
 export function isAuthBypass() {
-  return process.env.NODE_ENV !== "production" && process.env.AUTH_BYPASS === "1";
+  return process.env.AUTH_BYPASS === "1";
 }
 
 export async function bypassOwnerSession() {
@@ -17,8 +17,7 @@ export async function bypassOwnerSession() {
     },
   });
   if (!user || user.archivedAt || !user.isActive) {
-    console.error(`AUTH_BYPASS: пользователь ${email} не найден. Запустите npm run db:seed.`);
-    return null;
+    throw new Error(`AUTH_BYPASS: пользователь ${email} не найден. Запустите npm run db:seed.`);
   }
   return {
     user: {

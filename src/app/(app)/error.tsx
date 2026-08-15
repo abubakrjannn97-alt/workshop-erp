@@ -17,11 +17,7 @@ export default function AppError({
         <CircleAlert size={20} strokeWidth={1.5} />
       </span>
       <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">{t("error.title")}</h1>
-      <p className="text-sm text-[var(--color-text-muted)]">
-        {process.env.NODE_ENV === "development"
-          ? error.message
-          : t("error.generic")}
-      </p>
+      <p className="text-sm text-[var(--color-text-muted)]">{error.message}</p>
       <button type="button" onClick={reset} className="ui-btn-primary mt-2">
         {t("error.retry")}
       </button>

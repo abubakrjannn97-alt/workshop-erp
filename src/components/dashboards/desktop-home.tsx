@@ -16,7 +16,7 @@ import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/authz";
 import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { FUND, fundDelta } from "@/lib/finance";
-import { coverageAndPurchaseNeed, maybeRefreshOwnerAlerts } from "@/lib/alerts";
+import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@/lib/alerts";
 import { getTranslator, intlLocale } from "@/lib/locale";
 import { StatisticsCards } from "@/components/dashboard/StatisticsCards";
 import type { StatisticsCardData, StatisticsCardTrend } from "@/components/dashboard/StatisticsCards";
@@ -130,7 +130,7 @@ export async function DesktopHome() {
       take: 20,
     }),
   ]);
-  await maybeRefreshOwnerAlerts();
+  await refreshOwnerAlerts();
 
   const sold = monthOrders.reduce((s, o) => s.add(String(o.total)), D(0));
   const received = monthOrders.reduce(
@@ -266,14 +266,14 @@ export async function DesktopHome() {
     <div className="page-stack">
       <StatisticsCards cards={cards} />
 
-      <div className="grid grid-cols-1 gap-2 lg:grid-cols-5" data-tour="home-work">
+      <div className="grid grid-cols-1 items-start gap-2 lg:grid-cols-5" data-tour="home-work">
         <DashPanel title={t("home.funds")} icon={Landmark} className="lg:col-span-3">
           <DataList layout="cols2">
             <DataListHead layout="cols2">
               <DataListHeadCell>{t("home.col.fund")}</DataListHeadCell>
               <DataListHeadCell align="right">{t("home.col.balance")}</DataListHeadCell>
             </DataListHead>
-            <ul className="ui-list">
+            <ul className="ui-list ui-fund-list">
               {fundBalances.map((f) => (
                 <FundRow
                   key={f.id}

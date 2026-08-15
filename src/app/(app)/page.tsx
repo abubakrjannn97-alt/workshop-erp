@@ -1,4 +1,3 @@
-import { headers } from "next/headers";
 import { hasPermission } from "@/lib/permissions";
 import { requireSession } from "@/lib/authz";
 import { DesktopHome } from "@/components/dashboards/desktop-home";
@@ -9,10 +8,6 @@ import { WarehouseHome } from "@/components/dashboards/warehouse-home";
 import { AccountantHome } from "@/components/dashboards/accountant-home";
 import { ProductionHome } from "@/components/dashboards/production-home";
 import { MobileWorkerGate } from "@/components/mobile-worker-gate";
-
-function isMobileUserAgent(ua: string) {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(ua);
-}
 
 function MobileRoleHome({ role, perms }: { role: string; perms: string[] }) {
   if (role === "sales_manager") return <SalesHome />;
@@ -31,22 +26,14 @@ export default async function HomePage() {
   const session = await requireSession();
   const role = session.user.roleCode;
   const perms = session.user.permissions;
-  const ua = (await headers()).get("user-agent") ?? "";
-  const mobile = isMobileUserAgent(ua);
-
-  if (mobile) {
-    return (
-      <>
-        {role === "worker" ? <MobileWorkerGate /> : null}
-        {role === "worker" ? null : <MobileRoleHome role={role} perms={perms} />}
-      </>
-    );
-  }
 
   return (
     <>
       {role === "worker" ? <MobileWorkerGate /> : null}
-      <DesktopHome />
+      <div className="hidden lg:block">
+        <DesktopHome />
+      </div>
+      <div className="lg:hidden">{role === "worker" ? null : <MobileRoleHome role={role} perms={perms} />}</div>
     </>
   );
 }
