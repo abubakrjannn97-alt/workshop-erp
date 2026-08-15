@@ -19,6 +19,10 @@ import {
 
 type Box = { top: number; left: number; width: number; height: number; radius: string };
 
+const TIP_W = 300;
+const TIP_H = 248;
+const GAP = 14;
+
 function readFlag(key: string): boolean {
   try {
     return localStorage.getItem(key) === "1";
@@ -73,47 +77,194 @@ function findTarget(ids: string[]) {
   return null;
 }
 
-function measure(el: HTMLElement): Box {
-  const r = el.getBoundingClientRect();
-  const radius = getComputedStyle(el).borderRadius || "6px";
-  return { top: r.top, left: r.left, width: r.width, height: r.height, radius };
-}
+function readRadius(el: HTMLElement, width: number, height: number) {
+  const style = getComputedStyle(el);
+  const raw = style.borderRadius.trim();
+  if (!raw || raw === "0px") return "8px";
 
-const TIP_W = 320;
-const GAP = 12;
+  const parts = raw.split(/\s+/).map((part) => parseFloat(part)).filter((n) => !Number.isNaN(n));
+  const max = parts.length ? Math.max(...parts) : 0;
+  const minSide = Math.min(width, height);
 
-function tipPos(box: Box) {
-  const hole = {
-    top: box.top,
-    left: box.left,
-    width: box.width,
-    height: box.height,
-  };
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  const right = vw - (hole.left + hole.width);
-  const bottom = vh - (hole.top + hole.height);
-  let top = hole.top;
-  let left = hole.left + hole.width + GAP;
-  let place: "right" | "left" | "bottom" | "top" = "right";
-
-  if (right < TIP_W + 16 && hole.left > TIP_W + 24) {
-    left = hole.left - TIP_W - GAP;
-    place = "left";
-  } else if (right < TIP_W + 16) {
-    left = Math.min(Math.max(12, hole.left), vw - TIP_W - 12);
-    if (bottom > 200) {
-      top = hole.top + hole.height + GAP;
-      place = "bottom";
-    } else {
-      top = Math.max(12, hole.top - 210);
-      place = "top";
-    }
+  if (minSide > 0 && max >= minSide / 2 - 0.5) {
+    return `${minSide / 2}px`;
   }
 
-  top = Math.min(Math.max(12, top), vh - 200);
-  left = Math.min(Math.max(12, left), vw - TIP_W - 12);
-  return { top, left, place, hole };
+  return raw;
+}
+
+function measure(el: HTMLElement): Box {
+  const r = el.getBoundingClientRect();
+  const width = Math.max(1, Math.round(r.width));
+  const height = Math.max(1, Math.round(r.height));
+  return {
+    top: Math.round(r.top),
+    left: Math.round(r.left),
+    width,
+    height,
+    radius: readRadius(el, width, height),
+  };
+}
+
+function viewportPad() {
+  const mobile = window.innerWidth < 1024;
+  return {
+    top: mobile ? 76 : 56,
+    bottom: mobile ? 108 : 36,
+    horizontal: 16,
+  };
+}
+
+function boxFitsViewport(box: Box, pad = viewportPad()) {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  return (
+    box.top >= pad.top &&
+    box.left >= pad.horizontal &&
+    box.top + box.height <= vh - pad.bottom &&
+    box.left + box.width <= vw - pad.horizontal
+  );
+}
+
+function revealTarget(el: HTMLElement) {
+  const pad = viewportPad();
+  const prev = el.style.scrollMargin;
+  el.style.scrollMargin = `${pad.top}px ${pad.horizontal}px ${pad.bottom}px ${pad.horizontal}px`;
+  el.scrollIntoView({ block: "center", inline: "center", behavior: "smooth" });
+
+  window.setTimeout(() => {
+    el.style.scrollMargin = prev;
+  }, 700);
+}
+
+function nudgeIntoView(el: HTMLElement) {
+  const box = measure(el);
+  if (boxFitsViewport(box)) return;
+
+  const pad = viewportPad();
+  const vh = window.innerHeight;
+  const vw = window.innerWidth;
+  let dy = 0;
+  let dx = 0;
+
+  if (box.top < pad.top) dy = box.top - pad.top - 8;
+  if (box.top + box.height > vh - pad.bottom) dy = box.top + box.height - (vh - pad.bottom) + 8;
+  if (box.left < pad.horizontal) dx = box.left - pad.horizontal - 8;
+  if (box.left + box.width > vw - pad.horizontal) dx = box.left + box.width - (vw - pad.horizontal) + 8;
+
+  if (dy !== 0 || dx !== 0) {
+    window.scrollBy({ top: dy, left: dx, behavior: "smooth" });
+  }
+
+  let parent = el.parentElement;
+  while (parent) {
+    const style = getComputedStyle(parent);
+    const scrollable =
+      parent.scrollHeight > parent.clientHeight + 1 &&
+      (style.overflowY === "auto" || style.overflowY === "scroll" || style.overflow === "auto");
+    if (scrollable) {
+      const pr = parent.getBoundingClientRect();
+      const er = el.getBoundingClientRect();
+      if (er.top < pr.top + pad.top) parent.scrollTop -= pr.top + pad.top - er.top + 8;
+      if (er.bottom > pr.bottom - pad.bottom) parent.scrollTop += er.bottom - (pr.bottom - pad.bottom) + 8;
+    }
+    parent = parent.parentElement;
+  }
+}
+
+function waitForStableBox(el: HTMLElement, attempts = 8, delay = 60): Promise<Box> {
+  return new Promise((resolve) => {
+    let last: Box | null = null;
+    let stable = 0;
+    let left = attempts;
+
+    function tick() {
+      const next = measure(el);
+      if (
+        last &&
+        Math.abs(last.top - next.top) < 1 &&
+        Math.abs(last.left - next.left) < 1 &&
+        Math.abs(last.width - next.width) < 1 &&
+        Math.abs(last.height - next.height) < 1
+      ) {
+        stable += 1;
+      } else {
+        stable = 0;
+      }
+      last = next;
+      left -= 1;
+
+      if (stable >= 2 || left <= 0) {
+        resolve(next);
+        return;
+      }
+      window.setTimeout(tick, delay);
+    }
+
+    tick();
+  });
+}
+
+type TipLayout = {
+  top: number;
+  left: number;
+  place: "right" | "left" | "bottom" | "top";
+  hole: Box;
+};
+
+function tipPos(box: Box, tipHeight = TIP_H): TipLayout {
+  const hole = { ...box };
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const pad = viewportPad();
+  const margin = 12;
+
+  const candidates: Array<{ place: TipLayout["place"]; top: number; left: number; score: number }> = [];
+
+  function score(top: number, left: number, width: number, height: number) {
+    const overflow =
+      Math.max(0, pad.top - top) +
+      Math.max(0, top + height - (vh - pad.bottom)) +
+      Math.max(0, pad.horizontal - left) +
+      Math.max(0, left + width - (vw - pad.horizontal));
+    const centerBias = Math.abs(top + height / 2 - vh / 2) * 0.02;
+    return overflow * 100 + centerBias;
+  }
+
+  const centeredLeft = hole.left + hole.width / 2 - TIP_W / 2;
+
+  candidates.push({
+    place: "bottom",
+    top: hole.top + hole.height + GAP,
+    left: centeredLeft,
+    score: score(hole.top + hole.height + GAP, centeredLeft, TIP_W, tipHeight),
+  });
+  candidates.push({
+    place: "top",
+    top: hole.top - tipHeight - GAP,
+    left: centeredLeft,
+    score: score(hole.top - tipHeight - GAP, centeredLeft, TIP_W, tipHeight),
+  });
+  candidates.push({
+    place: "right",
+    top: hole.top + hole.height / 2 - tipHeight / 2,
+    left: hole.left + hole.width + GAP,
+    score: score(hole.top + hole.height / 2 - tipHeight / 2, hole.left + hole.width + GAP, TIP_W, tipHeight),
+  });
+  candidates.push({
+    place: "left",
+    top: hole.top + hole.height / 2 - tipHeight / 2,
+    left: hole.left - TIP_W - GAP,
+    score: score(hole.top + hole.height / 2 - tipHeight / 2, hole.left - TIP_W - GAP, TIP_W, tipHeight),
+  });
+
+  candidates.sort((a, b) => a.score - b.score);
+  const best = candidates[0];
+
+  const top = Math.min(Math.max(margin, best.top), vh - tipHeight - margin);
+  const left = Math.min(Math.max(margin, best.left), vw - TIP_W - margin);
+
+  return { top, left, place: best.place, hole };
 }
 
 export function HelpGuide({ locale }: { locale: Locale }) {
@@ -129,6 +280,8 @@ export function HelpGuide({ locale }: { locale: Locale }) {
   const [step, setStep] = useState(0);
   const [box, setBox] = useState<Box | null>(null);
   const [liveStep, setLiveStep] = useState<TourStep | null>(null);
+  const [tipLayout, setTipLayout] = useState<TipLayout | null>(null);
+  const targetRef = useRef<HTMLElement | null>(null);
   const lastPage = useRef<HelpPageId | null>(null);
 
   const load = useCallback(() => {
@@ -169,6 +322,8 @@ export function HelpGuide({ locale }: { locale: Locale }) {
       setActive(false);
       setBox(null);
       setLiveStep(null);
+      setTipLayout(null);
+      targetRef.current = null;
       return;
     }
     setStep(0);
@@ -197,7 +352,6 @@ export function HelpGuide({ locale }: { locale: Locale }) {
     }
     window.addEventListener("wheel", block, { passive: false });
     window.addEventListener("touchmove", block, { passive: false });
-    window.addEventListener("scroll", block, { capture: true });
     window.addEventListener("keydown", onKey);
     return () => {
       html.style.overflow = prevHtmlOverflow;
@@ -206,69 +360,90 @@ export function HelpGuide({ locale }: { locale: Locale }) {
       body.style.overscrollBehavior = prevBodyOverscroll;
       window.removeEventListener("wheel", block);
       window.removeEventListener("touchmove", block);
-      window.removeEventListener("scroll", block, true);
       window.removeEventListener("keydown", onKey);
     };
   }, [active]);
+
+  const focusStep = useCallback(
+    async (index: number, stepDef: TourStep) => {
+      const el = findTarget(stepDef.targets);
+      if (!el) return false;
+
+      targetRef.current = el;
+      revealTarget(el);
+      nudgeIntoView(el);
+
+      const measured = await waitForStableBox(el);
+      if (!boxFitsViewport(measured)) {
+        nudgeIntoView(el);
+      }
+
+      const finalBox = await waitForStableBox(el, 6, 50);
+      setStep(index);
+      setLiveStep(stepDef);
+      setBox(finalBox);
+      setTipLayout(tipPos(finalBox));
+      return true;
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!active || !shouldRun) return;
 
     let cancelled = false;
     let tries = 0;
-    let targets: string[] = [];
     const from = lastPage.current !== pageId ? 0 : step;
     lastPage.current = pageId ?? lastPage.current;
 
-    function pick(start: number) {
+    async function run(start: number) {
       for (let i = start; i < tour.length; i++) {
-        const el = findTarget(tour[i].targets);
-        if (el) return { i, el, s: tour[i] };
-      }
-      return null;
-    }
-
-    function apply(found: { i: number; el: HTMLElement; s: TourStep }) {
-      targets = found.s.targets;
-      found.el.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
-      window.setTimeout(() => {
         if (cancelled) return;
-        const el = findTarget(found.s.targets) ?? found.el;
-        setStep(found.i);
-        setLiveStep(found.s);
-        setBox(measure(el));
-      }, 200);
-    }
+        const ok = await focusStep(i, tour[i]);
+        if (ok) return;
+      }
 
-    function run() {
-      const found = pick(from);
-      if (!found) {
-        if (tries++ < 12) {
-          window.setTimeout(run, 80);
-          return;
-        }
-        setActive(false);
-        setBox(null);
-        setLiveStep(null);
+      if (tries++ < 16) {
+        window.setTimeout(() => {
+          void run(from);
+        }, 100);
         return;
       }
-      apply(found);
+
+      setActive(false);
+      setBox(null);
+      setLiveStep(null);
+      setTipLayout(null);
     }
 
-    run();
+    void run(from);
 
-    function onMove() {
-      const el = findTarget(targets);
-      if (el) setBox(measure(el));
-    }
-    window.addEventListener("resize", onMove);
-    window.addEventListener("scroll", onMove, true);
     return () => {
       cancelled = true;
-      window.removeEventListener("resize", onMove);
-      window.removeEventListener("scroll", onMove, true);
     };
-  }, [active, shouldRun, step, tour, pageId]);
+  }, [active, shouldRun, step, tour, pageId, focusStep]);
+
+  useEffect(() => {
+    const el = targetRef.current;
+    if (!active || !el) return;
+
+    function refresh() {
+      const current = findTarget(liveStep?.targets ?? []) ?? el;
+      if (!current) return;
+      const next = measure(current);
+      setBox(next);
+      setTipLayout(tipPos(next));
+    }
+
+    window.addEventListener("resize", refresh);
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(refresh) : null;
+    ro?.observe(el);
+
+    return () => {
+      window.removeEventListener("resize", refresh);
+      ro?.disconnect();
+    };
+  }, [active, liveStep]);
 
   function finish(hideForever: boolean, hidePage = true) {
     if (hideForever) {
@@ -282,6 +457,8 @@ export function HelpGuide({ locale }: { locale: Locale }) {
     setActive(false);
     setBox(null);
     setLiveStep(null);
+    setTipLayout(null);
+    targetRef.current = null;
   }
 
   function next() {
@@ -304,16 +481,13 @@ export function HelpGuide({ locale }: { locale: Locale }) {
     }
   }
 
-  if (!active || !box || !liveStep || !pageId) return null;
+  if (!active || !box || !liveStep || !tipLayout || !pageId) return null;
 
-  const layout = tipPos(box);
-  const { hole } = layout;
+  const { hole } = tipLayout;
   const total = tour.length;
   const index = tour.findIndex((s) => s === liveStep);
   const n = (index >= 0 ? index : step) + 1;
   const last = !tour.slice(n).some((s) => findTarget(s.targets));
-
-  const dim = "tour-dim";
 
   return (
     <div className="print:hidden" role="dialog" aria-modal="true" aria-labelledby="tour-title">
@@ -322,37 +496,9 @@ export function HelpGuide({ locale }: { locale: Locale }) {
         onWheel={(e) => e.preventDefault()}
         onTouchMove={(e) => e.preventDefault()}
       />
-      <div className={`fixed inset-x-0 top-0 z-[70] ${dim}`} style={{ height: Math.max(0, hole.top) }} />
-      <div
-        className={`fixed left-0 z-[70] ${dim}`}
-        style={{ top: hole.top, height: hole.height, width: Math.max(0, hole.left) }}
-      />
-      <div
-        className={`fixed z-[70] ${dim}`}
-        style={{
-          top: hole.top,
-          left: hole.left + hole.width,
-          right: 0,
-          height: hole.height,
-        }}
-      />
-      <div
-        className={`fixed inset-x-0 bottom-0 z-[70] ${dim}`}
-        style={{ top: hole.top + hole.height }}
-      />
 
       <div
-        className="tour-spot pointer-events-none fixed z-[72]"
-        style={{
-          top: hole.top,
-          left: hole.left,
-          width: hole.width,
-          height: hole.height,
-          borderRadius: box.radius,
-        }}
-      />
-      <div
-        className="fixed z-[71]"
+        className="tour-cutout pointer-events-none fixed z-[70]"
         style={{
           top: hole.top,
           left: hole.left,
@@ -363,17 +509,23 @@ export function HelpGuide({ locale }: { locale: Locale }) {
       />
 
       <div
-        className="tour-tip fixed z-[73] w-[min(320px,calc(100vw-24px))]"
-        style={{ top: layout.top, left: layout.left }}
+        className={`tour-tip tour-tip--${tipLayout.place} fixed z-[73]`}
+        style={{ top: tipLayout.top, left: tipLayout.left, width: TIP_W }}
       >
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--tour)]">
-          {t("help.step", { n, total })}
-        </p>
-        <h2 id="tour-title" className="mt-1 text-[16px] font-semibold text-white">
+        <div className="tour-tip-progress" aria-hidden="true">
+          {tour.map((item, i) => (
+            <span
+              key={`${item.title}-${i}`}
+              className={`tour-tip-dot ${i === index ? "is-active" : i < index ? "is-done" : ""}`}
+            />
+          ))}
+        </div>
+        <p className="tour-tip-step">{t("help.step", { n, total })}</p>
+        <h2 id="tour-title" className="tour-tip-title">
           {liveStep.title}
         </h2>
-        <p className="mt-1.5 text-[13px] leading-relaxed text-white/80">{liveStep.text}</p>
-        <div className="mt-4 flex items-center gap-2">
+        <p className="tour-tip-text">{liveStep.text}</p>
+        <div className="tour-tip-actions">
           {n > 1 ? (
             <button type="button" className="tour-btn-ghost" onClick={back}>
               {t("help.back")}
@@ -387,11 +539,11 @@ export function HelpGuide({ locale }: { locale: Locale }) {
             {last ? t("help.done") : t("help.next")}
           </button>
         </div>
-        <div className="mt-2.5 flex items-center justify-between gap-2">
-          <button type="button" className="text-[11px] text-white/45 hover:text-white/80" onClick={() => finish(true)}>
+        <div className="tour-tip-footer">
+          <button type="button" className="tour-tip-muted" onClick={() => finish(true)}>
             {t("help.dontShow")}
           </button>
-          <Link href="/help" className="text-[11px] font-medium text-[var(--tour)] hover:underline" onClick={() => finish(false, true)}>
+          <Link href="/help" className="tour-tip-link" onClick={() => finish(false, true)}>
             {t("help.allQuestions")}
           </Link>
         </div>

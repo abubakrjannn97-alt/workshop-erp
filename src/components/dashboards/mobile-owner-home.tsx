@@ -416,7 +416,7 @@ export async function MobileOwnerHome() {
             </svg>
           </div>
 
-          <div className={styles.tiles}>
+          <div className={styles.tiles} data-tour="home-kpis">
             {tiles.map((tile) => {
               const Icon = tile.icon;
               return (
@@ -436,7 +436,7 @@ export async function MobileOwnerHome() {
         </div>
       </div>
 
-      <div className={styles.shortcutStrip}>
+      <div className={styles.shortcutStrip} data-tour="home-shortcuts">
         <div className={`${styles.shortcuts} no-scrollbar snap-x`}>
           {shortcuts.map((item) => {
             const Icon = item.icon;
@@ -453,7 +453,7 @@ export async function MobileOwnerHome() {
       </div>
 
       <div className="mx-5 mt-5 space-y-5">
-        <section className={styles.lightCard}>
+        <section className={styles.lightCard} data-tour="home-orders">
           <div className={styles.sectionHead}>
             <h2 className={styles.sectionTitle}>
               <ClipboardList size={13} strokeWidth={1.8} />
@@ -494,7 +494,7 @@ export async function MobileOwnerHome() {
           )}
         </section>
 
-        <section className={styles.lightCard}>
+        <section className={styles.lightCard} data-tour="home-attention">
           <div className={styles.sectionHead}>
             <h2 className={styles.sectionTitle}>
               <Bell size={13} strokeWidth={1.8} color="var(--accent-500)" />

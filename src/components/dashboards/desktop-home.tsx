@@ -322,6 +322,7 @@ export async function DesktopHome() {
           title={t("home.recentOrders")}
           icon={ClipboardList}
           className="overflow-x-auto lg:col-span-3"
+          data-tour="home-orders"
           action={
             <Link href="/orders?period=month" className="text-[11px] font-semibold text-[#667085] hover:text-[#101828]">
               {t("page.orders")} →
@@ -370,7 +371,7 @@ export async function DesktopHome() {
           )}
         </DashPanel>
 
-        <DashPanel title={t("home.quickActions")} icon={Zap} className="lg:col-span-2">
+        <DashPanel title={t("home.quickActions")} icon={Zap} className="lg:col-span-2" data-tour="home-shortcuts">
           <div className="grid grid-cols-2 gap-2">
             <QuickAction href="/orders/new" label={t("sales.newOrder")} icon={ClipboardList} />
             <QuickAction href="/crm" label={t("nav.crm")} icon={Users} />
