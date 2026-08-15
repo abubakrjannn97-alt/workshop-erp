@@ -48,7 +48,7 @@ export function AppShell({
     .join("");
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#0B0E1A] text-[var(--color-text-primary)]">
+    <div className="flex h-screen overflow-hidden bg-[#0B0E1A] lg:bg-[#FAF8F5] text-[var(--color-text-primary)]">
       <Sidebar
         companyName={companyName}
         permissions={permissions}
