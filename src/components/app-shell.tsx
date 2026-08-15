@@ -44,7 +44,7 @@ export function AppShell({
   const roleLetter = (roleName.trim()[0] ?? initials[0] ?? "U").toUpperCase();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#0B0E1A] text-[var(--color-text-primary)] lg:bg-[var(--color-background)]">
+    <div className="flex h-screen overflow-hidden bg-[#0B0E1A] text-[var(--color-text-primary)]">
       <Sidebar
         companyName={companyName}
         permissions={permissions}
@@ -52,6 +52,14 @@ export function AppShell({
         locale={locale}
       />
       <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-0 hidden lg:block"
+          style={{
+            background:
+              "linear-gradient(135deg, #0B0E1A 0%, #16130F 16%, #2a241c 30%, #F3F4F7 58%, #FFFFFF 100%)",
+          }}
+        />
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 z-0 lg:hidden"
@@ -115,8 +123,8 @@ export function AppShell({
         <main
           className={
             isHome
-              ? "relative z-10 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-transparent lg:bg-[var(--color-background)] lg:px-3 lg:py-3 lg:pb-4"
-              : "relative z-10 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-transparent px-3 py-3 pb-[calc(5.25rem+env(safe-area-inset-bottom))] lg:bg-[var(--color-background)] lg:px-3 lg:py-3 lg:pb-4"
+              ? "relative z-10 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-transparent lg:px-3 lg:py-3 lg:pb-4"
+              : "relative z-10 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-transparent px-3 py-3 pb-[calc(5.25rem+env(safe-area-inset-bottom))] lg:px-3 lg:py-3 lg:pb-4"
           }
         >
           {children}

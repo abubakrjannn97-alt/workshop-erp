@@ -14,12 +14,12 @@ export function QuickAction({
   return (
     <Link
       href={href}
-      className="group flex h-8 items-center gap-1.5 rounded-lg border border-[#E5E7EB] bg-white px-2 transition-colors hover:border-[#D4AF37]/40 hover:bg-[#FAFBFC]"
+      className="group flex h-9 items-center gap-2 rounded-xl border border-[rgba(232,201,120,0.16)] bg-[rgba(255,255,255,0.72)] px-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-md transition-[border-color,background,transform] duration-150 hover:border-[rgba(232,201,120,0.32)] hover:bg-[rgba(255,255,255,0.88)] active:scale-[0.98]"
     >
-      <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-[#D4AF37]/25 bg-[#D4AF37]/10 text-[#D4AF37]">
-        <Icon size={12} strokeWidth={1.6} />
+      <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[rgba(232,201,120,0.28)] bg-gradient-to-b from-[rgba(245,213,106,0.18)] to-[rgba(245,166,35,0.06)] text-[#D4AF37] shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]">
+        <Icon size={13} strokeWidth={1.7} />
       </span>
-      <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-[#101828]">{label}</span>
+      <span className="min-w-0 flex-1 truncate text-[11px] font-semibold text-[#1c1810]">{label}</span>
       <ChevronRight
         size={14}
         strokeWidth={1.5}

@@ -1,0 +1,68 @@
+.sidebar {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-right: 1px solid rgba(232, 201, 120, 0.24);
+  background:
+    linear-gradient(125deg, rgba(255, 248, 230, 0.1) 0%, rgba(255, 255, 255, 0.02) 30%, transparent 48%),
+    linear-gradient(165deg, rgba(74, 64, 52, 0.96) 0%, rgba(42, 36, 28, 0.97) 42%, rgba(22, 19, 16, 0.98) 100%);
+  box-shadow:
+    inset -1px 0 0 rgba(255, 244, 214, 0.08),
+    4px 0 24px rgba(12, 10, 8, 0.18);
+  backdrop-filter: blur(20px) saturate(1.25);
+  -webkit-backdrop-filter: blur(20px) saturate(1.25);
+}
+
+.sidebar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 80% at 0% 0%, rgba(245, 166, 35, 0.12), transparent 50%);
+}
+
+.brand {
+  position: relative;
+  z-index: 1;
+}
+
+.nav {
+  position: relative;
+  z-index: 1;
+}
+
+.groupLabel {
+  color: rgba(247, 244, 238, 0.42);
+}
+
+.link {
+  color: rgba(247, 244, 238, 0.62);
+}
+
+.link:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff8ee;
+}
+
+.linkActive {
+  color: #fff8ee;
+  border: 1px solid rgba(232, 201, 120, 0.34);
+  background: linear-gradient(180deg, rgba(245, 213, 106, 0.2) 0%, rgba(245, 166, 35, 0.08) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 0 12px rgba(245, 166, 35, 0.1);
+}
+
+.footer {
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid rgba(232, 201, 120, 0.18);
+}
+
+.footerBtn {
+  color: #f5d56a;
+}
+
+.footerBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
