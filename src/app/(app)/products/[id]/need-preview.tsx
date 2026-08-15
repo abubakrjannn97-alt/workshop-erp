@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
+import { createT, type Locale } from "@/lib/i18n";
 
 type Line = {
   materialName: string;
@@ -16,13 +17,16 @@ export function NeedPreview({
   outputSymbol,
   saleSymbol,
   recipeBaseQty,
+  locale,
 }: {
   lines: Line[];
   outputPerBase: string;
   outputSymbol: string;
   saleSymbol: string;
   recipeBaseQty: string;
+  locale: Locale;
 }) {
+  const t = createT(locale);
   const [orderQty, setOrderQty] = useState("50");
   const scale = useMemo(() => {
     try {
@@ -40,19 +44,19 @@ export function NeedPreview({
   }, D(0));
 
   return (
-    <div className="rounded-2xl border border-[var(--line)] bg-white p-5">
-      <h2 className="text-sm font-semibold">Потребность на заказ</h2>
-      <p className="mt-1 text-xs text-slate-500">Расчёт из текущей версии рецептуры, без ручного пересчёта.</p>
+    <div className="ui-card">
+      <h2 className="text-sm font-semibold">{t("products.needTitle")}</h2>
+      <p className="mt-1 text-xs text-[var(--muted)]">{t("products.needHint")}</p>
       <label className="mt-3 block text-sm">
-        Количество, {saleSymbol}
+        {t("orders.qtyWithUnit")}, {saleSymbol}
         <input
           value={orderQty}
           onChange={(e) => setOrderQty(e.target.value)}
-          className="mt-1 w-40 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+          className="mt-1 w-40 rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
         />
       </label>
-      <p className="mt-2 text-sm text-slate-600">
-        Готовых единиц: {qtyDisplay(D(outputPerBase).mul(scale))} {outputSymbol}
+      <p className="mt-2 text-sm text-[var(--text-muted)]">
+        {t("products.readyUnits")}: {qtyDisplay(D(outputPerBase).mul(scale))} {outputSymbol}
       </p>
       <ul className="mt-3 space-y-1 text-sm">
         {lines.map((line) => (
@@ -61,13 +65,13 @@ export function NeedPreview({
               {line.materialName}: {qtyDisplay(D(line.quantity).mul(scale))} {line.unitSymbol}
             </span>
             <span className="font-mono text-xs">
-              {line.lineCost ? `${moneyDisplay(D(line.lineCost).mul(scale))} с` : "нет цены"}
+              {line.lineCost ? `${moneyDisplay(D(line.lineCost).mul(scale))} с` : t("products.noPrice")}
             </span>
           </li>
         ))}
       </ul>
       <p className="mt-3 text-sm font-semibold">
-        Материалы на заказ: {moneyDisplay(total)} с
+        {t("products.matsOnOrder")}: {moneyDisplay(total)} с
       </p>
     </div>
   );

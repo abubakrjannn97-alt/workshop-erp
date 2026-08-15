@@ -54,7 +54,7 @@ export async function refreshOwnerAlerts() {
     await notifyRoles(["owner", "director", "sales_manager"], {
       type: "overdue",
       title: "Просроченный заказ",
-      body: `#${o.number} ${o.customer.name}`,
+      body: o.customer.name,
       entityType: "order",
       entityId: o.id,
     });
@@ -67,7 +67,7 @@ export async function refreshOwnerAlerts() {
     await notifyRoles(["owner", "director", "sales_manager"], {
       type: "unpaid",
       title: "Неоплаченный заказ / долг клиента",
-      body: `#${o.number} ${o.customer.name}: ${debt.toFixed(2)} с`,
+      body: `${o.customer.name}: ${debt.toFixed(2)} с`,
       entityType: "order",
       entityId: o.id,
     });

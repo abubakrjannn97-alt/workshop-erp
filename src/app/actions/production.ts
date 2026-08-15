@@ -95,7 +95,8 @@ export async function closeBatch(formData: FormData) {
       production: { include: { order: { include: { items: true, materials: true } } } },
     },
   });
-  if (!batch || batch.status === "CLOSED") return { error: "Партия закрыта или не найдена." };
+  if (!batch) return { error: "Партия закрыта или не найдена." };
+  if (batch.status === "CLOSED") return { ok: true };
 
   const actuals = batch.materials.map((line) => {
     const raw = String(formData.get(`actual-${line.materialId}`) ?? "") || String(line.plannedQty);
@@ -120,7 +121,12 @@ export async function closeBatch(formData: FormData) {
   const unitCost = good.gt(0) ? materialCost.div(good) : D(0);
 
   try {
+    let closedNow = false;
     await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM production_batches WHERE id = ${batchId} FOR UPDATE`;
+      const locked = await tx.productionBatch.findUnique({ where: { id: batchId } });
+      if (!locked || locked.status === "CLOSED") return;
+      closedNow = true;
       for (const row of actuals) {
         if (D(row.actual).lte(0)) {
           await tx.batchMaterialUse.update({ where: { id: row.line.id }, data: { actualQty: "0" } });
@@ -265,6 +271,7 @@ export async function closeBatch(formData: FormData) {
         }
       }
     });
+    if (!closedNow) return { ok: true };
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Не удалось закрыть партию." };
   }
@@ -291,7 +298,7 @@ export async function closeBatch(formData: FormData) {
     });
   }
   if (D(scrapQty).gt(0)) {
-    await notifyRoles(["owner", "director"], {
+    await notifyRoles(["owner", "director", "production_manager"], {
       type: "scrap",
       title: "Брак",
       body: `Партия №${batch.number}: брак ${scrapQty}. ${scrapReason}`,
@@ -302,6 +309,10 @@ export async function closeBatch(formData: FormData) {
 
   revalidatePath("/production");
   revalidatePath(`/production/${batch.productionOrderId}`);
+  revalidatePath("/production/batches");
+  revalidatePath("/production/scrap");
+  revalidatePath("/me");
+  revalidatePath("/me/history");
   revalidatePath("/warehouse");
   revalidatePath("/warehouse/finished");
   return { ok: true };

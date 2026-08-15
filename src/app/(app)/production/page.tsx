@@ -1,15 +1,24 @@
+import { getTranslator } from "@/lib/locale";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { qtyDisplay } from "@/lib/decimal";
+import { StatusBadge, jobTone } from "@/components/status-badge";
+import { PageHeader } from "@/components/page-header";
+import { UiTable } from "@/components/ui-table";
+import { RevealList } from "@/components/reveal-list";
 
-const STATUS: Record<string, string> = {
-  OPEN: "Открыт",
-  IN_PROGRESS: "В работе",
-  DONE: "Готово",
-};
+function jobStatus(t: (k: string) => string, s: string) {
+  const map: Record<string, string> = {
+    OPEN: t("prod.open"),
+    IN_PROGRESS: t("prod.inProgress"),
+    DONE: t("prod.done"),
+  };
+  return map[s] ?? s;
+}
 
 export default async function ProductionPage() {
+  const { t } = await getTranslator();
   const session = await requirePermission("production.view");
   const jobs = await prisma.productionOrder.findMany({
     where:
@@ -21,57 +30,62 @@ export default async function ProductionPage() {
       batches: true,
     },
     orderBy: { createdAt: "desc" },
+    take: 40,
   });
 
   return (
-    <div className="space-y-6">
-      <div>
-<h1 className="mt-1 text-2xl font-semibold">Производство</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Задание создаётся при подтверждении заказа. Партии, факт сырья, брак и выпуск на склад ГП.
-        </p>
-      </div>
-      <section className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs text-slate-500">
-            <tr>
-              <th className="px-4 py-2">Заказ</th>
-              <th className="px-4 py-2">Изделие</th>
-              <th className="px-4 py-2">Прогресс</th>
-              <th className="px-4 py-2">Брак</th>
-              <th className="px-4 py-2">Статус</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {jobs.length === 0 ? (
+    <div className="page-stack">
+      <PageHeader title={t("page.production")} description={t("prod.hint")} />
+      <section className="overflow-hidden ui-card" data-tour="production-list">
+        <UiTable>
+          <table className="w-full text-left text-sm">
+            <thead className="bg-[var(--surface-muted)] text-xs text-[var(--muted)]">
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-slate-500">
-                  Подтвердите заказ — задание появится здесь.
-                </td>
+                <th className="px-4 py-2">{t("common.customer")}</th>
+                <th className="px-4 py-2">{t("common.product")}</th>
+                <th className="px-4 py-2">{t("common.progress")}</th>
+                <th className="px-4 py-2">{t("common.scrap")}</th>
+                <th className="px-4 py-2">{t("common.status")}</th>
               </tr>
+            </thead>
+            {jobs.length === 0 ? (
+              <tbody>
+                <tr>
+                  <td colSpan={5} className="px-3 py-6 text-[var(--muted)]">
+                    {t("prod.empty")}
+                  </td>
+                </tr>
+              </tbody>
             ) : (
-              jobs.map((job) => {
-                const product = job.order.items[0]?.product.name ?? "—";
-                return (
-                  <tr key={job.id}>
-                    <td className="px-4 py-2">
-                      <Link href={`/production/${job.id}`} className="font-medium text-[var(--titan-dark)] hover:underline">
-                        #{job.order.number}
-                      </Link>
-                      <p className="text-xs text-slate-500">{job.order.customer.name}</p>
-                    </td>
-                    <td className="px-4 py-2">{product}</td>
-                    <td className="px-4 py-2 font-mono text-xs">
-                      {qtyDisplay(job.producedQty)} / {qtyDisplay(job.plannedQty)}
-                    </td>
-                    <td className="px-4 py-2 font-mono text-xs">{qtyDisplay(job.scrapQty)}</td>
-                    <td className="px-4 py-2">{STATUS[job.status] ?? job.status}</td>
-                  </tr>
-                );
-              })
+              <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={5}>
+                {jobs.map((job) => {
+                  const product = job.order.items[0]?.product.name ?? "—";
+                  return (
+                    <tr key={job.id}>
+                      <td className="px-4 py-2">
+                        <Link href={`/production/${job.id}`} className="font-medium hover:underline">
+                          {job.order.customer.name}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-2" data-label={t("common.product")}>
+                        {product}
+                      </td>
+                      <td className="px-4 py-2 font-mono text-xs" data-label={t("common.progress")}>
+                        {qtyDisplay(job.producedQty)} / {qtyDisplay(job.plannedQty)}
+                      </td>
+                      <td className="px-4 py-2 font-mono text-xs" data-label={t("common.scrap")}>
+                        {qtyDisplay(job.scrapQty)}
+                      </td>
+                      <td className="px-4 py-2" data-label={t("common.status")}>
+                        <StatusBadge label={jobStatus(t, job.status) ?? job.status} tone={jobTone(job.status)} />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </RevealList>
             )}
-          </tbody>
-        </table>
+          </table>
+        </UiTable>
       </section>
     </div>
   );

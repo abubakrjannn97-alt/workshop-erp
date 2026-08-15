@@ -1,13 +1,20 @@
+import { PageHeader } from "@/components/page-header";
+import { getTranslator } from "@/lib/locale";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { WarehouseNav } from "@/components/warehouse-nav";
+import { UiTable } from "@/components/ui-table";
 import { moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { D } from "@/lib/decimal";
 import { receiveOpening, writeOffStock } from "@/app/actions/inventory";
 import { createPurchaseFromShortage } from "@/app/actions/purchasing";
-import { randomUUID } from "crypto";
+import { RevealList } from "@/components/reveal-list";
+import { IdempotencyField } from "@/components/idempotency-field";
+import { PendingButton } from "@/components/pending-button";
+import { getRawWarehouse } from "@/lib/warehouses";
 
 export default async function WarehousePage() {
+  const { t, locale } = await getTranslator();
   const session = await requirePermission("inventory.view");
   const canReceive =
     session.user.roleCode === "owner" || session.user.permissions.includes("inventory.receive");
@@ -16,16 +23,7 @@ export default async function WarehousePage() {
   const canBuy =
     session.user.roleCode === "owner" || session.user.permissions.includes("purchasing.manage");
 
-  const raw = await prisma.warehouse.upsert({
-    where: { code: "RAW" },
-    update: {},
-    create: { code: "RAW", name: "Склад сырья", kind: "material" },
-  });
-  await prisma.warehouse.upsert({
-    where: { code: "FG" },
-    update: {},
-    create: { code: "FG", name: "Склад готовой продукции", kind: "finished" },
-  });
+  const raw = await getRawWarehouse();
 
   const [items, materials, suppliers] = await Promise.all([
     prisma.stockItem.findMany({
@@ -42,112 +40,122 @@ export default async function WarehousePage() {
   ]);
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div>
-<h1 className="mt-1 text-2xl font-semibold">Склад сырья</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Доступно = остаток − резерв. Оценка по средневзвешенной (WAC). Движения не удаляются.
-        </p>
+        <PageHeader title={t("wh.rawTitle")} />
+        <p className="mt-1 text-sm text-[var(--text-muted)]">{t("wh.rawHint")}</p>
         <a href="/warehouse/print?warehouse=RAW" className="mt-2 inline-block text-sm text-[var(--titan-dark)] hover:underline">
-          Печать остатков / PDF
+          {t("wh.printStock")}
         </a>
       </div>
-      <WarehouseNav current="raw" />
+      <WarehouseNav current="raw" locale={locale} />
 
-      <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-            <tr>
-              <th className="px-4 py-3">Материал</th>
-              <th className="px-4 py-3 text-right">Остаток</th>
-              <th className="px-4 py-3 text-right">Резерв</th>
-              <th className="px-4 py-3 text-right">Доступно</th>
-              <th className="px-4 py-3 text-right">Стоимость</th>
-              <th className="px-4 py-3 text-right">Минимум</th>
-              <th className="px-4 py-3" />
-            </tr>
-          </thead>
-          <tbody>
-            {materials.map((material) => {
-              const stock = material.stockItems[0];
-              const onHand = D(String(stock?.qtyOnHand ?? 0));
-              const reserved = D(String(stock?.qtyReserved ?? 0));
-              const avail = onHand.sub(reserved);
-              const value = onHand.mul(stock?.wacUnitCost ?? 0);
-              const low = onHand.lte(material.minStock);
-              return (
-                <tr key={material.id} className="border-t border-slate-100">
-                  <td className="px-4 py-3">
-                    <p className="font-medium">{material.name}</p>
-                    {low ? <p className="text-xs text-amber-700">Ниже минимума</p> : null}
-                  </td>
-                  <td className="px-4 py-3 text-right font-mono text-xs">
-                    {qtyDisplay(onHand)} {material.storageUnit.symbol}
-                  </td>
-                  <td className="px-4 py-3 text-right font-mono text-xs">{qtyDisplay(reserved)}</td>
-                  <td className="px-4 py-3 text-right font-mono text-xs">{qtyDisplay(avail)}</td>
-                  <td className="px-4 py-3 text-right font-mono text-xs">{moneyDisplay(value)} с</td>
-                  <td className="px-4 py-3 text-right font-mono text-xs">
-                    {qtyDisplay(material.minStock)} {material.storageUnit.symbol}
-                  </td>
-                  <td className="px-4 py-3">
-                    {canBuy && low && suppliers[0] ? (
-                      <form action={createPurchaseFromShortage}>
-                        <input type="hidden" name="supplierId" value={suppliers[0].id} />
-                        <input type="hidden" name="materialId" value={material.id} />
-                        <input
-                          type="hidden"
-                          name="quantity"
-                          value={D(String(material.minStock)).sub(onHand).abs().toFixed(6)}
-                        />
-                        <button className="text-xs text-[var(--titan-dark)]">Заявка на закупку</button>
-                      </form>
-                    ) : null}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+      <div className="overflow-hidden ui-card" data-tour="warehouse-stock">
+        <UiTable>
+          <table className="w-full text-left text-sm">
+            <thead className="bg-[var(--surface-muted)] text-xs uppercase tracking-wide text-[var(--muted)]">
+              <tr>
+                <th className="px-4 py-3">{t("common.material")}</th>
+                <th className="px-4 py-3 text-right">{t("common.stock")}</th>
+                <th className="px-4 py-3 text-right">{t("common.reserve")}</th>
+                <th className="px-4 py-3 text-right">{t("common.available")}</th>
+                <th className="px-4 py-3 text-right">{t("common.cost")}</th>
+                <th className="px-4 py-3 text-right">{t("common.min")}</th>
+                <th className="px-4 py-3" />
+              </tr>
+            </thead>
+            <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={5}>
+              {materials.map((material) => {
+                const stock = material.stockItems[0];
+                const onHand = D(String(stock?.qtyOnHand ?? 0));
+                const reserved = D(String(stock?.qtyReserved ?? 0));
+                const avail = onHand.sub(reserved);
+                const value = onHand.mul(stock?.wacUnitCost ?? 0);
+                const low = onHand.lte(material.minStock);
+                return (
+                  <tr key={material.id} className="border-t border-[var(--line)]">
+                    <td className="px-4 py-3">
+                      <p className="font-medium">{material.name}</p>
+                      {low ? <p className="text-xs text-amber-700">{t("wh.belowMin")}</p> : null}
+                    </td>
+                    <td className="px-4 py-3 text-right font-mono text-xs" data-label={t("common.stock")}>
+                      {qtyDisplay(onHand)} {material.storageUnit.symbol}
+                    </td>
+                    <td className="px-4 py-3 text-right font-mono text-xs" data-label={t("common.reserve")}>
+                      {qtyDisplay(reserved)}
+                    </td>
+                    <td className="px-4 py-3 text-right font-mono text-xs" data-label={t("common.available")}>
+                      {qtyDisplay(avail)}
+                    </td>
+                    <td className="px-4 py-3 text-right font-mono text-xs" data-label={t("common.cost")}>
+                      {moneyDisplay(value)} с
+                    </td>
+                    <td className="px-4 py-3 text-right font-mono text-xs" data-label={t("common.min")}>
+                      {qtyDisplay(material.minStock)} {material.storageUnit.symbol}
+                    </td>
+                    <td className="px-4 py-3">
+                      {canBuy && low && suppliers[0] ? (
+                        <form action={createPurchaseFromShortage}>
+                          <input type="hidden" name="supplierId" value={suppliers[0].id} />
+                          <input type="hidden" name="materialId" value={material.id} />
+                          <input
+                            type="hidden"
+                            name="quantity"
+                            value={D(String(material.minStock)).sub(onHand).abs().toFixed(6)}
+                          />
+                          <button className="text-xs font-semibold text-accent-500">{t("wh.poRequest")}</button>
+                        </form>
+                      ) : null}
+                    </td>
+                  </tr>
+                );
+              })}
+            </RevealList>
+          </table>
+        </UiTable>
       </div>
 
       {canReceive ? (
-        <form action={receiveOpening} className="grid gap-2 rounded-2xl border border-[var(--line)] bg-white p-5 sm:grid-cols-5">
+        <form action={receiveOpening} className="grid gap-2 ui-card sm:grid-cols-5" data-tour="warehouse-in">
           <input type="hidden" name="warehouseId" value={raw.id} />
-          <input type="hidden" name="idempotencyKey" value={randomUUID()} />
-          <select name="materialId" className="rounded-lg border border-slate-200 px-3 py-2 text-sm">
+          <IdempotencyField prefix="wh-in" />
+          <select name="materialId" className="ui-input">
             {materials.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.name}
               </option>
             ))}
           </select>
-          <input name="quantity" required placeholder="Количество" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <input name="unitCost" required placeholder="Цена за ед." className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <input name="comment" placeholder="Комментарий" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Приход</button>
+          <input name="quantity" required placeholder={t("common.quantity")} className="ui-input" />
+          <input name="unitCost" required placeholder={t("common.unitPrice")} className="ui-input" />
+          <input name="comment" placeholder={t("common.comment")} className="ui-input" />
+          <PendingButton className="ui-btn-primary" pendingLabel={t("common.sending")}>
+            {t("common.receipt")}
+          </PendingButton>
         </form>
       ) : null}
 
       {canAdjust ? (
-        <form action={writeOffStock} className="grid gap-2 rounded-2xl border border-[var(--line)] bg-white p-5 sm:grid-cols-5">
+        <form action={writeOffStock} className="grid gap-2 ui-card sm:grid-cols-5" data-tour="warehouse-out">
           <input type="hidden" name="warehouseId" value={raw.id} />
-          <input type="hidden" name="idempotencyKey" value={randomUUID()} />
-          <select name="materialId" className="rounded-lg border border-slate-200 px-3 py-2 text-sm">
+          <IdempotencyField prefix="wh-out" />
+          <select name="materialId" className="ui-input">
             {materials.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.name}
               </option>
             ))}
           </select>
-          <input name="quantity" required placeholder="Списать" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <input name="reason" required placeholder="Причина" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <input name="comment" placeholder="Комментарий" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <button className="rounded-lg bg-red-800 px-3 py-2 text-sm text-white">Списание</button>
+          <input name="quantity" required placeholder={t("wh.writeQty")} className="ui-input" />
+          <input name="reason" required placeholder={t("common.reason")} className="ui-input" />
+          <input name="comment" placeholder={t("common.comment")} className="ui-input" />
+          <PendingButton className="ui-btn-danger" pendingLabel={t("common.sending")}>
+            {t("common.writeOff")}
+          </PendingButton>
         </form>
       ) : null}
 
-      <p className="text-xs text-slate-400">Позиций с остатком: {items.length}</p>
+      <p className="text-xs text-[var(--muted)]">{t("wh.stockCount")}: {items.length}</p>
     </div>
   );
 }

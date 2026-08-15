@@ -1,3 +1,5 @@
+import { PageHeader } from "@/components/page-header";
+import { getTranslator, intlLocale } from "@/lib/locale";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
@@ -5,6 +7,7 @@ import { WarehouseNav } from "@/components/warehouse-nav";
 import { createInventoryCount } from "@/app/actions/inventory";
 
 export default async function InventoryListPage() {
+  const { t, locale, n } = await getTranslator();
   const session = await requirePermission("inventory.count");
   const warehouses = await prisma.warehouse.findMany({ orderBy: { name: "asc" } });
   const counts = await prisma.inventoryCount.findMany({
@@ -14,31 +17,31 @@ export default async function InventoryListPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div>
-        <h1 className="text-2xl font-semibold">Инвентаризация</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Система показывает учёт, сотрудник вводит факт. Разница проводится только с причиной и правом корректировки.
+        <PageHeader title={t("wh.invTitle")} />
+        <p className="mt-1 text-sm text-[var(--text-muted)]">
+          {t("wh.invHint")}
         </p>
       </div>
-      <WarehouseNav current="inventory" />
-      <form action={createInventoryCount} className="flex gap-2 rounded-2xl border border-[var(--line)] bg-white p-4">
-        <select name="warehouseId" className="rounded-lg border border-slate-200 px-3 py-2 text-sm">
+      <WarehouseNav current="inventory" locale={locale} />
+      <form action={createInventoryCount} className="flex gap-2 ui-card">
+        <select name="warehouseId" className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm">
           {warehouses.map((w) => (
             <option key={w.id} value={w.id}>
               {w.name}
             </option>
           ))}
         </select>
-        <button className="rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm text-white">Начать пересчёт</button>
+        <button className="ui-btn-primary">{t("wh.startCount")}</button>
       </form>
       <ul className="space-y-2">
         {counts.map((c) => (
-          <li key={c.id} className="rounded-xl border border-[var(--line)] bg-white px-4 py-3 text-sm">
+          <li key={c.id} className="ui-card px-4 py-3 text-sm">
             <Link href={`/warehouse/inventory/${c.id}`} className="font-medium hover:underline">
-              {c.warehouse.name} · {c.createdAt.toLocaleString("ru-RU")}
+              {n("wh", c.warehouse.code, c.warehouse.name)} · {c.createdAt.toLocaleString(intlLocale(locale))}
             </Link>
-            <span className="ml-2 text-xs text-slate-500">{c.status === "DRAFT" ? "черновик" : "проведена"}</span>
+            <span className="ml-2 text-xs text-[var(--muted)]">{c.status === "DRAFT" ? t("wh.draft") : t("wh.posted")}</span>
           </li>
         ))}
       </ul>

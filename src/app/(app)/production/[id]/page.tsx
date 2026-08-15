@@ -1,3 +1,4 @@
+import { getTranslator, intlLocale } from "@/lib/locale";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -6,8 +7,11 @@ import { hasPermission } from "@/lib/authz";
 import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { closeBatch, createBatch } from "@/app/actions/production";
 import { PendingButton } from "@/components/pending-button";
+import { IdempotencyField } from "@/components/idempotency-field";
+import { PageHeader } from "@/components/page-header";
 
 export default async function ProductionJobPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t, locale } = await getTranslator();
   const session = await requirePermission("production.view");
   const { id } = await params;
   const job = await prisma.productionOrder.findUnique({
@@ -53,25 +57,25 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
   }
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div>
-<h1 className="mt-1 text-2xl font-semibold">Заказ #{job.order.number}</h1>
-        <p className="mt-1 text-sm text-slate-600">
+<PageHeader title={`${t("common.order")} #${job.order.number}`} />
+        <p className="mt-1 text-sm text-[var(--text-muted)]">
           {job.order.customer.name}
           {product ? ` · ${product.product.name} ${qtyDisplay(product.quantity)} ${product.product.saleUnit.symbol}` : null}
-          {job.dueAt ? ` · срок ${job.dueAt.toLocaleDateString("ru-RU")}` : null}
+          {job.dueAt ? ` · ${t("prod.due")} ${job.dueAt.toLocaleDateString(intlLocale(locale))}` : null}
         </p>
         <p className="mt-1 text-sm font-medium">
-          Прогресс: {qtyDisplay(job.producedQty)} / {qtyDisplay(job.plannedQty)}
+          {t("prod.progressLabel")}: {qtyDisplay(job.producedQty)} / {qtyDisplay(job.plannedQty)}
           {product ? ` ${product.product.saleUnit.symbol}` : ""}
         </p>
         <Link href={`/production/${job.id}/print`} className="mt-2 inline-block text-sm text-[var(--titan-dark)] hover:underline">
-          Печать задания / PDF
+          {t("prod.printJob")}
         </Link>
       </div>
 
-      <section className="rounded-2xl border border-[var(--line)] bg-white p-5">
-        <h2 className="text-sm font-semibold">План сырья на заказ</h2>
+      <section className="ui-card">
+        <h2 className="text-sm font-semibold">{t("prod.planMaterials")}</h2>
         <ul className="mt-3 space-y-1 text-sm">
           {job.order.materials.map((need) => (
             <li key={need.id}>
@@ -82,20 +86,20 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
       </section>
 
       {canManage && remaining.gt(0) && job.status !== "DONE" ? (
-        <form action={addBatch} className="max-w-xl space-y-2 rounded-2xl border border-[var(--line)] bg-white p-5">
-          <h2 className="text-sm font-semibold">Новая партия</h2>
+        <form action={addBatch} className="max-w-xl space-y-2 ui-card">
+          <h2 className="text-sm font-semibold">{t("prod.newBatch")}</h2>
           <input type="hidden" name="productionOrderId" value={job.id} />
           <label className="block text-sm">
-            План, {product?.product.saleUnit.symbol ?? "ед."} (остаток {qtyDisplay(remaining)})
+            {t("prod.planQty")}, {product?.product.saleUnit.symbol ?? t("orders.unitFallback")} ({t("prod.remaining")} {qtyDisplay(remaining)})
             <input
               name="plannedQty"
               defaultValue={qtyDisplay(remaining)}
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
             />
           </label>
           <label className="block text-sm">
-            Ответственный
-            <select name="responsibleUserId" className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
+            {t("prod.responsible")}
+            <select name="responsibleUserId" className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm">
               <option value="">—</option>
               {workers.map((u) => (
                 <option key={u.id} value={u.id}>
@@ -104,8 +108,8 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
               ))}
             </select>
           </label>
-          <input name="comment" placeholder="Комментарий" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Создать партию</button>
+          <input name="comment" placeholder={t("common.comment")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
+          <button className="ui-btn-primary">{t("prod.createBatch")}</button>
         </form>
       ) : null}
 
@@ -115,15 +119,15 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
             ? D(String(batch.scrapQty)).div(D(String(batch.actualQty)).add(batch.scrapQty)).mul(100)
             : D(0);
         return (
-          <section key={batch.id} className="rounded-2xl border border-[var(--line)] bg-white p-5">
+          <section key={batch.id} className="ui-card">
             <h2 className="text-sm font-semibold">
-              Партия №{batch.number} · {batch.status === "CLOSED" ? "закрыта" : "открыта"} · план{" "}
+              {t("prod.batch")} №{batch.number} · {batch.status === "CLOSED" ? t("prod.closed") : t("prod.opened")} · {t("orders.plan")}{" "}
               {qtyDisplay(batch.plannedQty)}
             </h2>
             {batch.status === "CLOSED" ? (
               <div className="mt-3 space-y-2 text-sm">
                 <p>
-                  Годных: {qtyDisplay(batch.actualQty)}, брак: {qtyDisplay(batch.scrapQty)} ({qtyDisplay(scrapPct)}%)
+                  {t("prod.goodQty")}: {qtyDisplay(batch.actualQty)}, {t("common.scrap")}: {qtyDisplay(batch.scrapQty)} ({qtyDisplay(scrapPct)}%)
                 </p>
                 <ul className="space-y-1">
                   {batch.materials.map((line) => {
@@ -132,11 +136,11 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
                     const over = plan.gt(0) ? fact.sub(plan).div(plan).mul(100) : D(0);
                     return (
                       <li key={line.id}>
-                        {line.material.name}: план {qtyDisplay(plan)} {line.material.storageUnit.symbol}, факт{" "}
+                        {line.material.name}: {t("orders.plan")} {qtyDisplay(plan)} {line.material.storageUnit.symbol}, {t("prod.actual")}{" "}
                         {qtyDisplay(fact)}
                         {over.gte(5) ? (
                           <span className="ml-2 text-amber-800">
-                            расход выше нормы на {qtyDisplay(over)}%
+                            {t("prod.overNorm")} {qtyDisplay(over)}%
                           </span>
                         ) : null}
                       </li>
@@ -144,8 +148,8 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
                   })}
                 </ul>
                 {batch.scraps.map((s) => (
-                  <p key={s.id} className="text-xs text-slate-500">
-                    Брак: {qtyDisplay(s.quantity)} · {s.reason}
+                  <p key={s.id} className="text-xs text-[var(--muted)]">
+                    {t("common.scrap")}: {qtyDisplay(s.quantity)} · {s.reason}
                     {s.materialCost ? ` · ${moneyDisplay(s.materialCost)} с` : ""}
                   </p>
                 ))}
@@ -153,37 +157,38 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
             ) : canReport ? (
               <form action={finish} className="mt-3 space-y-2">
                 <input type="hidden" name="batchId" value={batch.id} />
+                <IdempotencyField prefix={`close-${batch.id}`} />
                 <label className="block text-sm">
-                  Фактически произведено (годных)
+                  {t("prod.actualGood")}
                   <input
                     name="actualQty"
                     defaultValue={qtyDisplay(batch.plannedQty)}
-                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
                   />
                 </label>
                 <label className="block text-sm">
-                  Брак
-                  <input name="scrapQty" defaultValue="0" className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+                  {t("common.scrap")}
+                  <input name="scrapQty" defaultValue="0" className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
                 </label>
-                <input name="scrapReason" placeholder="Причина брака" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-                <input name="photoUrl" placeholder="Фото брака (URL)" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+                <input name="scrapReason" placeholder={t("prod.scrapReason")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
+                <input name="photoUrl" placeholder={t("prod.scrapPhoto")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
                 {batch.materials.map((line) => (
                   <label key={line.id} className="block text-sm">
-                    {line.material.name}, факт ({line.material.storageUnit.symbol}), план {qtyDisplay(line.plannedQty)}
+                    {line.material.name}, {t("prod.actual")} ({line.material.storageUnit.symbol}), {t("orders.plan")} {qtyDisplay(line.plannedQty)}
                     <input
                       name={`actual-${line.materialId}`}
                       defaultValue={qtyDisplay(line.plannedQty)}
-                      className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                      className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
                     />
                   </label>
                 ))}
-                <textarea name="comment" placeholder="Комментарий" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-                <PendingButton className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">
-                  Закрыть партию (выдача сырья + ГП)
+                <textarea name="comment" placeholder={t("common.comment")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
+                <PendingButton className="ui-btn-primary" pendingLabel={t("common.sending")}>
+                  {t("prod.closeBatch")}
                 </PendingButton>
               </form>
             ) : (
-              <p className="mt-2 text-sm text-slate-500">Ожидает факт от производства.</p>
+              <p className="mt-2 text-sm text-[var(--muted)]">{t("prod.awaitFact")}</p>
             )}
           </section>
         );
@@ -191,7 +196,7 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
 
       <p className="text-sm">
         <Link href={`/orders/${job.orderId}`} className="text-[var(--titan-dark)] hover:underline">
-          Открыть заказ
+          {t("prod.openOrder")}
         </Link>
       </p>
     </div>

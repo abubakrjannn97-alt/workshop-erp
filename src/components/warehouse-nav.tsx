@@ -1,29 +1,30 @@
 import Link from "next/link";
+import { createT, type Locale } from "@/lib/i18n";
 
 export function WarehouseNav({
   current,
+  locale,
 }: {
   current: "raw" | "fg" | "moves" | "inventory";
+  locale: Locale;
 }) {
+  const t = createT(locale);
   const items = [
-    { href: "/warehouse", id: "raw", label: "Сырьё" },
-    { href: "/warehouse/finished", id: "fg", label: "Готовая продукция" },
-    { href: "/warehouse/movements", id: "moves", label: "Движения" },
-    { href: "/warehouse/inventory", id: "inventory", label: "Инвентаризация" },
+    { href: "/warehouse", id: "raw", labelKey: "whNav.raw" },
+    { href: "/warehouse/finished", id: "fg", labelKey: "whNav.fg" },
+    { href: "/warehouse/movements", id: "moves", labelKey: "whNav.moves" },
+    { href: "/warehouse/inventory", id: "inventory", labelKey: "whNav.inventory" },
   ] as const;
   return (
-    <div className="flex flex-wrap gap-1.5 text-[13px]">
+    <div className="no-scrollbar flex gap-1.5 overflow-x-auto pb-1">
       {items.map((item) => (
         <Link
           key={item.id}
           href={item.href}
-          className={`rounded-[var(--radius-sm)] px-2.5 py-1 ${
-            current === item.id
-              ? "bg-[var(--titan-dark)] text-white"
-              : "border border-[var(--line)] bg-[var(--surface)] text-[var(--text-secondary)]"
-          }`}
+          prefetch
+          className={`shrink-0 ${current === item.id ? "ui-chip-on" : "ui-chip"}`}
         >
-          {item.label}
+          {t(item.labelKey)}
         </Link>
       ))}
     </div>

@@ -1,3 +1,5 @@
+import { PageHeader } from "@/components/page-header";
+import { getTranslator, intlLocale } from "@/lib/locale";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
@@ -6,6 +8,7 @@ import { moneyDisplay } from "@/lib/decimal";
 import { D } from "@/lib/decimal";
 
 export default async function SupplierPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t, locale } = await getTranslator();
   const { id } = await params;
   await requirePermission("suppliers.view");
   const supplier = await prisma.supplier.findUnique({
@@ -30,18 +33,18 @@ export default async function SupplierPage({ params }: { params: Promise<{ id: s
   }
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div>
-        <h1 className="text-2xl font-semibold">{supplier.name}</h1>
-        <p className="text-sm text-slate-600">
-          {supplier.phone ?? "нет телефона"} · {supplier.contact ?? "нет контакта"}
+        <PageHeader title={supplier.name} />
+        <p className="text-sm text-[var(--text-muted)]">
+          {supplier.phone ?? t("common.noPhone")} · {supplier.contact ?? t("po.noContact")}
         </p>
         <p className="mt-2 font-mono text-sm">
-          закупки {moneyDisplay(turnover)} с · долг {moneyDisplay(debt)} с
+          {t("po.purchasesDebt", { t: moneyDisplay(turnover), d: moneyDisplay(debt) })}
         </p>
       </div>
-      <section className="rounded-2xl border border-[var(--line)] bg-white p-5">
-        <h2 className="text-sm font-semibold">Изменение закупочной цены</h2>
+      <section className="ui-card">
+        <h2 className="text-sm font-semibold">{t("po.priceChange")}</h2>
         {[...priceByMaterial.values()].map((row) => {
           const first = D(row.prices[row.prices.length - 1]?.price ?? 0);
           const last = D(row.prices[0]?.price ?? 0);
@@ -49,14 +52,14 @@ export default async function SupplierPage({ params }: { params: Promise<{ id: s
           return (
             <div key={row.name} className="mt-3 text-sm">
               <p className="font-medium">{row.name}</p>
-              <ul className="text-xs text-slate-600">
+              <ul className="text-xs text-[var(--text-muted)]">
                 {row.prices.map((p, i) => (
                   <li key={i}>
-                    {p.date.toLocaleDateString("ru-RU")} — {moneyDisplay(p.price)} с/ед.
+                    {p.date.toLocaleDateString(intlLocale(locale))} — {moneyDisplay(p.price)} {t("po.perUnit")}
                   </li>
                 ))}
               </ul>
-              {row.prices.length > 1 ? <p className="text-xs">Изменение: {growth.toFixed(1)}%</p> : null}
+              {row.prices.length > 1 ? <p className="text-xs">{t("po.changePct")}: {growth.toFixed(1)}%</p> : null}
             </div>
           );
         })}

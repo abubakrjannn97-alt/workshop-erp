@@ -1,11 +1,15 @@
+import { PageHeader } from "@/components/page-header";
+import { getTranslator } from "@/lib/locale";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { hasPermission } from "@/lib/authz";
 import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { updatePayScheme } from "@/app/actions/payroll";
+import { RevealList } from "@/components/reveal-list";
 
 export default async function EmployeesPage() {
+  const { t, locale, n } = await getTranslator();
   const session = await requirePermission("users.view");
   const canEditScheme = hasPermission(session.user.permissions, session.user.roleCode, "settings.edit");
 
@@ -35,27 +39,22 @@ export default async function EmployeesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-<h1 className="mt-1 text-2xl font-semibold">Сотрудники</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Схемы оплаты: 22 с/м² за годные, комиссия продавца 3/4/5% с оплат. Брак в выработку не входит.
-        </p>
-      </div>
+    <div className="page-stack">
+      <PageHeader title={t("page.employees")} description={t("emp.hint")} />
 
-      <section className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white">
+      <section className="overflow-hidden ui-card" data-tour="emp-list">
         <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs text-slate-500">
+          <thead className="bg-[var(--surface-muted)] text-xs text-[var(--muted)]">
             <tr>
-              <th className="px-4 py-2">Сотрудник</th>
-              <th className="px-4 py-2">Должность</th>
-              <th className="px-4 py-2">Схема</th>
-              <th className="px-4 py-2">Начислено</th>
-              <th className="px-4 py-2">Выплачено</th>
-              <th className="px-4 py-2">Долг</th>
+              <th className="px-4 py-2">{t("emp.employee")}</th>
+              <th className="px-4 py-2">{t("emp.position")}</th>
+              <th className="px-4 py-2">{t("emp.scheme")}</th>
+              <th className="px-4 py-2">{t("emp.accrued")}</th>
+              <th className="px-4 py-2">{t("emp.paidOut")}</th>
+              <th className="px-4 py-2">{t("common.debt")}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={5} className="divide-y divide-[var(--border)]">
             {users.map((u) => {
               const acc = D(String(accMap.get(u.id)?._sum.amount ?? 0));
               const paid = D(String(payMap.get(u.id)?._sum.amount ?? 0));
@@ -65,78 +64,110 @@ export default async function EmployeesPage() {
                     <Link href={`/employees/${u.id}`} className="font-medium text-[var(--titan-dark)] hover:underline">
                       {u.name}
                     </Link>
-                    <p className="text-xs text-slate-500">{u.phone ?? u.email}</p>
+                    <p className="text-xs text-[var(--muted)]">{u.phone ?? u.email}</p>
                   </td>
-                  <td className="px-4 py-2">{u.role.name}</td>
-                  <td className="px-4 py-2 text-xs">{u.payScheme?.name ?? "—"}</td>
+                  <td className="px-4 py-2">{n("role", u.role.code, u.role.name)}</td>
+                  <td className="px-4 py-2 text-xs">
+                    {u.payScheme
+                      ? u.payScheme.kind === "SALES_COMMISSION"
+                        ? t("emp.commissionTitle")
+                        : u.payScheme.kind === "PRODUCTION_M2"
+                          ? t("emp.laborTitle")
+                          : u.payScheme.name
+                      : "—"}
+                  </td>
                   <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(acc)} с</td>
                   <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(paid)} с</td>
                   <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(acc.sub(paid))} с</td>
                 </tr>
               );
             })}
-          </tbody>
+          </RevealList>
         </table>
       </section>
 
-      {schemes.map((scheme) => (
-        <section key={scheme.id} className="rounded-2xl border border-[var(--line)] bg-white p-5">
-          <h2 className="text-sm font-semibold">{scheme.name}</h2>
-          <p className="text-xs text-slate-500">
-            {scheme.kind}
-            {scheme.productionRate ? ` · ставка ${qtyDisplay(scheme.productionRate)} с/м²` : ""}
-          </p>
+      {schemes.map((scheme) => {
+        const isCommission = scheme.kind === "SALES_COMMISSION" || scheme.kind === "MIXED";
+        const isLabor = scheme.productionRate != null;
+        const title =
+          scheme.kind === "SALES_COMMISSION"
+            ? t("emp.commissionTitle")
+            : scheme.kind === "PRODUCTION_M2"
+              ? t("emp.laborTitle")
+              : scheme.name;
+        const hint = isCommission ? t("emp.commissionHint") : isLabor ? t("emp.laborHint") : "";
+        return (
+        <section key={scheme.id} className="ui-card p-4">
+          <h2 className="text-sm font-semibold">{title}</h2>
+          <p className="mt-1 text-sm leading-snug text-[var(--text-muted)]">{hint}</p>
+          {scheme.productionRate ? (
+            <p className="mt-1 text-xs text-[var(--text-muted)]">
+              {t("emp.currentRate", { n: qtyDisplay(scheme.productionRate) })}
+            </p>
+          ) : null}
           {canEditScheme ? (
-            <form action={schemeAction} className="mt-3 space-y-2">
+            <form action={schemeAction} className="mt-3 space-y-3">
               <input type="hidden" name="id" value={scheme.id} />
-              {scheme.productionRate != null ? (
-                <label className="block text-sm">
-                  Ставка за м²
-                  <input
-                    name="productionRate"
-                    defaultValue={String(scheme.productionRate)}
-                    className="mt-1 w-40 rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                  />
+              {isLabor ? (
+                <label className="block min-w-0 text-sm">
+                  <span className="ui-label mb-1">{t("emp.rateM2")}</span>
+                  <span className="block w-40">
+                    <input
+                      name="productionRate"
+                      inputMode="decimal"
+                      defaultValue={qtyDisplay(scheme.productionRate ?? 0)}
+                      className="ui-input"
+                    />
+                  </span>
                 </label>
               ) : null}
-              {scheme.kind === "SALES_COMMISSION" || scheme.kind === "MIXED" ? (
+              {isCommission ? (
                 <>
-                  <label className="block text-sm">
-                    Модель
+                  <label className="block min-w-0 text-sm">
+                    <span className="ui-label mb-1">{t("emp.model")}</span>
                     <select
                       name="commissionMode"
                       defaultValue={scheme.commissionMode ?? "PROGRESSIVE"}
-                      className="mt-1 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                      className="ui-input max-w-xl"
                     >
-                      <option value="PROGRESSIVE">Progressive (ступени внутри месяца)</option>
-                      <option value="TIERED">Tiered (итоговый уровень на все продажи месяца)</option>
+                      <option value="PROGRESSIVE">{t("emp.progressive")}</option>
+                      <option value="TIERED">{t("emp.tiered")}</option>
                     </select>
                   </label>
                   <input type="hidden" name="commissionBase" value={scheme.commissionBase ?? "PAID"} />
-                  <p className="text-xs text-slate-500">База: фактически полученные оплаты.</p>
-                  {scheme.tiers.map((t) => (
-                    <div key={t.id} className="flex flex-wrap gap-2 text-sm">
-                      <input name="fromCount" defaultValue={t.fromCount} className="w-20 rounded border border-slate-200 px-2 py-1" />
-                      <input name="toCount" defaultValue={t.toCount ?? ""} placeholder="∞" className="w-20 rounded border border-slate-200 px-2 py-1" />
-                      <input name="percent" defaultValue={String(t.percent)} className="w-20 rounded border border-slate-200 px-2 py-1" />
-                      <span className="text-xs text-slate-500">зак. → %</span>
+                  <p className="text-sm text-[var(--text-muted)]">{t("emp.basePaid")}</p>
+                  <div className="overflow-x-auto">
+                    <div className="mb-1 grid min-w-[20rem] grid-cols-3 gap-2 text-xs font-semibold text-[#344054]">
+                      <span>{t("emp.fromOrders")}</span>
+                      <span>{t("emp.toOrders")}</span>
+                      <span>{t("emp.percent")}</span>
                     </div>
-                  ))}
+                    {scheme.tiers.map((tier) => (
+                      <div key={tier.id} className="mb-2 grid min-w-[20rem] grid-cols-3 gap-2">
+                        <input name="fromCount" defaultValue={tier.fromCount} inputMode="numeric" className="ui-input" />
+                        <input name="toCount" defaultValue={tier.toCount ?? ""} placeholder="∞" inputMode="numeric" className="ui-input" />
+                        <input name="percent" defaultValue={qtyDisplay(tier.percent)} inputMode="decimal" className="ui-input" />
+                      </div>
+                    ))}
+                  </div>
                 </>
               ) : null}
-              <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Сохранить схему</button>
+              <button className="ui-btn-primary">
+                {isCommission ? t("emp.saveCommission") : isLabor ? t("emp.saveRate") : t("emp.saveScheme")}
+              </button>
             </form>
           ) : (
             <ul className="mt-2 text-sm">
-              {scheme.tiers.map((t) => (
-                <li key={t.id}>
-                  {t.fromCount}–{t.toCount ?? "∞"} зак. → {String(t.percent)}%
+              {scheme.tiers.map((tier) => (
+                <li key={tier.id}>
+                  {tier.fromCount}–{tier.toCount ?? "∞"} · {qtyDisplay(tier.percent)}%
                 </li>
               ))}
             </ul>
           )}
         </section>
-      ))}
+        );
+      })}
     </div>
   );
 }

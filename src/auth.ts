@@ -70,9 +70,13 @@ const nextAuth = NextAuth({
 
 export const { handlers, signIn, signOut } = nextAuth;
 
-export async function auth(...args: Parameters<typeof nextAuth.auth>) {
-  if (isAuthBypass() && args.length === 0) {
+export async function auth() {
+  const session = await nextAuth.auth();
+  if (session?.user) {
+    return session;
+  }
+  if (isAuthBypass()) {
     return bypassOwnerSession();
   }
-  return nextAuth.auth(...args);
+  return session;
 }

@@ -1,3 +1,5 @@
+import { PageHeader } from "@/components/page-header";
+import { getTranslator } from "@/lib/locale";
 import { readFile } from "fs/promises";
 import path from "path";
 import { requirePermission } from "@/lib/authz";
@@ -5,6 +7,7 @@ import { requirePermission } from "@/lib/authz";
 type Entry = { at?: string; file?: string; ok?: boolean; error?: string; size?: number };
 
 export default async function BackupsPage() {
+  const { t, locale } = await getTranslator();
   await requirePermission("settings.view");
   const journal = path.join(process.cwd(), ".data", "backups", "journal.jsonl");
   let rows: Entry[] = [];
@@ -21,26 +24,23 @@ export default async function BackupsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div>
-        <h1 className="text-2xl font-semibold">Резервные копии</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Ежедневный backup: <code>npm run db:backup</code>. Восстановление:{" "}
-          <code>npm run db:restore</code>. Retention 14 копий, журнал успешности ниже.
-        </p>
+        <PageHeader title={t("set.backupsTitle")} />
+        <p className="mt-1 text-sm text-[var(--text-muted)]">{t("set.backupsHint")}</p>
       </div>
-      <section className="rounded-2xl border border-[var(--line)] bg-white">
-        <ul className="divide-y divide-slate-100 text-sm">
+      <section className="ui-card">
+        <ul className="divide-y divide-[var(--border)] text-sm">
           {rows.length === 0 ? (
-            <li className="px-5 py-6 text-slate-500">Записей журнала нет. Запустите backup.</li>
+            <li className="px-5 py-6 text-[var(--muted)]">{t("set.noBackupLog")}</li>
           ) : (
             rows.map((r, i) => (
               <li key={i} className="px-5 py-3">
-                <p className={r.ok ? "font-medium text-[var(--titan-dark)]" : "font-medium text-red-800"}>
-                  {r.ok ? "Успешно" : "Ошибка"} · {r.at ?? "—"}
+                <p className={r.ok ? "font-medium text-[var(--titan-dark)]" : "font-medium text-[var(--danger)]"}>
+                  {r.ok ? t("set.success") : t("set.fail")} · {r.at ?? "—"}
                 </p>
-                <p className="text-xs text-slate-500">
-                  {r.file ?? "—"} · {r.size ?? 0} байт {r.error ? `· ${r.error}` : ""}
+                <p className="text-xs text-[var(--muted)]">
+                  {r.file ?? "—"} · {r.size ?? 0} B {r.error ? `· ${r.error}` : ""}
                 </p>
               </li>
             ))

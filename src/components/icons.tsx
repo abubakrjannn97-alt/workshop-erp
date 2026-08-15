@@ -9,7 +9,7 @@ function base({ size = 18, className, ...rest }: IconProps) {
     viewBox: "0 0 24 24",
     fill: "none",
     stroke: "currentColor",
-    strokeWidth: 1.75,
+    strokeWidth: 1.5,
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
     className,
@@ -117,7 +117,16 @@ export function IconSettings(p: IconProps) {
   return (
     <svg {...base(p)}>
       <circle cx="12" cy="12" r="3" />
-      <path d="M12 3v2M12 19v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M3 12h2M19 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+      <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 0 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 0 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 0 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9c.3.6.9 1 1.5 1H21a2 2 0 0 1 0 4h-.2a1.7 1.7 0 0 0-1.4 1Z" />
+    </svg>
+  );
+}
+export function IconHelp(p: IconProps) {
+  return (
+    <svg {...base(p)}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.6 9a2.4 2.4 0 1 1 3.4 2.2c-.8.4-1.2.8-1.2 1.6V14" />
+      <circle cx="12" cy="17" r="0.7" fill="currentColor" />
     </svg>
   );
 }
@@ -159,6 +168,40 @@ export function IconSearch(p: IconProps) {
     <svg {...base(p)}>
       <circle cx="11" cy="11" r="6" />
       <path d="m20 20-3.5-3.5" />
+    </svg>
+  );
+}
+export function IconTrend(p: IconProps) {
+  return (
+    <svg {...base(p)}>
+      <path d="M3 17 10 10l4 4 7-7" />
+      <path d="M14 7h7v7" />
+    </svg>
+  );
+}
+export function IconArrowDown(p: IconProps) {
+  return (
+    <svg {...base(p)}>
+      <path d="M12 3v14" />
+      <path d="m7 13 5 5 5-5" />
+      <path d="M5 21h14" />
+    </svg>
+  );
+}
+export function IconAlert(p: IconProps) {
+  return (
+    <svg {...base(p)}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 8v5" />
+      <circle cx="12" cy="16.2" r="0.7" fill="currentColor" />
+    </svg>
+  );
+}
+export function IconReceipt(p: IconProps) {
+  return (
+    <svg {...base(p)}>
+      <path d="M7 3h10v18l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4V3Z" />
+      <path d="M9 8h6M9 12h6M9 16h4" />
     </svg>
   );
 }

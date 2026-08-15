@@ -1,41 +1,61 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import type { PermissionCode } from "@/lib/permissions";
-import { hasPermission } from "@/lib/permissions";
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import type { Locale } from "@/lib/i18n";
 import { createT } from "@/lib/i18n";
 import {
+  bottomTabsForRole,
+  isTabActive,
+  prefetchHrefs,
+  type NavIcon,
+  type BottomTab,
+} from "@/lib/nav";
+import {
   IconHome,
+  IconUsers,
   IconClipboard,
   IconFactory,
   IconWarehouse,
   IconMenu,
+  IconTruck,
+  IconWallet,
+  IconUser,
+  IconChart,
+  IconReceipt,
+  IconAlert,
+  IconCart,
+  IconBox,
 } from "@/components/icons";
 
-const TABS = [
-  { href: "/", labelKey: "nav.home", permission: null as PermissionCode | null, icon: IconHome },
-  {
-    href: "/orders",
-    labelKey: "nav.orders",
-    permission: "orders.view" as PermissionCode,
-    icon: IconClipboard,
-  },
-  {
-    href: "/production",
-    labelKey: "nav.shopShort",
-    permission: "production.view" as PermissionCode,
-    icon: IconFactory,
-  },
-  {
-    href: "/warehouse",
-    labelKey: "nav.warehouse",
-    permission: "inventory.view" as PermissionCode,
-    icon: IconWarehouse,
-  },
-  { href: "/more", labelKey: "nav.more", permission: null as PermissionCode | null, icon: IconMenu },
-];
+const ICONS: Record<NavIcon, typeof IconHome> = {
+  home: IconHome,
+  sales: IconCart,
+  crm: IconUsers,
+  orders: IconClipboard,
+  products: IconBox,
+  production: IconFactory,
+  warehouse: IconWarehouse,
+  purchasing: IconTruck,
+  finance: IconWallet,
+  employees: IconUser,
+  analytics: IconChart,
+  settings: IconMenu,
+  help: IconMenu,
+  more: IconMenu,
+  commission: IconWallet,
+  batches: IconClipboard,
+  scrap: IconAlert,
+  inventory: IconBox,
+  expenses: IconReceipt,
+  jobs: IconFactory,
+  history: IconClipboard,
+  profile: IconUser,
+  reports: IconChart,
+  notifications: IconAlert,
+  search: IconMenu,
+};
 
 export function BottomNav({
   permissions,
@@ -47,37 +67,65 @@ export function BottomNav({
   locale: Locale;
 }) {
   const path = usePathname();
+  const router = useRouter();
   const t = createT(locale);
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
+  const tabs = bottomTabsForRole(roleCode, permissions);
+  const activePath = pendingHref ?? path;
+
+  const warm = useCallback(
+    (href: string) => {
+      router.prefetch(href);
+    },
+    [router],
+  );
+
+  useEffect(() => {
+    setPendingHref(null);
+  }, [path]);
+
+  useEffect(() => {
+    for (const href of prefetchHrefs(roleCode, permissions)) {
+      router.prefetch(href);
+    }
+  }, [router, roleCode, permissions]);
+
+  if (tabs.length === 0) return null;
+
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-[var(--line)] bg-[var(--surface)] print:hidden lg:hidden">
-      {TABS.filter((tab) => !tab.permission || hasPermission(permissions, roleCode, tab.permission)).map(
-        (tab) => {
-          const onMain =
-            path === "/" ||
-            path.startsWith("/orders") ||
-            path.startsWith("/production") ||
-            path.startsWith("/warehouse");
-          const active =
-            tab.href === "/"
-              ? path === "/"
-              : tab.href === "/more"
-                ? !onMain
-                : path.startsWith(tab.href);
-          const Icon = tab.icon;
-          return (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className={`flex flex-1 flex-col items-center gap-0.5 py-1.5 text-[10px] ${
-                active ? "font-semibold text-[var(--foreground)]" : "text-[var(--muted)]"
-              }`}
-            >
-              <Icon size={17} />
-              <span>{t(tab.labelKey)}</span>
-            </Link>
-          );
-        },
-      )}
+    <nav
+      className="fixed inset-x-0 bottom-0 z-50 flex border-t border-dark-border bg-dark-950 print:hidden lg:hidden"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+    >
+      {tabs.map((tab) => {
+        const active = isTabActive(activePath, tab, tabs);
+        const Icon = ICONS[tab.icon] ?? IconMenu;
+        return (
+          <Link
+            key={tab.id}
+            href={tab.href}
+            prefetch
+            onMouseEnter={() => warm(tab.href)}
+            onTouchStart={() => warm(tab.href)}
+            onClick={() => setPendingHref(tab.href)}
+            data-tour={tab.tour ?? `nav-${tab.id}`}
+            className={`flex min-h-16 flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] transition-[color,transform,opacity] duration-150 active:scale-[0.97] ${
+              active ? "font-semibold text-accent-500" : "font-medium text-[var(--text-500)]"
+            } ${pendingHref === tab.href ? "opacity-70" : ""}`}
+          >
+            <Icon size={22} />
+            <span className="max-w-[4.8rem] truncate">{t(tab.labelKey)}</span>
+            {active ? <span className="mt-0.5 h-1 w-1 rounded-full bg-accent-500" /> : <span className="mt-0.5 h-1 w-1" />}
+          </Link>
+        );
+      })}
     </nav>
   );
 }
+
+export function NavIconGlyph({ icon, size = 18 }: { icon: NavIcon; size?: number }) {
+  const Icon = ICONS[icon] ?? IconMenu;
+  return <Icon size={size} />;
+}
+
+export type { BottomTab };

@@ -1,9 +1,14 @@
+import { getTranslator } from "@/lib/locale";
+import { intlLocale } from "@/lib/i18n";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/authz";
 import { markNotificationsRead } from "@/app/actions/control";
+import { PageHeader } from "@/components/page-header";
+import { RevealList } from "@/components/reveal-list";
 
 export default async function NotificationsPage() {
+  const { t, locale } = await getTranslator();
   const session = await requireSession();
   const items = await prisma.notification.findMany({
     where: { userId: session.user.id },
@@ -17,33 +22,41 @@ export default async function NotificationsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-<h1 className="mt-1 text-2xl font-semibold">Уведомления</h1>
-        </div>
-        <form action={readAll}>
-          <button className="text-sm text-[var(--titan-dark)] hover:underline">Отметить прочитанными</button>
-        </form>
+    <div className="page-stack">
+      <div data-tour="page-notifications">
+        <PageHeader
+          title={t("page.notifications")}
+          actions={
+            <form action={readAll}>
+              <button type="submit" className="ui-btn-primary">
+                {t("notif.markRead")}
+              </button>
+            </form>
+          }
+        />
       </div>
-      <ul className="divide-y divide-slate-100 rounded-2xl border border-[var(--line)] bg-white">
-        {items.length === 0 ? (
-          <li className="px-5 py-8 text-sm text-slate-500">Нет уведомлений.</li>
-        ) : (
-          items.map((n) => (
-            <li key={n.id} className={`px-5 py-3 text-sm ${n.readAt ? "text-slate-500" : ""}`}>
-              <p className="font-medium">{n.title}</p>
-              <p className="text-xs">{n.body}</p>
-              <p className="mt-1 text-[11px] text-slate-400">{n.createdAt.toLocaleString("ru-RU")}</p>
-              {n.entityType === "approval" && n.entityId ? (
-                <Link href="/settings/approvals" className="text-xs text-[var(--titan-dark)] hover:underline">
-                  Открыть согласования
-                </Link>
-              ) : null}
-            </li>
-          ))
-        )}
-      </ul>
+      {items.length === 0 ? (
+        <ul className="divide-y divide-[var(--border)] ui-card" data-tour="notif-list">
+          <li className="px-4 py-6 text-sm text-[var(--muted)]">{t("notif.empty")}</li>
+        </ul>
+      ) : (
+        <div className="ui-card" data-tour="notif-list">
+          <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={5} className="divide-y divide-[var(--border)]">
+            {items.map((n) => (
+              <li key={n.id} className={`px-3 py-2 text-sm ${n.readAt ? "text-[var(--muted)]" : ""}`}>
+                <p className="font-medium">{n.title}</p>
+                <p className="text-xs">{n.body}</p>
+                <p className="mt-1 text-[11px] text-[var(--muted)]">{n.createdAt.toLocaleString(intlLocale(locale))}</p>
+                {n.entityType === "approval" && n.entityId ? (
+                  <Link href="/settings/approvals" className="text-xs text-[var(--titan-dark)] hover:underline">
+                    {t("notif.openApprovals")}
+                  </Link>
+                ) : null}
+              </li>
+            ))}
+          </RevealList>
+        </div>
+      )}
     </div>
   );
 }

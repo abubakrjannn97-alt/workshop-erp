@@ -8,7 +8,7 @@ export async function requireSession() {
   if (!session?.user?.id) {
     redirect("/login");
   }
-  return session;
+  return session as NonNullable<typeof session>;
 }
 
 export async function requirePermission(code: PermissionCode) {

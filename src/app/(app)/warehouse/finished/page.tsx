@@ -1,20 +1,21 @@
+import { PageHeader } from "@/components/page-header";
+import { getTranslator } from "@/lib/locale";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { WarehouseNav } from "@/components/warehouse-nav";
+import { UiTable } from "@/components/ui-table";
 import { moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { D } from "@/lib/decimal";
 import { receiveOpening } from "@/app/actions/inventory";
 import { randomUUID } from "crypto";
+import { getFgWarehouse } from "@/lib/warehouses";
 
 export default async function FinishedWarehousePage() {
+  const { t, locale } = await getTranslator();
   const session = await requirePermission("inventory.view");
   const canReceive =
     session.user.roleCode === "owner" || session.user.permissions.includes("inventory.receive");
-  const fg = await prisma.warehouse.upsert({
-    where: { code: "FG" },
-    update: {},
-    create: { code: "FG", name: "Склад готовой продукции", kind: "finished" },
-  });
+  const fg = await getFgWarehouse();
   const [items, products] = await Promise.all([
     prisma.stockItem.findMany({
       where: { warehouseId: fg.id, productId: { not: null } },
@@ -25,67 +26,75 @@ export default async function FinishedWarehousePage() {
   ]);
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div>
-        <h1 className="text-2xl font-semibold">Готовая продукция</h1>
-        <p className="mt-1 text-sm text-slate-600">Отдельный склад, не смешивается с сырьём.</p>
+        <PageHeader title={t("whNav.fg")} />
+        <p className="mt-1 text-sm text-[var(--text-muted)]">{t("wh.fgHint")}</p>
       </div>
-      <WarehouseNav current="fg" />
-      <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-            <tr>
-              <th className="px-4 py-3">Изделие</th>
-              <th className="px-4 py-3 text-right">Остаток</th>
-              <th className="px-4 py-3 text-right">Резерв</th>
-              <th className="px-4 py-3 text-right">Доступно</th>
-              <th className="px-4 py-3 text-right">Себестоимость</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.length === 0 ? (
+      <WarehouseNav current="fg" locale={locale} />
+      <div className="overflow-hidden ui-card">
+        <UiTable>
+          <table className="w-full text-left text-sm">
+            <thead className="bg-[var(--surface-muted)] text-xs uppercase tracking-wide text-[var(--muted)]">
               <tr>
-                <td className="px-4 py-8 text-slate-500" colSpan={5}>
-                  Остатков нет. Выпуск из закрытой партии попадает сюда; можно ввести начальный остаток.
-                </td>
+                <th className="px-4 py-3">{t("common.product")}</th>
+                <th className="px-4 py-3 text-right">{t("common.stock")}</th>
+                <th className="px-4 py-3 text-right">{t("common.reserve")}</th>
+                <th className="px-4 py-3 text-right">{t("common.available")}</th>
+                <th className="px-4 py-3 text-right">{t("common.cost")}</th>
               </tr>
-            ) : (
-              items.map((item) => {
-                const onHand = D(String(item.qtyOnHand));
-                const reserved = D(String(item.qtyReserved));
-                return (
-                  <tr key={item.id} className="border-t border-slate-100">
-                    <td className="px-4 py-3 font-medium">{item.product?.name}</td>
-                    <td className="px-4 py-3 text-right font-mono text-xs">
-                      {qtyDisplay(onHand)} {item.product?.saleUnit.symbol}
-                    </td>
-                    <td className="px-4 py-3 text-right font-mono text-xs">{qtyDisplay(reserved)}</td>
-                    <td className="px-4 py-3 text-right font-mono text-xs">{qtyDisplay(onHand.sub(reserved))}</td>
-                    <td className="px-4 py-3 text-right font-mono text-xs">
-                      {moneyDisplay(onHand.mul(item.wacUnitCost))} с
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {items.length === 0 ? (
+                <tr>
+                  <td className="px-3 py-6 text-[var(--muted)]" colSpan={5}>
+                    {t("wh.fgEmpty")}
+                  </td>
+                </tr>
+              ) : (
+                items.map((item) => {
+                  const onHand = D(String(item.qtyOnHand));
+                  const reserved = D(String(item.qtyReserved));
+                  return (
+                    <tr key={item.id} className="border-t border-[var(--line)]">
+                      <td className="px-4 py-3 font-medium">{item.product?.name}</td>
+                      <td className="px-4 py-3 text-right font-mono text-xs" data-label={t("common.stock")}>
+                        {qtyDisplay(onHand)} {item.product?.saleUnit.symbol}
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono text-xs" data-label={t("common.reserve")}>
+                        {qtyDisplay(reserved)}
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono text-xs" data-label={t("common.available")}>
+                        {qtyDisplay(onHand.sub(reserved))}
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono text-xs" data-label={t("common.cost")}>
+                        {moneyDisplay(onHand.mul(item.wacUnitCost))} с
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </UiTable>
       </div>
       {canReceive ? (
-        <form action={receiveOpening} className="grid gap-2 rounded-2xl border border-[var(--line)] bg-white p-5 sm:grid-cols-5">
+        <form action={receiveOpening} className="grid gap-2 ui-card sm:grid-cols-5">
           <input type="hidden" name="warehouseId" value={fg.id} />
           <input type="hidden" name="idempotencyKey" value={randomUUID()} />
-          <select name="productId" className="rounded-lg border border-slate-200 px-3 py-2 text-sm">
+          <select name="productId" className="ui-input">
             {products.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
               </option>
             ))}
           </select>
-          <input name="quantity" required placeholder="Количество" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <input name="unitCost" required placeholder="Себестоимость ед." className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <input name="comment" placeholder="Начальный остаток / партия" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Приход</button>
+          <input name="quantity" required placeholder={t("common.quantity")} className="ui-input" />
+          <input name="unitCost" required placeholder={t("common.unitPrice")} className="ui-input" />
+          <input name="comment" placeholder={t("common.comment")} className="ui-input" />
+          <button type="submit" className="ui-btn-primary">
+            {t("common.receipt")}
+          </button>
         </form>
       ) : null}
     </div>

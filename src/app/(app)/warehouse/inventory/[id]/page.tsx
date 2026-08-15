@@ -1,11 +1,14 @@
+import { getTranslator } from "@/lib/locale";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { confirmInventoryCount } from "@/app/actions/inventory";
 import { moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { D } from "@/lib/decimal";
+import { PageHeader } from "@/components/page-header";
 
 export default async function InventoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t, locale, n } = await getTranslator();
   const { id } = await params;
   await requirePermission("inventory.count");
   const session = await requirePermission("inventory.view");
@@ -21,25 +24,27 @@ export default async function InventoryDetailPage({ params }: { params: Promise<
   if (!count) notFound();
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div>
-        <h1 className="text-2xl font-semibold">Пересчёт · {count.warehouse.name}</h1>
-        <p className="text-sm text-slate-500">{count.status === "DRAFT" ? "Черновик" : "Проведена"}</p>
+        <PageHeader
+          title={`${t("wh.countTitle")} · ${n("wh", count.warehouse.code, count.warehouse.name)}`}
+        />
+        <p className="text-sm text-[var(--muted)]">{count.status === "DRAFT" ? t("wh.Draft") : t("wh.Posted")}</p>
       </div>
-      <form action={confirmInventoryCount} className="space-y-4 rounded-2xl border border-[var(--line)] bg-white p-5">
+      <form action={confirmInventoryCount} className="space-y-4 ui-card">
         <input type="hidden" name="id" value={count.id} />
         <table className="w-full text-left text-sm">
-          <thead className="text-xs uppercase text-slate-500">
+          <thead className="text-xs uppercase text-[var(--muted)]">
             <tr>
-              <th className="py-2">Позиция</th>
-              <th className="py-2 text-right">По учёту</th>
-              <th className="py-2 text-right">Факт</th>
-              <th className="py-2 text-right">Разница</th>
+              <th className="py-2">{t("wh.position")}</th>
+              <th className="py-2 text-right">{t("wh.byBooks")}</th>
+              <th className="py-2 text-right">{t("wh.fact")}</th>
+              <th className="py-2 text-right">{t("wh.diff")}</th>
             </tr>
           </thead>
           <tbody>
             {count.lines.map((line) => (
-              <tr key={line.id} className="border-t border-slate-100">
+              <tr key={line.id} className="border-t border-[var(--line)]">
                 <td className="py-2">
                   {line.stockItem.material?.name ?? line.stockItem.product?.name}
                   <input type="hidden" name="lineId" value={line.id} />
@@ -50,7 +55,7 @@ export default async function InventoryDetailPage({ params }: { params: Promise<
                     name="actualQty"
                     defaultValue={line.actualQty.toString()}
                     disabled={count.status !== "DRAFT"}
-                    className="w-28 rounded border border-slate-200 px-2 py-1 text-right text-sm"
+                    className="w-28 rounded border border-[var(--border)] px-2 py-1 text-right text-sm"
                   />
                 </td>
                 <td className="py-2 text-right font-mono text-xs">
@@ -62,17 +67,17 @@ export default async function InventoryDetailPage({ params }: { params: Promise<
         </table>
         {count.status === "DRAFT" && canConfirm ? (
           <>
-            <input name="reason" required placeholder="Причина расхождений" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-            <button className="rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm text-white">
-              Подтвердить и провести корректировку
+            <input name="reason" required placeholder={t("wh.diffReason")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
+            <button className="ui-btn-primary">
+              {t("wh.confirmAdjust")}
             </button>
           </>
         ) : null}
       </form>
-      <p className="text-xs text-slate-400">
-        Пример из ТЗ: учёт 420 кг, факт 405 кг, разница −15 кг, стоимость −60 с при цене 4 с/кг.
-        Сейчас разница считается по WAC каждой позиции:{" "}
-        {count.lines[0] ? moneyDisplay(D(String(count.lines[0].unitCost))) : "—"} с/ед.
+      <p className="text-xs text-[var(--muted)]">
+        {t("wh.invExample")}
+        {t("wh.invWac")}:{" "}
+        {count.lines[0] ? moneyDisplay(D(String(count.lines[0].unitCost))) : "—"} {t("po.perUnit")}
       </p>
     </div>
   );

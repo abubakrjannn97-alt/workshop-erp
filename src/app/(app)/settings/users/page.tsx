@@ -1,9 +1,13 @@
+import { getTranslator } from "@/lib/locale";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { archiveUser, createUser, updateUser } from "@/app/actions/users";
 import Link from "next/link";
+import { PageHeader } from "@/components/page-header";
+import { FormField } from "@/components/form-field";
 
 export default async function UsersPage() {
+  const { t, n } = await getTranslator();
   const session = await requirePermission("users.view");
   const canCreate =
     session.user.roleCode === "owner" || session.user.permissions.includes("users.create");
@@ -22,30 +26,39 @@ export default async function UsersPage() {
   ]);
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div>
-        <h1 className="text-2xl font-semibold">Пользователи</h1>
-        <p className="mt-1 text-sm text-slate-600">Учётные записи не удаляются — только архив.</p>
+        <PageHeader title={t("set.users")} description={t("set.usersHint")} />
         <Link className="mt-3 inline-block text-sm text-[var(--titan-dark)]" href="/settings">
-          ← Настройки
+          {t("common.settingsBack")}
         </Link>
       </div>
 
       {canCreate ? (
-        <form action={createUser} className="grid gap-3 rounded-2xl border border-[var(--line)] bg-white p-5 sm:grid-cols-5">
-          <input name="name" required placeholder="Имя" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <input name="email" type="email" required placeholder="Email" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <input name="phone" placeholder="Телефон" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <select name="roleId" className="rounded-lg border border-slate-200 px-3 py-2 text-sm">
-            {roles.map((role) => (
-              <option key={role.id} value={role.id}>
-                {role.name}
-              </option>
-            ))}
-          </select>
-          <input name="password" type="password" required minLength={8} placeholder="Пароль" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <button className="sm:col-span-5 rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm font-medium text-white">
-            Создать пользователя
+        <form action={createUser} className="grid gap-3 ui-card p-4 sm:grid-cols-2 lg:grid-cols-3">
+          <FormField label={t("set.userName")}>
+            <input name="name" required placeholder={t("set.userName")} className="ui-input" />
+          </FormField>
+          <FormField label={t("set.userEmail")}>
+            <input name="email" type="email" required placeholder="name@workshop.local" className="ui-input" />
+          </FormField>
+          <FormField label={t("set.userPhone")}>
+            <input name="phone" placeholder="+992 …" className="ui-input" />
+          </FormField>
+          <FormField label={t("set.userRole")}>
+            <select name="roleId" className="ui-input">
+              {roles.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {n("role", role.code, role.name)}
+                </option>
+              ))}
+            </select>
+          </FormField>
+          <FormField label={t("set.userPassword")} className="sm:col-span-2 lg:col-span-1">
+            <input name="password" type="password" required minLength={8} className="ui-input" />
+          </FormField>
+          <button className="sm:col-span-2 lg:col-span-3 ui-btn-primary">
+            {t("set.createUser")}
           </button>
         </form>
       ) : null}
@@ -55,31 +68,63 @@ export default async function UsersPage() {
           <form
             key={user.id}
             action={updateUser}
-            className="grid gap-3 rounded-2xl border border-[var(--line)] bg-white p-5 sm:grid-cols-6"
+            className="grid gap-3 ui-card p-4 sm:grid-cols-2 lg:grid-cols-3"
           >
             <input type="hidden" name="id" value={user.id} />
-            <input name="name" defaultValue={user.name} disabled={!canEdit} className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-            <input value={user.email} disabled className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm" />
-            <input name="phone" defaultValue={user.phone ?? ""} disabled={!canEdit} className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-            <select name="roleId" defaultValue={user.roleId} disabled={!canEdit} className="rounded-lg border border-slate-200 px-3 py-2 text-sm">
-              {roles.map((role) => (
-                <option key={role.id} value={role.id}>
-                  {role.name}
-                </option>
-              ))}
-            </select>
-            <label className="flex items-center gap-2 text-sm">
+            <FormField label={t("set.userName")}>
+              <input
+                name="name"
+                defaultValue={user.name}
+                disabled={!canEdit}
+                className="ui-input"
+              />
+            </FormField>
+            <FormField label={t("set.userEmail")}>
+              <input
+                value={user.email}
+                disabled
+                title={user.email}
+                className="ui-input min-w-0"
+              />
+            </FormField>
+            <FormField label={t("set.userPhone")}>
+              <input
+                name="phone"
+                defaultValue={user.phone ?? ""}
+                disabled={!canEdit}
+                className="ui-input"
+              />
+            </FormField>
+            <FormField label={t("set.userRole")}>
+              <select
+                name="roleId"
+                defaultValue={user.roleId}
+                disabled={!canEdit}
+                className="ui-input"
+              >
+                {roles.map((role) => (
+                  <option key={role.id} value={role.id}>
+                    {n("role", role.code, role.name)}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+            <label className="flex items-end gap-2 pb-2 text-sm">
               <input type="checkbox" name="isActive" defaultChecked={user.isActive} disabled={!canEdit} />
-              Активен
+              {t("set.active")}
             </label>
-            <input name="password" type="password" placeholder="Новый пароль" disabled={!canEdit} className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-            <div className="sm:col-span-6 flex gap-3">
+            {canEdit ? (
+              <FormField label={t("set.newPassword")} hint={t("set.newPasswordHint")}>
+                <input name="password" type="password" className="ui-input" />
+              </FormField>
+            ) : null}
+            <div className="sm:col-span-2 lg:col-span-3 flex flex-wrap gap-3">
               {canEdit ? (
-                <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-1.5 text-sm text-white">Сохранить</button>
+                <button className="ui-btn-primary">{t("common.save")}</button>
               ) : null}
               {canArchive && user.id !== session.user.id ? (
-                <button formAction={archiveUser} className="text-sm text-red-700">
-                  В архив
+                <button formAction={archiveUser} className="ui-btn-danger">
+                  {t("common.archive")}
                 </button>
               ) : null}
             </div>

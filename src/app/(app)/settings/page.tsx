@@ -1,14 +1,17 @@
+import { getTranslator } from "@/lib/locale";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { DEFAULT_SETTINGS, SETTING_KEYS } from "@/lib/settings";
 import { renameLeadStage, renameOrderStatus, updateBusinessSettings } from "@/app/actions/settings";
 import Link from "next/link";
+import { PageHeader } from "@/components/page-header";
 
 function asString(value: unknown, fallback: string) {
   return typeof value === "string" ? value : fallback;
 }
 
 export default async function SettingsPage() {
+  const { t, locale } = await getTranslator();
   const session = await requirePermission("settings.view");
   const rows = await prisma.setting.findMany();
   const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
@@ -36,83 +39,62 @@ export default async function SettingsPage() {
   ]);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Настройки</h1>
-        <p className="mt-1 text-sm text-slate-600">Параметры предприятия без изменения кода.</p>
+    <div className="page-stack">
+      <PageHeader title={t("page.settings")} description={t("set.hint")} />
+
+      <div className="flex flex-wrap gap-1.5" data-tour="set-nav">
+        <Link className="ui-chip-on" href="/settings">{t("set.business")}</Link>
+        <Link className="ui-chip" href="/settings/units">{t("set.units")}</Link>
+        <Link className="ui-chip" href="/settings/users">{t("set.users")}</Link>
+        <Link className="ui-chip" href="/settings/roles">{t("set.roles")}</Link>
+        <Link className="ui-chip" href="/settings/approvals">{t("set.approvals")}</Link>
+        <Link className="ui-chip" href="/settings/audit">{t("set.audit")}</Link>
+        <Link className="ui-chip" href="/employees">{t("page.employees")}</Link>
+        <Link className="ui-chip" href="/products">{t("page.products")}</Link>
+        <Link className="ui-chip" href="/settings/backups">{t("set.backupsTitle")}</Link>
       </div>
 
-      <div className="flex flex-wrap gap-2 text-sm">
-        <Link className="rounded-full bg-[var(--titan-dark)] px-3 py-1 text-white" href="/settings">
-          Бизнес
-        </Link>
-        <Link className="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200" href="/settings/units">
-          Единицы
-        </Link>
-        <Link className="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200" href="/settings/users">
-          Пользователи
-        </Link>
-        <Link className="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200" href="/settings/roles">
-          Роли
-        </Link>
-        <Link className="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200" href="/settings/approvals">
-          Согласования
-        </Link>
-        <Link className="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200" href="/settings/audit">
-          Журнал
-        </Link>
-        <Link className="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200" href="/employees">
-          Сотрудники
-        </Link>
-        <Link className="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200" href="/products">
-          Продукция
-        </Link>
-        <Link className="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200" href="/settings/backups">
-          Резервные копии
-        </Link>
-      </div>
-
-      <form action={updateBusinessSettings} className="max-w-xl space-y-4 rounded-2xl border border-[var(--line)] bg-white p-6">
-        <Field name="companyName" label="Название предприятия" defaultValue={values.companyName} disabled={!canEdit} />
-        <Field name="logoUrl" label="Логотип (URL)" defaultValue={values.logoUrl} disabled={!canEdit} />
-        <Field name="currencyCode" label="Валюта (код)" defaultValue={values.currencyCode} disabled={!canEdit} />
-        <Field name="currencyName" label="Валюта (название)" defaultValue={values.currencyName} disabled={!canEdit} />
-        <Field name="timezone" label="Часовой пояс" defaultValue={values.timezone} disabled={!canEdit} />
+      <form action={updateBusinessSettings} className="max-w-xl space-y-4 ui-card" data-tour="set-form">
+        <Field name="companyName" label={t("set.companyName")} defaultValue={values.companyName} disabled={!canEdit} />
+        <Field name="logoUrl" label={t("set.logoUrl")} defaultValue={values.logoUrl} disabled={!canEdit} />
+        <Field name="currencyCode" label={t("set.currencyCode")} defaultValue={values.currencyCode} disabled={!canEdit} />
+        <Field name="currencyName" label={t("set.currencyName")} defaultValue={values.currencyName} disabled={!canEdit} />
+        <Field name="timezone" label={t("set.timezone")} defaultValue={values.timezone} disabled={!canEdit} />
         <Field
           name="discountLimitPercent"
-          label="Лимит скидки менеджера, %"
+          label={t("set.discountLimit")}
           defaultValue={values.discountLimitPercent}
           disabled={!canEdit}
         />
         <Field
           name="opexReservePercent"
-          label="Резерв постоянных расходов с оплаты, %"
+          label={t("set.expenseReserve")}
           defaultValue={values.opexReservePercent}
           disabled={!canEdit}
         />
         {canEdit ? (
-          <button type="submit" className="rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm font-medium text-white">
-            Сохранить
+          <button type="submit" className="ui-btn-primary">
+            {t("common.save")}
           </button>
         ) : null}
       </form>
 
-      <section className="rounded-2xl border border-[var(--line)] bg-white p-5">
-        <h2 className="text-sm font-semibold">Статусы заказа</h2>
+      <section className="ui-card">
+        <h2 className="text-sm font-semibold">{t("set.orderStatuses")}</h2>
         <ul className="mt-3 space-y-2">
           {orderStatuses.map((s) => (
             <li key={s.id}>
               <form action={renameOrderStatus} className="flex flex-wrap items-center gap-2 text-sm">
                 <input type="hidden" name="id" value={s.id} />
-                <span className="w-40 text-xs text-slate-500">{s.code}</span>
+                <span className="w-40 text-xs text-[var(--muted)]">{s.code}</span>
                 <input
                   name="name"
                   defaultValue={s.name}
                   disabled={!canEdit}
-                  className="rounded-lg border border-slate-200 px-2 py-1 text-sm"
+                  className="rounded-lg border border-[var(--border)] px-2 py-1 text-sm"
                 />
                 {canEdit ? (
-                  <button className="text-xs text-[var(--titan-dark)] hover:underline">Сохранить</button>
+                  <button className="text-xs text-[var(--titan-dark)] hover:underline">{t("common.save")}</button>
                 ) : null}
               </form>
             </li>
@@ -120,22 +102,22 @@ export default async function SettingsPage() {
         </ul>
       </section>
 
-      <section className="rounded-2xl border border-[var(--line)] bg-white p-5">
-        <h2 className="text-sm font-semibold">Этапы воронки</h2>
+      <section className="ui-card">
+        <h2 className="text-sm font-semibold">{t("set.pipelineStages")}</h2>
         <ul className="mt-3 space-y-2">
           {leadStages.map((s) => (
             <li key={s.id}>
               <form action={renameLeadStage} className="flex flex-wrap items-center gap-2 text-sm">
                 <input type="hidden" name="id" value={s.id} />
-                <span className="w-40 text-xs text-slate-500">{s.code}</span>
+                <span className="w-40 text-xs text-[var(--muted)]">{s.code}</span>
                 <input
                   name="name"
                   defaultValue={s.name}
                   disabled={!canEdit}
-                  className="rounded-lg border border-slate-200 px-2 py-1 text-sm"
+                  className="rounded-lg border border-[var(--border)] px-2 py-1 text-sm"
                 />
                 {canEdit ? (
-                  <button className="text-xs text-[var(--titan-dark)] hover:underline">Сохранить</button>
+                  <button className="text-xs text-[var(--titan-dark)] hover:underline">{t("common.save")}</button>
                 ) : null}
               </form>
             </li>
@@ -164,7 +146,7 @@ function Field({
         name={name}
         defaultValue={defaultValue}
         disabled={disabled}
-        className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-[var(--titan-2)] focus:ring-2 disabled:bg-slate-50"
+        className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm outline-none ring-[var(--titan-2)] focus:ring-2 disabled:bg-[var(--surface-muted)]"
       />
     </label>
   );

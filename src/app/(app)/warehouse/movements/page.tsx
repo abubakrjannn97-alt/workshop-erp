@@ -1,25 +1,31 @@
+import { getTranslator, intlLocale } from "@/lib/locale";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { WarehouseNav } from "@/components/warehouse-nav";
 import { moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { reverseStockMovement } from "@/app/actions/inventory";
 import { randomUUID } from "crypto";
+import { PageHeader } from "@/components/page-header";
 
-const LABELS: Record<string, string> = {
-  RECEIPT: "Приход",
-  RESERVE: "Резерв",
-  RELEASE: "Снятие резерва",
-  ISSUE: "Выдача в производство",
-  RETURN: "Возврат из производства",
-  WRITE_OFF: "Списание",
-  INVENTORY: "Инвентаризация",
-  ADJUST: "Корректировка",
-  TRANSFER_OUT: "Перемещение −",
-  TRANSFER_IN: "Перемещение +",
-  REVERSAL: "Сторно",
-};
+function moveType(t: (k: string) => string, code: string) {
+  const map: Record<string, string> = {
+    RECEIPT: t("wh.move.RECEIPT"),
+    RESERVE: t("wh.move.RESERVE"),
+    RELEASE: t("wh.move.UNRESERVE"),
+    ISSUE: t("wh.move.ISSUE"),
+    RETURN: t("wh.move.RETURN"),
+    WRITE_OFF: t("wh.move.WRITE_OFF"),
+    INVENTORY: t("wh.move.INVENTORY"),
+    ADJUST: t("wh.move.ADJUST"),
+    TRANSFER_OUT: t("wh.move.TRANSFER_OUT"),
+    TRANSFER_IN: t("wh.move.TRANSFER_IN"),
+    REVERSAL: t("wh.move.REVERSAL"),
+  };
+  return map[code] ?? code;
+}
 
 export default async function MovementsPage() {
+  const { t, locale, n } = await getTranslator();
   const session = await requirePermission("inventory.view");
   const canAdjust =
     session.user.roleCode === "owner" || session.user.permissions.includes("inventory.adjust");
@@ -34,32 +40,32 @@ export default async function MovementsPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div>
-        <h1 className="text-2xl font-semibold">Складские движения</h1>
-        <p className="mt-1 text-sm text-slate-600">Записи не удаляются. Ошибка исправляется сторно.</p>
+        <PageHeader title={t("wh.movesTitle")} />
+        <p className="mt-1 text-sm text-[var(--text-muted)]">{t("wh.movesHint")}</p>
       </div>
-      <WarehouseNav current="moves" />
-      <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white">
+      <WarehouseNav current="moves" locale={locale} />
+      <div className="overflow-hidden ui-card">
         <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+          <thead className="bg-[var(--surface-muted)] text-xs uppercase tracking-wide text-[var(--muted)]">
             <tr>
-              <th className="px-4 py-3">Время</th>
-              <th className="px-4 py-3">Тип</th>
-              <th className="px-4 py-3">Позиция</th>
-              <th className="px-4 py-3 text-right">Кол-во</th>
-              <th className="px-4 py-3 text-right">Сумма</th>
+              <th className="px-4 py-3">{t("wh.time")}</th>
+              <th className="px-4 py-3">{t("wh.type")}</th>
+              <th className="px-4 py-3">{t("wh.position")}</th>
+              <th className="px-4 py-3 text-right">{t("common.qty")}</th>
+              <th className="px-4 py-3 text-right">{t("common.amount")}</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody>
             {movements.map((m) => (
-              <tr key={m.id} className="border-t border-slate-100">
-                <td className="px-4 py-3 text-xs text-slate-500">{m.createdAt.toLocaleString("ru-RU")}</td>
-                <td className="px-4 py-3">{LABELS[m.type] ?? m.type}</td>
+              <tr key={m.id} className="border-t border-[var(--line)]">
+                <td className="px-4 py-3 text-xs text-[var(--muted)]">{m.createdAt.toLocaleString(intlLocale(locale))}</td>
+                <td className="px-4 py-3">{moveType(t, m.type) ?? m.type}</td>
                 <td className="px-4 py-3">
                   {m.stockItem.material?.name ?? m.stockItem.product?.name}
-                  <p className="text-xs text-slate-400">{m.warehouse.name}</p>
+                  <p className="text-xs text-[var(--muted)]">{n("wh", m.warehouse.code, m.warehouse.name)}</p>
                 </td>
                 <td className="px-4 py-3 text-right font-mono text-xs">{qtyDisplay(m.qty)}</td>
                 <td className="px-4 py-3 text-right font-mono text-xs">{moneyDisplay(m.amount)} с</td>
@@ -68,10 +74,10 @@ export default async function MovementsPage() {
                     <form action={reverseStockMovement}>
                       <input type="hidden" name="id" value={m.id} />
                       <input type="hidden" name="idempotencyKey" value={randomUUID()} />
-                      <button className="text-xs text-red-700">Сторно</button>
+                      <button className="text-xs text-[var(--danger)]">{t("wh.revBtn")}</button>
                     </form>
                   ) : m.reversedBy ? (
-                    <span className="text-xs text-slate-400">сторнировано</span>
+                    <span className="text-xs text-[var(--muted)]">{t("wh.reversed")}</span>
                   ) : null}
                 </td>
               </tr>

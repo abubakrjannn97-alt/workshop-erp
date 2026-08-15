@@ -13,6 +13,7 @@ export async function setLocaleAction(formData: FormData) {
     path: "/",
     maxAge: 60 * 60 * 24 * 365,
     sameSite: "lax",
+    httpOnly: false,
   });
   revalidatePath("/", "layout");
 }

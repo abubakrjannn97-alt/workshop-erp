@@ -1,3 +1,5 @@
+import { PageHeader } from "@/components/page-header";
+import { getTranslator, intlLocale } from "@/lib/locale";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
@@ -7,6 +9,7 @@ import { moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { unitCost } from "@/lib/costing";
 
 export default async function MaterialDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t, locale } = await getTranslator();
   const { id } = await params;
   const session = await requirePermission("materials.view");
   const canManage =
@@ -28,23 +31,23 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
   const cost = unitCost(material.packagePrice, material.packageWeight);
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div>
-        <h1 className="text-2xl font-semibold">{material.name}</h1>
-        <p className="text-sm text-slate-600">
-          Расчётная стоимость: {cost ? `${moneyDisplay(cost)} с / ${material.storageUnit.symbol}` : "не задана"}
+        <PageHeader title={material.name} />
+        <p className="text-sm text-[var(--text-muted)]">
+          {t("materials.calcCost")}: {cost ? `${moneyDisplay(cost)} с / ${material.storageUnit.symbol}` : t("materials.notSet")}
         </p>
       </div>
-      <CatalogNav current="materials" />
+      <CatalogNav current="materials" locale={locale} />
 
-      <form action={updateMaterial} className="grid gap-3 rounded-2xl border border-[var(--line)] bg-white p-6 sm:grid-cols-2">
+      <form action={updateMaterial} className="grid gap-3 ui-card p-4 sm:grid-cols-2">
         <input type="hidden" name="id" value={material.id} />
-        <Field name="name" label="Название" defaultValue={material.name} disabled={!canManage} />
-        <Field name="category" label="Категория" defaultValue={material.category} disabled={!canManage} />
-        <Field name="supplierName" label="Поставщик" defaultValue={material.supplierName ?? ""} disabled={!canManage} />
+        <Field name="name" label={t("common.name")} defaultValue={material.name} disabled={!canManage} />
+        <Field name="category" label={t("common.category")} defaultValue={material.category} disabled={!canManage} />
+        <Field name="supplierName" label={t("common.supplier")} defaultValue={material.supplierName ?? ""} disabled={!canManage} />
         <label className="block text-sm">
-          <span className="font-medium">Единица хранения</span>
-          <select name="storageUnitId" defaultValue={material.storageUnitId} disabled={!canManage} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
+          <span className="font-medium">{t("materials.storageUnit")}</span>
+          <select name="storageUnitId" defaultValue={material.storageUnitId} disabled={!canManage} className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm">
             {units.map((u) => (
               <option key={u.id} value={u.id}>
                 {u.name} ({u.symbol})
@@ -53,8 +56,8 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
           </select>
         </label>
         <label className="block text-sm">
-          <span className="font-medium">Единица закупки</span>
-          <select name="purchaseUnitId" defaultValue={material.purchaseUnitId} disabled={!canManage} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
+          <span className="font-medium">{t("materials.purchaseUnit")}</span>
+          <select name="purchaseUnitId" defaultValue={material.purchaseUnitId} disabled={!canManage} className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm">
             {units.map((u) => (
               <option key={u.id} value={u.id}>
                 {u.name} ({u.symbol})
@@ -62,27 +65,27 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
             ))}
           </select>
         </label>
-        <Field name="packageWeight" label="Вес / объём упаковки" defaultValue={material.packageWeight.toString()} disabled={!canManage} />
-        <Field name="packagePrice" label="Цена упаковки, сомони" defaultValue={material.packagePrice.toString()} disabled={!canManage} />
-        <Field name="minStock" label="Минимальный остаток" defaultValue={material.minStock.toString()} disabled={!canManage} />
+        <Field name="packageWeight" label={t("materials.packVolume")} defaultValue={material.packageWeight.toString()} disabled={!canManage} />
+        <Field name="packagePrice" label={t("materials.packPriceSom")} defaultValue={material.packagePrice.toString()} disabled={!canManage} />
+        <Field name="minStock" label={t("materials.minQty")} defaultValue={material.minStock.toString()} disabled={!canManage} />
         {canManage ? (
-          <button className="sm:col-span-2 rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm font-medium text-white">
-            Сохранить. Прежняя цена останется в истории.
+          <button className="sm:col-span-2 ui-btn-primary">
+            {t("materials.savePriceHist")}
           </button>
         ) : null}
       </form>
 
-      <section className="rounded-2xl border border-[var(--line)] bg-white p-6">
-        <h2 className="text-sm font-semibold">История закупочных цен</h2>
+      <section className="ui-card p-4">
+        <h2 className="text-sm font-semibold">{t("materials.priceHistory")}</h2>
         <ul className="mt-3 space-y-2 text-sm">
           {material.prices.map((row) => (
             <li key={row.id} className="flex justify-between gap-4">
               <span>
-                {row.validFrom.toLocaleDateString("ru-RU")}
-                {row.validTo ? ` — ${row.validTo.toLocaleDateString("ru-RU")}` : " — действует"} · упак.{" "}
+                {row.validFrom.toLocaleDateString(intlLocale(locale))}
+                {row.validTo ? ` — ${row.validTo.toLocaleDateString(intlLocale(locale))}` : ` — ${t("common.active")}`} · {t("materials.packShort")}{" "}
                 {qtyDisplay(row.packageWeight)} / {moneyDisplay(row.packagePrice)} с
               </span>
-              <span className="font-mono text-xs">{moneyDisplay(row.unitPrice)} с / ед.</span>
+              <span className="font-mono text-xs">{moneyDisplay(row.unitPrice)} {t("materials.perUnitShort")}</span>
             </li>
           ))}
         </ul>
@@ -109,7 +112,7 @@ function Field({
         name={name}
         defaultValue={defaultValue}
         disabled={disabled}
-        className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm disabled:bg-slate-50"
+        className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm disabled:bg-[var(--surface-muted)]"
       />
     </label>
   );

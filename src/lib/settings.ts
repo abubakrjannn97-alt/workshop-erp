@@ -18,6 +18,8 @@ export type BusinessSettings = {
   opexReservePercent: string;
 };
 
+export const CURRENCY_SYMBOL = "с";
+
 export const DEFAULT_SETTINGS: BusinessSettings = {
   companyName: "Производственный цех",
   logoUrl: "",

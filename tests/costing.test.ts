@@ -1,12 +1,16 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { D, money, moneyDisplay } from "../src/lib/decimal";
+import { D, money, moneyDisplay, qtyDisplay } from "../src/lib/decimal";
 import { materialCostForRecipe, scaleNeed, unitCost } from "../src/lib/costing";
 
 describe("decimal money", () => {
   it("does not use binary float for 0.1+0.2 money", () => {
     assert.equal(money(D("0.1").add("0.2")), "0.3000");
     assert.equal(moneyDisplay("12.345"), "12.35");
+    assert.equal(moneyDisplay("55500"), "55500");
+    assert.equal(moneyDisplay("55500.00"), "55500");
+    assert.equal(qtyDisplay("380.000"), "380");
+    assert.equal(qtyDisplay("10.5"), "10.5");
   });
 });
 

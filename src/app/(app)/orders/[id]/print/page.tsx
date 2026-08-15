@@ -2,16 +2,10 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
-import { PAYMENT_STATUS } from "@/lib/orders";
 import { SETTING_KEYS, DEFAULT_SETTINGS } from "@/lib/settings";
 import { PrintFrame } from "@/components/print-frame";
-
-const DOCS: Record<string, string> = {
-  order: "Заказ клиента",
-  invoice: "Счёт",
-  receipt: "Квитанция",
-  waybill: "Накладная",
-};
+import { getTranslator } from "@/lib/locale";
+import { intlLocale } from "@/lib/i18n";
 
 export default async function OrderPrintPage({
   params,
@@ -20,10 +14,17 @@ export default async function OrderPrintPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ doc?: string }>;
 }) {
+  const { t, locale } = await getTranslator();
   const session = await requirePermission("orders.view");
   const { id } = await params;
   const { doc = "order" } = await searchParams;
-  const title = DOCS[doc] ?? DOCS.order;
+  const titles: Record<string, string> = {
+    order: t("print.orderClient"),
+    invoice: t("orders.invoice"),
+    receipt: t("orders.receipt"),
+    waybill: t("orders.waybill"),
+  };
+  const title = titles[doc] ?? titles.order;
   const order = await prisma.order.findUnique({
     where: { id },
     include: {
@@ -41,6 +42,7 @@ export default async function OrderPrintPage({
   const company = await prisma.setting.findUnique({ where: { key: SETTING_KEYS.companyName } });
   const companyName = typeof company?.value === "string" ? company.value : DEFAULT_SETTINGS.companyName;
   const debt = D(String(order.total)).sub(order.paidAmount);
+  const dl = intlLocale(locale);
 
   return (
     <PrintFrame title={`${title} №${order.number}`} subtitle={companyName}>
@@ -49,15 +51,17 @@ export default async function OrderPrintPage({
         {order.customer.phone ? ` · ${order.customer.phone}` : ""}
         {order.customer.address ? ` · ${order.customer.address}` : ""}
       </p>
-      <p>Продавец: {order.seller.name}</p>
+      <p>
+        {t("print.seller")}: {order.seller.name}
+      </p>
       {doc !== "receipt" ? (
         <table className="w-full border-collapse text-left">
           <thead>
             <tr className="border-b">
-              <th className="py-1">Изделие</th>
-              <th className="py-1">Кол-во</th>
-              <th className="py-1">Цена</th>
-              <th className="py-1">Сумма</th>
+              <th className="py-1">{t("common.product")}</th>
+              <th className="py-1">{t("common.qty")}</th>
+              <th className="py-1">{t("common.price")}</th>
+              <th className="py-1">{t("common.amount")}</th>
             </tr>
           </thead>
           <tbody>
@@ -78,22 +82,29 @@ export default async function OrderPrintPage({
         <ul className="space-y-1">
           {order.payments.map((p) => (
             <li key={p.id}>
-              {p.createdAt.toLocaleString("ru-RU")}: {moneyDisplay(p.amount)} с · {p.method ?? "—"}
+              {p.createdAt.toLocaleString(dl)}: {moneyDisplay(p.amount)} с ·{" "}
+              {p.method ? t(`pay.method.${p.method}`) : "—"}
             </li>
           ))}
         </ul>
       ) : null}
       {doc !== "waybill" ? (
         <>
-          <p>Скидка: {qtyDisplay(order.discountPercent)}% (−{moneyDisplay(order.discountAmount)} с)</p>
-          <p className="text-base font-semibold">Итого: {moneyDisplay(order.total)} с</p>
           <p>
-            Оплачено: {moneyDisplay(order.paidAmount)} с · к оплате: {moneyDisplay(debt)} с ·{" "}
-            {PAYMENT_STATUS[order.paymentStatus as keyof typeof PAYMENT_STATUS] ?? order.paymentStatus}
+            {t("print.discount")}: {qtyDisplay(order.discountPercent)}% (−{moneyDisplay(order.discountAmount)} с)
+          </p>
+          <p className="text-base font-semibold">
+            {t("common.total")}: {moneyDisplay(order.total)} с
+          </p>
+          <p>
+            {t("print.paidDue", { paid: moneyDisplay(order.paidAmount), due: moneyDisplay(debt) })} ·{" "}
+            {t(`pay.${order.paymentStatus}`)}
           </p>
         </>
       ) : (
-        <p>Получил: _________________ &nbsp;&nbsp; Выдал: _________________</p>
+        <p>
+          {t("print.received")}: _________________ &nbsp;&nbsp; {t("print.issued")}: _________________
+        </p>
       )}
     </PrintFrame>
   );

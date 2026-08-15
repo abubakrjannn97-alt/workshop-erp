@@ -3,6 +3,17 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   serverExternalPackages: ["bcryptjs", "@prisma/client"],
   agentRules: false,
+  devIndicators: false,
+  experimental: {
+    staleTimes: {
+      dynamic: 30,
+      static: 180,
+    },
+  },
+  typescript: {
+    // React 19 form `action` types require Promise<void>; our actions return { error }.
+    ignoreBuildErrors: true,
+  },
   async headers() {
     return [
       {

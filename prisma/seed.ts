@@ -1,11 +1,17 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { Decimal } from "decimal.js";
+import Decimal from "decimal.js";
+import { DEMO_PASSWORD, DEMO_USERS } from "../src/lib/demo-users";
 import { PERMISSIONS, ROLE_PERMISSIONS } from "../src/lib/permissions";
 import { DEFAULT_SETTINGS, SETTING_KEYS } from "../src/lib/settings";
 import { receiveMaterial } from "../src/lib/stock";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  transactionOptions: {
+    maxWait: 15_000,
+    timeout: 30_000,
+  },
+});
 const D = (v: string) => new Decimal(v);
 
 async function main() {
@@ -162,12 +168,12 @@ async function main() {
 
   const ownerRole = await prisma.role.findUniqueOrThrow({ where: { code: "owner" } });
   const email = process.env.OWNER_EMAIL ?? "owner@workshop.local";
-  const password = process.env.OWNER_PASSWORD ?? "ChangeMeNow!";
+  const password = process.env.OWNER_PASSWORD ?? DEMO_PASSWORD;
   const passwordHash = await bcrypt.hash(password, 12);
 
   await prisma.user.upsert({
     where: { email },
-    update: {},
+    update: { passwordHash, roleId: ownerRole.id },
     create: {
       email,
       name: "Владелец",
@@ -504,42 +510,30 @@ async function seedCatalog() {
 }
 
 async function seedDemoUsers(passwordHash: string, productionSchemeId: string, salesSchemeId: string) {
-  const roles = await prisma.role.findMany({
-    where: { code: { in: ["sales_manager", "worker", "warehouse_manager"] } },
-  });
+  const roleCodes = DEMO_USERS.filter((u) => u.roleCode !== "owner").map((u) => u.roleCode);
+  const roles = await prisma.role.findMany({ where: { code: { in: roleCodes } } });
   const byCode = Object.fromEntries(roles.map((r) => [r.code, r]));
-  const users = [
-    {
-      email: "sales@workshop.local",
-      name: "Менеджер продаж",
-      roleCode: "sales_manager",
-      paySchemeId: salesSchemeId,
-    },
-    {
-      email: "worker@workshop.local",
-      name: "Рабочий цеха",
-      roleCode: "worker",
-      paySchemeId: productionSchemeId,
-    },
-    {
-      email: "warehouse@workshop.local",
-      name: "Кладовщик",
-      roleCode: "warehouse_manager",
-      paySchemeId: null,
-    },
-  ] as const;
-  for (const user of users) {
+
+  const paySchemeByRole: Partial<Record<string, string | null>> = {
+    sales_manager: salesSchemeId,
+    worker: productionSchemeId,
+    production_manager: productionSchemeId,
+  };
+
+  for (const user of DEMO_USERS) {
+    if (user.roleCode === "owner") continue;
     const role = byCode[user.roleCode];
     if (!role) continue;
+    const paySchemeId = paySchemeByRole[user.roleCode] ?? null;
     await prisma.user.upsert({
       where: { email: user.email },
-      update: { paySchemeId: user.paySchemeId },
+      update: { name: user.name, roleId: role.id, paySchemeId, passwordHash },
       create: {
         email: user.email,
         name: user.name,
         passwordHash,
         roleId: role.id,
-        paySchemeId: user.paySchemeId,
+        paySchemeId,
       },
     });
   }

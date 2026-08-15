@@ -1,3 +1,6 @@
+import { PageHeader } from "@/components/page-header";
+import { FormField } from "@/components/form-field";
+import { getTranslator } from "@/lib/locale";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
@@ -7,6 +10,7 @@ import { moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { unitCost } from "@/lib/costing";
 
 export default async function MaterialsPage() {
+  const { t, locale } = await getTranslator();
   const session = await requirePermission("materials.view");
   const canManage =
     session.user.roleCode === "owner" || session.user.permissions.includes("materials.manage");
@@ -21,51 +25,63 @@ export default async function MaterialsPage() {
   ]);
 
   return (
-    <div className="space-y-6">
-      <div>
-<h1 className="mt-1 text-2xl font-semibold">Сырьё и материалы</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Стоимость единицы = цена упаковки / вес упаковки. История цен не перезаписывается.
-        </p>
-      </div>
-      <CatalogNav current="materials" />
+    <div className="page-stack">
+      <PageHeader title={t("materials.title")} description={t("materials.hint")} />
+      <CatalogNav current="materials" locale={locale} />
 
       {canManage ? (
-        <form action={createMaterial} className="grid gap-2 rounded-2xl border border-[var(--line)] bg-white p-5 sm:grid-cols-4">
-          <input name="name" required placeholder="Название" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <input name="category" required placeholder="Категория" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <input name="supplierName" placeholder="Поставщик" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <select name="storageUnitId" className="rounded-lg border border-slate-200 px-3 py-2 text-sm">
-            {units.map((u) => (
-              <option key={u.id} value={u.id}>
-                Хранение: {u.symbol}
-              </option>
-            ))}
-          </select>
-          <select name="purchaseUnitId" className="rounded-lg border border-slate-200 px-3 py-2 text-sm">
-            {units.map((u) => (
-              <option key={u.id} value={u.id}>
-                Закупка: {u.symbol}
-              </option>
-            ))}
-          </select>
-          <input name="packageWeight" required placeholder="Вес упаковки" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <input name="packagePrice" required placeholder="Цена упаковки, с" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <input name="minStock" placeholder="Мин. остаток" defaultValue="0" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm font-medium text-white sm:col-span-4">
-            Добавить материал
+        <form action={createMaterial} className="grid gap-3 ui-card p-4 sm:grid-cols-2 lg:grid-cols-4">
+          <p className="sm:col-span-2 lg:col-span-4 text-sm text-[var(--text-muted)]">{t("materials.formHint")}</p>
+          <FormField label={t("common.name")}>
+            <input name="name" required placeholder={t("materials.namePh")} className="ui-input" />
+          </FormField>
+          <FormField label={t("common.category")}>
+            <input name="category" required placeholder={t("materials.categoryPh")} className="ui-input" />
+          </FormField>
+          <FormField label={t("common.supplier")} hint={t("materials.supplierPh")}>
+            <input name="supplierName" placeholder={t("materials.supplierPh")} className="ui-input" />
+          </FormField>
+          <FormField label={t("materials.storageUnit")} hint={t("materials.storageHint")}>
+            <select name="storageUnitId" className="ui-input">
+              {units.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name} ({u.symbol})
+                </option>
+              ))}
+            </select>
+          </FormField>
+          <FormField label={t("materials.purchaseUnit")} hint={t("materials.purchaseHint")}>
+            <select name="purchaseUnitId" className="ui-input">
+              {units.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name} ({u.symbol})
+                </option>
+              ))}
+            </select>
+          </FormField>
+          <FormField label={t("materials.packWeight")} hint={t("materials.packWeightHint")}>
+            <input name="packageWeight" required inputMode="decimal" placeholder="25" className="ui-input" />
+          </FormField>
+          <FormField label={t("materials.packPrice")} hint={t("materials.packPriceHint")}>
+            <input name="packagePrice" required inputMode="decimal" placeholder="180" className="ui-input" />
+          </FormField>
+          <FormField label={t("materials.minStock")} hint={t("materials.minStockHint")}>
+            <input name="minStock" inputMode="decimal" placeholder="0" defaultValue="0" className="ui-input" />
+          </FormField>
+          <button className="ui-btn-primary sm:col-span-2 lg:col-span-4">
+            {t("materials.add")}
           </button>
         </form>
       ) : null}
 
-      <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white">
+      <div className="overflow-hidden ui-card">
         <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+          <thead className="bg-[var(--surface-muted)] text-xs uppercase tracking-wide text-[var(--muted)]">
             <tr>
-              <th className="px-4 py-3">Материал</th>
-              <th className="px-4 py-3">Упаковка</th>
-              <th className="px-4 py-3">Цена упак.</th>
-              <th className="px-4 py-3">За 1 ед.</th>
+              <th className="px-4 py-3">{t("common.material")}</th>
+              <th className="px-4 py-3">{t("materials.pack")}</th>
+              <th className="px-4 py-3">{t("materials.packPriceCol")}</th>
+              <th className="px-4 py-3">{t("materials.perUnit")}</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
@@ -73,12 +89,12 @@ export default async function MaterialsPage() {
             {materials.map((material) => {
               const cost = unitCost(material.packagePrice, material.packageWeight);
               return (
-                <tr key={material.id} className="border-t border-slate-100">
+                <tr key={material.id} className="border-t border-[var(--line)]">
                   <td className="px-4 py-3">
                     <Link href={`/materials/${material.id}`} className="font-medium text-[var(--titan-dark)] hover:underline">
                       {material.name}
                     </Link>
-                    <p className="text-xs text-slate-500">{material.category}</p>
+                    <p className="text-xs text-[var(--muted)]">{material.category}</p>
                   </td>
                   <td className="px-4 py-3 text-xs">
                     {qtyDisplay(material.packageWeight)} {material.storageUnit.symbol}
@@ -91,7 +107,7 @@ export default async function MaterialsPage() {
                     {canManage ? (
                       <form action={archiveMaterial}>
                         <input type="hidden" name="id" value={material.id} />
-                        <button className="text-xs text-red-700">В архив</button>
+                        <button className="text-xs text-[var(--danger)]">{t("common.archive")}</button>
                       </form>
                     ) : null}
                   </td>

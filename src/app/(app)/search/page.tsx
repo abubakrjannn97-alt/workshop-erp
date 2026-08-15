@@ -1,13 +1,16 @@
+import { getTranslator } from "@/lib/locale";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/authz";
+import { PageHeader } from "@/components/page-header";
 
 export default async function SearchPage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
+  const { t } = await getTranslator();
   await requireSession();
   const { q } = await searchParams;
   const term = (q ?? "").trim();
@@ -49,7 +52,7 @@ export default async function SearchPage({
         }),
         prisma.payment.findMany({
           where: number ? { order: { number } } : undefined,
-          include: { order: true },
+          include: { order: { include: { customer: true } } },
           take: 10,
         }),
       ])
@@ -60,29 +63,41 @@ export default async function SearchPage({
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Поиск</h1>
-      <form className="flex gap-2">
+    <div className="page-stack">
+      <PageHeader title={t("search.title")} />
+      <form className="flex gap-2" data-tour="search-form">
         <input
           name="q"
           defaultValue={term}
-          placeholder="Заказ, клиент, телефон, изделие…"
-          className="w-full max-w-md rounded-lg border border-slate-200 px-3 py-2 text-sm"
+          placeholder={t("search.ph")}
+          className="w-full max-w-md rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
         />
-        <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Найти</button>
+        <button className="ui-btn-primary">{t("common.search")}</button>
       </form>
       {!term ? (
-        <p className="text-sm text-slate-500">Например, 1054 — откроет заказ.</p>
+        <p className="text-sm text-[var(--muted)]">{t("search.hint")}</p>
       ) : (
         <div className="space-y-4 text-sm">
-          <Block title="Заказы" items={orders.map((o) => ({ href: `/orders/${o.id}`, label: `#${o.number} ${o.customer.name}` }))} />
-          <Block title="Клиенты" items={customers.map((c) => ({ href: `/crm/customers/${c.id}`, label: `${c.name} ${c.phone ?? ""}` }))} />
-          <Block title="Изделия" items={products.map((p) => ({ href: `/products/${p.id}`, label: p.name }))} />
-          <Block title="Сотрудники" items={users.map((u) => ({ href: `/employees/${u.id}`, label: u.name }))} />
-          <Block title="Поставщики" items={suppliers.map((s) => ({ href: `/purchasing/suppliers/${s.id}`, label: s.name }))} />
           <Block
-            title="Оплаты"
-            items={payments.map((p) => ({ href: `/orders/${p.orderId}`, label: `Заказ #${p.order.number}` }))}
+            title={t("page.orders")}
+            items={orders.map((o) => ({
+              href: `/orders/${o.id}`,
+              label: o.customer.name,
+            }))}
+          />
+          <Block
+            title={t("page.crm")}
+            items={customers.map((c) => ({
+              href: `/crm/customers/${c.id}`,
+              label: c.name,
+            }))}
+          />
+          <Block title={t("search.products")} items={products.map((p) => ({ href: `/products/${p.id}`, label: p.name }))} />
+          <Block title={t("page.employees")} items={users.map((u) => ({ href: `/employees/${u.id}`, label: u.name }))} />
+          <Block title={t("po.suppliers")} items={suppliers.map((s) => ({ href: `/purchasing/suppliers/${s.id}`, label: s.name }))} />
+          <Block
+            title={t("orders.payments")}
+            items={payments.map((p) => ({ href: `/orders/${p.orderId}`, label: p.order.customer.name }))}
           />
         </div>
       )}
@@ -93,7 +108,7 @@ export default async function SearchPage({
 function Block({ title, items }: { title: string; items: { href: string; label: string }[] }) {
   if (items.length === 0) return null;
   return (
-    <section className="rounded-2xl border border-[var(--line)] bg-white p-5">
+    <section className="ui-card">
       <h2 className="text-sm font-semibold">{title}</h2>
       <ul className="mt-2 space-y-1">
         {items.map((i) => (

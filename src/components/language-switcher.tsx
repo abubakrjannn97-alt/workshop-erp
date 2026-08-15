@@ -1,41 +1,60 @@
 "use client";
 
+import { useTransition } from "react";
 import { setLocaleAction } from "@/app/actions/locale";
-import type { Locale } from "@/lib/i18n";
+import { createT, type Locale } from "@/lib/i18n";
 
 export function LanguageSwitcher({ locale }: { locale: Locale }) {
+  const t = createT(locale);
+  const [pending, start] = useTransition();
+  const btn =
+    "min-w-[1.6rem] rounded-md px-1.5 py-1 text-[10px] font-semibold leading-none transition-[background,color] duration-150";
+
+  function pick(next: Locale) {
+    if (next === locale || pending) return;
+    start(async () => {
+      const fd = new FormData();
+      fd.set("locale", next);
+      await setLocaleAction(fd);
+      window.location.reload();
+    });
+  }
+
   return (
-    <div className="inline-flex overflow-hidden rounded-[var(--radius-sm)] border border-[var(--line)] text-[11px] font-semibold">
-      <form action={setLocaleAction}>
-        <input type="hidden" name="locale" value="ru" />
-        <button
-          type="submit"
-          className={`px-2 py-1 transition-colors ${
-            locale === "ru"
-              ? "bg-[var(--titan-dark)] text-white"
-              : "bg-white text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
-          }`}
-          aria-pressed={locale === "ru"}
-          title="Русский"
-        >
-          RU
-        </button>
-      </form>
-      <form action={setLocaleAction}>
-        <input type="hidden" name="locale" value="tj" />
-        <button
-          type="submit"
-          className={`px-2 py-1 transition-colors ${
-            locale === "tj"
-              ? "bg-[var(--titan-dark)] text-white"
-              : "bg-white text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
-          }`}
-          aria-pressed={locale === "tj"}
-          title="Тоҷикӣ"
-        >
-          TJ
-        </button>
-      </form>
+    <div
+      data-tour="tour-lang"
+      className="inline-flex rounded-lg border border-[var(--color-border)] bg-white p-px"
+      role="group"
+      aria-label={t("lang.switch")}
+    >
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => pick("ru")}
+        className={`${btn} ${
+          locale === "ru"
+            ? "bg-[var(--color-sidebar)] text-[var(--color-gold)]"
+            : "bg-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+        }`}
+        aria-pressed={locale === "ru"}
+        title={t("lang.ru")}
+      >
+        RU
+      </button>
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => pick("tj")}
+        className={`${btn} ${
+          locale === "tj"
+            ? "bg-[var(--color-sidebar)] text-[var(--color-gold)]"
+            : "bg-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+        }`}
+        aria-pressed={locale === "tj"}
+        title={t("lang.tj")}
+      >
+        TJ
+      </button>
     </div>
   );
 }

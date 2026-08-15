@@ -13,7 +13,7 @@ export function PrintFrame({
         dangerouslySetInnerHTML={{ __html: "window.addEventListener('load',()=>window.print())" }}
       />
       <h1 className="text-2xl font-semibold">{title}</h1>
-      {subtitle ? <p className="text-slate-600">{subtitle}</p> : null}
+      {subtitle ? <p className="text-[var(--text-muted)]">{subtitle}</p> : null}
       {children}
     </div>
   );

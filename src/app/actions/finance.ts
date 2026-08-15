@@ -19,6 +19,7 @@ export async function createExpense(formData: FormData) {
   const categoryId = String(formData.get("categoryId") ?? "");
   const amount = String(formData.get("amount") ?? "");
   const comment = String(formData.get("comment") ?? "").trim();
+  const idem = String(formData.get("idempotencyKey") ?? "") || null;
   if (!accountId || !categoryId) return { error: "Касса и категория обязательны." };
   if (!moneyStr(amount) || D(amount).lte(0)) return { error: "Сумма." };
 
@@ -35,6 +36,7 @@ export async function createExpense(formData: FormData) {
       fundId: fund?.id,
       comment: comment || category.name,
       createdById: session.user.id,
+      idempotencyKey: idem ? `${idem}-cash` : null,
     });
     if (fund) {
       await postLedger(tx, {
@@ -44,6 +46,7 @@ export async function createExpense(formData: FormData) {
         categoryId,
         comment: comment || category.name,
         createdById: session.user.id,
+        idempotencyKey: idem ? `${idem}-fund` : null,
       });
     }
   });
@@ -55,6 +58,7 @@ export async function createExpense(formData: FormData) {
     newValue: { amount, category: category.code },
   });
   revalidatePath("/finance");
+  revalidatePath("/finance/expenses");
   return { ok: true };
 }
 

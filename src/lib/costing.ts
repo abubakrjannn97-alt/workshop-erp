@@ -1,26 +1,29 @@
-import type { Decimal as DecimalType } from "decimal.js";
+import Decimal from "decimal.js";
 import { D, money, qty } from "@/lib/decimal";
+
+type DecimalType = Decimal;
+type QtyIn = string | number | bigint | Decimal | { toString(): string };
 
 export type UnitRef = {
   id: string;
   code: string;
   symbol: string;
   category: string;
-  toBaseFactor: Decimal.Value;
+  toBaseFactor: QtyIn;
   baseUnitId: string | null;
 };
 
 export type MaterialRef = {
   id: string;
   name: string;
-  packageWeight: Decimal.Value;
-  packagePrice: Decimal.Value;
+  packageWeight: QtyIn;
+  packagePrice: QtyIn;
   storageUnit: UnitRef;
 };
 
 export type RecipeItemRef = {
   material: MaterialRef;
-  quantity: Decimal.Value;
+  quantity: QtyIn;
   unit: UnitRef;
 };
 
@@ -42,17 +45,17 @@ export type MaterialCostResult = {
   missingPrices: boolean;
 };
 
-function n(value: Decimal.Value | { toString(): string }) {
+function n(value: QtyIn | { toString(): string }) {
   return D(String(value));
 }
 
-export function unitCost(packagePrice: Decimal.Value, packageWeight: Decimal.Value) {
+export function unitCost(packagePrice: QtyIn, packageWeight: QtyIn) {
   const weight = n(packageWeight);
   if (weight.lte(0)) return null;
   return n(packagePrice).div(weight);
 }
 
-export function convertToStorage(quantity: Decimal.Value, from: UnitRef, storage: UnitRef) {
+export function convertToStorage(quantity: QtyIn, from: UnitRef, storage: UnitRef) {
   const fromBase = from.baseUnitId ?? from.id;
   const storageBase = storage.baseUnitId ?? storage.id;
   if (fromBase !== storageBase && from.category !== storage.category) {
@@ -106,7 +109,7 @@ export function materialCostForRecipe(items: RecipeItemRef[], scale = 1): Materi
   };
 }
 
-export function scaleNeed(baseQty: Decimal.Value, orderQty: Decimal.Value) {
+export function scaleNeed(baseQty: QtyIn, orderQty: QtyIn) {
   const base = D(baseQty);
   if (base.lte(0)) return D(orderQty);
   return D(orderQty).div(base);

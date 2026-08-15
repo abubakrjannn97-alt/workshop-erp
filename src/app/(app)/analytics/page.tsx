@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
@@ -5,9 +6,15 @@ import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { FUND, LEDGER, fundDelta } from "@/lib/finance";
 import { contributionAndNet } from "@/lib/profit";
 import { coverageAndPurchaseNeed } from "@/lib/alerts";
+import { getTranslator } from "@/lib/locale";
+import { KpiCard } from "@/components/kpi-card";
+import { RevealList } from "@/components/reveal-list";
+import { CustomerRef } from "@/components/entity-ref";
+import { StatusBadge, orderTone } from "@/components/status-badge";
 
 export default async function AnalyticsPage() {
   await requirePermission("analytics.view");
+  const { t, n } = await getTranslator();
   const monthStart = new Date();
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
@@ -46,7 +53,7 @@ export default async function AnalyticsPage() {
     }),
     prisma.productionOrder.findMany({
       where: { status: { in: ["OPEN", "IN_PROGRESS"] } },
-      include: { order: { include: { items: { include: { product: true } } } } },
+      include: { order: { include: { customer: true, items: { include: { product: true } } } } },
     }),
     prisma.material.findMany({
       where: { archivedAt: null, isActive: true },
@@ -74,7 +81,7 @@ export default async function AnalyticsPage() {
       include: {
         batch: {
           include: {
-            production: { include: { order: { include: { items: { include: { product: true } } } } } },
+            production: { include: { order: { include: { items: { include: { product: { include: { outputUnit: true } } } } } } } },
           },
         },
       },
@@ -85,7 +92,7 @@ export default async function AnalyticsPage() {
         order: { createdAt: { gte: monthStart }, status: { code: { not: "CANCELLED" } } },
       },
       include: {
-        product: true,
+        product: { include: { saleUnit: true } },
         order: {
           include: {
             materials: true,
@@ -139,6 +146,7 @@ export default async function AnalyticsPage() {
 
   type ProdRow = {
     name: string;
+    unit: string;
     qty: ReturnType<typeof D>;
     revenue: ReturnType<typeof D>;
     materials: ReturnType<typeof D>;
@@ -152,6 +160,7 @@ export default async function AnalyticsPage() {
       byProduct.get(key) ??
       ({
         name: item.product.name,
+        unit: item.product.saleUnit.symbol,
         qty: D(0),
         revenue: D(0),
         materials: D(0),
@@ -187,89 +196,84 @@ export default async function AnalyticsPage() {
   const userName = new Map(users.map((u) => [u.id, u.name]));
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div>
-<h1 className="mt-1 text-2xl font-semibold">Аналитика владельца</h1>
-        <p className="mt-2 flex flex-wrap gap-3 text-sm">
-          <a href="/api/export/sales" className="text-[var(--titan-dark)] hover:underline">Продажи CSV</a>
+        <PageHeader title={t("page.analytics")} />
+        <p className="mt-2 flex flex-wrap gap-3 text-sm" data-tour="an-export">
+          <a href="/api/export/sales" className="text-[var(--titan-dark)] hover:underline">{t("an.salesCsv")}</a>
           <a href="/api/export/sales?format=xls" className="text-[var(--titan-dark)] hover:underline">Excel</a>
-          <a href="/api/export/warehouse" className="text-[var(--titan-dark)] hover:underline">Склад CSV</a>
-          <a href="/api/export/payroll" className="text-[var(--titan-dark)] hover:underline">Зарплаты CSV</a>
-          <a href="/api/export/profit" className="text-[var(--titan-dark)] hover:underline">Прибыль CSV</a>
-          <a href="/api/export/debts" className="text-[var(--titan-dark)] hover:underline">Долги CSV</a>
+          <a href="/api/export/warehouse" className="text-[var(--titan-dark)] hover:underline">{t("an.whCsv")}</a>
+          <a href="/api/export/payroll" className="text-[var(--titan-dark)] hover:underline">{t("an.payrollCsv")}</a>
+          <a href="/api/export/profit" className="text-[var(--titan-dark)] hover:underline">{t("an.profitCsv")}</a>
+          <a href="/api/export/debts" className="text-[var(--titan-dark)] hover:underline">{t("an.debtsCsv")}</a>
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat href="/sales" label="Продали за месяц" value={`${moneyDisplay(sold)} с`} />
-        <Stat href="/sales" label="Реально получили" value={`${moneyDisplay(received)} с`} />
-        <Stat href="/sales" label="Должны клиенты" value={`${moneyDisplay(clientDebt)} с`} />
-        <Stat href="/purchasing" label="Должны мы" value={`${moneyDisplay(weOwe)} с`} />
-        <Stat
-          href="/finance"
-          label="Маржинальная прибыль (без постоянных расходов)"
-          value={`${moneyDisplay(contribution)} с`}
-        />
-        <Stat
-          href="/finance"
-          label="Чистая прибыль (после всех расходов)"
-          value={`${moneyDisplay(net)} с`}
-        />
-        <Stat href="/finance" label="Фонд доступной прибыли" value={`${moneyDisplay(profit)} с`} />
-        <Stat href="/finance" label="Зарезервировано" value={`${moneyDisplay(reserved)} с`} />
-        <Stat href="/employees" label="Начислено рабочим" value={`${moneyDisplay(labor)} с`} />
-        <Stat href="/employees" label="Начислено продавцам" value={`${moneyDisplay(commission)} с`} />
-        <Stat href="/production" label="Брак за месяц" value={`${qtyDisplay(scrapQty)} / ${moneyDisplay(scrapCost)} с`} />
-        <Stat
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-tour="an-kpis">
+        <KpiCard href="/sales" label={t("an.soldMonth")} value={`${moneyDisplay(sold)} с`} hint={t("home.period")} tone="in" />
+        <KpiCard href="/sales" label={t("an.receivedReal")} value={`${moneyDisplay(received)} с`} hint={t("home.period")} tone="in" />
+        <KpiCard href="/sales" label={t("an.clientsOwe")} value={`${moneyDisplay(clientDebt)} с`} hint={t("home.period")} tone="out" />
+        <KpiCard href="/purchasing" label={t("an.weOwe")} value={`${moneyDisplay(weOwe)} с`} hint={t("home.period")} tone="out" />
+        <KpiCard href="/finance" label={t("an.contrib")} value={`${moneyDisplay(contribution)} с`} tone="in" />
+        <KpiCard href="/finance" label={t("an.net")} value={`${moneyDisplay(net)} с`} tone="in" />
+        <KpiCard href="/finance" label={t("an.profitFund")} value={`${moneyDisplay(profit)} с`} tone="in" />
+        <KpiCard href="/finance" label={t("an.reserved")} value={`${moneyDisplay(reserved)} с`} tone="ink" />
+        <KpiCard href="/employees" label={t("an.laborAccrued")} value={`${moneyDisplay(labor)} с`} tone="out" />
+        <KpiCard href="/employees" label={t("an.commAccrued")} value={`${moneyDisplay(commission)} с`} tone="out" />
+        <KpiCard href="/production" label={t("an.scrapMonth")} value={`${qtyDisplay(scrapQty)} / ${moneyDisplay(scrapCost)} с`} tone="out" />
+        <KpiCard
           href="/warehouse"
-          label="Сырья хватит на"
+          label={t("an.coverFor")}
           value={cover.coverQty ? `${cover.coverQty} (${cover.productName ?? ""})` : "—"}
+          tone="ink"
         />
       </div>
 
-      <section className="rounded-2xl border border-[var(--line)] bg-white p-5">
-        <h2 className="text-sm font-semibold">Итог продажи (из операций)</h2>
+      <section className="ui-card">
+        <h2 className="text-sm font-semibold">{t("an.saleTotal")}</h2>
         <ul className="mt-2 space-y-1 text-sm">
-          <li>Продажа: {moneyDisplay(sold)} с</li>
-          <li>Себестоимость сырья: {moneyDisplay(materialCost)} с</li>
-          <li>Зарплаты: {moneyDisplay(labor)} с</li>
-          <li>Комиссия: {moneyDisplay(commission)} с</li>
-          <li>Маржинальная прибыль: {moneyDisplay(contribution)} с</li>
-          <li>Постоянные расходы: {moneyDisplay(expenses)} с</li>
-          <li className="font-semibold">Чистая прибыль: {moneyDisplay(net)} с</li>
-          <li className="text-xs text-slate-500">Фонд прибыли в кассе: {moneyDisplay(profit)} с</li>
+          <li>{t("an.sale")}: {moneyDisplay(sold)} с</li>
+          <li>{t("an.matCost")}: {moneyDisplay(materialCost)} с</li>
+          <li>{t("an.payroll")}: {moneyDisplay(labor)} с</li>
+          <li>{t("an.commission")}: {moneyDisplay(commission)} с</li>
+          <li>{t("an.marginProfit")}: {moneyDisplay(contribution)} с</li>
+          <li>{t("an.fixedExp")}: {moneyDisplay(expenses)} с</li>
+          <li className="font-semibold">{t("an.netProfit")}: {moneyDisplay(net)} с</li>
+          <li className="text-xs text-[var(--muted)]">{t("an.profitInCash")}: {moneyDisplay(profit)} с</li>
         </ul>
       </section>
 
-      <section className="overflow-x-auto rounded-2xl border border-[var(--line)] bg-white">
+      <section className="overflow-x-auto ui-card">
         <div className="border-b border-[var(--line)] px-5 py-3">
-          <h2 className="text-sm font-semibold">По продукции (месяц)</h2>
-          <p className="text-xs text-slate-500">TZ §44 — что реально приносит деньги</p>
-        </div>
+          <h2 className="text-sm font-semibold">{t("an.byProduct")}</h2>
+          </div>
         <table className="w-full min-w-[720px] text-left text-sm">
-          <thead className="bg-slate-50 text-xs text-slate-500">
+          <thead className="bg-[var(--surface-muted)] text-xs text-[var(--muted)]">
             <tr>
-              <th className="px-4 py-2">Изделие</th>
-              <th className="px-4 py-2">Продано</th>
-              <th className="px-4 py-2">Выручка</th>
-              <th className="px-4 py-2">Ср. цена</th>
-              <th className="px-4 py-2">Материалы</th>
-              <th className="px-4 py-2">Труд</th>
-              <th className="px-4 py-2">Комиссия</th>
-              <th className="px-4 py-2">Себест.</th>
-              <th className="px-4 py-2">Прибыль</th>
-              <th className="px-4 py-2">Маржа %</th>
+              <th className="px-4 py-2">{t("common.product")}</th>
+              <th className="px-4 py-2">{t("an.sold")}</th>
+              <th className="px-4 py-2">{t("an.revenue")}</th>
+              <th className="px-4 py-2">{t("an.avgPrice")}</th>
+              <th className="px-4 py-2">{t("an.materials")}</th>
+              <th className="px-4 py-2">{t("an.labor")}</th>
+              <th className="px-4 py-2">{t("an.commission")}, с</th>
+              <th className="px-4 py-2">{t("an.fullCost")}</th>
+              <th className="px-4 py-2">{t("an.profit")}</th>
+              <th className="px-4 py-2">{t("an.marginPct")}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-[var(--border)]">
             {[...byProduct.values()].length === 0 ? (
               <tr>
-                <td colSpan={10} className="px-4 py-6 text-slate-500">
-                  Нет продаж за месяц.
+                <td colSpan={10} className="px-4 py-6 text-[var(--muted)]">
+                  {t("an.noSales")}
                 </td>
               </tr>
-            ) : (
-              [...byProduct.values()].map((row) => {
+            ) : null}
+          </tbody>
+          {[...byProduct.values()].length > 0 ? (
+            <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={5} className="divide-y divide-[var(--border)]">
+              {[...byProduct.values()].map((row) => {
                 const fullCost = row.materials.add(row.labor).add(row.commission);
                 const profitRow = row.revenue.sub(fullCost);
                 const margin = row.revenue.gt(0) ? profitRow.div(row.revenue).mul(100) : D(0);
@@ -277,134 +281,149 @@ export default async function AnalyticsPage() {
                 return (
                   <tr key={row.name}>
                     <td className="px-4 py-2 font-medium">{row.name}</td>
-                    <td className="px-4 py-2 font-mono text-xs">{qtyDisplay(row.qty)}</td>
-                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(row.revenue)}</td>
-                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(avg)}</td>
-                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(row.materials)}</td>
-                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(row.labor)}</td>
-                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(row.commission)}</td>
-                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(fullCost)}</td>
-                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(profitRow)}</td>
+                    <td className="px-4 py-2 font-mono text-xs">{qtyDisplay(row.qty)} {row.unit}</td>
+                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(row.revenue)} с</td>
+                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(avg)} с</td>
+                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(row.materials)} с</td>
+                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(row.labor)} с</td>
+                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(row.commission)} с</td>
+                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(fullCost)} с</td>
+                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(profitRow)} с</td>
                     <td className="px-4 py-2 font-mono text-xs">{margin.toFixed(1)}%</td>
                   </tr>
                 );
-              })
-            )}
-          </tbody>
+              })}
+            </RevealList>
+          ) : null}
         </table>
       </section>
 
       {cover.purchaseNeed.length > 0 ? (
-        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-          <h2 className="text-sm font-semibold">Необходимо закупить</h2>
-          <ul className="mt-2 space-y-1 text-sm">
+        <section className="rounded-[var(--radius-md)] border border-[var(--warning)]/40 bg-[var(--warning)]/10 p-5">
+          <h2 className="text-sm font-semibold">{t("an.needBuy")}</h2>
+          <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")}>
             {cover.purchaseNeed.map((n) => (
               <li key={n.name}>
                 {n.name}: {n.qty} {n.symbol}
               </li>
             ))}
-          </ul>
+          </RevealList>
           <Link href="/purchasing" className="mt-2 inline-block text-sm text-[var(--titan-dark)]">
-            Закупки
+            {t("page.purchasing")}
           </Link>
         </section>
       ) : null}
 
-      <section className="rounded-2xl border border-[var(--line)] bg-white p-5">
-        <h2 className="text-sm font-semibold">Сейчас в производстве</h2>
-        <ul className="mt-2 space-y-1 text-sm">
-          {inProd.length === 0 ? (
-            <li className="text-slate-500">Нет открытых заданий.</li>
-          ) : (
-            inProd.map((j) => (
-              <li key={j.id}>
-                <Link href={`/production/${j.id}`} className="text-[var(--titan-dark)] hover:underline">
-                  #{j.order.number}
-                </Link>{" "}
-                {j.order.items[0]?.product.name} · {qtyDisplay(j.producedQty)} / {qtyDisplay(j.plannedQty)}
+      <section className="ui-card">
+        <h2 className="text-sm font-semibold">{t("an.inProdNow")}</h2>
+        {inProd.length === 0 ? (
+          <p className="mt-2 text-sm text-[var(--muted)]">{t("an.noOpenJobs")}</p>
+        ) : (
+          <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")}>
+            {inProd.map((j) => (
+              <li key={j.id} className="flex items-center justify-between gap-2">
+                <CustomerRef
+                  name={j.order.customer.name}
+                  href={`/production/${j.id}`}
+                  manager={j.order.items[0]?.product.name}
+                />
+                <span className="text-[12px] tabular-nums text-[#2563a6]">
+                  {qtyDisplay(j.producedQty)} / {qtyDisplay(j.plannedQty)}
+                </span>
               </li>
-            ))
-          )}
-        </ul>
+            ))}
+          </RevealList>
+        )}
       </section>
 
       {overdue.length > 0 ? (
-        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-          <h2 className="text-sm font-semibold">Опаздывают</h2>
-          <ul className="mt-2 space-y-1 text-sm">
+        <section className="rounded-[var(--radius-md)] border border-[var(--warning)]/40 bg-[var(--warning)]/10 p-5">
+          <h2 className="text-sm font-semibold">{t("an.overdue")}</h2>
+          <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")}>
             {overdue.map((o) => (
-              <li key={o.id}>
-                <Link href={`/orders/${o.id}`} className="text-[var(--titan-dark)] hover:underline">
-                  #{o.number}
-                </Link>{" "}
-                {o.customer.name} · {o.status.name}
+              <li key={o.id} className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <CustomerRef name={o.customer.name} href={`/orders/${o.id}`} />
+                </div>
+                <StatusBadge label={n("ostatus", o.status.code, o.status.name)} tone={orderTone(o.status.code)} />
               </li>
             ))}
-          </ul>
+          </RevealList>
         </section>
       ) : null}
 
-      <section className="rounded-2xl border border-[var(--line)] bg-white p-5">
-        <h2 className="text-sm font-semibold">Сырьё / критический остаток</h2>
-        <ul className="mt-2 space-y-1 text-sm">
-          {critical.length === 0 ? (
-            <li className="text-slate-500">Ниже минимума нет.</li>
-          ) : (
-            critical.map((m) => (
-              <li key={m.id}>
-                {m.name}: {qtyDisplay(m.stockItems.reduce((s, i) => s.add(i.qtyOnHand), D(0)))}{" "}
-                {m.storageUnit.symbol}
+      <section className="ui-card">
+        <h2 className="text-sm font-semibold">{t("an.criticalRaw")}</h2>
+        {critical.length === 0 ? (
+          <p className="mt-2 text-sm text-[var(--muted)]">{t("an.noBelowMin")}</p>
+        ) : (
+          <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")}>
+            {critical.map((m) => (
+              <li key={m.id} className="flex justify-between gap-2">
+                <span>{m.name}</span>
+                <span className="text-[12px] font-semibold text-[var(--warn)]">
+                  {qtyDisplay(m.stockItems.reduce((s, i) => s.add(i.qtyOnHand), D(0)))} {m.storageUnit.symbol}
+                </span>
               </li>
-            ))
-          )}
-        </ul>
-        <p className="mt-2 text-xs text-slate-500">
-          Позиций на складе сырья: {rawItems.length}. Закупка — из дефицита заказа.
+            ))}
+          </RevealList>
+        )}
+        <p className="mt-2 text-xs text-[var(--muted)]">
+          {t("an.rawPositions", { n: rawItems.length })}
         </p>
       </section>
 
       {over.length > 0 ? (
-        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-          <h2 className="text-sm font-semibold">Перерасход план/факт</h2>
+        <section className="rounded-[var(--radius-md)] border border-[var(--warning)]/40 bg-[var(--warning)]/10 p-5">
+          <h2 className="text-sm font-semibold">{t("an.overuse")}</h2>
           <ul className="mt-2 space-y-1 text-sm">
             {over.slice(0, 20).map((u) => (
               <li key={u.id}>
-                Заказ #{u.batch.production.order.number}: {u.material.name} план {qtyDisplay(u.plannedQty)}, факт{" "}
-                {qtyDisplay(u.actualQty)}
+                #{u.batch.production.order.number}: {u.material.name} {t("orders.plan")} {qtyDisplay(u.plannedQty)}, {t("prod.actual")} {qtyDisplay(u.actualQty)}
               </li>
             ))}
           </ul>
         </section>
       ) : null}
 
-      <section className="rounded-2xl border border-[var(--line)] bg-white p-5">
-        <h2 className="text-sm font-semibold">Брак по сотрудникам / изделиям / месяцу</h2>
-        <p className="mt-1 text-xs text-slate-500">Период: текущий месяц</p>
-        <ul className="mt-2 space-y-1 text-sm">
-          {[...scrapByUser.entries()].map(([id, q]) => (
-            <li key={id}>
-              {userName.get(id) ?? id}: {qtyDisplay(q)}
-            </li>
-          ))}
-          {[...scrapByProduct.entries()].map(([name, q]) => (
-            <li key={name}>
-              {name}: {qtyDisplay(q)}
-            </li>
-          ))}
-          {scrapByUser.size === 0 && scrapByProduct.size === 0 ? (
-            <li className="text-slate-500">Брака нет.</li>
-          ) : null}
-        </ul>
+      <section className="ui-card">
+        <h2 className="text-sm font-semibold">{t("an.scrapBy")}</h2>
+        <p className="mt-1 text-sm leading-snug text-[var(--text-muted)]">{t("an.scrapHint")}</p>
+        <p className="mt-1 text-xs text-[var(--muted)]">{t("an.periodMonth")}</p>
+        {scrapByUser.size === 0 && scrapByProduct.size === 0 ? (
+          <p className="mt-2 text-sm text-[var(--muted)]">{t("an.noScrap")}</p>
+        ) : (
+          <div className="mt-3 space-y-3 text-sm">
+            {scrapByUser.size > 0 ? (
+              <div>
+                <p className="text-xs font-semibold text-[#344054]">{t("an.scrapPerson")}</p>
+                <ul className="mt-1 space-y-1">
+                  {[...scrapByUser.entries()].map(([id, q]) => (
+                    <li key={id} className="flex justify-between gap-3">
+                      <span>{userName.get(id) ?? id}</span>
+                      <span className="font-mono text-xs font-semibold tabular-nums">{qtyDisplay(q)} м²</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {scrapByProduct.size > 0 ? (
+              <div>
+                <p className="text-xs font-semibold text-[#344054]">{t("an.scrapProduct")}</p>
+                <ul className="mt-1 space-y-1">
+                  {[...scrapByProduct.entries()].map(([name, q]) => (
+                    <li key={name} className="flex justify-between gap-3">
+                      <span>{name}</span>
+                      <span className="font-mono text-xs font-semibold tabular-nums">{qtyDisplay(q)} м²</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+        )}
       </section>
     </div>
   );
 }
 
-function Stat({ label, value, href }: { label: string; value: string; href: string }) {
-  return (
-    <Link href={href} className="rounded-2xl border border-[var(--line)] bg-white p-5 hover:border-[var(--titan)]">
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="mt-2 text-xl font-semibold">{value}</p>
-    </Link>
-  );
-}

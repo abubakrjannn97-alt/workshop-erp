@@ -1,17 +1,19 @@
+import { getTranslator } from "@/lib/locale";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { hasPermission } from "@/lib/authz";
 import { createOrder } from "@/app/actions/orders";
-import { SalesNav } from "@/components/sales-nav";
 import { OrderForm } from "../order-form";
 import { discountLimitPercent } from "@/lib/orders";
+import { PageHeader } from "@/components/page-header";
 
 export default async function NewOrderPage({
   searchParams,
 }: {
   searchParams: Promise<{ leadId?: string; customerId?: string }>;
 }) {
+  const { t, locale } = await getTranslator();
   const session = await requirePermission("orders.create");
   const { leadId } = await searchParams;
   const lead = leadId ? await prisma.lead.findUnique({ where: { id: leadId } }) : null;
@@ -50,15 +52,14 @@ export default async function NewOrderPage({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div>
-<h1 className="mt-1 text-2xl font-semibold">Новый заказ</h1>
+<PageHeader title={t("sales.newOrder")} />
       </div>
-      <SalesNav current="orders" />
       {customers.length === 0 ? (
-        <p className="text-sm text-slate-600">Сначала создайте клиента в CRM.</p>
+        <p className="text-sm text-[var(--text-muted)]">{t("orders.needCustomer")}</p>
       ) : products.length === 0 ? (
-        <p className="text-sm text-slate-600">Сначала добавьте изделие.</p>
+        <p className="text-sm text-[var(--text-muted)]">{t("orders.needProduct")}</p>
       ) : (
         <OrderForm
           action={action}
@@ -77,6 +78,7 @@ export default async function NewOrderPage({
           defaultSellerId={session.user.id}
           leadId={lead?.id}
           defaultCustomerId={lead?.customerId ?? undefined}
+          locale={locale}
         />
       )}
     </div>

@@ -1,14 +1,19 @@
+import { PageHeader } from "@/components/page-header";
+import { getTranslator } from "@/lib/locale";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { hasPermission } from "@/lib/authz";
-import { SalesNav } from "@/components/sales-nav";
 import { archiveCustomer, updateCustomer } from "@/app/actions/customers";
 import { D, moneyDisplay } from "@/lib/decimal";
-import { PAYMENT_STATUS } from "@/lib/orders";
+import { formatPhone } from "@/lib/format";
+import { KpiCard } from "@/components/kpi-card";
+import { RevealList } from "@/components/reveal-list";
+import { StatusBadge, orderTone, payTone } from "@/components/status-badge";
 
 export default async function CustomerPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t, n } = await getTranslator();
   const session = await requirePermission("crm.view");
   const { id } = await params;
   const customer = await prisma.customer.findUnique({
@@ -40,37 +45,47 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
   }
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div>
-<h1 className="mt-1 text-2xl font-semibold">{customer.name}</h1>
+        <PageHeader
+          title={customer.name}
+          actions={
+            <Link href={`/crm/history?customerId=${customer.id}`} className="ui-btn-secondary">
+              {t("crm.purchaseHistory")}
+            </Link>
+          }
+        />
+        {customer.phone ? (
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">
+            {t("common.tel")} {formatPhone(customer.phone)}
+          </p>
+        ) : null}
       </div>
-      <SalesNav current="crm" />
-
-      <div className="grid gap-4 sm:grid-cols-4">
-        <Stat label="Покупки" value={`${moneyDisplay(turnover)} с`} />
-        <Stat label="Задолженность" value={`${moneyDisplay(debt)} с`} />
-        <Stat label="Средний чек" value={`${moneyDisplay(avg)} с`} />
-        <Stat label="Последняя покупка" value={last ? `#${last.number}` : "—"} />
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard label={t("crm.purchases")} value={`${moneyDisplay(turnover)} с`} tone="in" />
+        <KpiCard label={t("common.debt")} value={`${moneyDisplay(debt)} с`} tone="out" />
+        <KpiCard label={t("crm.avgCheck")} value={`${moneyDisplay(avg)} с`} tone="ink" />
+        <KpiCard label={t("crm.lastPurchase")} value={last ? last.createdAt.toLocaleDateString() : "—"} tone="ink" />
       </div>
 
       {canManage && !customer.archivedAt ? (
-        <form action={save} className="max-w-xl space-y-2 rounded-2xl border border-[var(--line)] bg-white p-5">
+        <form action={save} className="max-w-xl space-y-2 ui-card p-4">
           <input type="hidden" name="id" value={customer.id} />
-          <Field name="name" label="ФИО / компания" defaultValue={customer.name} />
-          <Field name="phone" label="Телефон" defaultValue={customer.phone ?? ""} />
-          <Field name="whatsapp" label="WhatsApp" defaultValue={customer.whatsapp ?? ""} />
-          <Field name="address" label="Адрес" defaultValue={customer.address ?? ""} />
-          <Field name="source" label="Источник" defaultValue={customer.source ?? ""} />
+          <Field name="name" label={t("crm.fioCompany")} defaultValue={customer.name} />
+          <Field name="phone" label={t("common.phone")} defaultValue={customer.phone ?? ""} />
+          <Field name="whatsapp" label={t("common.whatsapp")} defaultValue={customer.whatsapp ?? ""} />
+          <Field name="address" label={t("common.address")} defaultValue={customer.address ?? ""} />
+          <Field name="source" label={t("common.source")} defaultValue={customer.source ?? ""} />
           <label className="block text-sm">
-            <span className="font-medium">Комментарий</span>
+            <span className="font-medium">{t("common.comment")}</span>
             <textarea
               name="comment"
               defaultValue={customer.comment ?? ""}
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
             />
           </label>
           <div className="flex gap-2">
-            <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Сохранить</button>
+            <button className="ui-btn-primary">{t("common.save")}</button>
           </div>
         </form>
       ) : null}
@@ -78,50 +93,45 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
       {canManage && !customer.archivedAt ? (
         <form action={archive}>
           <input type="hidden" name="id" value={customer.id} />
-          <button className="text-sm text-red-800 hover:underline">Архивировать</button>
+          <button className="text-sm text-[var(--danger)] hover:underline">{t("crm.archiveCustomer")}</button>
         </form>
       ) : null}
 
-      <section className="rounded-2xl border border-[var(--line)] bg-white">
+      <section className="ui-card">
         <div className="border-b border-[var(--line)] px-5 py-3">
-          <h2 className="text-sm font-semibold">История заказов</h2>
+          <h2 className="text-sm font-semibold">{t("crm.orderHistory")}</h2>
         </div>
-        <ul className="divide-y divide-slate-100">
-          {customer.orders.length === 0 ? (
-            <li className="px-5 py-6 text-sm text-slate-500">Заказов нет.</li>
-          ) : (
-            customer.orders.map((o) => (
+        {customer.orders.length === 0 ? (
+          <p className="px-5 py-6 text-sm text-[var(--muted)]">{t("crm.noOrders")}</p>
+        ) : (
+          <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} className="divide-y divide-[var(--border)]">
+            {customer.orders.map((o) => (
               <li key={o.id} className="flex items-center justify-between px-5 py-3 text-sm">
-                <Link href={`/orders/${o.id}`} className="font-medium hover:underline">
-                  #{o.number} · {o.status.name}
-                </Link>
-                <span className="font-mono text-xs">
-                  {moneyDisplay(o.total)} с ·{" "}
-                  {PAYMENT_STATUS[o.paymentStatus as keyof typeof PAYMENT_STATUS] ?? o.paymentStatus}
-                </span>
+                <div className="flex items-center gap-2">
+                  <Link href={`/orders/${o.id}`} className="font-medium hover:underline">
+                    {o.createdAt.toLocaleDateString()}
+                  </Link>
+                  <StatusBadge label={n("ostatus", o.status.code, o.status.name)} tone={orderTone(o.status.code)} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold tabular-nums">{moneyDisplay(o.total)} с</span>
+                  <StatusBadge label={t(`pay.${o.paymentStatus}`)} tone={payTone(o.paymentStatus)} />
+                </div>
               </li>
-            ))
-          )}
-        </ul>
+            ))}
+          </RevealList>
+        )}
       </section>
     </div>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-[var(--line)] bg-white p-5">
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="mt-2 text-lg font-semibold">{value}</p>
-    </div>
-  );
-}
 
 function Field({ name, label, defaultValue }: { name: string; label: string; defaultValue: string }) {
   return (
     <label className="block text-sm">
       <span className="font-medium">{label}</span>
-      <input name={name} defaultValue={defaultValue} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+      <input name={name} defaultValue={defaultValue} className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
     </label>
   );
 }

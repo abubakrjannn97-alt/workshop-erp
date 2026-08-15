@@ -1,3 +1,5 @@
+import { PageHeader } from "@/components/page-header";
+import { getTranslator, intlLocale } from "@/lib/locale";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { hasPermission } from "@/lib/authz";
@@ -5,6 +7,7 @@ import { decideApproval, closePeriod } from "@/app/actions/control";
 import Link from "next/link";
 
 export default async function ApprovalsPage() {
+  const { t, locale } = await getTranslator();
   const session = await requirePermission("audit.view");
   const canDecide = hasPermission(session.user.permissions, session.user.roleCode, "approvals.decide");
   const [pending, recent, periods] = await Promise.all([
@@ -24,25 +27,25 @@ export default async function ApprovalsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div>
-<h1 className="mt-1 text-2xl font-semibold">Согласования и период</h1>
+<PageHeader title={t("set.approvalsTitle")} />
       </div>
       <Link href="/settings" className="text-sm text-[var(--titan-dark)] hover:underline">
-        ← Настройки
+        {t("common.settingsBack")}
       </Link>
 
-      <section className="rounded-2xl border border-[var(--line)] bg-white p-5">
-        <h2 className="text-sm font-semibold">Ожидают решения</h2>
+      <section className="ui-card">
+        <h2 className="text-sm font-semibold">{t("set.pending")}</h2>
         <ul className="mt-3 space-y-3 text-sm">
           {pending.length === 0 ? (
-            <li className="text-slate-500">Нет заявок.</li>
+            <li className="text-[var(--muted)]">{t("set.noRequests")}</li>
           ) : (
             pending.map((a) => (
-              <li key={a.id} className="rounded-lg border border-slate-100 p-3">
+              <li key={a.id} className="rounded-lg border border-[var(--line)] p-3">
                 <p className="font-medium">{a.title}</p>
-                <p className="text-xs text-slate-500">
-                  {a.type} · {a.createdAt.toLocaleString("ru-RU")}
+                <p className="text-xs text-[var(--muted)]">
+                  {a.type} · {a.createdAt.toLocaleString(intlLocale(locale))}
                   {a.reason ? ` · ${a.reason}` : ""}
                 </p>
                 {canDecide ? (
@@ -50,12 +53,12 @@ export default async function ApprovalsPage() {
                     <form action={decide}>
                       <input type="hidden" name="id" value={a.id} />
                       <input type="hidden" name="decision" value="APPROVED" />
-                      <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-1 text-xs text-white">Подтвердить</button>
+                      <button className="ui-btn-primary">{t("common.confirm")}</button>
                     </form>
                     <form action={decide}>
                       <input type="hidden" name="id" value={a.id} />
                       <input type="hidden" name="decision" value="REJECTED" />
-                      <button className="rounded-lg border border-red-200 px-3 py-1 text-xs text-red-800">Отклонить</button>
+                      <button className="ui-btn-danger">{t("common.reject")}</button>
                     </form>
                   </div>
                 ) : null}
@@ -66,20 +69,20 @@ export default async function ApprovalsPage() {
       </section>
 
       {canDecide ? (
-        <form action={close} className="flex flex-wrap items-end gap-2 rounded-2xl border border-[var(--line)] bg-white p-5">
-          <h2 className="w-full text-sm font-semibold">Закрытие периода</h2>
+        <form action={close} className="flex flex-wrap items-end gap-2 ui-card">
+          <h2 className="w-full text-sm font-semibold">{t("set.closePeriod")}</h2>
           <input
             name="year"
             defaultValue={String(now.getFullYear())}
-            className="w-24 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            className="w-24 rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
           />
           <input
             name="month"
             defaultValue={String(now.getMonth() + 1)}
-            className="w-20 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            className="w-20 rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
           />
-          <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Закрыть месяц</button>
-          <ul className="w-full text-xs text-slate-500">
+          <button className="ui-btn-primary">{t("set.closeMonth")}</button>
+          <ul className="w-full text-xs text-[var(--muted)]">
             {periods.map((p) => (
               <li key={p.id}>
                 {p.month}.{p.year}: {p.status}
@@ -89,8 +92,8 @@ export default async function ApprovalsPage() {
         </form>
       ) : null}
 
-      <section className="rounded-2xl border border-[var(--line)] bg-white p-5">
-        <h2 className="text-sm font-semibold">История</h2>
+      <section className="ui-card">
+        <h2 className="text-sm font-semibold">{t("common.history")}</h2>
         <ul className="mt-3 space-y-2 text-sm">
           {recent.map((a) => (
             <li key={a.id}>

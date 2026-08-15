@@ -557,9 +557,9 @@ export async function createPurchaseFromDeficit(formData: FormData) {
     const qtyNeed = short.gt(0) ? short : D(String(need.plannedQty)).sub(avail);
     if (qtyNeed.lte(0)) continue;
     const pack = D(String(need.material.packageWeight));
-    const unitPrice =
-      need.unitCost ??
-      (pack.gt(0) ? money(D(String(need.material.packagePrice)).div(pack)) : "0");
+    const unitPrice = money(
+      need.unitCost ?? (pack.gt(0) ? D(String(need.material.packagePrice)).div(pack) : 0),
+    );
     shortages.push({ materialId: need.materialId, quantity: qty(qtyNeed), unitPrice });
   }
   if (shortages.length === 0) return { error: "Дефицита нет." };

@@ -1,27 +1,21 @@
 import Link from "next/link";
+import { createT, type Locale } from "@/lib/i18n";
 
-export function CatalogNav({ current }: { current: "products" | "materials" }) {
+export function CatalogNav({
+  current,
+  locale,
+}: {
+  current: "products" | "materials";
+  locale: Locale;
+}) {
+  const t = createT(locale);
   return (
-    <div className="flex flex-wrap gap-1.5 text-[13px]">
-      <Link
-        href="/products"
-        className={`rounded-[var(--radius-sm)] px-2.5 py-1 ${
-          current === "products"
-            ? "bg-[var(--titan-dark)] text-white"
-            : "border border-[var(--line)] bg-[var(--surface)] text-[var(--text-secondary)]"
-        }`}
-      >
-        Продукция
+    <div className="flex flex-wrap gap-1.5">
+      <Link href="/products" className={current === "products" ? "ui-chip-on" : "ui-chip"}>
+        {t("catalog.products")}
       </Link>
-      <Link
-        href="/materials"
-        className={`rounded-[var(--radius-sm)] px-2.5 py-1 ${
-          current === "materials"
-            ? "bg-[var(--titan-dark)] text-white"
-            : "border border-[var(--line)] bg-[var(--surface)] text-[var(--text-secondary)]"
-        }`}
-      >
-        Сырьё
+      <Link href="/materials" className={current === "materials" ? "ui-chip-on" : "ui-chip"}>
+        {t("catalog.materials")}
       </Link>
     </div>
   );

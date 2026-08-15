@@ -1,9 +1,12 @@
+import { getTranslator } from "@/lib/locale";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { updateRolePermissions } from "@/app/actions/roles";
+import { PageHeader } from "@/components/page-header";
 
 export default async function RolesPage() {
+  const { t, n } = await getTranslator();
   const session = await requirePermission("roles.view");
   const canManage =
     session.user.roleCode === "owner" || session.user.permissions.includes("roles.manage");
@@ -20,14 +23,11 @@ export default async function RolesPage() {
   const modules = [...new Set(permissions.map((p) => p.module))];
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div>
-        <h1 className="text-2xl font-semibold">Роли и права</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Owner, Director, Sales Manager, Production Manager, Worker, Warehouse Manager, Accountant.
-        </p>
+        <PageHeader title={t("set.rolesTitle")} />
         <Link className="mt-3 inline-block text-sm text-[var(--titan-dark)]" href="/settings">
-          ← Настройки
+          {t("common.settingsBack")}
         </Link>
       </div>
 
@@ -37,23 +37,23 @@ export default async function RolesPage() {
           <form
             key={role.id}
             action={updateRolePermissions}
-            className="rounded-2xl border border-[var(--line)] bg-white p-5"
+            className="ui-card"
           >
             <input type="hidden" name="roleId" value={role.id} />
             <div className="mb-4 flex items-baseline justify-between">
               <div>
-                <h2 className="font-semibold">{role.name}</h2>
-                <p className="text-sm text-slate-500">{role.description}</p>
+                <h2 className="font-semibold">{n("role", role.code, role.name)}</h2>
+                <p className="text-sm text-[var(--muted)]">{role.description}</p>
               </div>
               {role.code === "owner" ? (
-                <span className="text-xs text-slate-400">полный доступ</span>
+                <span className="text-xs text-[var(--muted)]">{t("common.fullAccess")}</span>
               ) : canManage ? (
-                <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-1.5 text-sm text-white">Сохранить права</button>
+                <button className="ui-btn-primary">{t("set.savePerms")}</button>
               ) : null}
             </div>
             {modules.map((moduleName) => (
               <div key={moduleName} className="mb-3">
-                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">{moduleName}</p>
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">{t(`mod.${moduleName}`)}</p>
                 <div className="grid gap-1 sm:grid-cols-2">
                   {permissions
                     .filter((p) => p.module === moduleName)
@@ -67,8 +67,8 @@ export default async function RolesPage() {
                           disabled={!canManage || role.code === "owner"}
                         />
                         <span>
-                          <span className="font-mono text-xs text-slate-500">{permission.code}</span>
-                          <span className="ml-2">{permission.name}</span>
+                          <span className="font-mono text-xs text-[var(--muted)]">{permission.code}</span>
+                          <span className="ml-2">{t(`perm.${permission.code}`)}</span>
                         </span>
                       </label>
                     ))}

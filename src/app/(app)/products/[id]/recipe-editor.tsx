@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { publishRecipeVersion } from "@/app/actions/recipes";
+import { createT, type Locale } from "@/lib/i18n";
 
 type Option = { id: string; name: string; extra?: string };
 
@@ -12,12 +13,15 @@ export function RecipeEditor({
   materials,
   units,
   initial,
+  locale,
 }: {
   productId: string;
   materials: Option[];
   units: Option[];
   initial: Row[];
+  locale: Locale;
 }) {
+  const t = createT(locale);
   const [rows, setRows] = useState<Row[]>(
     initial.length > 0 ? initial : [{ materialId: "", quantity: "", unitId: units[0]?.id ?? "" }],
   );
@@ -45,9 +49,9 @@ export function RecipeEditor({
               next[index] = { ...row, materialId: e.target.value };
               setRows(next);
             }}
-            className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
           >
-            <option value="">Материал</option>
+            <option value="">{t("common.material")}</option>
             {materials.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.name}
@@ -62,8 +66,8 @@ export function RecipeEditor({
               next[index] = { ...row, quantity: e.target.value };
               setRows(next);
             }}
-            placeholder="Кол-во"
-            className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            placeholder={t("common.qty")}
+            className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
           />
           <select
             name="unitId"
@@ -73,7 +77,7 @@ export function RecipeEditor({
               next[index] = { ...row, unitId: e.target.value };
               setRows(next);
             }}
-            className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
           >
             {units.map((u) => (
               <option key={u.id} value={u.id}>
@@ -89,20 +93,16 @@ export function RecipeEditor({
         onClick={() => setRows([...rows, { materialId: "", quantity: "", unitId: units[0]?.id ?? "" }])}
         className="text-sm text-[var(--titan-dark)]"
       >
-        + компонент
+        {t("recipe.addComponent")}
       </button>
       <input
         name="comment"
-        placeholder="Комментарий версии, необязательно"
-        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+        placeholder={t("recipe.commentPhShort")}
+        className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
       />
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
-      >
-        {pending ? "Сохранение…" : "Опубликовать новую версию рецептуры"}
+      {error ? <p className="text-sm text-[var(--danger)]">{error}</p> : null}
+      <button type="submit" disabled={pending} className="ui-btn-primary disabled:opacity-60">
+        {pending ? t("common.saving") : t("recipe.publishFull")}
       </button>
     </form>
   );

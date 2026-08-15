@@ -1,12 +1,28 @@
+import { getTranslator } from "@/lib/locale";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { hasPermission } from "@/lib/authz";
-import { SalesNav } from "@/components/sales-nav";
 import { D, moneyDisplay } from "@/lib/decimal";
-import { PAYMENT_STATUS } from "@/lib/orders";
+import { intlLocale } from "@/lib/i18n";
+import { KpiCard } from "@/components/kpi-card";
+import { RevealList } from "@/components/reveal-list";
+import { StatusBadge, orderTone, payTone } from "@/components/status-badge";
+import { PageHeader } from "@/components/page-header";
+import {
+  DataList,
+  DataListEmpty,
+  DataListHead,
+  DataListHeadCell,
+  DataListMetric,
+  DataListPrimary,
+  DataListRow,
+  DataListCell,
+  dataListStyles,
+} from "@/components/data-list";
 
 export default async function SalesPage() {
+  const { t, locale, n } = await getTranslator();
   const session = await requirePermission("orders.view");
   const canCreate = hasPermission(session.user.permissions, session.user.roleCode, "orders.create");
   const own = session.user.roleCode === "sales_manager" ? { sellerId: session.user.id } : {};
@@ -17,7 +33,7 @@ export default async function SalesPage() {
       where: own,
       include: { customer: true, status: true },
       orderBy: { createdAt: "desc" },
-      take: 12,
+      take: 20,
     }),
     prisma.order.findMany({
       where: { ...own, paymentStatus: { in: ["unpaid", "partial"] }, status: { code: { not: "CANCELLED" } } },
@@ -46,90 +62,107 @@ export default async function SalesPage() {
   const monthTotal = monthOrders.reduce((s, o) => s.add(String(o.total)), D(0));
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-<h1 className="mt-1 text-2xl font-semibold">Продажи</h1>
-        </div>
-        {canCreate ? (
-          <Link href="/orders/new" className="rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm font-medium text-white">
-            Новый заказ
+    <div className="page-stack">
+      <PageHeader
+        title={t("page.sales")}
+        description={t("page.salesHint")}
+        actions={<>{canCreate ? (
+          <Link href="/orders/new" className="ui-btn-primary" data-tour="sales-new">
+            {t("sales.newOrder")}
           </Link>
-        ) : null}
-      </div>
-      <SalesNav current="sales" />
-
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Stat label="Продажи за месяц" value={`${moneyDisplay(monthTotal)} с`} />
-        <Stat label="Неоплаченные" value={String(unpaid.length)} />
-        <Stat label="Лиды в работе" value={String(leads)} />
+        ) : null}</>}
+      />
+      <div className="grid gap-3 sm:grid-cols-3">
+        <KpiCard label={t("sales.monthTotal")} value={`${moneyDisplay(monthTotal)} с`} hint={t("home.period")} tone="in" />
+        <KpiCard label={t("sales.unpaid")} value={String(unpaid.length)} hint={t("sales.unpaidHint")} tone="out" />
+        <KpiCard label={t("sales.leadsOpen")} value={String(leads)} hint={t("sales.leadsHint")} tone="ink" />
       </div>
 
       {overdue.length > 0 ? (
-        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-          <h2 className="text-sm font-semibold">Просроченные заказы</h2>
-          <ul className="mt-2 space-y-1 text-sm">
-            {overdue.map((o) => (
-              <li key={o.id}>
-                <Link href={`/orders/${o.id}`} className="text-[var(--titan-dark)] hover:underline">
-                  #{o.number}
-                </Link>{" "}
-                {o.customer.name} · {o.status.name} · до {o.dueAt?.toLocaleDateString("ru-RU")}
-              </li>
-            ))}
-          </ul>
+        <section className="ui-card overflow-hidden">
+          <h2 className="section-title">{t("sales.overdueOrders")}</h2>
+          <DataList layout="cols2">
+            <DataListHead layout="cols2">
+              <DataListHeadCell>{t("home.col.customer")}</DataListHeadCell>
+              <DataListHeadCell align="right">{t("home.col.status")}</DataListHeadCell>
+            </DataListHead>
+            <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} className={dataListStyles.rows}>
+              {overdue.map((o) => (
+                <DataListRow key={o.id} layout="cols2">
+                  <DataListPrimary
+                    title={o.customer.name}
+                    href={`/orders/${o.id}`}
+                    subtitle={
+                      o.dueAt
+                        ? `${t("common.until")} ${o.dueAt.toLocaleDateString(intlLocale(locale))}`
+                        : undefined
+                    }
+                  />
+                  <DataListCell label={t("home.col.status")} align="right">
+                    <StatusBadge label={n("ostatus", o.status.code, o.status.name)} tone={orderTone(o.status.code)} />
+                  </DataListCell>
+                </DataListRow>
+              ))}
+            </RevealList>
+          </DataList>
         </section>
       ) : null}
 
-      <section className="rounded-2xl border border-[var(--line)] bg-white">
-        <div className="border-b border-[var(--line)] px-5 py-3">
-          <h2 className="text-sm font-semibold">Долги клиентов</h2>
-        </div>
-        <ul className="divide-y divide-slate-100">
-          {unpaid.length === 0 ? (
-            <li className="px-5 py-6 text-sm text-slate-500">Долгов нет.</li>
-          ) : (
-            unpaid.map((o) => (
-              <li key={o.id} className="flex justify-between px-5 py-3 text-sm">
-                <Link href={`/orders/${o.id}`} className="hover:underline">
-                  #{o.number} {o.customer.name}
-                </Link>
-                <span className="font-mono text-xs">
-                  {moneyDisplay(D(String(o.total)).sub(o.paidAmount))} с ·{" "}
-                  {PAYMENT_STATUS[o.paymentStatus as keyof typeof PAYMENT_STATUS]}
-                </span>
-              </li>
-            ))
-          )}
-        </ul>
+      <section className="ui-card overflow-hidden" data-tour="sales-debts">
+        <h2 className="section-title">{t("sales.clientDebts")}</h2>
+        {unpaid.length === 0 ? (
+          <DataListEmpty>{t("sales.noDebts")}</DataListEmpty>
+        ) : (
+          <DataList layout="cols3">
+            <DataListHead layout="cols3">
+              <DataListHeadCell>{t("home.col.customer")}</DataListHeadCell>
+              <DataListHeadCell align="right">{t("common.debt")}</DataListHeadCell>
+              <DataListHeadCell align="right">{t("home.col.status")}</DataListHeadCell>
+            </DataListHead>
+            <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} className={dataListStyles.rows}>
+              {unpaid.map((o) => (
+                <DataListRow key={o.id} layout="cols3">
+                  <DataListPrimary title={o.customer.name} href={`/orders/${o.id}`} />
+                  <DataListMetric
+                    label={t("common.debt")}
+                    value={`${moneyDisplay(D(String(o.total)).sub(o.paidAmount))} с`}
+                    tone="bad"
+                  />
+                  <DataListCell label={t("home.col.status")} align="right">
+                    <StatusBadge label={t(`pay.${o.paymentStatus}`)} tone={payTone(o.paymentStatus)} />
+                  </DataListCell>
+                </DataListRow>
+              ))}
+            </RevealList>
+          </DataList>
+        )}
       </section>
 
-      <section className="rounded-2xl border border-[var(--line)] bg-white">
-        <div className="border-b border-[var(--line)] px-5 py-3">
-          <h2 className="text-sm font-semibold">Последние заказы</h2>
-        </div>
-        <ul className="divide-y divide-slate-100">
-          {orders.map((o) => (
-            <li key={o.id} className="flex justify-between px-5 py-3 text-sm">
-              <Link href={`/orders/${o.id}`} className="hover:underline">
-                #{o.number} {o.customer.name}
-              </Link>
-              <span>
-                {o.status.name} · {moneyDisplay(o.total)} с
-              </span>
-            </li>
-          ))}
-        </ul>
+      <section className="ui-card overflow-hidden">
+        <h2 className="section-title">{t("sales.recentOrders")}</h2>
+        {orders.length === 0 ? (
+          <DataListEmpty>{t("crm.noOrders")}</DataListEmpty>
+        ) : (
+          <DataList layout="cols3">
+            <DataListHead layout="cols3">
+              <DataListHeadCell>{t("home.col.customer")}</DataListHeadCell>
+              <DataListHeadCell align="right">{t("home.col.amount")}</DataListHeadCell>
+              <DataListHeadCell align="right">{t("home.col.status")}</DataListHeadCell>
+            </DataListHead>
+            <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} className={dataListStyles.rows}>
+              {orders.map((o) => (
+                <DataListRow key={o.id} layout="cols3">
+                  <DataListPrimary title={o.customer.name} href={`/orders/${o.id}`} />
+                  <DataListMetric label={t("home.col.amount")} value={`${moneyDisplay(o.total)} с`} />
+                  <DataListCell label={t("home.col.status")} align="right">
+                    <StatusBadge label={n("ostatus", o.status.code, o.status.name)} tone={orderTone(o.status.code)} />
+                  </DataListCell>
+                </DataListRow>
+              ))}
+            </RevealList>
+          </DataList>
+        )}
       </section>
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-[var(--line)] bg-white p-5">
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="mt-2 text-2xl font-semibold">{value}</p>
     </div>
   );
 }

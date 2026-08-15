@@ -1,3 +1,4 @@
+import { getTranslator } from "@/lib/locale";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
@@ -5,15 +6,20 @@ import { createSupplier } from "@/app/actions/suppliers";
 import { PurchaseOrderForm } from "./po-form";
 import { moneyDisplay } from "@/lib/decimal";
 import { D } from "@/lib/decimal";
+import { PageHeader } from "@/components/page-header";
 
-const STATUS: Record<string, string> = {
-  REQUEST: "Заявка",
-  ORDERED: "Заказано",
-  POSTED: "Оприходовано",
-  CANCELLED: "Отменено",
-};
+function poStatus(t: (k: string) => string, s: string) {
+  const map: Record<string, string> = {
+    REQUEST: t("po.REQUEST"),
+    ORDERED: t("po.ORDERED"),
+    POSTED: t("po.POSTED"),
+    CANCELLED: t("po.CANCELLED"),
+  };
+  return map[s] ?? s;
+}
 
 export default async function PurchasingPage() {
+  const { t, locale } = await getTranslator();
   const session = await requirePermission("purchasing.view");
   const canManage =
     session.user.roleCode === "owner" || session.user.permissions.includes("purchasing.manage");
@@ -35,16 +41,11 @@ export default async function PurchasingPage() {
   ]);
 
   return (
-    <div className="space-y-6">
-      <div>
-<h1 className="mt-1 text-2xl font-semibold">Закупки</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Потребность → заявка → поставщик → получение → приход на склад.
-        </p>
-      </div>
+    <div className="page-stack">
+      <PageHeader title={t("page.purchasing")} description={t("po.hint")} />
 
-      <section className="rounded-2xl border border-[var(--line)] bg-white p-5">
-        <h2 className="text-sm font-semibold">Поставщики</h2>
+      <section className="ui-card" data-tour="po-suppliers">
+        <h2 className="text-sm font-semibold">{t("po.suppliers")}</h2>
         <ul className="mt-3 space-y-2 text-sm">
           {suppliers.map((s) => {
             const turnover = s.orders.reduce((sum, o) => sum.add(o.total), D(0));
@@ -55,7 +56,7 @@ export default async function PurchasingPage() {
                   {s.name}
                 </Link>
                 <span className="font-mono text-xs">
-                  закупки {moneyDisplay(turnover)} с · долг {moneyDisplay(debt)} с
+                  {t("po.purchasesDebt", { t: moneyDisplay(turnover), d: moneyDisplay(debt) })}
                 </span>
               </li>
             );
@@ -63,10 +64,10 @@ export default async function PurchasingPage() {
         </ul>
         {canSuppliers ? (
           <form action={createSupplier} className="mt-4 grid gap-2 sm:grid-cols-4">
-            <input name="name" required placeholder="Название" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-            <input name="phone" placeholder="Телефон" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-            <input name="contact" placeholder="Контакт" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-            <button className="rounded-lg bg-[var(--titan-dark)] px-3 py-2 text-sm text-white">Добавить</button>
+            <input name="name" required placeholder={t("common.name")} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
+            <input name="phone" placeholder={t("common.phone")} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
+            <input name="contact" placeholder={t("common.contact")} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
+            <button className="ui-btn-primary">{t("common.add")}</button>
           </form>
         ) : null}
       </section>
@@ -75,30 +76,31 @@ export default async function PurchasingPage() {
         <PurchaseOrderForm
           suppliers={suppliers.map((s) => ({ id: s.id, name: s.name }))}
           materials={materials.map((m) => ({ id: m.id, name: m.name }))}
+          locale={locale}
         />
       ) : null}
 
-      <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white">
+      <div className="overflow-hidden ui-card">
         <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+          <thead className="bg-[var(--surface-muted)] text-xs uppercase tracking-wide text-[var(--muted)]">
             <tr>
-              <th className="px-4 py-3">Номер</th>
-              <th className="px-4 py-3">Поставщик</th>
-              <th className="px-4 py-3">Статус</th>
-              <th className="px-4 py-3 text-right">Сумма</th>
-              <th className="px-4 py-3 text-right">Долг</th>
+              <th className="px-4 py-3">{t("common.number")}</th>
+              <th className="px-4 py-3">{t("common.supplier")}</th>
+              <th className="px-4 py-3">{t("common.status")}</th>
+              <th className="px-4 py-3 text-right">{t("common.amount")}</th>
+              <th className="px-4 py-3 text-right">{t("common.debt")}</th>
             </tr>
           </thead>
           <tbody>
             {orders.map((o) => (
-              <tr key={o.id} className="border-t border-slate-100">
+              <tr key={o.id} className="border-t border-[var(--line)]">
                 <td className="px-4 py-3">
                   <Link href={`/purchasing/${o.id}`} className="font-medium hover:underline">
                     {o.number}
                   </Link>
                 </td>
                 <td className="px-4 py-3">{o.supplier.name}</td>
-                <td className="px-4 py-3">{STATUS[o.status] ?? o.status}</td>
+                <td className="px-4 py-3">{poStatus(t, o.status) ?? o.status}</td>
                 <td className="px-4 py-3 text-right font-mono text-xs">{moneyDisplay(o.total)} с</td>
                 <td className="px-4 py-3 text-right font-mono text-xs">
                   {moneyDisplay(D(String(o.total)).sub(o.paidAmount))} с

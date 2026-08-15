@@ -1,3 +1,5 @@
+import { PageHeader } from "@/components/page-header";
+import { getTranslator } from "@/lib/locale";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -11,14 +13,18 @@ import {
 import { moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { D } from "@/lib/decimal";
 
-const STATUS: Record<string, string> = {
-  REQUEST: "Заявка",
-  ORDERED: "Заказано поставщику",
-  POSTED: "Оприходовано",
-  CANCELLED: "Отменено",
-};
+function poStatus(t: (k: string) => string, s: string) {
+  const map: Record<string, string> = {
+    REQUEST: t("po.REQUEST"),
+    ORDERED: t("po.ORDERED_FULL"),
+    POSTED: t("po.POSTED"),
+    CANCELLED: t("po.CANCELLED"),
+  };
+  return map[s] ?? s;
+}
 
 export default async function PurchaseOrderPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t, locale } = await getTranslator();
   const { id } = await params;
   const session = await requirePermission("purchasing.view");
   const canManage =
@@ -33,28 +39,28 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
   const debt = D(String(order.total)).sub(order.paidAmount);
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div>
-        <p className="text-xs text-slate-500">{STATUS[order.status]}</p>
-        <h1 className="text-2xl font-semibold">{order.number}</h1>
-        <p className="text-sm text-slate-600">{order.supplier.name}</p>
+        <p className="text-xs text-[var(--muted)]">{poStatus(t, order.status)}</p>
+        <PageHeader title={order.number} />
+        <p className="text-sm text-[var(--text-muted)]">{order.supplier.name}</p>
         <Link href={`/purchasing/${order.id}/print`} className="mt-2 inline-block text-sm text-[var(--titan-dark)] hover:underline">
-          Печать накладной / PDF
+          {t("po.printWaybill")}
         </Link>
       </div>
-      <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white">
+      <div className="overflow-hidden ui-card">
         <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+          <thead className="bg-[var(--surface-muted)] text-xs uppercase text-[var(--muted)]">
             <tr>
-              <th className="px-4 py-3">Материал</th>
-              <th className="px-4 py-3 text-right">Кол-во</th>
-              <th className="px-4 py-3 text-right">Цена</th>
-              <th className="px-4 py-3 text-right">Сумма</th>
+              <th className="px-4 py-3">{t("common.material")}</th>
+              <th className="px-4 py-3 text-right">{t("common.qty")}</th>
+              <th className="px-4 py-3 text-right">{t("common.price")}</th>
+              <th className="px-4 py-3 text-right">{t("common.amount")}</th>
             </tr>
           </thead>
           <tbody>
             {order.items.map((item) => (
-              <tr key={item.id} className="border-t border-slate-100">
+              <tr key={item.id} className="border-t border-[var(--line)]">
                 <td className="px-4 py-3">{item.material.name}</td>
                 <td className="px-4 py-3 text-right font-mono text-xs">
                   {qtyDisplay(item.quantity)} {item.material.storageUnit.symbol}
@@ -67,34 +73,33 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
         </table>
       </div>
       <p className="text-sm">
-        Итого {moneyDisplay(order.total)} с · оплачено {moneyDisplay(order.paidAmount)} с · долг{" "}
-        {moneyDisplay(debt)} с
+        {t("po.summary", { total: moneyDisplay(order.total), paid: moneyDisplay(order.paidAmount), debt: moneyDisplay(debt) })}
       </p>
       <div className="flex flex-wrap gap-2">
         {canManage && order.status === "REQUEST" ? (
           <form action={confirmPurchaseOrder}>
             <input type="hidden" name="id" value={order.id} />
-            <button className="rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm text-white">Подтвердить заказ поставщику</button>
+            <button className="ui-btn-primary">{t("po.confirmToSupplier")}</button>
           </form>
         ) : null}
         {canReceive && (order.status === "ORDERED" || order.status === "REQUEST") ? (
           <form action={receivePurchaseOrder}>
             <input type="hidden" name="id" value={order.id} />
-            <button className="rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm text-white">Принять и оприходовать</button>
+            <button className="ui-btn-primary">{t("po.acceptPost")}</button>
           </form>
         ) : null}
         {canManage && order.status !== "POSTED" && order.status !== "CANCELLED" ? (
           <form action={cancelPurchaseOrder}>
             <input type="hidden" name="id" value={order.id} />
-            <button className="rounded-lg px-4 py-2 text-sm text-red-700">Отменить</button>
+            <button className="rounded-lg px-4 py-2 text-sm text-[var(--danger)]">{t("common.cancel")}</button>
           </form>
         ) : null}
       </div>
       {canManage && order.status !== "CANCELLED" ? (
         <form action={registerPurchasePayment} className="flex max-w-md gap-2">
           <input type="hidden" name="id" value={order.id} />
-          <input name="amount" placeholder="Оплата, с" className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <button className="rounded-lg bg-slate-900 px-4 py-2 text-sm text-white">Оплата</button>
+          <input name="amount" placeholder={t("po.payPh")} className="flex-1 rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
+          <button className="ui-btn-primary">{t("common.payment")}</button>
         </form>
       ) : null}
     </div>

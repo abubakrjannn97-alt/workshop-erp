@@ -1,35 +1,45 @@
 import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 import { PwaRegister } from "@/components/pwa-register";
-import { getLocale } from "@/lib/locale";
+import { getTranslator } from "@/lib/locale";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "Производственный цех",
-  description: "Система полной автоматизации производственного цеха",
-  manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, title: "Цех", statusBarStyle: "default" },
-  icons: {
-    icon: [
-      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
-      { url: "/icon.svg", type: "image/svg+xml" },
-    ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
-  },
-};
+const inter = Inter({
+  subsets: ["latin", "cyrillic"],
+  display: "swap",
+  variable: "--font-sans",
+});
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getTranslator();
+  return {
+    title: t("meta.title"),
+    description: t("meta.description"),
+    manifest: "/manifest.webmanifest",
+    appleWebApp: { capable: true, title: t("meta.short"), statusBarStyle: "black-translucent" },
+    icons: {
+      icon: [
+        { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+        { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+        { url: "/icon.svg", type: "image/svg+xml" },
+      ],
+      apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    },
+  };
+}
 
 export const viewport: Viewport = {
-  themeColor: "#4F565D",
+  themeColor: "#0B0E1A",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const locale = await getLocale();
+  const { locale } = await getTranslator();
   return (
-    <html lang={locale === "tj" ? "tg" : "ru"} className="h-full antialiased">
-      <body className="min-h-full">
+    <html lang={locale === "tj" ? "tg" : "ru"} className={`${inter.variable} h-full antialiased`}>
+      <body className="min-h-full bg-[var(--color-background)] font-sans text-[var(--color-text-primary)]">
         <PwaRegister />
         {children}
       </body>

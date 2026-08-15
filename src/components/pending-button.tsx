@@ -5,14 +5,16 @@ import { useFormStatus } from "react-dom";
 export function PendingButton({
   children,
   className,
+  pendingLabel = "…",
 }: {
   children: React.ReactNode;
   className?: string;
+  pendingLabel?: string;
 }) {
   const { pending } = useFormStatus();
   return (
     <button type="submit" disabled={pending} className={className} aria-busy={pending}>
-      {pending ? "Сохранение…" : children}
+      {pending ? pendingLabel : children}
     </button>
   );
 }

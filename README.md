@@ -21,12 +21,21 @@ npm run dev
 
 PostgreSQL: `127.0.0.1:5433`. Скопируйте `.env.example` → `.env`.
 
-Демо после seed:
+Демо после seed (пароль всех: `ChangeMeNow!`):
 
-- email: `owner@workshop.local`
-- password: `ChangeMeNow!`
+| Роль | Email |
+|------|-------|
+| Владелец | `owner@workshop.local` |
+| Директор | `director@workshop.local` |
+| Продавец | `sales@workshop.local` |
+| Нач. производства | `production@workshop.local` |
+| Рабочий | `worker@workshop.local` |
+| Кладовщик | `warehouse@workshop.local` |
+| Бухгалтер | `accountant@workshop.local` |
 
-Для теста без логина: `AUTH_BYPASS=1` в `.env` (только локально).
+На странице `/login` в dev-режиме — кнопки быстрого входа под каждую роль.
+
+Для теста без логина: `AUTH_BYPASS=1` в `.env` (только локально, всегда owner).
 
 ## Тесты
 

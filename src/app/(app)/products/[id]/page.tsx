@@ -1,3 +1,5 @@
+import { PageHeader } from "@/components/page-header";
+import { getTranslator, intlLocale } from "@/lib/locale";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
@@ -9,6 +11,7 @@ import { RecipeEditor } from "./recipe-editor";
 import { NeedPreview } from "./need-preview";
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t, locale } = await getTranslator();
   const { id } = await params;
   const session = await requirePermission("products.view");
   const canManage =
@@ -49,21 +52,20 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const cost = currentVersion ? materialCostForRecipe(currentVersion.items) : null;
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--titan-dark)]">Изделие</p>
-        <h1 className="mt-1 text-2xl font-semibold">{product.name}</h1>
+        <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--titan-dark)]">{t("common.product")}</p>
+        <PageHeader title={product.name} />
       </div>
-      <CatalogNav current="products" />
+      <CatalogNav current="products" locale={locale} />
 
-      <form action={updateProduct} className="grid gap-3 rounded-2xl border border-[var(--line)] bg-white p-6 sm:grid-cols-2">
+      <form action={updateProduct} className="grid gap-3 ui-card sm:grid-cols-2">
         <input type="hidden" name="id" value={product.id} />
-        <Field name="name" label="Название" defaultValue={product.name} disabled={!canManage} />
-        <Field name="category" label="Категория" defaultValue={product.category} disabled={!canManage} />
-        <Field name="photoUrl" label="Фотография (URL)" defaultValue={product.photoUrl ?? ""} disabled={!canManage} />
+        <Field name="name" label={t("common.name")} defaultValue={product.name} disabled={!canManage} />
+        <Field name="category" label={t("common.category")} defaultValue={product.category} disabled={!canManage} />
         <label className="block text-sm">
-          <span className="font-medium">Единица продажи</span>
-          <select name="saleUnitId" defaultValue={product.saleUnitId} disabled={!canManage} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
+          <span className="font-medium">{t("products.saleUnit")}</span>
+          <select name="saleUnitId" defaultValue={product.saleUnitId} disabled={!canManage} className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm">
             {units.map((u) => (
               <option key={u.id} value={u.id}>
                 {u.name} ({u.symbol})
@@ -72,8 +74,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           </select>
         </label>
         <label className="block text-sm">
-          <span className="font-medium">Единица готовой продукции</span>
-          <select name="outputUnitId" defaultValue={product.outputUnitId} disabled={!canManage} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
+          <span className="font-medium">{t("products.fgUnit")}</span>
+          <select name="outputUnitId" defaultValue={product.outputUnitId} disabled={!canManage} className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm">
             {units.map((u) => (
               <option key={u.id} value={u.id}>
                 {u.name} ({u.symbol})
@@ -81,27 +83,26 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             ))}
           </select>
         </label>
-        <Field name="recipeBaseQty" label="База рецептуры" defaultValue={product.recipeBaseQty.toString()} disabled={!canManage} />
-        <Field name="outputPerBase" label="Выход с базы" defaultValue={product.outputPerBase.toString()} disabled={!canManage} />
-        <Field name="price" label="Цена продажи, сомони" defaultValue={currentPrice?.price.toString() ?? "0"} disabled={!canManage} />
-        <Field name="minPrice" label="Минимальная цена" defaultValue={product.minPrice.toString()} disabled={!canManage} />
+        <Field name="recipeBaseQty" label={t("products.recipeBaseShort")} defaultValue={product.recipeBaseQty.toString()} disabled={!canManage} />
+        <Field name="outputPerBase" label={t("products.outputBaseShort")} defaultValue={product.outputPerBase.toString()} disabled={!canManage} />
+        <Field name="price" label={t("products.salePrice")} defaultValue={currentPrice?.price.toString() ?? "0"} disabled={!canManage} />
+        <Field name="minPrice" label={t("products.minPrice")} defaultValue={product.minPrice.toString()} disabled={!canManage} />
         {canManage ? (
-          <button className="sm:col-span-2 rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm font-medium text-white">
-            Сохранить. Старая цена останется в истории.
+          <button className="sm:col-span-2 ui-btn-primary">
+            {t("products.savePriceHist")}
           </button>
         ) : null}
       </form>
 
-      <section className="rounded-2xl border border-[var(--line)] bg-white p-6">
-        <h2 className="text-sm font-semibold">Материальная себестоимость</h2>
-        <p className="mt-1 text-xs text-slate-500">
-          Считается из рецептуры и закупочных цен. Это ещё не полная себестоимость: рабочие, комиссия и постоянные
-          расходы подключаются в следующих фазах.
+      <section className="ui-card">
+        <h2 className="text-sm font-semibold">{t("products.matCostTitle")}</h2>
+        <p className="mt-1 text-xs text-[var(--muted)]">
+          {t("products.matCostHint")}
         </p>
         {cost ? (
           <ul className="mt-4 space-y-2 text-sm">
             {cost.lines.map((line) => (
-              <li key={line.materialId} className="flex justify-between gap-4 border-b border-slate-100 py-2">
+              <li key={line.materialId} className="flex justify-between gap-4 border-b border-[var(--line)] py-2">
                 <span>
                   {line.materialName}: {line.quantity} {line.unitSymbol}
                   {line.warning ? <span className="ml-2 text-xs text-amber-700">{line.warning}</span> : null}
@@ -113,11 +114,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             ))}
           </ul>
         ) : (
-          <p className="mt-3 text-sm text-slate-500">Рецептура ещё не опубликована.</p>
+          <p className="mt-3 text-sm text-[var(--muted)]">{t("products.noRecipe")}</p>
         )}
         <p className="mt-4 text-sm font-semibold">
-          Итого на {product.recipeBaseQty.toString()} {product.saleUnit.symbol}:{" "}
-          {cost?.total ? `${moneyDisplay(cost.total)} с` : "не рассчитано (нет цены песка или компонента)"}
+          {t("products.totalOn")} {product.recipeBaseQty.toString()} {product.saleUnit.symbol}:{" "}
+          {cost?.total ? `${moneyDisplay(cost.total)} с` : t("products.costUnset")}
         </p>
       </section>
 
@@ -133,17 +134,19 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           outputSymbol={product.outputUnit.symbol}
           saleSymbol={product.saleUnit.symbol}
           recipeBaseQty={product.recipeBaseQty.toString()}
+          locale={locale}
         />
       ) : null}
 
-      <section className="rounded-2xl border border-[var(--line)] bg-white p-6">
-        <h2 className="text-sm font-semibold">Рецептура</h2>
-        <p className="mt-1 text-xs text-slate-500">
-          Изменение публикует новую версию. Старые версии не пересчитываются.
+      <section className="ui-card">
+        <h2 className="text-sm font-semibold">{t("products.recipe")}</h2>
+        <p className="mt-1 text-xs text-[var(--muted)]">
+          {t("products.recipeHint")}
         </p>
         {currentVersion ? (
           <p className="mt-2 text-sm">
-            Текущая: V{currentVersion.versionNumber} с {currentVersion.validFrom.toLocaleDateString("ru-RU")}
+            {t("products.currentVer")}: V{currentVersion.versionNumber} ·{" "}
+            {currentVersion.validFrom.toLocaleDateString(intlLocale(locale))}
           </p>
         ) : null}
         {canRecipe ? (
@@ -159,28 +162,29 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                   unitId: item.unitId,
                 })) ?? []
               }
+              locale={locale}
             />
           </div>
         ) : null}
         <div className="mt-6 space-y-2">
           {product.recipe?.versions.map((version) => (
-            <div key={version.id} className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
-              V{version.versionNumber}: {version.validFrom.toLocaleDateString("ru-RU")}
-              {version.validTo ? ` — ${version.validTo.toLocaleDateString("ru-RU")}` : " — действует"}
+            <div key={version.id} className="rounded-lg bg-[var(--surface-muted)] px-3 py-2 text-xs text-[var(--text-muted)]">
+              V{version.versionNumber}: {version.validFrom.toLocaleDateString(intlLocale(locale))}
+              {version.validTo ? ` — ${version.validTo.toLocaleDateString(intlLocale(locale))}` : ` — ${t("common.active")}`}
               {version.comment ? ` · ${version.comment}` : ""}
             </div>
           ))}
         </div>
       </section>
 
-      <section className="rounded-2xl border border-[var(--line)] bg-white p-6">
-        <h2 className="text-sm font-semibold">История цен продажи</h2>
+      <section className="ui-card">
+        <h2 className="text-sm font-semibold">{t("products.priceHistory")}</h2>
         <ul className="mt-3 space-y-1 text-sm">
           {product.prices.map((row) => (
             <li key={row.id} className="flex justify-between">
               <span>
-                {row.validFrom.toLocaleDateString("ru-RU")}
-                {row.validTo ? ` — ${row.validTo.toLocaleDateString("ru-RU")}` : " — действует"}
+                {row.validFrom.toLocaleDateString(intlLocale(locale))}
+                {row.validTo ? ` — ${row.validTo.toLocaleDateString(intlLocale(locale))}` : ` — ${t("common.active")}`}
               </span>
               <span className="font-mono text-xs">{moneyDisplay(row.price)} с</span>
             </li>
@@ -209,7 +213,7 @@ function Field({
         name={name}
         defaultValue={defaultValue}
         disabled={disabled}
-        className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm disabled:bg-slate-50"
+        className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm disabled:bg-[var(--surface-muted)]"
       />
     </label>
   );

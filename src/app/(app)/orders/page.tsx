@@ -1,117 +1,256 @@
+import { getTranslator, intlLocale } from "@/lib/locale";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { hasPermission } from "@/lib/authz";
-import { SalesNav } from "@/components/sales-nav";
 import { D, moneyDisplay } from "@/lib/decimal";
-import { PAYMENT_STATUS } from "@/lib/orders";
+import { orderNo } from "@/lib/format";
+import {
+  ORDERS_PAGE_SIZE,
+  buildOrdersQuery,
+  orderPeriodLabel,
+  resolveOrderDateRange,
+} from "@/lib/order-period";
+import { PageHeader } from "@/components/page-header";
+import { KpiCard } from "@/components/kpi-card";
+import {
+  DataList,
+  DataListEmpty,
+  DataListHead,
+  DataListHeadCell,
+  DataListMetric,
+  DataListPrimary,
+  DataListRow,
+  DataListCell,
+  dataListStyles,
+} from "@/components/data-list";
+import { StatusBadge, orderTone } from "@/components/status-badge";
 
 export default async function OrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    status?: string;
+    period?: string;
+    from?: string;
+    to?: string;
+    page?: string;
+  }>;
 }) {
+  const { t, locale, n } = await getTranslator();
   const session = await requirePermission("orders.view");
-  const { q, status } = await searchParams;
+  const params = await searchParams;
+  const { q, status, from: fromRaw, to: toRaw, page: pageRaw } = params;
+  const period = params.period ?? "month";
   const canCreate = hasPermission(session.user.permissions, session.user.roleCode, "orders.create");
   const ownOnly = session.user.roleCode === "sales_manager";
-  const number = q && /^\d+$/.test(q) ? Number(q) : undefined;
+  const page = Math.max(1, Number(pageRaw) || 1);
+  const number = q && /^\d+$/.test(q.trim()) ? Number(q.trim()) : undefined;
+  const { from, to, period: resolvedPeriod } = resolveOrderDateRange({
+    period,
+    from: fromRaw,
+    to: toRaw,
+  });
 
-  const [orders, statuses] = await Promise.all([
+  const where = {
+    ...(ownOnly ? { sellerId: session.user.id } : {}),
+    ...(status ? { status: { code: status } } : {}),
+    ...(from || to
+      ? {
+          createdAt: {
+            ...(from ? { gte: from } : {}),
+            ...(to ? { lte: to } : {}),
+          },
+        }
+      : {}),
+    ...(number
+      ? { number }
+      : q?.trim()
+        ? { customer: { name: { contains: q.trim(), mode: "insensitive" as const } } }
+        : {}),
+  };
+
+  const [orders, total, statuses, agg] = await Promise.all([
     prisma.order.findMany({
-      where: {
-        ...(ownOnly ? { sellerId: session.user.id } : {}),
-        ...(status ? { status: { code: status } } : {}),
-        ...(number
-          ? { number }
-          : q
-            ? { customer: { name: { contains: q, mode: "insensitive" } } }
-            : {}),
-      },
+      where,
       include: { customer: true, seller: true, status: true },
-      orderBy: { number: "desc" },
-      take: 100,
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * ORDERS_PAGE_SIZE,
+      take: ORDERS_PAGE_SIZE,
     }),
+    prisma.order.count({ where }),
     prisma.orderStatus.findMany({ orderBy: { sortOrder: "asc" } }),
+    prisma.order.aggregate({ where, _sum: { total: true } }),
   ]);
 
+  const totalSum = D(String(agg._sum.total ?? 0));
+  const totalPages = Math.max(1, Math.ceil(total / ORDERS_PAGE_SIZE));
+  const loc = intlLocale(locale);
+  const periodLabel = orderPeriodLabel(resolvedPeriod, t, from, to);
+
+  const baseQuery = {
+    q: q?.trim() || undefined,
+    status: status || undefined,
+    period: resolvedPeriod === "custom" ? "custom" : resolvedPeriod,
+    from: fromRaw || undefined,
+    to: toRaw || undefined,
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-<h1 className="mt-1 text-2xl font-semibold">Заказы</h1>
-        </div>
-        {canCreate ? (
-          <Link href="/orders/new" className="rounded-lg bg-[var(--titan-dark)] px-4 py-2 text-sm font-medium text-white">
-            Новый заказ
+    <div className="page-stack">
+      <PageHeader
+        title={t("page.orders")}
+        description={t("orders.registryHint")}
+        actions={
+          <>
+            <Link href="/crm/history" className="ui-btn-secondary">
+              {t("crm.purchaseHistory")}
+            </Link>
+            {canCreate ? (
+              <Link href="/orders/new" className="ui-btn-primary" data-tour="orders-new">
+                {t("sales.newOrder")}
+              </Link>
+            ) : null}
+          </>
+        }
+      />
+
+      <div className="flex flex-wrap gap-2">
+        {(
+          [
+            ["month", t("orders.periodMonth")],
+            ["prev", t("orders.periodPrev")],
+            ["all", t("orders.periodAll")],
+          ] as const
+        ).map(([p, label]) => (
+          <Link
+            key={p}
+            href={buildOrdersQuery({ ...baseQuery, period: p, page: undefined })}
+            className={resolvedPeriod === p ? "ui-chip-on" : "ui-chip"}
+          >
+            {label}
           </Link>
-        ) : null}
+        ))}
       </div>
-      <SalesNav current="orders" />
-      <form className="flex flex-wrap gap-2">
-        <input
-          name="q"
-          defaultValue={q ?? ""}
-          placeholder="Номер или клиент"
-          className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
-        />
-        <select name="status" defaultValue={status ?? ""} className="rounded-lg border border-slate-200 px-3 py-2 text-sm">
-          <option value="">Все статусы</option>
-          {statuses.map((s) => (
-            <option key={s.id} value={s.code}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-        <button className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">Найти</button>
+
+      <form className="ui-card flex flex-wrap items-end gap-2 p-3" data-tour="orders-search">
+        <input type="hidden" name="period" value={resolvedPeriod === "custom" ? "custom" : resolvedPeriod} />
+        <label className="min-w-[8rem] flex-1 text-sm">
+          <span className="ui-label">{t("orders.searchPh")}</span>
+          <input
+            name="q"
+            defaultValue={q ?? ""}
+            placeholder={t("orders.searchPh")}
+            className="ui-input mt-1 w-full"
+          />
+        </label>
+        <label className="text-sm">
+          <span className="ui-label">{t("common.status")}</span>
+          <select name="status" defaultValue={status ?? ""} className="ui-input mt-1 min-w-[10rem]">
+            <option value="">{t("orders.allStatuses")}</option>
+            {statuses.map((s) => (
+              <option key={s.id} value={s.code}>
+                {n("ostatus", s.code, s.name)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-sm">
+          <span className="ui-label">{t("orders.dateFrom")}</span>
+          <input type="date" name="from" defaultValue={fromRaw ?? ""} className="ui-input mt-1" />
+        </label>
+        <label className="text-sm">
+          <span className="ui-label">{t("orders.dateTo")}</span>
+          <input type="date" name="to" defaultValue={toRaw ?? ""} className="ui-input mt-1" />
+        </label>
+        <button type="submit" name="period" value="custom" className="ui-btn-secondary">
+          {t("common.search")}
+        </button>
       </form>
-      <section className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs text-slate-500">
-            <tr>
-              <th className="px-4 py-2">№</th>
-              <th className="px-4 py-2">Клиент</th>
-              <th className="px-4 py-2">Статус</th>
-              <th className="px-4 py-2">Оплата</th>
-              <th className="px-4 py-2">Сумма</th>
-              <th className="px-4 py-2">Долг</th>
-              <th className="px-4 py-2">Срок</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {orders.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-8 text-slate-500">
-                  Заказов нет.
-                </td>
-              </tr>
-            ) : (
-              orders.map((o) => {
+
+      <div className="grid gap-2 sm:grid-cols-3">
+        <KpiCard label={t("orders.found")} value={String(total)} hint={periodLabel} tone="ink" />
+        <KpiCard label={t("orders.totalSum")} value={`${moneyDisplay(totalSum)} с`} hint={periodLabel} tone="in" />
+        <KpiCard
+          label={t("orders.pageOf")}
+          value={`${page} / ${totalPages}`}
+          hint={t("orders.perPage", { n: String(ORDERS_PAGE_SIZE) })}
+          tone="ink"
+        />
+      </div>
+
+      <section className="overflow-hidden ui-card" data-tour="orders-list">
+        {orders.length === 0 ? (
+          <DataListEmpty>{t("orders.empty")}</DataListEmpty>
+        ) : (
+          <DataList layout="colsOrders">
+            <DataListHead layout="colsOrders">
+              <DataListHeadCell>{t("home.col.order")}</DataListHeadCell>
+              <DataListHeadCell>{t("home.col.customer")}</DataListHeadCell>
+              <DataListHeadCell align="right">{t("home.col.amount")}</DataListHeadCell>
+              <DataListHeadCell align="right">{t("home.col.status")}</DataListHeadCell>
+            </DataListHead>
+            <ul className={dataListStyles.rows}>
+              {orders.map((o) => {
                 const debt = D(String(o.total)).sub(o.paidAmount);
-                const overdue = o.dueAt && o.dueAt < new Date() && o.status.code !== "COMPLETED" && o.status.code !== "CANCELLED";
                 return (
-                  <tr key={o.id} className={overdue ? "bg-amber-50" : undefined}>
-                    <td className="px-4 py-2">
-                      <Link href={`/orders/${o.id}`} className="font-medium text-[var(--titan-dark)] hover:underline">
-                        #{o.number}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-2">{o.customer.name}</td>
-                    <td className="px-4 py-2">{o.status.name}</td>
-                    <td className="px-4 py-2">
-                      {PAYMENT_STATUS[o.paymentStatus as keyof typeof PAYMENT_STATUS] ?? o.paymentStatus}
-                    </td>
-                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(o.total)} с</td>
-                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(debt)} с</td>
-                    <td className="px-4 py-2 text-xs text-slate-500">
-                      {o.dueAt ? o.dueAt.toLocaleDateString("ru-RU") : "—"}
-                    </td>
-                  </tr>
+                  <DataListRow key={o.id} layout="colsOrders">
+                    <DataListPrimary
+                      title={orderNo(o.number)}
+                      subtitle={o.createdAt.toLocaleDateString(loc)}
+                      href={`/orders/${o.id}`}
+                    />
+                    <DataListPrimary
+                      title={o.customer.name}
+                      subtitle={
+                        debt.gt(0)
+                          ? `${t("common.debt")}: ${moneyDisplay(debt)} с · ${t(`pay.${o.paymentStatus}`)}`
+                          : t(`pay.${o.paymentStatus}`)
+                      }
+                      href={`/crm/customers/${o.customerId}`}
+                    />
+                    <DataListMetric label={t("home.col.amount")} value={`${moneyDisplay(o.total)} с`} />
+                    <DataListCell label={t("home.col.status")} align="right">
+                      <StatusBadge
+                        label={n("ostatus", o.status.code, o.status.name)}
+                        tone={orderTone(o.status.code)}
+                      />
+                    </DataListCell>
+                  </DataListRow>
                 );
-              })
+              })}
+            </ul>
+          </DataList>
+        )}
+
+        {totalPages > 1 ? (
+          <div className="flex items-center justify-between gap-2 border-t border-[var(--border-soft)] px-3 py-2">
+            {page > 1 ? (
+              <Link
+                href={buildOrdersQuery({ ...baseQuery, page: String(page - 1) })}
+                className="ui-btn-secondary"
+              >
+                ← {t("common.back")}
+              </Link>
+            ) : (
+              <span />
             )}
-          </tbody>
-        </table>
+            <span className="text-[12px] text-[var(--muted)]">
+              {page} / {totalPages}
+            </span>
+            {page < totalPages ? (
+              <Link
+                href={buildOrdersQuery({ ...baseQuery, page: String(page + 1) })}
+                className="ui-btn-secondary"
+              >
+                {t("common.next")} →
+              </Link>
+            ) : (
+              <span />
+            )}
+          </div>
+        ) : null}
       </section>
     </div>
   );
