@@ -4,6 +4,8 @@ import { AppShell } from "@/components/app-shell";
 import { getTranslator } from "@/lib/locale";
 import { getShellData } from "@/lib/shell-data";
 
+export const dynamic = "force-dynamic";
+
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
   if (!session?.user) {

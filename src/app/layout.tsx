@@ -11,6 +11,8 @@ const inter = Inter({
   variable: "--font-sans",
 });
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getTranslator();
   return {
