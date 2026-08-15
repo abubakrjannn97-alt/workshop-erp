@@ -1,12 +1,19 @@
+"use client";
+
+import { useId, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { closeBatch } from "@/app/actions/production";
 import { qtyDisplay } from "@/lib/decimal";
-import { IdempotencyField } from "@/components/idempotency-field";
-import { PendingButton } from "@/components/pending-button";
+import type { Locale } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
+import { formDataToRecord } from "@/lib/offline/form";
+import { enqueueAction } from "@/lib/offline/sync";
+import { notifyOfflineQueueChanged } from "@/components/offline-sync";
 import { FormField } from "@/components/form-field";
 
 type BatchLine = {
   materialId: string;
-  plannedQty: { toString(): string };
+  plannedQty: string;
   material: { name: string; storageUnit: { symbol: string } };
 };
 
@@ -15,18 +22,64 @@ export function CloseBatchForm({
   plannedQty,
   materials,
   unit,
-  t,
+  locale,
 }: {
   batchId: string;
-  plannedQty: { toString(): string };
+  plannedQty: string;
   materials: BatchLine[];
   unit: string;
-  t: (k: string) => string;
+  locale: Locale;
 }) {
+  const t = (key: string) => translate(locale, key);
+  const router = useRouter();
+  const reactId = useId();
+  const [idempotencyKey] = useState(
+    () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`,
+  );
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setMessage(null);
+    setError(null);
+
+    const formData = new FormData(event.currentTarget);
+    formData.set("idempotencyKey", `close-${batchId}-${idempotencyKey}`);
+
+    if (!navigator.onLine) {
+      startTransition(async () => {
+        try {
+          await enqueueAction({
+            id: `close-${batchId}-${idempotencyKey}`,
+            type: "production.closeBatch",
+            payload: formDataToRecord(formData),
+            label: t("prod.closeBatch"),
+          });
+          notifyOfflineQueueChanged();
+          setMessage(t("offline.queued"));
+        } catch {
+          setError(t("offline.queueFailed"));
+        }
+      });
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await closeBatch(formData);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setMessage(t("offline.saved"));
+      router.refresh();
+    });
+  }
+
   return (
-    <form action={closeBatch} className="mt-3 space-y-3">
+    <form onSubmit={handleSubmit} className="mt-3 space-y-3">
       <input type="hidden" name="batchId" value={batchId} />
-      <IdempotencyField prefix={`close-${batchId}`} />
       <p className="text-sm text-[var(--text-muted)]">{t("me.closeHint")}</p>
       <FormField label={`${t("prod.actualGood")} (${unit})`}>
         <input
@@ -51,9 +104,11 @@ export function CloseBatchForm({
           value={qtyDisplay(line.plannedQty)}
         />
       ))}
-      <PendingButton className="ui-btn-primary w-full" pendingLabel={t("common.sending")}>
-        {t("prod.closeBatch")}
-      </PendingButton>
+      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {message ? <p className="text-sm text-[var(--color-gold-dark,#8B6914)]">{message}</p> : null}
+      <button type="submit" disabled={pending} className="ui-btn-primary w-full" aria-busy={pending}>
+        {pending ? t("common.sending") : t("prod.closeBatch")}
+      </button>
     </form>
   );
 }

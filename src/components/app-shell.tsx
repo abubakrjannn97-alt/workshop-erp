@@ -10,6 +10,7 @@ import { NotificationBell } from "@/components/notification-bell";
 import { HeaderSearch } from "@/components/header-search";
 import { WorkshopMark } from "@/components/workshop-mark";
 import { NotificationWatch } from "@/components/notification-watch";
+import { OfflineSync } from "@/components/offline-sync";
 import { ChevronDown } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
 
@@ -140,6 +141,7 @@ export function AppShell({
         </main>
       </div>
       <BottomNav permissions={permissions} roleCode={roleCode} locale={locale} />
+      <OfflineSync locale={locale} />
       <NotificationWatch locale={locale} />
       <HelpGuide locale={locale} />
     </div>

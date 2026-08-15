@@ -14,6 +14,7 @@ export type MeJobsSnapshot = {
   updatedAt: string;
   current: {
     batchId: string;
+    productionOrderId: string;
     productName: string;
     customerName: string;
     plannedQty: string;

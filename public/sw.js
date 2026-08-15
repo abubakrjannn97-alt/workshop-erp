@@ -1,4 +1,4 @@
-const CACHE = "workshop-shell-v5";
+const CACHE = "workshop-shell-v6";
 const OFFLINE_URL = "/offline.html";
 const PRECACHE = [
   OFFLINE_URL,
@@ -37,8 +37,14 @@ self.addEventListener("fetch", (event) => {
 
   if (isNavigation(req)) {
     event.respondWith(
-      fetch(req, { cache: "no-store" })
-        .then((res) => res)
+      fetch(req)
+        .then((res) => {
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((cache) => cache.put(req, copy));
+          }
+          return res;
+        })
         .catch(async () => {
           const cached = await caches.match(req);
           if (cached) return cached;
