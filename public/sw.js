@@ -1,4 +1,4 @@
-const CACHE = "workshop-shell-v9";
+const CACHE = "workshop-shell-v10";
 const OFFLINE_URL = "/offline.html";
 const PRECACHE = [
   OFFLINE_URL,
@@ -36,6 +36,10 @@ self.addEventListener("fetch", (event) => {
   if (url.pathname.startsWith("/api/")) return;
 
   if (isNavigation(req)) {
+    if (url.pathname.startsWith("/login")) {
+      event.respondWith(fetch(req));
+      return;
+    }
     event.respondWith(
       fetch(req)
         .then((res) => {

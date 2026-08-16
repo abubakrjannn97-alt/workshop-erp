@@ -7,8 +7,6 @@ import { loginAction } from "@/app/actions/auth";
 import { createT, type Locale } from "@/lib/i18n";
 import styles from "./login-form.module.css";
 
-export type LoginMode = "employee" | "admin";
-
 function SubmitButton({ t, labelKey }: { t: (k: string) => string; labelKey: string }) {
   const { pending } = useFormStatus();
   return (
@@ -18,7 +16,7 @@ function SubmitButton({ t, labelKey }: { t: (k: string) => string; labelKey: str
   );
 }
 
-export function LoginForm({ locale, mode }: { locale: Locale; mode: LoginMode }) {
+export function OwnerLoginForm({ locale }: { locale: Locale }) {
   const t = createT(locale);
   const [state, action] = useActionState(loginAction, undefined);
 
@@ -26,86 +24,92 @@ export function LoginForm({ locale, mode }: { locale: Locale; mode: LoginMode })
     <div className={styles.loginCard}>
       <div className="mb-4 h-px w-8 bg-[var(--line)]" />
       <h1 className="page-title">{t("login.title")}</h1>
-      <p className="mt-1 text-sm text-[var(--muted)]">{t("login.subtitle")}</p>
-
-      <nav className={styles.tabs} aria-label={t("login.title")}>
-        <Link
-          href="/login?mode=admin"
-          replace
-          scroll={false}
-          className={mode === "admin" ? styles.tabActive : styles.tab}
-          aria-current={mode === "admin" ? "page" : undefined}
-        >
-          {t("login.modeAdmin")}
-        </Link>
-        <Link
-          href="/login?mode=employee"
-          replace
-          scroll={false}
-          className={mode === "employee" ? styles.tabActive : styles.tab}
-          aria-current={mode === "employee" ? "page" : undefined}
-        >
-          {t("login.modeEmployee")}
-        </Link>
-      </nav>
+      <p className="mt-1 text-sm text-[var(--muted)]">{t("login.subtitleOwner")}</p>
 
       <form action={action} className={styles.form}>
-        <input type="hidden" name="loginMode" value={mode} />
+        <input type="hidden" name="loginMode" value="admin" />
 
-        {mode === "employee" ? (
-          <>
-            <label className="ui-label">{t("login.phone")}</label>
-            <input
-              name="phone"
-              type="tel"
-              required
-              autoComplete="tel"
-              inputMode="tel"
-              placeholder="+992 90 123 4567"
-              className="ui-input"
-            />
+        <label className="ui-label">{t("login.email")}</label>
+        <input
+          name="email"
+          type="email"
+          required
+          autoComplete="username"
+          placeholder="owner@workshop.local"
+          className="ui-input"
+        />
 
-            <label className="ui-label mt-3">{t("login.pin")}</label>
-            <input
-              name="pin"
-              type="password"
-              required
-              autoComplete="one-time-code"
-              inputMode="numeric"
-              pattern="\d{4,6}"
-              maxLength={6}
-              placeholder="••••"
-              className="ui-input font-mono tracking-widest"
-            />
-            <p className={styles.hint}>{t("login.pinHint")}</p>
-          </>
-        ) : (
-          <>
-            <label className="ui-label">{t("login.email")}</label>
-            <input
-              name="email"
-              type="email"
-              required
-              autoComplete="username"
-              placeholder="owner@workshop.local"
-              className="ui-input"
-            />
-
-            <label className="ui-label mt-3">{t("login.password")}</label>
-            <input
-              name="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              className="ui-input"
-            />
-          </>
-        )}
+        <label className="ui-label mt-3">{t("login.password")}</label>
+        <input
+          name="password"
+          type="password"
+          required
+          autoComplete="current-password"
+          className="ui-input"
+        />
 
         {state?.error ? <p className={styles.error}>{state.error}</p> : null}
 
         <SubmitButton t={t} labelKey="login.submit" />
       </form>
+
+      <p className="mt-4 text-center text-sm">
+        <Link href="/login/staff" className="font-medium text-[var(--titan-dark)] underline-offset-2 hover:underline">
+          {t("login.staffLink")}
+        </Link>
+      </p>
+    </div>
+  );
+}
+
+export function StaffLoginForm({ locale }: { locale: Locale }) {
+  const t = createT(locale);
+  const [state, action] = useActionState(loginAction, undefined);
+
+  return (
+    <div className={styles.loginCard}>
+      <div className="mb-4 h-px w-8 bg-[var(--line)]" />
+      <h1 className="page-title">{t("login.staffTitle")}</h1>
+      <p className="mt-1 text-sm text-[var(--muted)]">{t("login.subtitleStaff")}</p>
+
+      <form action={action} className={styles.form}>
+        <input type="hidden" name="loginMode" value="employee" />
+
+        <label className="ui-label">{t("login.phone")}</label>
+        <input
+          name="phone"
+          type="tel"
+          required
+          autoComplete="tel"
+          inputMode="tel"
+          placeholder="+992 90 123 4567"
+          className="ui-input"
+        />
+
+        <label className="ui-label mt-3">{t("login.pin")}</label>
+        <input
+          name="pin"
+          type="password"
+          required
+          autoComplete="one-time-code"
+          inputMode="numeric"
+          pattern="\d{4,6}"
+          maxLength={6}
+          placeholder="••••"
+          className="ui-input font-mono tracking-widest"
+        />
+        <p className={styles.hint}>{t("login.pinHint")}</p>
+
+        {state?.error ? <p className={styles.error}>{state.error}</p> : null}
+
+        <SubmitButton t={t} labelKey="login.submit" />
+      </form>
+
+      <p className="mt-4 text-center text-sm">
+        <Link href="/login" className="font-medium text-[var(--titan-dark)] underline-offset-2 hover:underline">
+          {t("login.ownerLink")}
+        </Link>
+      </p>
     </div>
   );
 }

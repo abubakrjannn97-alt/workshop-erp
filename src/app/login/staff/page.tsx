@@ -1,15 +1,12 @@
-import { OwnerLoginForm } from "./login-form";
-import { DevRolePicker } from "./dev-role-picker";
-import { getDemoUsersForLogin } from "@/lib/demo-users";
+import { StaffLoginForm } from "../login-form";
 import { getLocale } from "@/lib/locale";
 import { WorkshopMark } from "@/components/workshop-mark";
 import { LanguageSwitcher } from "@/components/language-switcher";
 
 export const dynamic = "force-dynamic";
 
-export default async function LoginPage() {
+export default async function StaffLoginPage() {
   const locale = await getLocale();
-  const demoUsers = getDemoUsersForLogin();
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0B0E1A] px-4">
@@ -30,8 +27,7 @@ export default async function LoginPage() {
             Produsion System
           </p>
         </div>
-        <OwnerLoginForm locale={locale} />
-        <DevRolePicker locale={locale} users={demoUsers} />
+        <StaffLoginForm locale={locale} />
       </div>
     </div>
   );
