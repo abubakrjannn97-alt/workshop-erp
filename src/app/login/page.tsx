@@ -7,9 +7,16 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 
 export const dynamic = "force-dynamic";
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ mode?: string }>;
+}) {
   const locale = await getLocale();
   const demoUsers = getDemoUsersForLogin();
+  const { mode: modeParam } = await searchParams;
+  const mode = modeParam === "employee" ? "employee" : "admin";
+
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0B0E1A] px-4">
       <div
@@ -29,7 +36,7 @@ export default async function LoginPage() {
             Produsion System
           </p>
         </div>
-        <LoginForm locale={locale} />
+        <LoginForm locale={locale} mode={mode} />
         <DevRolePicker locale={locale} users={demoUsers} />
       </div>
     </div>

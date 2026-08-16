@@ -1,9 +1,13 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import Link from "next/link";
+import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { loginAction } from "@/app/actions/auth";
 import { createT, type Locale } from "@/lib/i18n";
+import styles from "./login-form.module.css";
+
+export type LoginMode = "employee" | "admin";
 
 function SubmitButton({ t, labelKey }: { t: (k: string) => string; labelKey: string }) {
   const { pending } = useFormStatus();
@@ -14,45 +18,38 @@ function SubmitButton({ t, labelKey }: { t: (k: string) => string; labelKey: str
   );
 }
 
-type LoginMode = "employee" | "admin";
-
-export function LoginForm({ locale }: { locale: Locale }) {
+export function LoginForm({ locale, mode }: { locale: Locale; mode: LoginMode }) {
   const t = createT(locale);
-  const [mode, setMode] = useState<LoginMode>("employee");
   const [state, action] = useActionState(loginAction, undefined);
 
   return (
-    <div className="ui-card-solid w-full max-w-sm p-6">
+    <div className={styles.loginCard}>
       <div className="mb-4 h-px w-8 bg-[var(--line)]" />
       <h1 className="page-title">{t("login.title")}</h1>
       <p className="mt-1 text-sm text-[var(--muted)]">{t("login.subtitle")}</p>
 
-      <div className="mt-5 flex rounded-lg bg-[var(--surface-muted)] p-1">
-        <button
-          type="button"
-          onClick={() => setMode("employee")}
-          className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
-            mode === "employee"
-              ? "bg-white text-[var(--titan-dark)] shadow-sm"
-              : "text-[var(--muted)]"
-          }`}
-        >
-          {t("login.modeEmployee")}
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode("admin")}
-          className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
-            mode === "admin"
-              ? "bg-white text-[var(--titan-dark)] shadow-sm"
-              : "text-[var(--muted)]"
-          }`}
+      <nav className={styles.tabs} aria-label={t("login.title")}>
+        <Link
+          href="/login?mode=admin"
+          replace
+          scroll={false}
+          className={mode === "admin" ? styles.tabActive : styles.tab}
+          aria-current={mode === "admin" ? "page" : undefined}
         >
           {t("login.modeAdmin")}
-        </button>
-      </div>
+        </Link>
+        <Link
+          href="/login?mode=employee"
+          replace
+          scroll={false}
+          className={mode === "employee" ? styles.tabActive : styles.tab}
+          aria-current={mode === "employee" ? "page" : undefined}
+        >
+          {t("login.modeEmployee")}
+        </Link>
+      </nav>
 
-      <form action={action} className="mt-4">
+      <form action={action} className={styles.form}>
         <input type="hidden" name="loginMode" value={mode} />
 
         {mode === "employee" ? (
@@ -80,12 +77,19 @@ export function LoginForm({ locale }: { locale: Locale }) {
               placeholder="••••"
               className="ui-input font-mono tracking-widest"
             />
-            <p className="mt-1 text-xs text-[var(--muted)]">{t("login.pinHint")}</p>
+            <p className={styles.hint}>{t("login.pinHint")}</p>
           </>
         ) : (
           <>
             <label className="ui-label">{t("login.email")}</label>
-            <input name="email" type="email" required autoComplete="username" className="ui-input" />
+            <input
+              name="email"
+              type="email"
+              required
+              autoComplete="username"
+              placeholder="owner@workshop.local"
+              className="ui-input"
+            />
 
             <label className="ui-label mt-3">{t("login.password")}</label>
             <input
@@ -98,7 +102,7 @@ export function LoginForm({ locale }: { locale: Locale }) {
           </>
         )}
 
-        {state?.error ? <p className="mt-3 text-sm text-[var(--danger)]">{state.error}</p> : null}
+        {state?.error ? <p className={styles.error}>{state.error}</p> : null}
 
         <SubmitButton t={t} labelKey="login.submit" />
       </form>
