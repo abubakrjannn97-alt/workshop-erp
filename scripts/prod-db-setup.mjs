@@ -9,4 +9,5 @@ function run(label, cmd, args) {
 }
 
 run("Migrate", "npx", ["prisma", "migrate", "deploy"]);
+run("Seed core catalog", "npx", ["tsx", "prisma/seed-core.ts"]);
 run("Seed demo history", "npx", ["tsx", "prisma/seed-demo.ts"]);

@@ -11,6 +11,7 @@
     "db:up": "powershell -File scripts/start-postgres.ps1",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed:core": "tsx prisma/seed-core.ts",
     "db:seed:demo": "tsx prisma/seed-demo.ts",
     "db:reset": "prisma migrate reset --force",
     "db:backup": "powershell -File scripts/backup-postgres.ps1",

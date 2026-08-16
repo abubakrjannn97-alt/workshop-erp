@@ -63,9 +63,16 @@ export async function createEmployee(
       return { error: "Выберите хотя бы одно право доступа." };
     }
 
-    const role = await prisma.role.findUnique({ where: { code: "employee" } });
+    let role = await prisma.role.findUnique({ where: { code: "employee" } });
     if (!role) {
-      return { error: "Роль сотрудника не настроена. Запустите db:seed." };
+      role = await prisma.role.create({
+        data: {
+          code: "employee",
+          name: "Employee",
+          description: "Сотрудник с индивидуальными правами",
+          isSystem: true,
+        },
+      });
     }
 
     const phoneTaken = await prisma.user.findFirst({
