@@ -11,10 +11,8 @@ import { HeaderSearch } from "@/components/header-search";
 import { WorkshopMark } from "@/components/workshop-mark";
 import { NotificationWatch } from "@/components/notification-watch";
 import { OfflineSync } from "@/components/offline-sync";
-import { LogoutButton } from "@/components/logout-button";
 import { ChevronDown } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
-import { createT } from "@/lib/i18n";
 
 type Props = {
   companyName: string;
@@ -43,7 +41,6 @@ export function AppShell({
 }: Props) {
   const path = usePathname();
   const isHome = path === "/";
-  const t = createT(locale);
   const initials = userName
     .split(/\s+/)
     .filter(Boolean)
@@ -72,7 +69,7 @@ export function AppShell({
           aria-hidden
           className="pointer-events-none absolute inset-0 z-0 lg:hidden"
           style={{
-            background: "linear-gradient(180deg, #0B0E1A 0%, #16130F 180px, #F3F4F7 380px, #FFFFFF 100%)",
+            background: "linear-gradient(180deg, #0B0E1A 0%, #0B0E1A 320px, #16130F 400px, #F3F4F7 520px, #FFFFFF 100%)",
           }}
         />
         <div className="relative z-20 print:hidden lg:hidden">
@@ -102,7 +99,6 @@ export function AppShell({
               {mobileShiftBar}
               <LanguageSwitcher locale={locale} variant="dark" />
               <NotificationBell unread={unread} locale={locale} variant="dark" />
-              <LogoutButton label={t("nav.logout")} variant="icon" />
             </div>
           </header>
         </div>

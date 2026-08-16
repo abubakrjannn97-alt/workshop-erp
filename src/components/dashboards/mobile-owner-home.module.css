@@ -66,31 +66,26 @@
 
 .card {
   position: relative;
-  isolation: isolate;
   margin: 0 20px;
-  padding: 12px 13px 10px;
-  overflow: visible;
   border-radius: 20px;
-  background:
-    linear-gradient(125deg, rgba(255, 248, 230, 0.09) 0%, rgba(255, 255, 255, 0.02) 28%, transparent 46%),
-    linear-gradient(165deg, #4a4034 0%, #2a241c 38%, #161310 72%, #0f0d0b 100%);
+  background: #12100e;
   border: 1px solid rgba(232, 201, 120, 0.38);
   box-shadow:
     inset 0 1px 0 rgba(255, 244, 214, 0.2),
     inset 0 -18px 28px rgba(0, 0, 0, 0.28),
     0 14px 36px rgba(12, 10, 8, 0.32);
-  backdrop-filter: blur(20px) saturate(1.25);
-  -webkit-backdrop-filter: blur(20px) saturate(1.25);
 }
 
-.card::after {
-  content: "";
+.cardFx {
   position: absolute;
   inset: 0;
   z-index: 0;
   border-radius: inherit;
   overflow: hidden;
+  pointer-events: none;
   background:
+    linear-gradient(125deg, rgba(255, 248, 230, 0.09) 0%, rgba(255, 255, 255, 0.02) 28%, transparent 46%),
+    linear-gradient(165deg, #4a4034 0%, #2a241c 38%, #161310 72%, #0f0d0b 100%),
     linear-gradient(
       112deg,
       transparent 36%,
@@ -100,12 +95,12 @@
     ),
     radial-gradient(120% 80% at 100% 0%, rgba(245, 166, 35, 0.11), transparent 46%),
     radial-gradient(90% 60% at 0% 100%, rgba(255, 255, 255, 0.04), transparent 50%);
-  pointer-events: none;
 }
 
 .cardInner {
   position: relative;
   z-index: 1;
+  padding: 12px 13px 10px;
 }
 
 .cardTop {
@@ -357,12 +352,10 @@
   padding: 12px 8px 10px;
   border-radius: 18px;
   border: 1px solid rgba(232, 201, 120, 0.22);
-  background: rgba(11, 14, 26, 0.62);
+  background: rgba(11, 14, 26, 0.88);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.07),
     0 10px 28px rgba(8, 10, 16, 0.22);
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
 }
 
 .shortcuts {

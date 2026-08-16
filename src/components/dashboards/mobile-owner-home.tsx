@@ -393,6 +393,7 @@ export async function MobileOwnerHome({ financePeriod }: { financePeriod?: strin
       </div>
 
       <div className={styles.card} data-tour="home-income">
+        <div className={styles.cardFx} aria-hidden />
         <div className={styles.cardInner}>
           <div className={styles.cardTop}>
             <p className={styles.cardTitle}>
