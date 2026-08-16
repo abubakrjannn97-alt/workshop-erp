@@ -15,13 +15,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 0;
-  overflow: visible;
+  overflow: hidden;
   border-radius: 999px;
   padding: 6px 14px;
   border: 1px solid rgba(232, 201, 120, 0.34);
-  background:
-    linear-gradient(125deg, rgba(255, 248, 230, 0.18) 0%, rgba(255, 255, 255, 0.05) 32%, transparent 50%),
-    linear-gradient(165deg, rgba(74, 64, 52, 0.9) 0%, rgba(42, 36, 28, 0.93) 42%, rgba(22, 19, 16, 0.95) 100%);
+  background: linear-gradient(165deg, rgba(74, 64, 52, 0.9) 0%, rgba(42, 36, 28, 0.93) 42%, rgba(22, 19, 16, 0.95) 100%);
   box-shadow:
     inset 0 1px 0 rgba(255, 244, 214, 0.32),
     inset 0 -12px 24px rgba(0, 0, 0, 0.22),

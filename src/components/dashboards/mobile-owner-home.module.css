@@ -83,28 +83,21 @@
   -webkit-backdrop-filter: blur(20px) saturate(1.25);
 }
 
-.card::before {
-  content: "";
-  position: absolute;
-  inset: -30% -10%;
-  z-index: 0;
-  background: linear-gradient(
-    112deg,
-    transparent 36%,
-    rgba(255, 255, 255, 0.1) 47%,
-    rgba(255, 236, 190, 0.04) 52%,
-    transparent 62%
-  );
-  transform: rotate(7deg);
-  pointer-events: none;
-}
-
 .card::after {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
+  border-radius: inherit;
+  overflow: hidden;
   background:
+    linear-gradient(
+      112deg,
+      transparent 36%,
+      rgba(255, 255, 255, 0.1) 47%,
+      rgba(255, 236, 190, 0.04) 52%,
+      transparent 62%
+    ),
     radial-gradient(120% 80% at 100% 0%, rgba(245, 166, 35, 0.11), transparent 46%),
     radial-gradient(90% 60% at 0% 100%, rgba(255, 255, 255, 0.04), transparent 50%);
   pointer-events: none;
