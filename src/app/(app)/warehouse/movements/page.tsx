@@ -4,7 +4,7 @@ import { requirePermission } from "@/lib/authz";
 import { WarehouseNav } from "@/components/warehouse-nav";
 import { moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { reverseStockMovement } from "@/app/actions/inventory";
-import { randomUUID } from "crypto";
+import { IdempotencyField } from "@/components/idempotency-field";
 import { PageHeader } from "@/components/page-header";
 
 function moveType(t: (k: string) => string, code: string) {
@@ -73,7 +73,7 @@ export default async function MovementsPage() {
                   {canAdjust && !m.reversedBy && m.type !== "REVERSAL" ? (
                     <form action={reverseStockMovement}>
                       <input type="hidden" name="id" value={m.id} />
-                      <input type="hidden" name="idempotencyKey" value={randomUUID()} />
+                      <IdempotencyField prefix={`rev-${m.id}`} />
                       <button className="text-xs text-[var(--danger)]">{t("wh.revBtn")}</button>
                     </form>
                   ) : m.reversedBy ? (

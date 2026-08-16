@@ -7,7 +7,7 @@ import { UiTable } from "@/components/ui-table";
 import { moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { D } from "@/lib/decimal";
 import { receiveOpening } from "@/app/actions/inventory";
-import { randomUUID } from "crypto";
+import { IdempotencyField } from "@/components/idempotency-field";
 import { getFgWarehouse } from "@/lib/warehouses";
 
 export default async function FinishedWarehousePage() {
@@ -81,7 +81,7 @@ export default async function FinishedWarehousePage() {
       {canReceive ? (
         <form action={receiveOpening} className="grid gap-2 ui-card sm:grid-cols-5">
           <input type="hidden" name="warehouseId" value={fg.id} />
-          <input type="hidden" name="idempotencyKey" value={randomUUID()} />
+          <IdempotencyField prefix="fg-receive" />
           <select name="productId" className="ui-input">
             {products.map((p) => (
               <option key={p.id} value={p.id}>

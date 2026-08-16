@@ -7,6 +7,12 @@ import { authConfig } from "@/auth.config";
 import { bypassOwnerSession, isAuthBypass } from "@/lib/dev-auth";
 import { resolveUserPermissions } from "@/lib/permissions";
 import { isValidPhone, normalizePhone } from "@/lib/phone";
+import {
+  assertLoginAllowed,
+  recordLoginFailure,
+  recordLoginSuccess,
+} from "@/lib/login-guard";
+import { takeLoginRequestIp } from "@/lib/login-context";
 
 const userInclude = {
   role: {
@@ -51,22 +57,32 @@ const nextAuth = NextAuth({
         pin: { label: "PIN", type: "password" },
       },
       async authorize(credentials) {
+        const ip = takeLoginRequestIp();
         const phoneRaw = String(credentials?.phone ?? "").trim();
         const pin = String(credentials?.pin ?? "").trim();
 
         if (phoneRaw && pin) {
           if (!isValidPhone(phoneRaw)) return null;
           const phone = normalizePhone(phoneRaw);
+          const guard = assertLoginAllowed(ip, phone);
+          if (!guard.ok) return null;
 
           const user = await prisma.user.findFirst({
             where: { phone, archivedAt: null, isActive: true },
             include: userInclude,
           });
-          if (!user) return null;
+          if (!user) {
+            await recordLoginFailure(ip, phone);
+            return null;
+          }
 
           const valid = await bcrypt.compare(pin, user.passwordHash);
-          if (!valid) return null;
+          if (!valid) {
+            await recordLoginFailure(ip, phone);
+            return null;
+          }
 
+          recordLoginSuccess(phone);
           return loadAuthUser(user);
         }
 
@@ -76,16 +92,26 @@ const nextAuth = NextAuth({
         const password = String(credentials?.password ?? "");
         if (!email || !password) return null;
 
+        const guard = assertLoginAllowed(ip, email);
+        if (!guard.ok) return null;
+
         const user = await prisma.user.findUnique({
           where: { email },
           include: userInclude,
         });
 
-        if (!user || user.archivedAt || !user.isActive) return null;
+        if (!user || user.archivedAt || !user.isActive) {
+          await recordLoginFailure(ip, email);
+          return null;
+        }
 
         const valid = await bcrypt.compare(password, user.passwordHash);
-        if (!valid) return null;
+        if (!valid) {
+          await recordLoginFailure(ip, email);
+          return null;
+        }
 
+        recordLoginSuccess(email);
         return loadAuthUser(user);
       },
     }),

@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { D, money, qty } from "@/lib/decimal";
 import { assertPeriodOpen } from "@/lib/control";
@@ -30,6 +30,26 @@ export function available(onHand: { toString(): string }, reserved: { toString()
 async function existingByKey(tx: Tx, idempotencyKey?: string | null) {
   if (!idempotencyKey) return null;
   return tx.stockMovement.findUnique({ where: { idempotencyKey } });
+}
+
+async function createMovementIdempotent(
+  tx: Tx,
+  data: Prisma.StockMovementUncheckedCreateInput | { data: Prisma.StockMovementUncheckedCreateInput },
+) {
+  const payload = "data" in data ? data.data : data;
+  try {
+    return await tx.stockMovement.create({ data: payload });
+  } catch (e) {
+    if (
+      payload.idempotencyKey &&
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2002"
+    ) {
+      const existing = await existingByKey(tx, payload.idempotencyKey);
+      if (existing) return existing;
+    }
+    throw e;
+  }
 }
 
 export async function getOrCreateMaterialStock(tx: Tx, warehouseId: string, materialId: string) {
@@ -123,7 +143,7 @@ export async function receiveMaterial(
       },
     });
 
-    return tx.stockMovement.create({
+    return createMovementIdempotent(tx, {
       data: {
         warehouseId: input.warehouseId,
         stockItemId: item.id,
@@ -173,7 +193,7 @@ export async function receiveProduct(
       where: { id: item.id },
       data: { qtyOnHand: qty(newQty), wacUnitCost: qty(newWac) },
     });
-    return tx.stockMovement.create({
+    return createMovementIdempotent(tx, {
       data: {
         warehouseId: input.warehouseId,
         stockItemId: item.id,
@@ -226,7 +246,7 @@ export async function reserveMaterial(
       where: { id: item.id },
       data: { qtyReserved: qty(n(item.qtyReserved).add(toReserve)) },
     });
-    const movement = await tx.stockMovement.create({
+    const movement = await createMovementIdempotent(tx, {
       data: {
         warehouseId: input.warehouseId,
         stockItemId: item.id,
@@ -273,7 +293,7 @@ export async function releaseMaterial(
       where: { id: item.id },
       data: { qtyReserved: qty(reserved.sub(out)) },
     });
-    return tx.stockMovement.create({
+    return createMovementIdempotent(tx, {
       data: {
         warehouseId: input.warehouseId,
         stockItemId: item.id,
@@ -333,7 +353,7 @@ export async function writeOffMaterial(
       data: { qtyOnHand: qty(newQty), qtyReserved: qty(reserved) },
     });
     await syncMaterialQty(tx, input.materialId, input.warehouseId);
-    return tx.stockMovement.create({
+    return createMovementIdempotent(tx, {
       data: {
         warehouseId: input.warehouseId,
         stockItemId: item.id,
@@ -382,7 +402,7 @@ export async function writeOffProduct(
       where: { id: item.id },
       data: { qtyOnHand: qty(n(item.qtyOnHand).sub(out)) },
     });
-    return tx.stockMovement.create({
+    return createMovementIdempotent(tx, {
       data: {
         warehouseId: input.warehouseId,
         stockItemId: item.id,
@@ -430,7 +450,7 @@ export async function adjustToActual(input: {
       data: { qtyOnHand: qty(actual), wacUnitCost: qty(newWac) },
     });
     await syncMaterialQty(tx, item.materialId, input.warehouseId);
-    return tx.stockMovement.create({
+    return createMovementIdempotent(tx, {
       data: {
         warehouseId: input.warehouseId,
         stockItemId: item.id,
@@ -473,7 +493,7 @@ export async function reverseMovement(movementId: string, userId: string, idempo
       data: { qtyOnHand: qty(newOnHand), qtyReserved: qty(newReserved) },
     });
     await syncMaterialQty(tx, item.materialId, original.warehouseId);
-    return tx.stockMovement.create({
+    return createMovementIdempotent(tx, {
       data: {
         warehouseId: original.warehouseId,
         stockItemId: item.id,

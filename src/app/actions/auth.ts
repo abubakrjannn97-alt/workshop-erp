@@ -4,13 +4,18 @@ import { AuthError } from "next-auth";
 import { headers } from "next/headers";
 import { signIn, signOut } from "@/auth";
 import { DEMO_PASSWORD, DEMO_USERS, isDemoUserEmail } from "@/lib/demo-users";
-import { rateLimit } from "@/lib/rate-limit";
+import { assertLoginAllowed } from "@/lib/login-guard";
+import { setLoginRequestIp } from "@/lib/login-context";
 import { isValidPhone, normalizePhone } from "@/lib/phone";
+
+function clientIp(h: Headers) {
+  return h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
+}
 
 export async function loginAction(_prev: { error?: string } | undefined, formData: FormData) {
   const mode = String(formData.get("loginMode") ?? "admin");
   const h = await headers();
-  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
+  const ip = clientIp(h);
 
   if (mode === "employee") {
     const phoneRaw = String(formData.get("phone") ?? "").trim();
@@ -27,11 +32,12 @@ export async function loginAction(_prev: { error?: string } | undefined, formDat
     }
 
     const phone = normalizePhone(phoneRaw);
-    const limited = rateLimit(`login:${ip}:${phone}`, 8, 10 * 60 * 1000);
-    if (!limited.ok) {
-      return { error: "Слишком много попыток входа. Подождите несколько минут." };
+    const guard = assertLoginAllowed(ip, phone);
+    if (!guard.ok) {
+      return { error: guard.error };
     }
 
+    setLoginRequestIp(ip);
     try {
       await signIn("credentials", {
         phone,
@@ -50,15 +56,16 @@ export async function loginAction(_prev: { error?: string } | undefined, formDat
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
 
-  const limited = rateLimit(`login:${ip}:${email}`, 8, 10 * 60 * 1000);
-  if (!limited.ok) {
-    return { error: "Слишком много попыток входа. Подождите несколько минут." };
-  }
-
   if (!email || !password) {
     return { error: "Укажите email и пароль." };
   }
 
+  const guard = assertLoginAllowed(ip, email);
+  if (!guard.ok) {
+    return { error: guard.error };
+  }
+
+  setLoginRequestIp(ip);
   try {
     await signIn("credentials", {
       email,
@@ -93,6 +100,7 @@ export async function devQuickLoginAction(email: string) {
 
   try {
     await signOut({ redirect: false });
+    setLoginRequestIp("dev-local");
     await signIn("credentials", {
       email: normalized,
       password,

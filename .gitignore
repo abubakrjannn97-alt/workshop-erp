@@ -49,3 +49,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local scratch / smoke artifacts
+temp-*.{html,json}
+smoke-*-report.json
+backup-verify-*.json

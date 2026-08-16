@@ -3,7 +3,7 @@
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { writeAudit } from "@/lib/audit";
@@ -392,17 +392,39 @@ export async function addPayment(formData: FormData) {
     return { error: "Нет доступа." };
   }
 
+  let paymentId: string | null = null;
+  let created = false;
   await prisma.$transaction(async (tx) => {
-    const payment = await tx.payment.create({
-      data: {
-        orderId,
-        amount: money(amount),
-        method,
-        comment: comment || null,
-        idempotencyKey: key,
-        createdById: session.user.id,
-      },
-    });
+    const dup = await tx.payment.findUnique({ where: { idempotencyKey: key } });
+    if (dup) {
+      paymentId = dup.id;
+      return;
+    }
+
+    let payment;
+    try {
+      payment = await tx.payment.create({
+        data: {
+          orderId,
+          amount: money(amount),
+          method,
+          comment: comment || null,
+          idempotencyKey: key,
+          createdById: session.user.id,
+        },
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+        const raced = await tx.payment.findUnique({ where: { idempotencyKey: key } });
+        if (raced) {
+          paymentId = raced.id;
+          return;
+        }
+      }
+      throw e;
+    }
+    paymentId = payment.id;
+    created = true;
     const payments = await tx.payment.findMany({ where: { orderId } });
     const paid = payments.reduce((s, p) => s.add(String(p.amount)), D(0));
     const hadRefund = payments.some((p) => p.reversesId);
@@ -445,6 +467,10 @@ export async function addPayment(formData: FormData) {
     });
   });
 
+  if (!created) {
+    return { ok: true, id: paymentId ?? undefined };
+  }
+
   await writeAudit({
     userId: session.user.id,
     action: "payment.create",
@@ -456,7 +482,7 @@ export async function addPayment(formData: FormData) {
   revalidatePath(`/orders/${orderId}`);
   revalidatePath("/sales");
   revalidatePath("/finance");
-  return { ok: true };
+  return { ok: true, id: paymentId ?? undefined };
 }
 
 export async function reversePayment(formData: FormData) {

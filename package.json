@@ -16,7 +16,8 @@
     "db:reset": "prisma migrate reset --force",
     "db:backup": "powershell -File scripts/backup-postgres.ps1",
     "db:restore": "powershell -File scripts/restore-postgres.ps1",
-    "test": "tsx --test tests/costing.test.ts tests/tz-rules.test.ts",
+    "test": "tsx --test tests/costing.test.ts tests/tz-rules.test.ts tests/nav.test.ts tests/env-guard.test.ts tests/login-guard.test.ts",
+    "test:integration": "tsx --test tests/integration/*.integration.test.ts",
     "smoke:tz76": "tsx scripts/smoke-tz76.ts",
     "smoke:http": "tsx scripts/smoke-http.ts",
     "db:backup-daily": "powershell -File scripts/register-daily-backup.ps1"

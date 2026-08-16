@@ -1,5 +1,8 @@
 import type { NextAuthConfig } from "next-auth";
 import type { PermissionCode } from "@/lib/permissions";
+import { isAuthBypassEnabled, assertSafeProductionEnv } from "@/lib/env-guard";
+
+assertSafeProductionEnv();
 
 export const authConfig = {
   trustHost: true,
@@ -13,8 +16,7 @@ export const authConfig = {
   providers: [],
   callbacks: {
     authorized({ auth, request }) {
-      // Локальный тест без логина (AUTH_BYPASS=1). В production не включать.
-      if (process.env.AUTH_BYPASS === "1") return true;
+      if (isAuthBypassEnabled()) return true;
       const isLoggedIn = Boolean(auth?.user);
       const { pathname } = request.nextUrl;
       if (pathname.startsWith("/login")) {
