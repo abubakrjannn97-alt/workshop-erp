@@ -1,4 +1,4 @@
-const CACHE = "workshop-shell-v6";
+const CACHE = "workshop-shell-v7";
 const OFFLINE_URL = "/offline.html";
 const PRECACHE = [
   OFFLINE_URL,
@@ -62,16 +62,15 @@ self.addEventListener("fetch", (event) => {
     url.pathname.endsWith(".webmanifest")
   ) {
     event.respondWith(
-      caches.match(req).then((cached) => {
-        const network = fetch(req).then((res) => {
+      fetch(req)
+        .then((res) => {
           if (res.ok) {
             const copy = res.clone();
             caches.open(CACHE).then((cache) => cache.put(req, copy));
           }
           return res;
-        });
-        return cached || network;
-      }),
+        })
+        .catch(() => caches.match(req)),
     );
   }
 });
