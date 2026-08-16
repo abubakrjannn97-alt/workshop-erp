@@ -1,8 +1,8 @@
 import { requireSession } from "@/lib/authz";
 import { getTranslator } from "@/lib/locale";
 import { PageHeader } from "@/components/page-header";
+import { LogoutButton } from "@/components/logout-button";
 import { LanguageSwitcher } from "@/components/language-switcher";
-import { logoutAction } from "@/app/actions/auth";
 import Link from "next/link";
 
 export default async function ProfilePage() {
@@ -30,9 +30,7 @@ export default async function ProfilePage() {
         <Link href="/help" className="block text-[var(--titan-dark)]">
           {t("nav.help")}
         </Link>
-        <form action={logoutAction} className="pt-2">
-          <button className="ui-btn-danger">{t("nav.logout")}</button>
-        </form>
+        <LogoutButton label={t("nav.logout")} className="pt-2" />
       </section>
     </div>
   );

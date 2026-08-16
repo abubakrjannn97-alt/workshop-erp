@@ -11,8 +11,10 @@ import { HeaderSearch } from "@/components/header-search";
 import { WorkshopMark } from "@/components/workshop-mark";
 import { NotificationWatch } from "@/components/notification-watch";
 import { OfflineSync } from "@/components/offline-sync";
+import { LogoutButton } from "@/components/logout-button";
 import { ChevronDown } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
+import { createT } from "@/lib/i18n";
 
 type Props = {
   companyName: string;
@@ -41,6 +43,7 @@ export function AppShell({
 }: Props) {
   const path = usePathname();
   const isHome = path === "/";
+  const t = createT(locale);
   const initials = userName
     .split(/\s+/)
     .filter(Boolean)
@@ -99,6 +102,7 @@ export function AppShell({
               {mobileShiftBar}
               <LanguageSwitcher locale={locale} variant="dark" />
               <NotificationBell unread={unread} locale={locale} variant="dark" />
+              <LogoutButton label={t("nav.logout")} variant="icon" />
             </div>
           </header>
         </div>

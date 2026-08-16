@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/authz";
 import { getTranslator } from "@/lib/locale";
 import { PageHeader } from "@/components/page-header";
+import { LogoutButton } from "@/components/logout-button";
 import { moreGroupsForRole } from "@/lib/nav";
 import { NavIconGlyph } from "@/components/bottom-nav";
 
@@ -37,6 +38,17 @@ export default async function MorePage() {
           </Link>
         ))}
       </div>
+
+      <section className="ui-card space-y-3 p-4">
+        <div>
+          <p className="text-sm font-semibold text-[#101828]">{session.user.name}</p>
+          <p className="text-xs text-[#667085]">{session.user.roleName}</p>
+        </div>
+        <Link href="/me/profile" className="block text-sm font-medium text-[var(--titan-dark)]">
+          {t("nav.profile")} →
+        </Link>
+        <LogoutButton label={t("nav.logout")} />
+      </section>
     </div>
   );
 }

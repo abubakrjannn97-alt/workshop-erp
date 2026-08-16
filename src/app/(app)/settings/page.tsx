@@ -5,6 +5,7 @@ import { DEFAULT_SETTINGS, SETTING_KEYS } from "@/lib/settings";
 import { renameLeadStage, renameOrderStatus, updateBusinessSettings } from "@/app/actions/settings";
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
+import { LogoutButton } from "@/components/logout-button";
 
 function asString(value: unknown, fallback: string) {
   return typeof value === "string" ? value : fallback;
@@ -123,6 +124,12 @@ export default async function SettingsPage() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="max-w-xl ui-card p-4">
+        <h2 className="text-sm font-semibold">{session.user.name}</h2>
+        <p className="mt-1 text-xs text-[var(--muted)]">{session.user.roleName}</p>
+        <LogoutButton label={t("nav.logout")} className="mt-4" />
       </section>
     </div>
   );
