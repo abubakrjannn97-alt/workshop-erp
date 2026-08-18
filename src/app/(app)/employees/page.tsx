@@ -10,6 +10,7 @@ import { RevealList } from "@/components/reveal-list";
 import { AddEmployeeForm } from "@/components/add-employee-form";
 import { EMPLOYEE_ASSIGNABLE, type PermissionCode } from "@core/rbac/permissions";
 import { formatPhoneDisplay } from "@core/shared/phone";
+import { DataTableSection, UiTable } from "@/components/data-table";
 
 export default async function EmployeesPage() {
   const { t, locale, n } = await getTranslator();
@@ -65,51 +66,62 @@ export default async function EmployeesPage() {
         />
       ) : null}
 
-      <section className="overflow-hidden ui-card" data-tour="emp-list">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-[var(--surface-muted)] text-xs text-[var(--muted)]">
-            <tr>
-              <th className="px-4 py-2">{t("emp.employee")}</th>
-              <th className="px-4 py-2">{t("emp.position")}</th>
-              <th className="px-4 py-2">{t("emp.scheme")}</th>
-              <th className="px-4 py-2">{t("emp.accrued")}</th>
-              <th className="px-4 py-2">{t("emp.paidOut")}</th>
-              <th className="px-4 py-2">{t("common.debt")}</th>
-            </tr>
-          </thead>
-          <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={5} className="divide-y divide-[var(--border)]">
-            {users.map((u) => {
-              const acc = D(String(accMap.get(u.id)?._sum.amount ?? 0));
-              const paid = D(String(payMap.get(u.id)?._sum.amount ?? 0));
-              return (
-                <tr key={u.id}>
-                  <td className="px-4 py-2">
-                    <Link href={`/employees/${u.id}`} className="font-medium text-[var(--titan-dark)] hover:underline">
-                      {u.name}
-                    </Link>
-                    <p className="text-xs text-[var(--muted)]">
-                      {u.phone ? formatPhoneDisplay(u.phone) : u.email}
-                    </p>
-                  </td>
-                  <td className="px-4 py-2">{n("role", u.role.code, u.role.name)}</td>
-                  <td className="px-4 py-2 text-xs">
-                    {u.payScheme
-                      ? u.payScheme.kind === "SALES_COMMISSION"
-                        ? t("emp.commissionTitle")
-                        : u.payScheme.productionRate != null
-                          ? t("emp.laborTitle")
-                          : u.payScheme.name
-                      : "—"}
-                  </td>
-                  <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(acc)} с</td>
-                  <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(paid)} с</td>
-                  <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(acc.sub(paid))} с</td>
-                </tr>
-              );
-            })}
-          </RevealList>
-        </table>
-      </section>
+      <DataTableSection tour="emp-list">
+        <UiTable>
+          <table className="w-full text-left text-sm">
+            <thead className="bg-[var(--surface-muted)] text-xs text-[var(--muted)]">
+              <tr>
+                <th className="px-4 py-2">{t("emp.employee")}</th>
+                <th className="px-4 py-2">{t("emp.position")}</th>
+                <th className="px-4 py-2">{t("emp.scheme")}</th>
+                <th className="px-4 py-2">{t("emp.accrued")}</th>
+                <th className="px-4 py-2">{t("emp.paidOut")}</th>
+                <th className="px-4 py-2">{t("common.debt")}</th>
+              </tr>
+            </thead>
+            <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={5} className="divide-y divide-[var(--border)]">
+              {users.map((u) => {
+                const acc = D(String(accMap.get(u.id)?._sum.amount ?? 0));
+                const paid = D(String(payMap.get(u.id)?._sum.amount ?? 0));
+                const schemeLabel = u.payScheme
+                  ? u.payScheme.kind === "SALES_COMMISSION"
+                    ? t("emp.commissionTitle")
+                    : u.payScheme.productionRate != null
+                      ? t("emp.laborTitle")
+                      : u.payScheme.name
+                  : "—";
+                return (
+                  <tr key={u.id}>
+                    <td className="px-4 py-2">
+                      <Link href={`/employees/${u.id}`} className="font-medium text-[var(--titan-dark)] hover:underline">
+                        {u.name}
+                      </Link>
+                      <p className="text-xs text-[var(--muted)]">
+                        {u.phone ? formatPhoneDisplay(u.phone) : u.email}
+                      </p>
+                    </td>
+                    <td className="px-4 py-2" data-label={t("emp.position")}>
+                      {n("role", u.role.code, u.role.name)}
+                    </td>
+                    <td className="px-4 py-2 text-xs" data-label={t("emp.scheme")}>
+                      {schemeLabel}
+                    </td>
+                    <td className="px-4 py-2 font-mono text-xs" data-label={t("emp.accrued")}>
+                      {moneyDisplay(acc)} с
+                    </td>
+                    <td className="px-4 py-2 font-mono text-xs" data-label={t("emp.paidOut")}>
+                      {moneyDisplay(paid)} с
+                    </td>
+                    <td className="px-4 py-2 font-mono text-xs" data-label={t("common.debt")}>
+                      {moneyDisplay(acc.sub(paid))} с
+                    </td>
+                  </tr>
+                );
+              })}
+            </RevealList>
+          </table>
+        </UiTable>
+      </DataTableSection>
 
       {schemes.map((scheme) => {
         const isCommission = scheme.kind === "SALES_COMMISSION" || scheme.kind === "MIXED";

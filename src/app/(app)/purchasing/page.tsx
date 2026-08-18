@@ -7,6 +7,18 @@ import { PurchaseOrderForm } from "./po-form";
 import { moneyDisplay } from "@core/shared/decimal";
 import { D } from "@core/shared/decimal";
 import { PageHeader } from "@/components/page-header";
+import {
+  DataList,
+  DataListCell,
+  DataListEmpty,
+  DataListHead,
+  DataListHeadCell,
+  DataListMetric,
+  DataListPrimary,
+  DataListRow,
+  DataTableSection,
+  dataListStyles,
+} from "@/components/data-table";
 
 function poStatus(t: (k: string) => string, s: string) {
   const map: Record<string, string> = {
@@ -80,36 +92,35 @@ export default async function PurchasingPage() {
         />
       ) : null}
 
-      <div className="overflow-hidden ui-card">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-[var(--surface-muted)] text-xs uppercase tracking-wide text-[var(--muted)]">
-            <tr>
-              <th className="px-4 py-3">{t("common.number")}</th>
-              <th className="px-4 py-3">{t("common.supplier")}</th>
-              <th className="px-4 py-3">{t("common.status")}</th>
-              <th className="px-4 py-3 text-right">{t("common.amount")}</th>
-              <th className="px-4 py-3 text-right">{t("common.debt")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((o) => (
-              <tr key={o.id} className="border-t border-[var(--line)]">
-                <td className="px-4 py-3">
-                  <Link href={`/purchasing/${o.id}`} className="font-medium hover:underline">
-                    {o.number}
-                  </Link>
-                </td>
-                <td className="px-4 py-3">{o.supplier.name}</td>
-                <td className="px-4 py-3">{poStatus(t, o.status) ?? o.status}</td>
-                <td className="px-4 py-3 text-right font-mono text-xs">{moneyDisplay(o.total)} с</td>
-                <td className="px-4 py-3 text-right font-mono text-xs">
-                  {moneyDisplay(D(String(o.total)).sub(o.paidAmount))} с
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTableSection>
+        {orders.length === 0 ? (
+          <DataListEmpty>{t("common.empty")}</DataListEmpty>
+        ) : (
+          <DataList layout="cols5">
+            <DataListHead layout="cols5">
+              <DataListHeadCell>{t("common.number")}</DataListHeadCell>
+              <DataListHeadCell>{t("common.supplier")}</DataListHeadCell>
+              <DataListHeadCell>{t("common.status")}</DataListHeadCell>
+              <DataListHeadCell align="right">{t("common.amount")}</DataListHeadCell>
+              <DataListHeadCell align="right">{t("common.debt")}</DataListHeadCell>
+            </DataListHead>
+            <ul className={dataListStyles.rows}>
+              {orders.map((o) => (
+                <DataListRow key={o.id} layout="cols5">
+                  <DataListPrimary title={o.number} href={`/purchasing/${o.id}`} />
+                  <DataListCell label={t("common.supplier")}>{o.supplier.name}</DataListCell>
+                  <DataListCell label={t("common.status")}>{poStatus(t, o.status) ?? o.status}</DataListCell>
+                  <DataListMetric label={t("common.amount")} value={`${moneyDisplay(o.total)} с`} />
+                  <DataListMetric
+                    label={t("common.debt")}
+                    value={`${moneyDisplay(D(String(o.total)).sub(o.paidAmount))} с`}
+                  />
+                </DataListRow>
+              ))}
+            </ul>
+          </DataList>
+        )}
+      </DataTableSection>
     </div>
   );
 }

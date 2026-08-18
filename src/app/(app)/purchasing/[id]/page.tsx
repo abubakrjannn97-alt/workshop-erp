@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/page-header";
+import { DataTableSection, UiTable } from "@/components/data-table";
 import { getTranslator } from "@core/shared/i18n/locale";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -48,30 +49,36 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
           {t("po.printWaybill")}
         </Link>
       </div>
-      <div className="overflow-hidden ui-card">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-[var(--surface-muted)] text-xs uppercase text-[var(--muted)]">
-            <tr>
-              <th className="px-4 py-3">{t("common.material")}</th>
-              <th className="px-4 py-3 text-right">{t("common.qty")}</th>
-              <th className="px-4 py-3 text-right">{t("common.price")}</th>
-              <th className="px-4 py-3 text-right">{t("common.amount")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {order.items.map((item) => (
-              <tr key={item.id} className="border-t border-[var(--line)]">
-                <td className="px-4 py-3">{item.material.name}</td>
-                <td className="px-4 py-3 text-right font-mono text-xs">
-                  {qtyDisplay(item.quantity)} {item.material.storageUnit.symbol}
-                </td>
-                <td className="px-4 py-3 text-right font-mono text-xs">{moneyDisplay(item.unitPrice)}</td>
-                <td className="px-4 py-3 text-right font-mono text-xs">{moneyDisplay(item.amount)} с</td>
+      <DataTableSection>
+        <UiTable>
+          <table className="w-full text-left text-sm">
+            <thead className="bg-[var(--surface-muted)] text-xs uppercase text-[var(--muted)]">
+              <tr>
+                <th className="px-4 py-3">{t("common.material")}</th>
+                <th className="px-4 py-3 text-right">{t("common.qty")}</th>
+                <th className="px-4 py-3 text-right">{t("common.price")}</th>
+                <th className="px-4 py-3 text-right">{t("common.amount")}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {order.items.map((item) => (
+                <tr key={item.id} className="border-t border-[var(--line)]">
+                  <td className="px-4 py-3">{item.material.name}</td>
+                  <td className="px-4 py-3 text-right font-mono text-xs" data-label={t("common.qty")}>
+                    {qtyDisplay(item.quantity)} {item.material.storageUnit.symbol}
+                  </td>
+                  <td className="px-4 py-3 text-right font-mono text-xs" data-label={t("common.price")}>
+                    {moneyDisplay(item.unitPrice)}
+                  </td>
+                  <td className="px-4 py-3 text-right font-mono text-xs" data-label={t("common.amount")}>
+                    {moneyDisplay(item.amount)} с
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </UiTable>
+      </DataTableSection>
       <p className="text-sm">
         {t("po.summary", { total: moneyDisplay(order.total), paid: moneyDisplay(order.paidAmount), debt: moneyDisplay(debt) })}
       </p>

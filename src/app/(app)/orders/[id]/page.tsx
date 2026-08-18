@@ -13,6 +13,16 @@ import { PAYMENT_METHODS, STATUS_FLOW } from "@core/orders/orders";
 import { intlLocale } from "@core/shared/i18n/i18n";
 import { PageHeader } from "@/components/page-header";
 import {
+  DataList,
+  DataListHead,
+  DataListHeadCell,
+  DataListMetric,
+  DataListPrimary,
+  DataListRow,
+  DataTableSection,
+  dataListStyles,
+} from "@/components/data-table";
+import {
   addPayment,
   cancelOrder,
   confirmOrder,
@@ -157,25 +167,34 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         />
       </div>
 
-      <section className="ui-card">
-        <h2 className="text-sm font-semibold">{t("orders.lines")}</h2>
-        <ul className="mt-3 space-y-2 text-sm">
-          {order.items.map((item) => (
-            <li key={item.id} className="flex justify-between gap-4">
-              <span>
-                {item.product.name}: {qtyDisplay(item.quantity)} {item.product.saleUnit.symbol} →{" "}
-                {qtyDisplay(item.outputQty)} {item.product.outputUnit.symbol}
-              </span>
-              <span className="font-mono text-xs">
-                {moneyDisplay(item.unitPrice)} × {qtyDisplay(item.quantity)} = {moneyDisplay(item.amount)} с
-              </span>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-3 text-xs text-[var(--muted)]">
+      <DataTableSection>
+        <h2 className="border-b border-[var(--border-soft)] px-3 py-2 text-sm font-semibold">{t("orders.lines")}</h2>
+        <DataList layout="cols3">
+          <DataListHead layout="cols3">
+            <DataListHeadCell>{t("common.product")}</DataListHeadCell>
+            <DataListHeadCell align="right">{t("common.qty")}</DataListHeadCell>
+            <DataListHeadCell align="right">{t("common.amount")}</DataListHeadCell>
+          </DataListHead>
+          <ul className={dataListStyles.rows}>
+            {order.items.map((item) => (
+              <DataListRow key={item.id} layout="cols3">
+                <DataListPrimary
+                  title={item.product.name}
+                  subtitle={`${qtyDisplay(item.quantity)} ${item.product.saleUnit.symbol} → ${qtyDisplay(item.outputQty)} ${item.product.outputUnit.symbol}`}
+                />
+                <DataListMetric
+                  label={t("common.qty")}
+                  value={`${moneyDisplay(item.unitPrice)} × ${qtyDisplay(item.quantity)}`}
+                />
+                <DataListMetric label={t("common.amount")} value={`${moneyDisplay(item.amount)} с`} />
+              </DataListRow>
+            ))}
+          </ul>
+        </DataList>
+        <p className="border-t border-[var(--border-soft)] px-3 py-2 text-xs text-[var(--muted)]">
           {t("orders.discountNote", { pct: qtyDisplay(order.discountPercent), amt: moneyDisplay(order.discountAmount) })}
         </p>
-      </section>
+      </DataTableSection>
 
       <section className="ui-card">
         <h2 className="text-sm font-semibold">{t("orders.materialsSnap")}</h2>

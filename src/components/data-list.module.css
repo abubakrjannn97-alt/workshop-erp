@@ -58,6 +58,10 @@
   grid-template-columns: minmax(0, 1fr) 7rem 5.75rem 5.75rem;
 }
 
+.cols5 {
+  grid-template-columns: minmax(0, 1fr) 7rem 5.75rem 5.75rem 4.5rem;
+}
+
 .colsOrders {
   grid-template-columns: 6.5rem minmax(0, 1fr) 6.5rem 6rem;
 }

@@ -2,12 +2,13 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import styles from "./data-list.module.css";
 
-export type DataListLayout = "cols2" | "cols3" | "cols4" | "colsOrder" | "colsOrders";
+export type DataListLayout = "cols2" | "cols3" | "cols4" | "cols5" | "colsOrder" | "colsOrders";
 
 const LAYOUT: Record<DataListLayout, string> = {
   cols2: styles.cols2,
   cols3: styles.cols3,
   cols4: styles.cols4,
+  cols5: styles.cols5,
   colsOrder: styles.colsOrder,
   colsOrders: styles.colsOrders,
 };

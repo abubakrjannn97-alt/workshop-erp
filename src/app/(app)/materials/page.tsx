@@ -1,13 +1,24 @@
 import { PageHeader } from "@/components/page-header";
 import { FormField } from "@/components/form-field";
 import { getTranslator } from "@core/shared/i18n/locale";
-import Link from "next/link";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { CatalogNav } from "@/components/catalog-nav";
 import { createMaterial, archiveMaterial } from "@/app/actions/materials";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { unitCost } from "@core/costing/costing";
+import {
+  DataList,
+  DataListCell,
+  DataListEmpty,
+  DataListHead,
+  DataListHeadCell,
+  DataListMetric,
+  DataListPrimary,
+  DataListRow,
+  DataTableSection,
+  dataListStyles,
+} from "@/components/data-table";
 
 export default async function MaterialsPage() {
   const { t, locale } = await getTranslator();
@@ -74,49 +85,52 @@ export default async function MaterialsPage() {
         </form>
       ) : null}
 
-      <div className="overflow-hidden ui-card">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-[var(--surface-muted)] text-xs uppercase tracking-wide text-[var(--muted)]">
-            <tr>
-              <th className="px-4 py-3">{t("common.material")}</th>
-              <th className="px-4 py-3">{t("materials.pack")}</th>
-              <th className="px-4 py-3">{t("materials.packPriceCol")}</th>
-              <th className="px-4 py-3">{t("materials.perUnit")}</th>
-              <th className="px-4 py-3" />
-            </tr>
-          </thead>
-          <tbody>
-            {materials.map((material) => {
-              const cost = unitCost(material.packagePrice, material.packageWeight);
-              return (
-                <tr key={material.id} className="border-t border-[var(--line)]">
-                  <td className="px-4 py-3">
-                    <Link href={`/materials/${material.id}`} className="font-medium text-[var(--titan-dark)] hover:underline">
-                      {material.name}
-                    </Link>
-                    <p className="text-xs text-[var(--muted)]">{material.category}</p>
-                  </td>
-                  <td className="px-4 py-3 text-xs">
-                    {qtyDisplay(material.packageWeight)} {material.storageUnit.symbol}
-                  </td>
-                  <td className="px-4 py-3 font-mono text-xs">{moneyDisplay(material.packagePrice)} с</td>
-                  <td className="px-4 py-3 font-mono text-xs">
-                    {cost ? `${moneyDisplay(cost)} с / ${material.storageUnit.symbol}` : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    {canManage ? (
-                      <form action={archiveMaterial}>
-                        <input type="hidden" name="id" value={material.id} />
-                        <button className="text-xs text-[var(--danger)]">{t("common.archive")}</button>
-                      </form>
-                    ) : null}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <DataTableSection>
+        {materials.length === 0 ? (
+          <DataListEmpty>{t("common.empty")}</DataListEmpty>
+        ) : (
+          <DataList layout="cols5">
+            <DataListHead layout="cols5">
+              <DataListHeadCell>{t("common.material")}</DataListHeadCell>
+              <DataListHeadCell>{t("materials.pack")}</DataListHeadCell>
+              <DataListHeadCell>{t("materials.packPriceCol")}</DataListHeadCell>
+              <DataListHeadCell>{t("materials.perUnit")}</DataListHeadCell>
+              <DataListHeadCell align="right">{t("common.actions")}</DataListHeadCell>
+            </DataListHead>
+            <ul className={dataListStyles.rows}>
+              {materials.map((material) => {
+                const cost = unitCost(material.packagePrice, material.packageWeight);
+                return (
+                  <DataListRow key={material.id} layout="cols5">
+                    <DataListPrimary
+                      title={material.name}
+                      subtitle={material.category}
+                      href={`/materials/${material.id}`}
+                    />
+                    <DataListMetric
+                      label={t("materials.pack")}
+                      value={`${qtyDisplay(material.packageWeight)} ${material.storageUnit.symbol}`}
+                    />
+                    <DataListMetric label={t("materials.packPriceCol")} value={`${moneyDisplay(material.packagePrice)} с`} />
+                    <DataListMetric
+                      label={t("materials.perUnit")}
+                      value={cost ? `${moneyDisplay(cost)} с / ${material.storageUnit.symbol}` : "—"}
+                    />
+                    <DataListCell label={t("common.actions")} align="right">
+                      {canManage ? (
+                        <form action={archiveMaterial}>
+                          <input type="hidden" name="id" value={material.id} />
+                          <button className="text-xs text-[var(--danger)]">{t("common.archive")}</button>
+                        </form>
+                      ) : null}
+                    </DataListCell>
+                  </DataListRow>
+                );
+              })}
+            </ul>
+          </DataList>
+        )}
+      </DataTableSection>
     </div>
   );
 }
