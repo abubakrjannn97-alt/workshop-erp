@@ -88,3 +88,17 @@ export function buildOwnerDashAlerts({
 
   return alerts;
 }
+
+export function countOwnerAttention({
+  overdueCount,
+  unpaidCount,
+  criticalCount,
+  purchaseNeedCount,
+}: {
+  overdueCount: number;
+  unpaidCount: number;
+  criticalCount: number;
+  purchaseNeedCount: number;
+}) {
+  return overdueCount + unpaidCount + criticalCount + purchaseNeedCount;
+}

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { prisma } from "@core/infrastructure/prisma";
 import { requireSession } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
@@ -9,11 +8,14 @@ import { PageHeader } from "@/components/page-header";
 import { FundRow } from "@/components/fund-row";
 import {
   buildOwnerDashAlerts,
+  countOwnerAttention,
   DashAlertList,
   DashMetricStrip,
+  DashQuickActionsDesktop,
   DashRecentOrders,
   DashRecentOrdersAction,
   DashSection,
+  ownerQuickActions,
 } from "@/components/dashboard/dashboard-system";
 import styles from "@/components/dashboard/dash-home.module.css";
 
@@ -52,17 +54,17 @@ export async function DesktopHome() {
     prisma.order.findMany({
       include: { customer: true, status: true },
       orderBy: { createdAt: "desc" },
-      take: 8,
+      take: 5,
     }),
   ]);
   await refreshOwnerAlerts();
 
   const sold = monthOrders.reduce((s, o) => s.add(String(o.total)), D(0));
-  const clientDebt = unpaid.reduce((s, o) => s.add(D(String(o.total)).sub(o.paidAmount)), D(0));
-  const profitFund = funds.find((f) => f.code === FUND.PROFIT);
-  const profit = profitFund
-    ? entries.reduce((s, e) => s.add(fundDelta(e, profitFund.id)), D(0))
-    : D(0);
+  const received = monthOrders.reduce(
+    (s, o) => s.add(o.payments.reduce((p, pay) => p.add(String(pay.amount)), D(0))),
+    D(0),
+  );
+  const unpaidDue = unpaid.filter((row) => D(String(row.total)).sub(String(row.paidAmount)).gt(0));
   const fundBalances = funds.map((f) => ({
     ...f,
     balance: entries.reduce((s, e) => s.add(fundDelta(e, f.id)), D(0)),
@@ -72,6 +74,12 @@ export async function DesktopHome() {
     return onHand.lte(m.minStock);
   });
   const loc = intlLocale(locale);
+  const attentionCount = countOwnerAttention({
+    overdueCount: overdue.length,
+    unpaidCount: unpaidDue.length,
+    criticalCount: critical.length,
+    purchaseNeedCount: cover.purchaseNeed.length,
+  });
 
   const alerts = buildOwnerDashAlerts({
     t,
@@ -83,22 +91,14 @@ export async function DesktopHome() {
 
   return (
     <div className="page-stack">
-      <PageHeader
-        title={t("home.title")}
-        description={t("home.greetSub")}
-        actions={
-          <Link href="/orders/new" className="ui-btn-primary">
-            {t("sales.newOrder")}
-          </Link>
-        }
-      />
+      <PageHeader title={t("home.title")} description={t("home.greetSub")} />
 
       <DashMetricStrip
         tour="home-income"
         metrics={[
           { id: "sales", label: t("home.sold"), value: `${moneyDisplay(sold)} с`, hint: t("home.period") },
-          { id: "debt", label: t("home.needPay"), value: `${moneyDisplay(clientDebt)} с` },
-          { id: "free", label: t("home.withdrawable"), value: `${moneyDisplay(profit)} с`, hint: t("home.profitFund") },
+          { id: "inflow", label: t("home.inflow"), value: `${moneyDisplay(received)} с`, hint: t("home.heroReceived") },
+          { id: "attention", label: t("home.attention"), value: String(attentionCount) },
         ]}
       />
 
@@ -123,11 +123,9 @@ export async function DesktopHome() {
           <DashRecentOrders
             orders={recentOrders}
             empty={t("crm.noOrders")}
-            moreLabel={t("home.seeAll")}
-            lessLabel={t("home.hide")}
-            t={t}
             n={n}
             locale={loc}
+            showDate
           />
         </DashSection>
 
@@ -145,6 +143,10 @@ export async function DesktopHome() {
           </ul>
         </DashSection>
       </div>
+
+      <DashSection title={t("home.quickActions")} tour="home-shortcuts">
+        <DashQuickActionsDesktop primary={ownerQuickActions(t)} />
+      </DashSection>
     </div>
   );
 }

@@ -80,7 +80,7 @@ export async function MobileOwnerHome({ financePeriod }: { financePeriod?: strin
     cover.purchaseNeed.length > 0
       ? { href: "/purchasing", label: t("home.attnBuy", { n: String(cover.purchaseNeed.length) }) }
       : null,
-  ]    .filter((row): row is { href: string; label: string } => row !== null);
+  ].filter((row): row is { href: string; label: string } => row !== null);
 
   return (
     <div className="page-stack">
@@ -100,15 +100,7 @@ export async function MobileOwnerHome({ financePeriod }: { financePeriod?: strin
       </DashSection>
 
       <DashSection title={t("home.recentOrders")} tour="home-orders">
-        <DashRecentOrders
-          orders={recentOrders}
-          empty={t("crm.noOrders")}
-          moreLabel={t("home.seeAll")}
-          lessLabel={t("home.hide")}
-          t={t}
-          n={n}
-          locale={loc}
-        />
+        <DashRecentOrders orders={recentOrders} empty={t("crm.noOrders")} n={n} locale={loc} />
       </DashSection>
     </div>
   );

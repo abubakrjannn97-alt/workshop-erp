@@ -40,16 +40,18 @@ export function DashQuickActionsDesktop({
   secondary?: DashQuickAction[];
 }) {
   return (
-    <ul>
-      {primary.map((action) => (
-        <li key={action.href}>
-          <Link href={action.href} className={styles.row}>
-            <action.icon size={20} strokeWidth={ICON_STROKE} aria-hidden />
-            <span className={styles.rowTitle}>{action.label}</span>
-            <span className={styles.rowGo}>→</span>
-          </Link>
-        </li>
-      ))}
+    <ul className={styles.actions}>
+      {primary.slice(0, 4).map((action) => {
+        const Icon = action.icon;
+        return (
+          <li key={action.href}>
+            <Link href={action.href} className={styles.action}>
+              <Icon size={18} strokeWidth={ICON_STROKE} aria-hidden />
+              <span className={styles.rowTitle}>{action.label}</span>
+            </Link>
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -57,7 +59,7 @@ export function DashQuickActionsDesktop({
 export function DashQuickActionsMobile({ actions }: { actions: DashQuickAction[] }) {
   return (
     <ul>
-      {actions.map((action) => {
+      {actions.slice(0, 4).map((action) => {
         const Icon = action.icon;
         return (
           <li key={action.href}>

@@ -107,6 +107,21 @@
   align-items: start;
 }
 
+.actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px 32px;
+}
+
+.action {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
 .row {
   display: flex;
   min-height: 48px;
@@ -208,6 +223,10 @@
   .split {
     grid-template-columns: 1fr;
     gap: 32px;
+  }
+
+  .actions {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
