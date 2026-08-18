@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { D } from "@core/shared/decimal";
-import { notifyRoles } from "@/lib/control";
+import { notifyRoles } from "@core/control/control";
 import { available } from "@/lib/stock";
 import { findRawWarehouse } from "@/core/config/resolve-warehouse";
 

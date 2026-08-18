@@ -4,9 +4,9 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
-import { writeAudit } from "@/lib/audit";
+import { writeAudit } from "@core/control/audit";
 import { money } from "@core/shared/decimal";
-import { notifyRoles } from "@/lib/control";
+import { notifyRoles } from "@core/control/control";
 
 const productSchema = z.object({
   name: z.string().trim().min(1).max(160),

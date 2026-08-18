@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
-import { writeAudit } from "@/lib/audit";
+import { writeAudit } from "@core/control/audit";
 
 const schema = z.object({
   code: z.string().trim().min(1).max(16).regex(/^[A-Z0-9_]+$/, "Код: латиница, цифры, _"),

@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import type { Prisma } from "@prisma/client";
-import { prisma } from "./prisma";
+import { prisma } from "@/lib/prisma";
 
 type AuditInput = {
   userId?: string | null;

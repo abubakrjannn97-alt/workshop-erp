@@ -6,11 +6,11 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
-import { writeAudit } from "@/lib/audit";
+import { writeAudit } from "@core/control/audit";
 import { D, money, qty } from "@core/shared/decimal";
 import { adjustToActual, receiveMaterial, receiveProduct, reverseMovement, writeOffMaterial } from "@/lib/stock";
-import { notifyRoles } from "@/lib/control";
-import { canSelfApprove, queueApproval } from "@/lib/control";
+import { notifyRoles } from "@core/control/control";
+import { canSelfApprove, queueApproval } from "@core/control/control";
 
 function key(formData: FormData) {
   return String(formData.get("idempotencyKey") ?? randomUUID());

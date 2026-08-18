@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
-import { writeAudit } from "@/lib/audit";
+import { writeAudit } from "@core/control/audit";
 import { D, money, qty } from "@core/shared/decimal";
 import { receiveMaterial } from "@/lib/stock";
 import { accountByCode, FUND, fundByCode, LEDGER, postLedger } from "@/lib/finance";

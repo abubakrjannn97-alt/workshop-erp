@@ -4,9 +4,9 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
-import { writeAudit } from "@/lib/audit";
+import { writeAudit } from "@core/control/audit";
 import { qty } from "@core/shared/decimal";
-import { canSelfApprove, notifyRoles, queueApproval } from "@/lib/control";
+import { canSelfApprove, notifyRoles, queueApproval } from "@core/control/control";
 
 const itemSchema = z.object({
   materialId: z.string().min(1),

@@ -6,7 +6,7 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
-import { writeAudit } from "@/lib/audit";
+import { writeAudit } from "@core/control/audit";
 import { D, money, qty } from "@core/shared/decimal";
 import { available, releaseMaterial, reserveMaterial, writeOffProduct } from "@/lib/stock";
 import { postClientPayment } from "@/lib/finance";
@@ -24,7 +24,7 @@ import {
   quoteProduct,
   STATUS_FLOW,
 } from "@/lib/orders";
-import { canSelfApprove, pendingFor, queueApproval } from "@/lib/control";
+import { canSelfApprove, pendingFor, queueApproval } from "@core/control/control";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
 import { resolveProductionPaySchemeCode } from "@/lib/domain-config";
 

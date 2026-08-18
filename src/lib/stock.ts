@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { D, money, qty } from "@core/shared/decimal";
-import { assertPeriodOpen } from "@/lib/control";
+import { assertPeriodOpen } from "@core/control/control";
 import { resolveRawWarehouseCode } from "@/core/config/resolve-warehouse";
 
 export const MOVEMENT = {
