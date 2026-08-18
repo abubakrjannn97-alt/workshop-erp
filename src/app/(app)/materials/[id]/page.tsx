@@ -6,7 +6,7 @@ import { requirePermission } from "@/lib/authz";
 import { updateMaterial } from "@/app/actions/materials";
 import { CatalogNav } from "@/components/catalog-nav";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
-import { unitCost } from "@/lib/costing";
+import { unitCost } from "@core/costing/costing";
 
 export default async function MaterialDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { t, locale } = await getTranslator();

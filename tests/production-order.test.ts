@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { resolveProductionProductId } from "../src/lib/production-order";
+import { resolveProductionProductId } from "../src/core/production/production-order";
 
 describe("resolveProductionProductId", () => {
   it("returns null for empty order items", () => {

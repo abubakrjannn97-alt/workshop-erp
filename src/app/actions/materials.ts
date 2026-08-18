@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { writeAudit } from "@/lib/audit";
 import { money, qty } from "@core/shared/decimal";
-import { unitCost } from "@/lib/costing";
+import { unitCost } from "@core/costing/costing";
 
 const schema = z.object({
   name: z.string().trim().min(1).max(160),

@@ -7,7 +7,7 @@ import { requirePermission } from "@/lib/authz";
 import { CatalogNav } from "@/components/catalog-nav";
 import { createMaterial, archiveMaterial } from "@/app/actions/materials";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
-import { unitCost } from "@/lib/costing";
+import { unitCost } from "@core/costing/costing";
 
 export default async function MaterialsPage() {
   const { t, locale } = await getTranslator();

@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { updateProduct } from "@/app/actions/products";
 import { CatalogNav } from "@/components/catalog-nav";
-import { materialCostForRecipe } from "@/lib/costing";
+import { materialCostForRecipe } from "@core/costing/costing";
 import { moneyDisplay } from "@core/shared/decimal";
 import { RecipeEditor } from "./recipe-editor";
 import { NeedPreview } from "./need-preview";

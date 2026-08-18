@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { D, money, moneyDisplay, qtyDisplay } from "../src/core/shared/decimal";
-import { materialCostForRecipe, scaleNeed, unitCost } from "../src/lib/costing";
+import { materialCostForRecipe, scaleNeed, unitCost } from "../src/core/costing/costing";
 
 describe("decimal money", () => {
   it("does not use binary float for 0.1+0.2 money", () => {

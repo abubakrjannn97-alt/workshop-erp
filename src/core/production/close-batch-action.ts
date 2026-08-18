@@ -12,7 +12,7 @@ import { accrueProductionWage } from "@/lib/payroll";
 import { notifyRoles } from "@/lib/control";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
 import { resolveProductionPaySchemeCode } from "@/lib/domain-config";
-import { resolveProductionProductId } from "@/lib/production-order";
+import { resolveProductionProductId } from "@core/production/production-order";
 
 function qtyStr(value: string) {
   return z.string().regex(/^\d+(\.\d{1,6})?$/).safeParse(value).success;

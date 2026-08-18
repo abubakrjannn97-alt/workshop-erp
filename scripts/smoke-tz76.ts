@@ -19,7 +19,7 @@ import { accrueProductionWage, accrueSellerCommission, commissionPercentNow } fr
 import { hasPermission, ROLE_PERMISSIONS } from "../src/lib/permissions";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "../src/core/config/resolve-warehouse";
 import { resolveProductionPaySchemeCode } from "../src/lib/domain-config";
-import { resolveProductionProductId } from "../src/lib/production-order";
+import { resolveProductionProductId } from "../src/core/production/production-order";
 
 type Step = { name: string; ok: boolean; detail?: string };
 

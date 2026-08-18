@@ -4,7 +4,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { CatalogNav } from "@/components/catalog-nav";
-import { materialCostForRecipe } from "@/lib/costing";
+import { materialCostForRecipe } from "@core/costing/costing";
 import { moneyDisplay } from "@core/shared/decimal";
 import { archiveProduct } from "@/app/actions/products";
 import { RevealList } from "@/components/reveal-list";

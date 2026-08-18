@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { D, money, qty } from "@core/shared/decimal";
-import { materialCostForRecipe, scaleNeed } from "@/lib/costing";
+import { materialCostForRecipe, scaleNeed } from "@core/costing/costing";
 import { SETTING_KEYS } from "@/lib/settings";
 
 export const PAYMENT_STATUS = {
