@@ -8,7 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money, qty } from "@core/shared/decimal";
-import { available, releaseMaterial, reserveMaterial, writeOffProduct } from "@/lib/stock";
+import { available, releaseMaterial, reserveMaterial, writeOffProduct } from "@core/inventory/stock";
 import { postClientPayment } from "@/lib/finance";
 import {
   accrueSellerCommission,

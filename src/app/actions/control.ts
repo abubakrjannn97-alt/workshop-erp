@@ -7,7 +7,7 @@ import { writeAudit } from "@core/control/audit";
 import { D, money } from "@core/shared/decimal";
 import { canSelfApprove, notifyRoles, queueApproval } from "@core/control/control";
 import { cashDelta } from "@/lib/finance";
-import { writeOffMaterial } from "@/lib/stock";
+import { writeOffMaterial } from "@core/inventory/stock";
 import { confirmInventoryCount } from "@/app/actions/inventory";
 import { transferCash } from "@/app/actions/finance";
 import { publishRecipeVersion } from "@/app/actions/recipes";

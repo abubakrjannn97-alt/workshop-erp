@@ -18,7 +18,7 @@ import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/authz";
 import { D, qtyDisplay } from "@core/shared/decimal";
 import { FUND, fundDelta } from "@/lib/finance";
-import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@/lib/alerts";
+import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@core/inventory/alerts";
 import { getTranslator, intlLocale } from "@/lib/locale";
 import { orderNo } from "@core/shared/format";
 import { CURRENCY_SYMBOL } from "@/lib/settings";

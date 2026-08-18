@@ -12,7 +12,7 @@ for (const p of [
   "src/lib/i18n.ts",
   "src/components/language-switcher.tsx",
   "src/lib/finance.ts",
-  "src/lib/stock.ts",
+  "src/core/inventory/stock.ts",
 ]) {
   if (!fs.existsSync(p)) {
     console.log(p, "MISSING");

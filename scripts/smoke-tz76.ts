@@ -13,7 +13,7 @@ import {
   paymentStatusOf,
   quoteProduct,
 } from "../src/lib/orders";
-import { MOVEMENT, reserveMaterial, writeOffMaterial, receiveProduct } from "../src/lib/stock";
+import { MOVEMENT, reserveMaterial, writeOffMaterial, receiveProduct } from "../src/core/inventory/stock";
 import { FUND, fundDelta, postClientPayment } from "../src/lib/finance";
 import { accrueProductionWage, accrueSellerCommission, commissionPercentNow } from "../src/lib/payroll";
 import { hasPermission, ROLE_PERMISSIONS } from "../src/lib/permissions";

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { D } from "@core/shared/decimal";
 import { notifyRoles } from "@core/control/control";
-import { available } from "@/lib/stock";
+import { available } from "@core/inventory/stock";
 import { findRawWarehouse } from "@/core/config/resolve-warehouse";
 
 async function alreadyToday(type: string, entityId: string) {

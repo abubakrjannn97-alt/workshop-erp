@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { available } from "../src/lib/stock";
+import { available } from "../src/core/inventory/stock";
 import { percentForCount } from "../src/lib/payroll";
 import { scaleNeed } from "../src/core/costing/costing";
 import { D } from "../src/core/shared/decimal";

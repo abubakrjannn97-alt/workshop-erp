@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money, qty } from "@core/shared/decimal";
-import { MOVEMENT, receiveProduct, releaseMaterial, writeOffMaterial } from "@/lib/stock";
+import { MOVEMENT, receiveProduct, releaseMaterial, writeOffMaterial } from "@core/inventory/stock";
 import { ORDER_STATUS } from "@/lib/orders";
 import { accrueProductionWage } from "@/lib/payroll";
 import { notifyRoles } from "@core/control/control";

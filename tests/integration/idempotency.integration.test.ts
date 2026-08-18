@@ -2,7 +2,7 @@ import { describe, it, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "crypto";
 import { prisma } from "../../src/lib/prisma";
-import { receiveProduct } from "../../src/lib/stock";
+import { receiveProduct } from "../../src/core/inventory/stock";
 import { integrationEnabled } from "./helpers";
 
 (integrationEnabled() ? describe : describe.skip)("idempotency integration", () => {
