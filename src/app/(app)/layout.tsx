@@ -39,7 +39,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           permissions={session.user.permissions as string[]}
           roleCode={session.user.roleCode}
           locale={locale}
-          variant="dark"
         />
       }
     >

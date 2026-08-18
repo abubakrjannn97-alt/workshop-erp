@@ -364,6 +364,10 @@ function pathMatches(path: string, href: string) {
   return path === href || path.startsWith(`${href}/`);
 }
 
+export function isNavItemActive(path: string, href: string) {
+  return pathMatches(path, href);
+}
+
 export function isTabActive(path: string, tab: BottomTab, tabs: BottomTab[]) {
   if (tab.isMore) {
     return !tabs.some((t) => !t.isMore && pathMatches(path, t.href));

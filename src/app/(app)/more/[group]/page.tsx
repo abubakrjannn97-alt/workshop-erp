@@ -4,7 +4,7 @@ import { requireSession } from "@core/auth/authz";
 import { getTranslator } from "@core/shared/i18n/locale";
 import { PageHeader } from "@/components/page-header";
 import { isMoreGroupId, moreGroupsForRole } from "@core/shared/nav";
-import { NavIconGlyph } from "@/components/bottom-nav";
+import { NavIconGlyph } from "@/components/nav-icons";
 
 export default async function MoreGroupPage({ params }: { params: Promise<{ group: string }> }) {
   const session = await requireSession();
@@ -21,7 +21,7 @@ export default async function MoreGroupPage({ params }: { params: Promise<{ grou
   return (
     <div className="mx-auto max-w-lg space-y-3 pb-8">
       <PageHeader title={t(group.labelKey ?? "nav.more")} />
-      <Link href="/more" prefetch className="inline-block text-sm text-[var(--titan-dark)]">
+      <Link href="/more" prefetch className="inline-block text-sm text-[var(--color-primary)]">
         {t("common.back")}
       </Link>
       <ul className="ui-card divide-y divide-[var(--line)] overflow-hidden">
@@ -30,7 +30,7 @@ export default async function MoreGroupPage({ params }: { params: Promise<{ grou
             <Link
               href={item.href}
               prefetch
-              className="flex items-center gap-3 px-4 py-3 text-[14px] text-[var(--foreground)] hover:bg-[var(--bg-secondary)]"
+              className="flex min-h-11 items-center gap-3 px-4 py-3 text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-surface-soft)]"
             >
               <span className="text-[var(--color-gold)]">
                 <NavIconGlyph icon={item.icon} size={18} />

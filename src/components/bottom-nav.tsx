@@ -5,57 +5,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import type { Locale } from "@core/shared/i18n/i18n";
 import { createT } from "@core/shared/i18n/i18n";
+import { NAV_ICONS } from "@/components/nav-icons";
 import {
   bottomTabsForRole,
   isTabActive,
-  type NavIcon,
   type BottomTab,
 } from "@core/shared/nav";
-import {
-  IconHome,
-  IconUsers,
-  IconClipboard,
-  IconFactory,
-  IconWarehouse,
-  IconMenu,
-  IconTruck,
-  IconWallet,
-  IconUser,
-  IconChart,
-  IconReceipt,
-  IconAlert,
-  IconCart,
-  IconBox,
-} from "@/components/icons";
 import styles from "./bottom-nav.module.css";
-
-const ICONS: Record<NavIcon, typeof IconHome> = {
-  home: IconHome,
-  sales: IconCart,
-  crm: IconUsers,
-  orders: IconClipboard,
-  products: IconBox,
-  production: IconFactory,
-  warehouse: IconWarehouse,
-  purchasing: IconTruck,
-  finance: IconWallet,
-  employees: IconUser,
-  analytics: IconChart,
-  settings: IconMenu,
-  help: IconMenu,
-  more: IconMenu,
-  commission: IconWallet,
-  batches: IconClipboard,
-  scrap: IconAlert,
-  inventory: IconBox,
-  expenses: IconReceipt,
-  jobs: IconFactory,
-  history: IconClipboard,
-  profile: IconUser,
-  reports: IconChart,
-  notifications: IconAlert,
-  search: IconMenu,
-};
 
 export function BottomNav({
   permissions,
@@ -97,7 +53,8 @@ export function BottomNav({
       <nav className={styles.bar} aria-label={t("nav.menu")}>
         {tabs.map((tab) => {
           const active = isTabActive(activePath, tab, tabs);
-          const Icon = ICONS[tab.icon] ?? IconMenu;
+          const Icon = NAV_ICONS[tab.icon];
+          const label = t(tab.labelKey);
           const pending = pendingHref === tab.href;
           return (
             <Link
@@ -108,24 +65,20 @@ export function BottomNav({
               onTouchStart={() => warm(tab.href)}
               onClick={() => setPendingHref(tab.href)}
               data-tour={tab.tour ?? `nav-${tab.id}`}
+              aria-label={label}
+              aria-current={active ? "page" : undefined}
               className={`${styles.tab} ${active ? styles.tabActive : ""} ${pending ? styles.tabPending : ""}`}
             >
               <span className={styles.iconWrap}>
-                <Icon size={19} />
+                <Icon size={20} strokeWidth={1.75} aria-hidden />
               </span>
-              <span className={styles.label}>{t(tab.labelKey)}</span>
-              <span className={styles.dot} aria-hidden="true" />
+              <span className={styles.label}>{label}</span>
             </Link>
           );
         })}
       </nav>
     </div>
   );
-}
-
-export function NavIconGlyph({ icon, size = 18 }: { icon: NavIcon; size?: number }) {
-  const Icon = ICONS[icon] ?? IconMenu;
-  return <Icon size={size} />;
 }
 
 export type { BottomTab };

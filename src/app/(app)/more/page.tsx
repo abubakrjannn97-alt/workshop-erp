@@ -5,7 +5,7 @@ import { getTranslator } from "@core/shared/i18n/locale";
 import { PageHeader } from "@/components/page-header";
 import { LogoutButton } from "@/components/logout-button";
 import { moreGroupsForRole } from "@core/shared/nav";
-import { NavIconGlyph } from "@/components/bottom-nav";
+import { NavIconGlyph } from "@/components/nav-icons";
 
 export default async function MorePage() {
   const session = await requireSession();
@@ -44,7 +44,7 @@ export default async function MorePage() {
           <p className="text-sm font-semibold text-[#101828]">{session.user.name}</p>
           <p className="text-xs text-[#667085]">{session.user.roleName}</p>
         </div>
-        <Link href="/me/profile" className="block text-sm font-medium text-[var(--titan-dark)]">
+        <Link href="/me/profile" className="block text-sm font-medium text-[var(--color-primary)]">
           {t("nav.profile")} →
         </Link>
         <LogoutButton label={t("nav.logout")} />
