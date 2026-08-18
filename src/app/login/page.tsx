@@ -1,7 +1,7 @@
 import { OwnerLoginForm } from "./login-form";
 import { DevRolePicker } from "./dev-role-picker";
 import { getDemoUsersForLogin } from "@core/auth/demo-users";
-import { getLocale } from "@/lib/locale";
+import { getLocale } from "@core/shared/i18n/locale";
 import { WorkshopMark } from "@/components/workshop-mark";
 import { LanguageSwitcher } from "@/components/language-switcher";
 

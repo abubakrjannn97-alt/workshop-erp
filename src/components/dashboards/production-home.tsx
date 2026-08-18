@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { qtyDisplay } from "@core/shared/decimal";
-import { getTranslator } from "@/lib/locale";
+import { getTranslator } from "@core/shared/i18n/locale";
 import { PageHeader } from "@/components/page-header";
 import { KpiCard } from "@/components/kpi-card";
 import { RevealList } from "@/components/reveal-list";

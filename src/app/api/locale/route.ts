@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { LOCALE_COOKIE } from "@core/shared/locale-cookie";
-import { LOCALES, type Locale } from "@/lib/i18n";
+import { LOCALES, type Locale } from "@core/shared/i18n/i18n";
 
 export const dynamic = "force-dynamic";
 

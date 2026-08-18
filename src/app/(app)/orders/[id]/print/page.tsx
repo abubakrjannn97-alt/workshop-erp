@@ -4,8 +4,8 @@ import { requirePermission } from "@core/auth/authz";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { SETTING_KEYS, DEFAULT_SETTINGS } from "@/lib/settings";
 import { PrintFrame } from "@/components/print-frame";
-import { getTranslator } from "@/lib/locale";
-import { intlLocale } from "@/lib/i18n";
+import { getTranslator } from "@core/shared/i18n/locale";
+import { intlLocale } from "@core/shared/i18n/i18n";
 
 export default async function OrderPrintPage({
   params,

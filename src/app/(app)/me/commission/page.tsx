@@ -3,7 +3,7 @@ import { requireSession } from "@core/auth/authz";
 import { prisma } from "@/lib/prisma";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { periodKey, periodRange } from "@core/payroll/payroll";
-import { getTranslator } from "@/lib/locale";
+import { getTranslator } from "@core/shared/i18n/locale";
 import { PageHeader } from "@/components/page-header";
 import { KpiCard } from "@/components/kpi-card";
 import { RevealList } from "@/components/reveal-list";

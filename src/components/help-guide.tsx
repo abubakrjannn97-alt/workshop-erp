@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { IconHelp } from "@/components/icons";
-import type { Locale } from "@/lib/i18n";
-import { createT } from "@/lib/i18n";
+import type { Locale } from "@core/shared/i18n/i18n";
+import { createT } from "@core/shared/i18n/i18n";
 import {
   HELP_REPLAY,
   HELP_RESTORE,
@@ -16,7 +16,7 @@ import {
   pageIdFromPath,
   type HelpPageId,
   type TourStep,
-} from "@/lib/help";
+} from "@core/shared/i18n/help";
 
 type Box = { top: number; left: number; width: number; height: number; radius: string };
 

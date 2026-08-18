@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { createT, type Locale } from "@/lib/i18n";
+import { createT, type Locale } from "@core/shared/i18n/i18n";
 
 function switchHref(locale: Locale, pathname: string) {
   const redirect = encodeURIComponent(pathname || "/");

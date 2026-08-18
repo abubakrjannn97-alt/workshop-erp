@@ -6,8 +6,8 @@ import { PageHeader } from "@/components/page-header";
 import { CloseBatchForm } from "@/components/close-batch-form";
 import { idbGet, idbPut } from "@/lib/offline/db";
 import type { MeJobsSnapshot } from "@/lib/offline/types";
-import type { Locale } from "@/lib/i18n";
-import { translate } from "@/lib/i18n";
+import type { Locale } from "@core/shared/i18n/i18n";
+import { translate } from "@core/shared/i18n/i18n";
 
 const SNAPSHOT_KEY = "me-jobs";
 

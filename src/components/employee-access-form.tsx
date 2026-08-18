@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { updateEmployeeAccess } from "@/app/actions/employees";
-import { createT, type Locale } from "@/lib/i18n";
+import { createT, type Locale } from "@core/shared/i18n/i18n";
 import type { PermissionCode } from "@core/rbac/permissions";
 import type { PermissionOption } from "@/components/add-employee-form";
 

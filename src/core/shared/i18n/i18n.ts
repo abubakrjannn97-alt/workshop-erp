@@ -1,4 +1,4 @@
-import { getDomainI18nOverrides } from "@/lib/i18n-domain";
+import { getDomainI18nOverrides } from "@core/config/i18n-domain";
 
 export type Locale = "ru" | "tj";
 

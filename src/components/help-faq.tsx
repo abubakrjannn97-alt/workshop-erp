@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { Locale } from "@/lib/i18n";
-import { createT } from "@/lib/i18n";
-import { HELP_REPLAY, HELP_RESTORE, helpFaq } from "@/lib/help";
+import type { Locale } from "@core/shared/i18n/i18n";
+import { createT } from "@core/shared/i18n/i18n";
+import { HELP_REPLAY, HELP_RESTORE, helpFaq } from "@core/shared/i18n/help";
 
 export function HelpFaq({ locale }: { locale: Locale }) {
   const t = createT(locale);

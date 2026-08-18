@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { AppShell } from "@/components/app-shell";
 import { CashShiftBar } from "@/components/cash-shift-bar";
-import { getTranslator } from "@/lib/locale";
+import { getTranslator } from "@core/shared/i18n/locale";
 import { getShellData } from "@/lib/shell-data";
 
 export const dynamic = "force-dynamic";

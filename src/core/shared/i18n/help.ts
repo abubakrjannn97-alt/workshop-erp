@@ -1,5 +1,5 @@
-import type { Locale } from "@/lib/i18n";
-import { getDomainHelpOverrides } from "@/lib/i18n-domain";
+import type { Locale } from "@core/shared/i18n/i18n";
+import { getDomainHelpOverrides } from "@core/config/i18n-domain";
 
 export type HelpPageId =
   | "home"

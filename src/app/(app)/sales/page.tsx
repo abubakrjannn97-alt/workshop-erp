@@ -1,10 +1,10 @@
-import { getTranslator } from "@/lib/locale";
+import { getTranslator } from "@core/shared/i18n/locale";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { hasPermission } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
-import { intlLocale } from "@/lib/i18n";
+import { intlLocale } from "@core/shared/i18n/i18n";
 import { KpiCard } from "@/components/kpi-card";
 import { RevealList } from "@/components/reveal-list";
 import { StatusBadge, orderTone, payTone } from "@/components/status-badge";

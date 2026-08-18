@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import type { Locale } from "@/lib/i18n";
-import { createT } from "@/lib/i18n";
+import type { Locale } from "@core/shared/i18n/i18n";
+import { createT } from "@core/shared/i18n/i18n";
 
 const DISMISS_KEY = "workshop_pwa_install_dismissed";
 

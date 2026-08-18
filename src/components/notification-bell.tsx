@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { Bell } from "lucide-react";
-import type { Locale } from "@/lib/i18n";
-import { createT } from "@/lib/i18n";
+import type { Locale } from "@core/shared/i18n/i18n";
+import { createT } from "@core/shared/i18n/i18n";
 
 export function NotificationBell({
   unread,

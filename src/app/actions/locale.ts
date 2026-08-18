@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { LOCALE_COOKIE } from "@core/shared/locale-cookie";
-import { LOCALES, type Locale } from "@/lib/i18n";
+import { LOCALES, type Locale } from "@core/shared/i18n/i18n";
 
 export async function setLocaleAction(formData: FormData) {
   const locale = String(formData.get("locale") ?? "");

@@ -1,6 +1,6 @@
 "use client";
 
-import { createT, getClientLocale } from "@/lib/i18n";
+import { createT, getClientLocale } from "@core/shared/i18n/i18n";
 import { CircleAlert } from "lucide-react";
 
 export default function AppError({

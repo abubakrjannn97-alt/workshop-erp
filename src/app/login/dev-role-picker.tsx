@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { devQuickLoginAction } from "@/app/actions/auth";
-import { createT, type Locale } from "@/lib/i18n";
+import { createT, type Locale } from "@core/shared/i18n/i18n";
 
 type DemoUser = { email: string; roleCode: string; name: string };
 

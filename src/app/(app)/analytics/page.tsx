@@ -8,7 +8,7 @@ import { contributionAndNet } from "@core/finance/profit";
 import { coverageAndPurchaseNeed } from "@core/inventory/alerts";
 import { resolveRawWarehouseCode } from "@/core/config/resolve-warehouse";
 import { resolveProductionPaySchemeCode } from "@core/config/domain-config";
-import { getTranslator } from "@/lib/locale";
+import { getTranslator } from "@core/shared/i18n/locale";
 import { KpiCard } from "@/components/kpi-card";
 import { RevealList } from "@/components/reveal-list";
 import { CustomerRef } from "@/components/entity-ref";

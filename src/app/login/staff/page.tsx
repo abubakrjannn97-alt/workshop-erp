@@ -1,5 +1,5 @@
 import { StaffLoginForm } from "../login-form";
-import { getLocale } from "@/lib/locale";
+import { getLocale } from "@core/shared/i18n/locale";
 import { WorkshopMark } from "@/components/workshop-mark";
 import { LanguageSwitcher } from "@/components/language-switcher";
 

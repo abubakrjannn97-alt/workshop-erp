@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { PendingButton } from "@/components/pending-button";
-import { createT, type Locale } from "@/lib/i18n";
+import { createT, type Locale } from "@core/shared/i18n/i18n";
 
 type Product = {
   id: string;

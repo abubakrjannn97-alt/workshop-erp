@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { publishRecipeVersion } from "@/app/actions/recipes";
-import { createT, type Locale } from "@/lib/i18n";
+import { createT, type Locale } from "@core/shared/i18n/i18n";
 
 type Option = { id: string; name: string; extra?: string };
 

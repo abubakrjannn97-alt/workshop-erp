@@ -1,5 +1,5 @@
 import { requireSession } from "@core/auth/authz";
-import { getTranslator } from "@/lib/locale";
+import { getTranslator } from "@core/shared/i18n/locale";
 import { PageHeader } from "@/components/page-header";
 import { LogoutButton } from "@/components/logout-button";
 import { LanguageSwitcher } from "@/components/language-switcher";

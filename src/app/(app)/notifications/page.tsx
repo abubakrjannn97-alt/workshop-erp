@@ -1,5 +1,5 @@
-import { getTranslator } from "@/lib/locale";
-import { intlLocale } from "@/lib/i18n";
+import { getTranslator } from "@core/shared/i18n/locale";
+import { intlLocale } from "@core/shared/i18n/i18n";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@core/auth/authz";

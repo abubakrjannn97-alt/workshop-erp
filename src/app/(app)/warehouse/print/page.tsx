@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { PrintFrame } from "@/components/print-frame";
-import { getTranslator } from "@/lib/locale";
+import { getTranslator } from "@core/shared/i18n/locale";
 
 export default async function WarehousePrintPage({
   searchParams,

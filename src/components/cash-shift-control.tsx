@@ -6,8 +6,8 @@ import { createPortal } from "react-dom";
 import { Wallet } from "lucide-react";
 import { closeCashShift, openCashShift } from "@/app/actions/control";
 import { PendingButton } from "@/components/pending-button";
-import type { Locale } from "@/lib/i18n";
-import { createT, intlLocale } from "@/lib/i18n";
+import type { Locale } from "@core/shared/i18n/i18n";
+import { createT, intlLocale } from "@core/shared/i18n/i18n";
 import styles from "./cash-shift-control.module.css";
 
 export type CashShiftControlData = {

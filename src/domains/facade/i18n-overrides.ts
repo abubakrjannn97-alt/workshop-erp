@@ -1,4 +1,4 @@
-import type { Dict, Locale } from "@/lib/i18n";
+import type { Dict, Locale } from "@core/shared/i18n/i18n";
 
 /** Facade-specific UI terminology layered on top of core i18n. */
 export const FACADE_I18N_OVERRIDES: Record<Locale, Dict> = {

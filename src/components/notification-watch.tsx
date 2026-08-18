@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { Locale } from "@/lib/i18n";
-import { translate } from "@/lib/i18n";
+import type { Locale } from "@core/shared/i18n/i18n";
+import { translate } from "@core/shared/i18n/i18n";
 
 type Item = { id: string; title: string; body: string };
 

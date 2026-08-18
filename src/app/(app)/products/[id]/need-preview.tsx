@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
-import { createT, type Locale } from "@/lib/i18n";
+import { createT, type Locale } from "@core/shared/i18n/i18n";
 
 type Line = {
   materialName: string;

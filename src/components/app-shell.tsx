@@ -12,7 +12,7 @@ import { WorkshopMark } from "@/components/workshop-mark";
 import { NotificationWatch } from "@/components/notification-watch";
 import { OfflineSync } from "@/components/offline-sync";
 import { ChevronDown } from "lucide-react";
-import type { Locale } from "@/lib/i18n";
+import type { Locale } from "@core/shared/i18n/i18n";
 
 type Props = {
   companyName: string;

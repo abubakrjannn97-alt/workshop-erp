@@ -4,7 +4,7 @@ const path = require("path");
 const root = path.join(__dirname, "..");
 
 // i18n
-const i18nPath = path.join(root, "src/lib/i18n.ts");
+const i18nPath = path.join(root, "src/core/shared/i18n/i18n.ts");
 let i18n = fs.readFileSync(i18nPath, "utf8");
 if (!i18n.includes('"home.recentOrders"')) {
   i18n = i18n.replace(
@@ -49,7 +49,7 @@ import { requireSession } from "@core/auth/authz";
 import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { FUND, fundDelta } from "@core/finance/finance";
 import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@core/inventory/alerts";
-import { getTranslator, intlLocale } from "@/lib/locale";
+import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import { KpiCard } from "@/components/kpi-card";
 import { DashPanel } from "@/components/dash-panel";
 import { FundRow } from "@/components/fund-row";

@@ -1,4 +1,4 @@
-import type { Locale } from "@/lib/i18n";
+import type { Locale } from "@core/shared/i18n/i18n";
 
 type HelpTextOverrides = {
   tour?: Partial<Record<string, string>>;

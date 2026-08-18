@@ -1,4 +1,4 @@
-import { getTranslator } from "@/lib/locale";
+import { getTranslator } from "@core/shared/i18n/locale";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { DEFAULT_SETTINGS, SETTING_KEYS } from "@/lib/settings";

@@ -19,7 +19,7 @@ import { requireSession } from "@core/auth/authz";
 import { D, qtyDisplay } from "@core/shared/decimal";
 import { FUND, fundDelta } from "@core/finance/finance";
 import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@core/inventory/alerts";
-import { getTranslator, intlLocale } from "@/lib/locale";
+import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import { orderNo } from "@core/shared/format";
 import { CURRENCY_SYMBOL } from "@/lib/settings";
 import { orderTone } from "@/components/status-badge";

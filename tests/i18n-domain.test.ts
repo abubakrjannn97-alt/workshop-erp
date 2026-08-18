@@ -1,8 +1,8 @@
 import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { translate } from "../src/lib/i18n";
-import { getDomainI18nOverrides } from "../src/lib/i18n-domain";
-import { helpFaq, helpTour } from "../src/lib/help";
+import { translate } from "../src/core/shared/i18n/i18n";
+import { getDomainI18nOverrides } from "../src/core/config/i18n-domain";
+import { helpFaq, helpTour } from "../src/core/shared/i18n/help";
 import { FACADE_DOMAIN_CONFIG } from "../src/domains/facade/config";
 
 const prevDomain = process.env.WORKSHOP_DOMAIN;

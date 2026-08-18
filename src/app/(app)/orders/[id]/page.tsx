@@ -1,4 +1,4 @@
-import { getTranslator } from "@/lib/locale";
+import { getTranslator } from "@core/shared/i18n/locale";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -10,7 +10,7 @@ import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { available } from "@core/inventory/stock";
 import { findRawWarehouse } from "@/core/config/resolve-warehouse";
 import { PAYMENT_METHODS, STATUS_FLOW } from "@core/orders/orders";
-import { intlLocale } from "@/lib/i18n";
+import { intlLocale } from "@core/shared/i18n/i18n";
 import { PageHeader } from "@/components/page-header";
 import {
   addPayment,

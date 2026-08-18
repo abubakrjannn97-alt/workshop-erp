@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown } from "lucide-react";
-import type { Locale } from "@/lib/i18n";
-import { translate } from "@/lib/i18n";
+import type { Locale } from "@core/shared/i18n/i18n";
+import { translate } from "@core/shared/i18n/i18n";
 import {
   FINANCE_PERIODS,
   type FinancePeriod,

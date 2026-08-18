@@ -17,7 +17,7 @@ import { requireSession } from "@core/auth/authz";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { FUND, fundDelta } from "@core/finance/finance";
 import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@core/inventory/alerts";
-import { getTranslator, intlLocale } from "@/lib/locale";
+import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import { PageHeader } from "@/components/page-header";
 import { StatisticsCards } from "@/components/dashboard/StatisticsCards";
 import type { StatisticsCardData, StatisticsCardTrend } from "@/components/dashboard/StatisticsCards";

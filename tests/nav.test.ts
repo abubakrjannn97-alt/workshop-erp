@@ -6,7 +6,7 @@ import {
   isTabActive,
   moreGroupsForRole,
   tabHrefSet,
-} from "../src/lib/nav";
+} from "../src/core/shared/nav";
 
 describe("mobile nav by role", () => {
   it("owner gets home orders production warehouse more", () => {

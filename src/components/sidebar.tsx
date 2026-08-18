@@ -22,10 +22,10 @@ import {
   LogOut,
 } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth";
-import type { Locale } from "@/lib/i18n";
-import { createT } from "@/lib/i18n";
+import type { Locale } from "@core/shared/i18n/i18n";
+import { createT } from "@core/shared/i18n/i18n";
 import { WorkshopMark } from "@/components/workshop-mark";
-import { sidebarGroups, type NavIcon } from "@/lib/nav";
+import { sidebarGroups, type NavIcon } from "@core/shared/nav";
 import styles from "./sidebar.module.css";
 
 const STORAGE_KEY = "workshop_sidebar_collapsed";

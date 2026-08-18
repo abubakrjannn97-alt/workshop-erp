@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { loginAction } from "@/app/actions/auth";
-import { createT, type Locale } from "@/lib/i18n";
+import { createT, type Locale } from "@core/shared/i18n/i18n";
 import styles from "./login-form.module.css";
 
 function SubmitButton({ t, labelKey }: { t: (k: string) => string; labelKey: string }) {

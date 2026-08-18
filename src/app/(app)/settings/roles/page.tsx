@@ -1,4 +1,4 @@
-import { getTranslator } from "@/lib/locale";
+import { getTranslator } from "@core/shared/i18n/locale";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@core/auth/authz";

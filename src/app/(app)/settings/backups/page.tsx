@@ -1,5 +1,5 @@
 import { PageHeader } from "@/components/page-header";
-import { getTranslator } from "@/lib/locale";
+import { getTranslator } from "@core/shared/i18n/locale";
 import { readFile } from "fs/promises";
 import path from "path";
 import { requirePermission } from "@core/auth/authz";

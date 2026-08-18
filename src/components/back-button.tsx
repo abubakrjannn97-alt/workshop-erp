@@ -2,8 +2,8 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
-import type { Locale } from "@/lib/i18n";
-import { createT } from "@/lib/i18n";
+import type { Locale } from "@core/shared/i18n/i18n";
+import { createT } from "@core/shared/i18n/i18n";
 
 function fallbackHref(path: string) {
   const parts = path.split("/").filter(Boolean);

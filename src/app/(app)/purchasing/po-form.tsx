@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createPurchaseOrder } from "@/app/actions/purchasing";
-import { createT, type Locale } from "@/lib/i18n";
+import { createT, type Locale } from "@core/shared/i18n/i18n";
 
 type Opt = { id: string; name: string; extra?: string };
 

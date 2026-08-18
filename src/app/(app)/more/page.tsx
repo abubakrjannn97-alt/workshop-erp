@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireSession } from "@core/auth/authz";
-import { getTranslator } from "@/lib/locale";
+import { getTranslator } from "@core/shared/i18n/locale";
 import { PageHeader } from "@/components/page-header";
 import { LogoutButton } from "@/components/logout-button";
-import { moreGroupsForRole } from "@/lib/nav";
+import { moreGroupsForRole } from "@core/shared/nav";
 import { NavIconGlyph } from "@/components/bottom-nav";
 
 export default async function MorePage() {

@@ -1,4 +1,4 @@
-import { getTranslator, intlLocale } from "@/lib/locale";
+import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";

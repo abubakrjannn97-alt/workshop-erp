@@ -1,4 +1,4 @@
-import { createT, type Locale } from "@/lib/i18n";
+import { createT, type Locale } from "@core/shared/i18n/i18n";
 
 export function PhaseLater({
   title,

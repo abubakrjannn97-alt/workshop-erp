@@ -4,7 +4,7 @@ import { hasPermission } from "@core/auth/authz";
 import { moneyDisplay } from "@core/shared/decimal";
 import { LEDGER } from "@core/finance/finance";
 import { createExpense } from "@/app/actions/finance";
-import { getTranslator, intlLocale } from "@/lib/locale";
+import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import { PageHeader } from "@/components/page-header";
 import { FormField } from "@/components/form-field";
 import { IdempotencyField } from "@/components/idempotency-field";

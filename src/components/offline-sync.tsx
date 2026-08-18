@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CloudOff, CloudUpload, RefreshCw } from "lucide-react";
-import type { Locale } from "@/lib/i18n";
-import { translate } from "@/lib/i18n";
+import type { Locale } from "@core/shared/i18n/i18n";
+import { translate } from "@core/shared/i18n/i18n";
 import { flushQueue, getPendingCount } from "@/lib/offline/sync";
 
 export function OfflineSync({ locale }: { locale: Locale }) {

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { requireSession } from "@core/auth/authz";
-import { getTranslator } from "@/lib/locale";
+import { getTranslator } from "@core/shared/i18n/locale";
 import { PageHeader } from "@/components/page-header";
-import { isMoreGroupId, moreGroupsForRole } from "@/lib/nav";
+import { isMoreGroupId, moreGroupsForRole } from "@core/shared/nav";
 import { NavIconGlyph } from "@/components/bottom-nav";
 
 export default async function MoreGroupPage({ params }: { params: Promise<{ group: string }> }) {

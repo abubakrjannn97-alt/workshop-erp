@@ -9,7 +9,7 @@ function check(p) {
 
 for (const p of [
   "src/app/(app)/orders/page.tsx",
-  "src/lib/i18n.ts",
+  "src/core/shared/i18n/i18n.ts",
   "src/components/language-switcher.tsx",
   "src/core/finance/finance.ts",
   "src/core/inventory/stock.ts",

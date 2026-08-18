@@ -1,6 +1,6 @@
 import { PageHeader } from "@/components/page-header";
 import { FormField } from "@/components/form-field";
-import { getTranslator } from "@/lib/locale";
+import { getTranslator } from "@core/shared/i18n/locale";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@core/auth/authz";

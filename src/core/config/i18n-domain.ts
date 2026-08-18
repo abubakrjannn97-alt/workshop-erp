@@ -1,4 +1,4 @@
-import type { Dict, Locale } from "@/lib/i18n";
+import type { Dict, Locale } from "@core/shared/i18n/i18n";
 import { getWorkshopDomain } from "@core/config/domain-config";
 import { FACADE_DOMAIN_CONFIG } from "@/domains/facade/config";
 import { FACADE_I18N_OVERRIDES } from "@/domains/facade/i18n-overrides";
