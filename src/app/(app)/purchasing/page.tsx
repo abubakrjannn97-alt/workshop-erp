@@ -7,6 +7,9 @@ import { PurchaseOrderForm } from "./po-form";
 import { moneyDisplay } from "@core/shared/decimal";
 import { D } from "@core/shared/decimal";
 import { PageHeader } from "@/components/page-header";
+import { DashPanel } from "@/components/dash-panel";
+import { FormField } from "@/components/form-field";
+import { PendingButton } from "@/components/pending-button";
 import {
   DataList,
   DataListCell,
@@ -19,6 +22,7 @@ import {
   DataTableSection,
   dataListStyles,
 } from "@/components/data-table";
+import { StatusBadge, type BadgeTone } from "@/components/status-badge";
 
 function poStatus(t: (k: string) => string, s: string) {
   const map: Record<string, string> = {
@@ -28,6 +32,14 @@ function poStatus(t: (k: string) => string, s: string) {
     CANCELLED: t("po.CANCELLED"),
   };
   return map[s] ?? s;
+}
+
+function poTone(status: string): BadgeTone {
+  if (status === "POSTED") return "good";
+  if (status === "CANCELLED") return "bad";
+  if (status === "ORDERED") return "info";
+  if (status === "REQUEST") return "warn";
+  return "neutral";
 }
 
 export default async function PurchasingPage() {
@@ -56,9 +68,8 @@ export default async function PurchasingPage() {
     <div className="page-stack">
       <PageHeader title={t("page.purchasing")} description={t("po.hint")} />
 
-      <section className="ui-card" data-tour="po-suppliers">
-        <h2 className="text-sm font-semibold">{t("po.suppliers")}</h2>
-        <ul className="mt-3 space-y-2 text-sm">
+      <DashPanel title={t("po.suppliers")} tour="po-suppliers">
+        <ul className="space-y-2 text-sm">
           {suppliers.map((s) => {
             const turnover = s.orders.reduce((sum, o) => sum.add(o.total), D(0));
             const debt = s.orders.reduce((sum, o) => sum.add(D(String(o.total)).sub(o.paidAmount)), D(0));
@@ -75,21 +86,31 @@ export default async function PurchasingPage() {
           })}
         </ul>
         {canSuppliers ? (
-          <form action={createSupplier} className="mt-4 grid gap-2 sm:grid-cols-4">
-            <input name="name" required placeholder={t("common.name")} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-            <input name="phone" placeholder={t("common.phone")} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-            <input name="contact" placeholder={t("common.contact")} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-            <button className="ui-btn-primary">{t("common.add")}</button>
+          <form action={createSupplier} className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <FormField label={t("common.name")} required>
+              <input name="name" required className="ui-input" />
+            </FormField>
+            <FormField label={t("common.phone")}>
+              <input name="phone" className="ui-input" />
+            </FormField>
+            <FormField label={t("common.contact")}>
+              <input name="contact" className="ui-input" />
+            </FormField>
+            <PendingButton className="ui-btn-primary min-h-[44px] sm:col-span-2 lg:col-span-4" pendingLabel={t("common.sending")}>
+              {t("common.add")}
+            </PendingButton>
           </form>
         ) : null}
-      </section>
+      </DashPanel>
 
       {canManage ? (
-        <PurchaseOrderForm
-          suppliers={suppliers.map((s) => ({ id: s.id, name: s.name }))}
-          materials={materials.map((m) => ({ id: m.id, name: m.name }))}
-          locale={locale}
-        />
+        <DashPanel title={t("po.createRequest")} tour="po-new">
+          <PurchaseOrderForm
+            suppliers={suppliers.map((s) => ({ id: s.id, name: s.name }))}
+            materials={materials.map((m) => ({ id: m.id, name: m.name }))}
+            locale={locale}
+          />
+        </DashPanel>
       ) : null}
 
       <DataTableSection>
@@ -109,7 +130,9 @@ export default async function PurchasingPage() {
                 <DataListRow key={o.id} layout="cols5">
                   <DataListPrimary title={o.number} href={`/purchasing/${o.id}`} />
                   <DataListCell label={t("common.supplier")}>{o.supplier.name}</DataListCell>
-                  <DataListCell label={t("common.status")}>{poStatus(t, o.status) ?? o.status}</DataListCell>
+                  <DataListCell label={t("common.status")}>
+                    <StatusBadge label={poStatus(t, o.status) ?? o.status} tone={poTone(o.status)} />
+                  </DataListCell>
                   <DataListMetric label={t("common.amount")} value={`${moneyDisplay(o.total)} с`} />
                   <DataListMetric
                     label={t("common.debt")}

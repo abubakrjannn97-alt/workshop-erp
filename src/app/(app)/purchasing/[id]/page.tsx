@@ -1,4 +1,6 @@
 import { PageHeader } from "@/components/page-header";
+import { DashPanel } from "@/components/dash-panel";
+import { FormField } from "@/components/form-field";
 import { DataTableSection, UiTable } from "@/components/data-table";
 import { getTranslator } from "@core/shared/i18n/locale";
 import Link from "next/link";
@@ -13,6 +15,8 @@ import {
 } from "@/app/actions/purchasing";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { D } from "@core/shared/decimal";
+import { PendingButton } from "@/components/pending-button";
+import { StatusBadge, type BadgeTone } from "@/components/status-badge";
 
 function poStatus(t: (k: string) => string, s: string) {
   const map: Record<string, string> = {
@@ -24,8 +28,16 @@ function poStatus(t: (k: string) => string, s: string) {
   return map[s] ?? s;
 }
 
+function poTone(status: string): BadgeTone {
+  if (status === "POSTED") return "good";
+  if (status === "CANCELLED") return "bad";
+  if (status === "ORDERED") return "info";
+  if (status === "REQUEST") return "warn";
+  return "neutral";
+}
+
 export default async function PurchaseOrderPage({ params }: { params: Promise<{ id: string }> }) {
-  const { t, locale } = await getTranslator();
+  const { t } = await getTranslator();
   const { id } = await params;
   const session = await requirePermission("purchasing.view");
   const canManage =
@@ -41,14 +53,17 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
 
   return (
     <div className="page-stack">
-      <div>
-        <p className="text-xs text-[var(--muted)]">{poStatus(t, order.status)}</p>
-        <PageHeader title={order.number} />
-        <p className="text-sm text-[var(--text-muted)]">{order.supplier.name}</p>
-        <Link href={`/purchasing/${order.id}/print`} className="mt-2 inline-block text-sm text-[var(--titan-dark)] hover:underline">
-          {t("po.printWaybill")}
-        </Link>
-      </div>
+      <PageHeader
+        title={order.number}
+        description={order.supplier.name}
+        meta={<StatusBadge label={poStatus(t, order.status) ?? order.status} tone={poTone(order.status)} />}
+        actions={
+          <Link href={`/purchasing/${order.id}/print`} className="ui-btn-secondary">
+            {t("po.printWaybill")}
+          </Link>
+        }
+      />
+
       <DataTableSection>
         <UiTable>
           <table className="w-full text-left text-sm">
@@ -79,35 +94,56 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
           </table>
         </UiTable>
       </DataTableSection>
+
       <p className="text-sm">
         {t("po.summary", { total: moneyDisplay(order.total), paid: moneyDisplay(order.paidAmount), debt: moneyDisplay(debt) })}
       </p>
-      <div className="flex flex-wrap gap-2">
-        {canManage && order.status === "REQUEST" ? (
-          <form action={confirmPurchaseOrder}>
-            <input type="hidden" name="id" value={order.id} />
-            <button className="ui-btn-primary">{t("po.confirmToSupplier")}</button>
-          </form>
-        ) : null}
-        {canReceive && (order.status === "ORDERED" || order.status === "REQUEST") ? (
-          <form action={receivePurchaseOrder}>
-            <input type="hidden" name="id" value={order.id} />
-            <button className="ui-btn-primary">{t("po.acceptPost")}</button>
-          </form>
-        ) : null}
-        {canManage && order.status !== "POSTED" && order.status !== "CANCELLED" ? (
-          <form action={cancelPurchaseOrder}>
-            <input type="hidden" name="id" value={order.id} />
-            <button className="rounded-lg px-4 py-2 text-sm text-[var(--danger)]">{t("common.cancel")}</button>
-          </form>
-        ) : null}
-      </div>
+
+      {(canManage && order.status === "REQUEST") ||
+      (canReceive && (order.status === "ORDERED" || order.status === "REQUEST")) ||
+      (canManage && order.status !== "POSTED" && order.status !== "CANCELLED") ? (
+        <DashPanel title={t("common.actions")}>
+          <div className="flex flex-wrap gap-2">
+            {canManage && order.status === "REQUEST" ? (
+              <form action={confirmPurchaseOrder}>
+                <input type="hidden" name="id" value={order.id} />
+                <PendingButton className="ui-btn-primary min-h-[44px]" pendingLabel={t("common.sending")}>
+                  {t("po.confirmToSupplier")}
+                </PendingButton>
+              </form>
+            ) : null}
+            {canReceive && (order.status === "ORDERED" || order.status === "REQUEST") ? (
+              <form action={receivePurchaseOrder}>
+                <input type="hidden" name="id" value={order.id} />
+                <PendingButton className="ui-btn-primary min-h-[44px]" pendingLabel={t("common.sending")}>
+                  {t("po.acceptPost")}
+                </PendingButton>
+              </form>
+            ) : null}
+            {canManage && order.status !== "POSTED" && order.status !== "CANCELLED" ? (
+              <form action={cancelPurchaseOrder}>
+                <input type="hidden" name="id" value={order.id} />
+                <PendingButton className="min-h-[44px] text-sm text-[var(--danger)]" pendingLabel={t("common.sending")}>
+                  {t("common.cancel")}
+                </PendingButton>
+              </form>
+            ) : null}
+          </div>
+        </DashPanel>
+      ) : null}
+
       {canManage && order.status !== "CANCELLED" ? (
-        <form action={registerPurchasePayment} className="flex max-w-md gap-2">
-          <input type="hidden" name="id" value={order.id} />
-          <input name="amount" placeholder={t("po.payPh")} className="flex-1 rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-          <button className="ui-btn-primary">{t("common.payment")}</button>
-        </form>
+        <DashPanel title={t("common.payment")}>
+          <form action={registerPurchasePayment} className="flex max-w-md flex-wrap items-end gap-3">
+            <input type="hidden" name="id" value={order.id} />
+            <FormField label={t("po.payPh")} className="min-w-0 flex-1">
+              <input name="amount" className="ui-input" />
+            </FormField>
+            <PendingButton className="ui-btn-primary min-h-[44px]" pendingLabel={t("common.sending")}>
+              {t("common.payment")}
+            </PendingButton>
+          </form>
+        </DashPanel>
       ) : null}
     </div>
   );

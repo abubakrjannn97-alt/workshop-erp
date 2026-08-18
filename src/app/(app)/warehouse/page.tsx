@@ -1,9 +1,11 @@
 import { PageHeader } from "@/components/page-header";
+import { DashPanel } from "@/components/dash-panel";
+import { FormField } from "@/components/form-field";
 import { getTranslator } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { WarehouseNav } from "@/components/warehouse-nav";
-import { UiTable } from "@/components/ui-table";
+import { DataTableSection, UiTable } from "@/components/data-table";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { D } from "@core/shared/decimal";
 import { receiveOpening, writeOffStock } from "@/app/actions/inventory";
@@ -13,6 +15,7 @@ import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
 import { getRawWarehouse } from "@/core/config/resolve-warehouse";
 import { resolveRawWarehouseCode } from "@/core/config/resolve-warehouse";
+import Link from "next/link";
 
 export default async function WarehousePage() {
   const { t, locale } = await getTranslator();
@@ -43,16 +46,18 @@ export default async function WarehousePage() {
 
   return (
     <div className="page-stack">
-      <div>
-        <PageHeader title={t("wh.rawTitle")} />
-        <p className="mt-1 text-sm text-[var(--text-muted)]">{t("wh.rawHint")}</p>
-        <a href={`/warehouse/print?warehouse=${rawCode}`} className="mt-2 inline-block text-sm text-[var(--titan-dark)] hover:underline">
-          {t("wh.printStock")}
-        </a>
-      </div>
+      <PageHeader
+        title={t("wh.rawTitle")}
+        description={t("wh.rawHint")}
+        actions={
+          <Link href={`/warehouse/print?warehouse=${rawCode}`} className="ui-btn-secondary">
+            {t("wh.printStock")}
+          </Link>
+        }
+      />
       <WarehouseNav current="raw" locale={locale} />
 
-      <div className="overflow-hidden ui-card" data-tour="warehouse-stock">
+      <DataTableSection tour="warehouse-stock">
         <UiTable>
           <table className="w-full text-left text-sm">
             <thead className="bg-[var(--surface-muted)] text-xs uppercase tracking-wide text-[var(--muted)]">
@@ -115,46 +120,66 @@ export default async function WarehousePage() {
             </RevealList>
           </table>
         </UiTable>
-      </div>
+      </DataTableSection>
 
       {canReceive ? (
-        <form action={receiveOpening} className="grid gap-2 ui-card sm:grid-cols-5" data-tour="warehouse-in">
-          <input type="hidden" name="warehouseId" value={raw.id} />
-          <IdempotencyField prefix="wh-in" />
-          <select name="materialId" className="ui-input">
-            {materials.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
-          <input name="quantity" required placeholder={t("common.quantity")} className="ui-input" />
-          <input name="unitCost" required placeholder={t("common.unitPrice")} className="ui-input" />
-          <input name="comment" placeholder={t("common.comment")} className="ui-input" />
-          <PendingButton className="ui-btn-primary" pendingLabel={t("common.sending")}>
-            {t("common.receipt")}
-          </PendingButton>
-        </form>
+        <DashPanel title={t("common.receipt")} tour="warehouse-in">
+          <form action={receiveOpening} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <input type="hidden" name="warehouseId" value={raw.id} />
+            <IdempotencyField prefix="wh-in" />
+            <FormField label={t("common.material")}>
+              <select name="materialId" className="ui-input">
+                {materials.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+            <FormField label={t("common.quantity")} required>
+              <input name="quantity" required className="ui-input" />
+            </FormField>
+            <FormField label={t("common.unitPrice")} required>
+              <input name="unitCost" required className="ui-input" />
+            </FormField>
+            <FormField label={t("common.comment")}>
+              <input name="comment" className="ui-input" />
+            </FormField>
+            <PendingButton className="ui-btn-primary min-h-[44px] sm:col-span-2 lg:col-span-5" pendingLabel={t("common.sending")}>
+              {t("common.receipt")}
+            </PendingButton>
+          </form>
+        </DashPanel>
       ) : null}
 
       {canAdjust ? (
-        <form action={writeOffStock} className="grid gap-2 ui-card sm:grid-cols-5" data-tour="warehouse-out">
-          <input type="hidden" name="warehouseId" value={raw.id} />
-          <IdempotencyField prefix="wh-out" />
-          <select name="materialId" className="ui-input">
-            {materials.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
-          <input name="quantity" required placeholder={t("wh.writeQty")} className="ui-input" />
-          <input name="reason" required placeholder={t("common.reason")} className="ui-input" />
-          <input name="comment" placeholder={t("common.comment")} className="ui-input" />
-          <PendingButton className="ui-btn-danger" pendingLabel={t("common.sending")}>
-            {t("common.writeOff")}
-          </PendingButton>
-        </form>
+        <DashPanel title={t("common.writeOff")} tour="warehouse-out">
+          <form action={writeOffStock} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <input type="hidden" name="warehouseId" value={raw.id} />
+            <IdempotencyField prefix="wh-out" />
+            <FormField label={t("common.material")}>
+              <select name="materialId" className="ui-input">
+                {materials.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+            <FormField label={t("wh.writeQty")} required>
+              <input name="quantity" required className="ui-input" />
+            </FormField>
+            <FormField label={t("common.reason")} required>
+              <input name="reason" required className="ui-input" />
+            </FormField>
+            <FormField label={t("common.comment")}>
+              <input name="comment" className="ui-input" />
+            </FormField>
+            <PendingButton className="ui-btn-danger min-h-[44px] sm:col-span-2 lg:col-span-5" pendingLabel={t("common.sending")}>
+              {t("common.writeOff")}
+            </PendingButton>
+          </form>
+        </DashPanel>
       ) : null}
 
       <p className="text-xs text-[var(--muted)]">{t("wh.stockCount")}: {items.length}</p>

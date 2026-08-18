@@ -1,10 +1,29 @@
 import { PageHeader } from "@/components/page-header";
+import { DashPanel } from "@/components/dash-panel";
+import { FormField } from "@/components/form-field";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
-import Link from "next/link";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { WarehouseNav } from "@/components/warehouse-nav";
 import { createInventoryCount } from "@/app/actions/inventory";
+import { PendingButton } from "@/components/pending-button";
+import {
+  DataList,
+  DataListCell,
+  DataListEmpty,
+  DataListHead,
+  DataListHeadCell,
+  DataListPrimary,
+  DataListRow,
+  DataTableSection,
+  dataListStyles,
+} from "@/components/data-table";
+import { StatusBadge, type BadgeTone } from "@/components/status-badge";
+
+function countTone(status: string): BadgeTone {
+  if (status === "POSTED") return "good";
+  return "warn";
+}
 
 export default async function InventoryListPage() {
   const { t, locale, n } = await getTranslator();
@@ -18,33 +37,59 @@ export default async function InventoryListPage() {
 
   return (
     <div className="page-stack">
-      <div>
-        <PageHeader title={t("wh.invTitle")} />
-        <p className="mt-1 text-sm text-[var(--text-muted)]">
-          {t("wh.invHint")}
-        </p>
-      </div>
+      <PageHeader title={t("wh.invTitle")} description={t("wh.invHint")} />
       <WarehouseNav current="inventory" locale={locale} />
-      <form action={createInventoryCount} className="flex gap-2 ui-card">
-        <select name="warehouseId" className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm">
-          {warehouses.map((w) => (
-            <option key={w.id} value={w.id}>
-              {w.name}
-            </option>
-          ))}
-        </select>
-        <button className="ui-btn-primary">{t("wh.startCount")}</button>
-      </form>
-      <ul className="space-y-2">
-        {counts.map((c) => (
-          <li key={c.id} className="ui-card px-4 py-3 text-sm">
-            <Link href={`/warehouse/inventory/${c.id}`} className="font-medium hover:underline">
-              {n("wh", c.warehouse.code, c.warehouse.name)} · {c.createdAt.toLocaleString(intlLocale(locale))}
-            </Link>
-            <span className="ml-2 text-xs text-[var(--muted)]">{c.status === "DRAFT" ? t("wh.draft") : t("wh.posted")}</span>
-          </li>
-        ))}
-      </ul>
+
+      <DashPanel title={t("wh.startCount")}>
+        <form action={createInventoryCount} className="flex flex-wrap items-end gap-3">
+          <FormField label={t("whNav.raw")} className="min-w-[12rem] flex-1">
+            <select name="warehouseId" className="ui-input">
+              {warehouses.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.name}
+                </option>
+              ))}
+            </select>
+          </FormField>
+          <PendingButton className="ui-btn-primary min-h-[44px]" pendingLabel={t("common.sending")}>
+            {t("wh.startCount")}
+          </PendingButton>
+        </form>
+      </DashPanel>
+
+      <DataTableSection>
+        {counts.length === 0 ? (
+          <DataListEmpty>{t("common.empty")}</DataListEmpty>
+        ) : (
+          <DataList layout="cols3">
+            <DataListHead layout="cols3">
+              <DataListHeadCell>{t("whNav.raw")}</DataListHeadCell>
+              <DataListHeadCell>{t("common.date")}</DataListHeadCell>
+              <DataListHeadCell>{t("common.status")}</DataListHeadCell>
+            </DataListHead>
+            <ul className={dataListStyles.rows}>
+              {counts.map((c) => (
+                <DataListRow key={c.id} layout="cols3">
+                  <DataListPrimary
+                    title={n("wh", c.warehouse.code, c.warehouse.name)}
+                    href={`/warehouse/inventory/${c.id}`}
+                  />
+                  <DataListCell label={t("common.date")}>
+                    {c.createdAt.toLocaleString(intlLocale(locale))}
+                  </DataListCell>
+                  <DataListCell label={t("common.status")}>
+                    <StatusBadge
+                      label={c.status === "DRAFT" ? t("wh.draft") : t("wh.posted")}
+                      tone={countTone(c.status)}
+                    />
+                  </DataListCell>
+                </DataListRow>
+              ))}
+            </ul>
+          </DataList>
+        )}
+      </DataTableSection>
+
       <p className="hidden">{session.user.id}</p>
     </div>
   );

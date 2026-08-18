@@ -42,10 +42,7 @@ export default async function MovementsPage() {
 
   return (
     <div className="page-stack">
-      <div>
-        <PageHeader title={t("wh.movesTitle")} />
-        <p className="mt-1 text-sm text-[var(--text-muted)]">{t("wh.movesHint")}</p>
-      </div>
+      <PageHeader title={t("wh.movesTitle")} description={t("wh.movesHint")} />
       <WarehouseNav current="moves" locale={locale} />
       <DataTableSection>
         <UiTable>
@@ -63,7 +60,9 @@ export default async function MovementsPage() {
             <tbody>
               {movements.map((m) => (
                 <tr key={m.id} className="border-t border-[var(--line)]">
-                  <td className="px-4 py-3 text-xs text-[var(--muted)]">{m.createdAt.toLocaleString(intlLocale(locale))}</td>
+                  <td className="px-4 py-3 text-xs text-[var(--muted)]" data-label={t("wh.time")}>
+                    {m.createdAt.toLocaleString(intlLocale(locale))}
+                  </td>
                   <td className="px-4 py-3" data-label={t("wh.type")}>
                     {moveType(t, m.type) ?? m.type}
                   </td>

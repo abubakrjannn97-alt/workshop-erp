@@ -3,7 +3,18 @@ import { requirePermission } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import { PageHeader } from "@/components/page-header";
+import { DashPanel } from "@/components/dash-panel";
 import { RevealList } from "@/components/reveal-list";
+import {
+  DataList,
+  DataListEmpty,
+  DataListHead,
+  DataListHeadCell,
+  DataListMetric,
+  DataListPrimary,
+  DataListRow,
+  dataListStyles,
+} from "@/components/data-table";
 
 export default async function FinanceReportsPage() {
   await requirePermission("finance.view");
@@ -22,33 +33,57 @@ export default async function FinanceReportsPage() {
   return (
     <div className="page-stack">
       <PageHeader title={t("nav.reports")} description={t("fin.reportsHint")} />
-      <section className="ui-card">
-        <h2 className="text-sm font-semibold">{t("fin.supplierDebt")}</h2>
-        <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={8}>
-          {debts.map((o) => (
-            <li key={o.id} className="flex justify-between gap-2 text-sm">
-              <span className="truncate">
-                {o.supplier.name} · {o.number}
-              </span>
-              <span className="font-mono text-xs">{moneyDisplay(D(String(o.total)).sub(o.paidAmount))} с</span>
-            </li>
-          ))}
-        </RevealList>
-      </section>
-      <section className="ui-card">
-        <h2 className="text-sm font-semibold">{t("fin.obligations")}</h2>
-        <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={8}>
-          {obligations.map((o) => (
-            <li key={o.id} className="flex justify-between gap-2 text-sm">
-              <span className="truncate">{o.name}</span>
-              <span className="shrink-0 font-mono text-xs">
-                {moneyDisplay(D(String(o.amount)).sub(o.paidAmount))} с
-                {o.dueAt ? ` · ${o.dueAt.toLocaleDateString(intlLocale(locale))}` : ""}
-              </span>
-            </li>
-          ))}
-        </RevealList>
-      </section>
+      <DashPanel title={t("fin.supplierDebt")}>
+        {debts.length === 0 ? (
+          <DataListEmpty>{t("common.empty")}</DataListEmpty>
+        ) : (
+          <DataList layout="cols2">
+            <DataListHead layout="cols2">
+              <DataListHeadCell>{t("common.supplier")}</DataListHeadCell>
+              <DataListHeadCell align="right">{t("common.debt")}</DataListHeadCell>
+            </DataListHead>
+            <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={8} className={dataListStyles.rows}>
+              {debts.map((o) => (
+                <DataListRow key={o.id} layout="cols2">
+                  <DataListPrimary title={o.supplier.name} subtitle={o.number} />
+                  <DataListMetric
+                    label={t("common.debt")}
+                    value={`${moneyDisplay(D(String(o.total)).sub(o.paidAmount))} с`}
+                    tone="bad"
+                  />
+                </DataListRow>
+              ))}
+            </RevealList>
+          </DataList>
+        )}
+      </DashPanel>
+      <DashPanel title={t("fin.obligations")}>
+        {obligations.length === 0 ? (
+          <DataListEmpty>{t("common.empty")}</DataListEmpty>
+        ) : (
+          <DataList layout="cols2">
+            <DataListHead layout="cols2">
+              <DataListHeadCell>{t("list.col.what")}</DataListHeadCell>
+              <DataListHeadCell align="right">{t("common.debt")}</DataListHeadCell>
+            </DataListHead>
+            <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={8} className={dataListStyles.rows}>
+              {obligations.map((o) => (
+                <DataListRow key={o.id} layout="cols2">
+                  <DataListPrimary
+                    title={o.name}
+                    subtitle={o.dueAt ? o.dueAt.toLocaleDateString(intlLocale(locale)) : undefined}
+                  />
+                  <DataListMetric
+                    label={t("common.debt")}
+                    value={`${moneyDisplay(D(String(o.amount)).sub(o.paidAmount))} с`}
+                    tone="bad"
+                  />
+                </DataListRow>
+              ))}
+            </RevealList>
+          </DataList>
+        )}
+      </DashPanel>
     </div>
   );
 }

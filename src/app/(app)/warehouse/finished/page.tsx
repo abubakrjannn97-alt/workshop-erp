@@ -1,13 +1,16 @@
 import { PageHeader } from "@/components/page-header";
+import { DashPanel } from "@/components/dash-panel";
+import { FormField } from "@/components/form-field";
 import { getTranslator } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { WarehouseNav } from "@/components/warehouse-nav";
-import { UiTable } from "@/components/ui-table";
+import { DataTableSection, UiTable } from "@/components/data-table";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { D } from "@core/shared/decimal";
 import { receiveOpening } from "@/app/actions/inventory";
 import { IdempotencyField } from "@/components/idempotency-field";
+import { PendingButton } from "@/components/pending-button";
 import { getFgWarehouse } from "@/core/config/resolve-warehouse";
 
 export default async function FinishedWarehousePage() {
@@ -27,12 +30,9 @@ export default async function FinishedWarehousePage() {
 
   return (
     <div className="page-stack">
-      <div>
-        <PageHeader title={t("whNav.fg")} />
-        <p className="mt-1 text-sm text-[var(--text-muted)]">{t("wh.fgHint")}</p>
-      </div>
+      <PageHeader title={t("whNav.fg")} description={t("wh.fgHint")} />
       <WarehouseNav current="fg" locale={locale} />
-      <div className="overflow-hidden ui-card">
+      <DataTableSection>
         <UiTable>
           <table className="w-full text-left text-sm">
             <thead className="bg-[var(--surface-muted)] text-xs uppercase tracking-wide text-[var(--muted)]">
@@ -77,25 +77,35 @@ export default async function FinishedWarehousePage() {
             </tbody>
           </table>
         </UiTable>
-      </div>
+      </DataTableSection>
       {canReceive ? (
-        <form action={receiveOpening} className="grid gap-2 ui-card sm:grid-cols-5">
-          <input type="hidden" name="warehouseId" value={fg.id} />
-          <IdempotencyField prefix="fg-receive" />
-          <select name="productId" className="ui-input">
-            {products.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-          <input name="quantity" required placeholder={t("common.quantity")} className="ui-input" />
-          <input name="unitCost" required placeholder={t("common.unitPrice")} className="ui-input" />
-          <input name="comment" placeholder={t("common.comment")} className="ui-input" />
-          <button type="submit" className="ui-btn-primary">
-            {t("common.receipt")}
-          </button>
-        </form>
+        <DashPanel title={t("common.receipt")}>
+          <form action={receiveOpening} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <input type="hidden" name="warehouseId" value={fg.id} />
+            <IdempotencyField prefix="fg-receive" />
+            <FormField label={t("common.product")}>
+              <select name="productId" className="ui-input">
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+            <FormField label={t("common.quantity")} required>
+              <input name="quantity" required className="ui-input" />
+            </FormField>
+            <FormField label={t("common.unitPrice")} required>
+              <input name="unitCost" required className="ui-input" />
+            </FormField>
+            <FormField label={t("common.comment")}>
+              <input name="comment" className="ui-input" />
+            </FormField>
+            <PendingButton className="ui-btn-primary min-h-[44px] sm:col-span-2 lg:col-span-5" pendingLabel={t("common.sending")}>
+              {t("common.receipt")}
+            </PendingButton>
+          </form>
+        </DashPanel>
       ) : null}
     </div>
   );

@@ -11,6 +11,10 @@ import { RevealList } from "@/components/reveal-list";
 import { PageHeader } from "@/components/page-header";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
+import { DashKpiGrid } from "@/components/dashboard/dashboard-system";
+import { DashPanel } from "@/components/dash-panel";
+import { FormField } from "@/components/form-field";
+import { ModuleToolbar } from "@/components/module/module-ui";
 import {
   DataList,
   DataListEmpty,
@@ -19,8 +23,9 @@ import {
   DataListMetric,
   DataListPrimary,
   DataListRow,
+  DataTableSection,
   dataListStyles,
-} from "@/components/data-list";
+} from "@/components/data-table";
 
 export default async function FinancePage() {
   const { t, locale, n } = await getTranslator();
@@ -83,15 +88,14 @@ export default async function FinancePage() {
     <div className="page-stack">
       <PageHeader title={t("page.finance")} description={t("fin.hint")} />
 
-      <div className="grid gap-2 sm:grid-cols-3" data-tour="fin-money">
+      <DashKpiGrid cols="3" tour="fin-money">
         <KpiCard label={t("fin.physical")} value={`${moneyDisplay(physical)} с`} hint={t("home.period")} tone="in" />
         <KpiCard label={t("fin.byFunds")} value={`${moneyDisplay(allocated)} с`} tone="ink" />
         <KpiCard label={t("fin.supplierDebt")} value={`${moneyDisplay(supplierDebt.add(otherDebt))} с`} tone="out" />
-      </div>
+      </DashKpiGrid>
 
       <section className="grid gap-2 lg:grid-cols-2">
-        <div className="ui-card overflow-hidden">
-          <h2 className="section-title">{t("fin.accounts")}</h2>
+        <DashPanel title={t("fin.accounts")}>
           <DataList layout="cols2">
             <DataListHead layout="cols2">
               <DataListHeadCell>{t("fin.accounts")}</DataListHeadCell>
@@ -106,9 +110,8 @@ export default async function FinancePage() {
               ))}
             </ul>
           </DataList>
-        </div>
-        <div className="ui-card overflow-hidden">
-          <h2 className="section-title">{t("fin.funds")}</h2>
+        </DashPanel>
+        <DashPanel title={t("fin.funds")}>
           <DataList layout="cols2">
             <DataListHead layout="cols2">
               <DataListHeadCell>{t("home.col.fund")}</DataListHeadCell>
@@ -127,21 +130,30 @@ export default async function FinancePage() {
               ))}
             </ul>
           </DataList>
-        </div>
+        </DashPanel>
       </section>
 
-      <section className="ui-card" data-tour="fin-shift">
-        <h2 className="text-sm font-semibold">{t("fin.shift")}</h2>
-        <form action={openShift} className="mt-3 flex flex-wrap gap-2">
-          <select name="accountId" className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm">
-            {accounts.map((a) => (
-              <option key={a.id} value={a.id}>
-                {n("cash", a.code, a.name)}
-              </option>
-            ))}
-          </select>
-          <input name="openingAmount" placeholder={t("fin.openBalance")} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-          <button className="ui-btn-primary">{t("fin.openShift")}</button>
+      <DashPanel title={t("fin.shift")} tour="fin-shift">
+        <form action={openShift} className="contents">
+          <ModuleToolbar>
+            <FormField label={t("fin.accounts")} className="min-w-[10rem] flex-1">
+              <select name="accountId" className="ui-input">
+                {accounts.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {n("cash", a.code, a.name)}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+            <FormField label={t("fin.openBalance")} className="min-w-[8rem]">
+              <input name="openingAmount" placeholder={t("fin.openBalance")} className="ui-input" />
+            </FormField>
+            <div className="flex items-end">
+              <button type="submit" className="ui-btn-primary min-h-[44px]">
+                {t("fin.openShift")}
+              </button>
+            </div>
+          </ModuleToolbar>
         </form>
         <ul className="mt-3 space-y-3 text-sm">
           {shifts.length === 0 ? (
@@ -159,102 +171,145 @@ export default async function FinancePage() {
                   <p className="text-xs text-[var(--muted)]">
                     {t("fin.expectedNow")}: {expected ? moneyDisplay(expected) : "—"} с
                   </p>
-                  <form action={closeShift} className="mt-2 flex flex-wrap gap-2">
+                  <form action={closeShift} className="mt-2 flex flex-wrap items-end gap-2">
                     <input type="hidden" name="id" value={s.id} />
-                    <input name="closingActual" placeholder={t("fin.closeBalance")} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-                    <input name="comment" placeholder={t("fin.diffReason")} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-                    <button className="ui-btn-secondary">{t("common.close")}</button>
+                    <FormField label={t("fin.closeBalance")} className="min-w-[8rem]">
+                      <input name="closingActual" placeholder={t("fin.closeBalance")} className="ui-input" />
+                    </FormField>
+                    <FormField label={t("fin.diffReason")} className="min-w-[10rem] flex-1">
+                      <input name="comment" placeholder={t("fin.diffReason")} className="ui-input" />
+                    </FormField>
+                    <button type="submit" className="ui-btn-secondary min-h-[44px]">
+                      {t("common.close")}
+                    </button>
                   </form>
                 </li>
               );
             })
           )}
         </ul>
-      </section>
+      </DashPanel>
 
       {canExpense || canTransfer ? (
         <section className="grid gap-2 lg:grid-cols-2">
           {canExpense ? (
-            <form action={expenseAction} className="space-y-2 ui-card" data-tour="fin-expense">
-              <h2 className="text-sm font-semibold">{t("fin.expense")}</h2>
-              <IdempotencyField prefix="expense" />
-              <select name="accountId" className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm">
-                {accounts.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {n("cash", a.code, a.name)}
-                  </option>
-                ))}
-              </select>
-              <select name="categoryId" className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm">
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-              <input name="amount" placeholder={t("common.amount")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-              <input name="comment" placeholder={t("common.comment")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-              <PendingButton className="ui-btn-primary" pendingLabel={t("common.sending")}>
-                {t("fin.postExpense")}
-              </PendingButton>
-            </form>
+            <DashPanel title={t("fin.expense")} tour="fin-expense">
+              <form action={expenseAction} className="grid gap-3">
+                <IdempotencyField prefix="expense" />
+                <FormField label={t("fin.accounts")}>
+                  <select name="accountId" className="ui-input">
+                    {accounts.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {n("cash", a.code, a.name)}
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+                <FormField label={t("fin.expenseCat")}>
+                  <select name="categoryId" className="ui-input">
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+                <FormField label={`${t("common.amount")}, с`}>
+                  <input name="amount" placeholder={t("common.amount")} className="ui-input" inputMode="decimal" />
+                </FormField>
+                <FormField label={t("common.comment")}>
+                  <input name="comment" placeholder={t("common.comment")} className="ui-input" />
+                </FormField>
+                <PendingButton className="ui-btn-primary min-h-[44px]" pendingLabel={t("common.sending")}>
+                  {t("fin.postExpense")}
+                </PendingButton>
+              </form>
+            </DashPanel>
           ) : null}
           {canTransfer ? (
-            <form action={transferAction} className="space-y-2 ui-card">
-              <h2 className="text-sm font-semibold">{t("fin.transfer")}</h2>
-              <select name="fromAccountId" className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm">
-                {accounts.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {t("fin.from")}: {n("cash", a.code, a.name)}
-                  </option>
-                ))}
-              </select>
-              <select name="toAccountId" className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm">
-                {accounts.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {t("fin.to")}: {n("cash", a.code, a.name)}
-                  </option>
-                ))}
-              </select>
-              <input name="amount" placeholder={t("common.amount")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-              <input name="comment" placeholder={t("common.comment")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-              <button className="ui-btn-primary">{t("fin.transferBtn")}</button>
-            </form>
+            <DashPanel title={t("fin.transfer")}>
+              <form action={transferAction} className="grid gap-3">
+                <FormField label={t("fin.from")}>
+                  <select name="fromAccountId" className="ui-input">
+                    {accounts.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {n("cash", a.code, a.name)}
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+                <FormField label={t("fin.to")}>
+                  <select name="toAccountId" className="ui-input">
+                    {accounts.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {n("cash", a.code, a.name)}
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+                <FormField label={`${t("common.amount")}, с`}>
+                  <input name="amount" placeholder={t("common.amount")} className="ui-input" inputMode="decimal" />
+                </FormField>
+                <FormField label={t("common.comment")}>
+                  <input name="comment" placeholder={t("common.comment")} className="ui-input" />
+                </FormField>
+                <button type="submit" className="ui-btn-primary min-h-[44px]">
+                  {t("fin.transferBtn")}
+                </button>
+              </form>
+            </DashPanel>
           ) : null}
         </section>
       ) : null}
 
       {canExpense ? (
         <section className="grid gap-2 lg:grid-cols-2">
-          <form action={obligationAction} className="space-y-2 ui-card">
-            <h2 className="text-sm font-semibold">{t("fin.obligation")}</h2>
-            <input name="name" placeholder={t("common.name")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-            <select name="kind" className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm">
-              <option value="other">{t("fin.other")}</option>
-              <option value="supplier">{t("common.supplier")}</option>
-              <option value="tax">{t("fin.tax")}</option>
-            </select>
-            <input name="amount" placeholder={t("common.amount")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-            <button className="ui-btn-primary">{t("common.add")}</button>
-          </form>
-          <form action={categoryAction} className="space-y-2 ui-card">
-            <h2 className="text-sm font-semibold">{t("fin.expenseCat")}</h2>
-            <input name="code" placeholder={t("common.code")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-            <input name="name" placeholder={t("common.name")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-            <select name="fundCode" className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm">
-              {funds.map((f) => (
-                <option key={f.code} value={f.code}>
-                  {n("fund", f.code, f.name)}
-                </option>
-              ))}
-            </select>
-            <button className="ui-btn-primary">{t("fin.saveCat")}</button>
-          </form>
+          <DashPanel title={t("fin.obligation")}>
+            <form action={obligationAction} className="grid gap-3">
+              <FormField label={t("common.name")}>
+                <input name="name" placeholder={t("common.name")} className="ui-input" />
+              </FormField>
+              <FormField label={t("common.type")}>
+                <select name="kind" className="ui-input">
+                  <option value="other">{t("fin.other")}</option>
+                  <option value="supplier">{t("common.supplier")}</option>
+                  <option value="tax">{t("fin.tax")}</option>
+                </select>
+              </FormField>
+              <FormField label={`${t("common.amount")}, с`}>
+                <input name="amount" placeholder={t("common.amount")} className="ui-input" inputMode="decimal" />
+              </FormField>
+              <button type="submit" className="ui-btn-primary min-h-[44px]">
+                {t("common.add")}
+              </button>
+            </form>
+          </DashPanel>
+          <DashPanel title={t("fin.expenseCat")}>
+            <form action={categoryAction} className="grid gap-3">
+              <FormField label={t("common.code")}>
+                <input name="code" placeholder={t("common.code")} className="ui-input" />
+              </FormField>
+              <FormField label={t("common.name")}>
+                <input name="name" placeholder={t("common.name")} className="ui-input" />
+              </FormField>
+              <FormField label={t("home.col.fund")}>
+                <select name="fundCode" className="ui-input">
+                  {funds.map((f) => (
+                    <option key={f.code} value={f.code}>
+                      {n("fund", f.code, f.name)}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+              <button type="submit" className="ui-btn-primary min-h-[44px]">
+                {t("fin.saveCat")}
+              </button>
+            </form>
+          </DashPanel>
         </section>
       ) : null}
 
-      <section className="ui-card overflow-hidden">
-        <h2 className="section-title">{t("fin.obligations")}</h2>
+      <DashPanel title={t("fin.obligations")}>
         <DataList layout="cols2">
           <DataListHead layout="cols2">
             <DataListHeadCell>{t("list.col.what")}</DataListHeadCell>
@@ -265,10 +320,7 @@ export default async function FinancePage() {
               .filter((o) => D(String(o.total)).sub(o.paidAmount).gt(0))
               .map((o) => (
                 <DataListRow key={o.id} layout="cols2">
-                  <DataListPrimary
-                    title={o.supplier.name}
-                    subtitle={`${t("fin.supplierOf")} · ${o.number}`}
-                  />
+                  <DataListPrimary title={o.supplier.name} subtitle={`${t("fin.supplierOf")} · ${o.number}`} />
                   <DataListMetric
                     label={t("common.debt")}
                     value={`${moneyDisplay(D(String(o.total)).sub(o.paidAmount))} с`}
@@ -288,11 +340,11 @@ export default async function FinancePage() {
             ))}
           </RevealList>
         </DataList>
-      </section>
+      </DashPanel>
 
-      <section className="overflow-hidden ui-card">
+      <DataTableSection>
         <div className="border-b border-[var(--line)] px-5 py-3">
-          <h2 className="text-sm font-semibold">{t("set.audit")}</h2>
+          <h2 className="section-title">{t("set.audit")}</h2>
         </div>
         {entries.length === 0 ? (
           <DataListEmpty>{t("fin.noEntries")}</DataListEmpty>
@@ -318,8 +370,7 @@ export default async function FinancePage() {
             </RevealList>
           </DataList>
         )}
-      </section>
+      </DataTableSection>
     </div>
   );
 }
-
