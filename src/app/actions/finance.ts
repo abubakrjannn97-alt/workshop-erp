@@ -112,6 +112,8 @@ export async function createObligation(formData: FormData) {
   const amount = String(formData.get("amount") ?? "");
   const kind = String(formData.get("kind") ?? "other") || "other";
   const comment = String(formData.get("comment") ?? "").trim();
+  const intervalRaw = String(formData.get("interval") ?? "").trim();
+  const interval = intervalRaw === "MONTHLY" ? "MONTHLY" : null;
   if (!name) return { error: "Название обязательства." };
   if (!moneyStr(amount) || D(amount).lte(0)) return { error: "Сумма." };
 
@@ -121,6 +123,7 @@ export async function createObligation(formData: FormData) {
       name,
       amount: money(amount),
       comment: comment || null,
+      interval,
       createdById: session.user.id,
     },
   });
@@ -132,6 +135,20 @@ export async function createObligation(formData: FormData) {
   });
   revalidatePath("/finance");
   return { ok: true };
+}
+
+export async function postRecurringObligations() {
+  const session = await requirePermission("finance.expense.create");
+  const { postDueRecurringObligations } = await import("@core/finance/recurring");
+  const result = await postDueRecurringObligations(session.user.id);
+  await writeAudit({
+    userId: session.user.id,
+    action: "obligation.recurring.post",
+    entityType: "obligation",
+    newValue: result,
+  });
+  revalidatePath("/finance");
+  return { ok: true, ...result };
 }
 
 export async function createExpenseCategory(formData: FormData) {

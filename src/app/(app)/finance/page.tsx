@@ -4,7 +4,7 @@ import { requirePermission } from "@core/auth/authz";
 import { hasPermission } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { cashDelta, fundDelta, FUND } from "@core/finance/finance";
-import { createExpense, createExpenseCategory, createObligation, transferCash } from "@/app/actions/finance";
+import { createExpense, createExpenseCategory, createObligation, postRecurringObligations, transferCash } from "@/app/actions/finance";
 import { closeCashShift, openCashShift } from "@/app/actions/control";
 import { KpiCard } from "@/components/kpi-card";
 import { RevealList } from "@/components/reveal-list";
@@ -69,6 +69,10 @@ export default async function FinancePage() {
   async function obligationAction(formData: FormData) {
     "use server";
     await createObligation(formData);
+  }
+  async function recurringAction() {
+    "use server";
+    await postRecurringObligations();
   }
   async function categoryAction(formData: FormData) {
     "use server";
@@ -274,8 +278,17 @@ export default async function FinancePage() {
               <FormField label={`${t("common.amount")}, с`}>
                 <input name="amount" placeholder={t("common.amount")} className="ui-input" inputMode="decimal" />
               </FormField>
+              <select name="interval" className="ui-input" aria-label={t("fin.interval")}>
+                <option value="">{t("fin.oneOff")}</option>
+                <option value="MONTHLY">{t("fin.monthly")}</option>
+              </select>
               <button type="submit" className="ui-btn-primary min-h-[44px]">
                 {t("common.add")}
+              </button>
+            </form>
+            <form action={recurringAction} className="mt-3">
+              <button type="submit" className="ui-btn-secondary min-h-[44px]">
+                {t("fin.postRecurring")}
               </button>
             </form>
           </DashPanel>

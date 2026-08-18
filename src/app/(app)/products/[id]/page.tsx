@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/page-header";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import { notFound } from "next/navigation";
 import { prisma } from "@core/infrastructure/prisma";
-import { requirePermission } from "@core/auth/authz";
+import { requirePermission, canSeeMaterialCost } from "@core/auth/authz";
 import { updateProduct } from "@/app/actions/products";
 import { CatalogNav } from "@/components/catalog-nav";
 import { materialCostForRecipe } from "@core/costing/costing";
@@ -18,6 +18,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     session.user.roleCode === "owner" || session.user.permissions.includes("products.manage");
   const canRecipe =
     session.user.roleCode === "owner" || session.user.permissions.includes("recipes.manage");
+  const canSeeCost = canSeeMaterialCost(session.user.permissions, session.user.roleCode);
 
   const [product, units, materials] = await Promise.all([
     prisma.product.findUnique({
@@ -94,6 +95,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         ) : null}
       </form>
 
+      {canSeeCost ? (
       <section className="ui-card">
         <h2 className="text-sm font-semibold">{t("products.matCostTitle")}</h2>
         <p className="mt-1 text-xs text-[var(--muted)]">
@@ -121,6 +123,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           {cost?.total ? `${moneyDisplay(cost.total)} с` : t("products.costUnset")}
         </p>
       </section>
+      ) : null}
 
       {cost ? (
         <NeedPreview
@@ -128,13 +131,14 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             materialName: l.materialName,
             quantity: l.quantity,
             unitSymbol: l.unitSymbol,
-            lineCost: l.lineCost,
+            lineCost: canSeeCost ? l.lineCost : null,
           }))}
           outputPerBase={product.outputPerBase.toString()}
           outputSymbol={product.outputUnit.symbol}
           saleSymbol={product.saleUnit.symbol}
           recipeBaseQty={product.recipeBaseQty.toString()}
           locale={locale}
+          showCosts={canSeeCost}
         />
       ) : null}
 

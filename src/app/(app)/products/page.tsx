@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/page-header";
 import { getTranslator } from "@core/shared/i18n/locale";
 import Link from "next/link";
 import { prisma } from "@core/infrastructure/prisma";
-import { requirePermission } from "@core/auth/authz";
+import { requirePermission, canSeeMaterialCost } from "@core/auth/authz";
 import { CatalogNav } from "@/components/catalog-nav";
 import { materialCostForRecipe } from "@core/costing/costing";
 import { moneyDisplay } from "@core/shared/decimal";
@@ -15,6 +15,7 @@ export default async function ProductsPage() {
   const session = await requirePermission("products.view");
   const canManage =
     session.user.roleCode === "owner" || session.user.permissions.includes("products.manage");
+  const canSeeCost = canSeeMaterialCost(session.user.permissions, session.user.roleCode);
 
   const products = await prisma.product.findMany({
     where: { archivedAt: null },
@@ -22,18 +23,20 @@ export default async function ProductsPage() {
       saleUnit: true,
       outputUnit: true,
       prices: { where: { validTo: null }, take: 1 },
-      recipe: {
-        include: {
-          versions: {
-            where: { validTo: null },
+      recipe: canSeeCost
+        ? {
             include: {
-              items: { include: { material: { include: { storageUnit: true } }, unit: true } },
+              versions: {
+                where: { validTo: null },
+                include: {
+                  items: { include: { material: { include: { storageUnit: true } }, unit: true } },
+                },
+                take: 1,
+                orderBy: { versionNumber: "desc" as const },
+              },
             },
-            take: 1,
-            orderBy: { versionNumber: "desc" },
-          },
-        },
-      },
+          }
+        : false,
     },
     orderBy: { name: "asc" },
   });
@@ -61,7 +64,7 @@ export default async function ProductsPage() {
                 <th className="px-4 py-3">{t("common.product")}</th>
                 <th className="px-4 py-3">{t("common.unit")}</th>
                 <th className="px-4 py-3">{t("common.price")}</th>
-                <th className="px-4 py-3">{t("products.matCost")}</th>
+                {canSeeCost ? <th className="px-4 py-3">{t("products.matCost")}</th> : null}
                 <th className="px-4 py-3">{t("products.output")}</th>
                 <th className="px-4 py-3" />
               </tr>
@@ -69,7 +72,7 @@ export default async function ProductsPage() {
             {products.length === 0 ? (
               <tbody>
                 <tr>
-                  <td className="px-3 py-6 text-[var(--muted)]" colSpan={6}>
+                  <td className="px-3 py-6 text-[var(--muted)]" colSpan={canSeeCost ? 6 : 5}>
                     {t("products.empty")}
                   </td>
                 </tr>
@@ -96,9 +99,11 @@ export default async function ProductsPage() {
                       <td className="px-4 py-3 font-mono text-xs" data-label={t("common.price")}>
                         {price ? `${moneyDisplay(price)} с` : "—"}
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs" data-label={t("products.matCost")}>
-                        {cost.total ? `${moneyDisplay(cost.total)} с` : t("products.incomplete")}
-                      </td>
+                      {canSeeCost ? (
+                        <td className="px-4 py-3 font-mono text-xs" data-label={t("products.matCost")}>
+                          {cost.total ? `${moneyDisplay(cost.total)} с` : t("products.incomplete")}
+                        </td>
+                      ) : null}
                       <td className="px-4 py-3 text-xs text-[var(--text-muted)]" data-label={t("products.output")}>
                         {product.outputPerBase.toString()} {product.outputUnit.symbol} / {product.recipeBaseQty.toString()}{" "}
                         {product.saleUnit.symbol}

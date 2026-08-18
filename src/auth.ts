@@ -5,6 +5,7 @@ import { prisma } from "@core/infrastructure/prisma";
 import { writeAudit } from "@core/control/audit";
 import { authConfig } from "@/auth.config";
 import { bypassOwnerSession, isAuthBypass } from "@core/auth/dev-auth";
+import { loadLiveAuthFields } from "@core/auth/load-live-auth";
 import { resolveUserPermissions } from "@core/rbac/permissions";
 import { isValidPhone, normalizePhone } from "@core/shared/phone";
 import {
@@ -47,6 +48,24 @@ async function loadAuthUser(user: {
 
 const nextAuth = NextAuth({
   ...authConfig,
+  callbacks: {
+    ...authConfig.callbacks,
+    async jwt({ token, user }) {
+      if (user) {
+        token.sub = user.id;
+        token.name = user.name;
+        token.email = user.email;
+      }
+      if (!token.sub) return token;
+      const live = await loadLiveAuthFields(token.sub);
+      token.roleCode = live.roleCode;
+      token.roleName = live.roleName;
+      token.permissions = live.permissions;
+      token.name = live.name || token.name;
+      token.email = live.email || token.email;
+      return token;
+    },
+  },
   providers: [
     Credentials({
       name: "credentials",

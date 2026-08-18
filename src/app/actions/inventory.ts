@@ -8,7 +8,7 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money, qty } from "@core/shared/decimal";
-import { adjustToActual, receiveMaterial, receiveProduct, reverseMovement, writeOffMaterial } from "@core/inventory/stock";
+import { adjustToActual, receiveMaterial, receiveProduct, reverseMovement, transferStock, writeOffMaterial } from "@core/inventory/stock";
 import { notifyRoles } from "@core/control/control";
 import { canSelfApprove, queueApproval } from "@core/control/control";
 
@@ -270,5 +270,53 @@ export async function confirmInventoryCount(formData: FormData) {
   });
   revalidatePath("/warehouse");
   revalidatePath("/warehouse/inventory");
+  return { ok: true };
+}
+
+export async function transferWarehouse(formData: FormData) {
+  const session = await requirePermission("inventory.adjust");
+  const parsed = z
+    .object({
+      fromWarehouseId: z.string().min(1),
+      toWarehouseId: z.string().min(1),
+      materialId: z.string().optional(),
+      productId: z.string().optional(),
+      quantity: z.string().regex(/^\d+(\.\d{1,6})?$/),
+      comment: z.string().optional(),
+    })
+    .safeParse({
+      fromWarehouseId: formData.get("fromWarehouseId"),
+      toWarehouseId: formData.get("toWarehouseId"),
+      materialId: formData.get("materialId") || undefined,
+      productId: formData.get("productId") || undefined,
+      quantity: formData.get("quantity"),
+      comment: formData.get("comment") || undefined,
+    });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Проверьте поля." };
+
+  try {
+    await transferStock({
+      fromWarehouseId: parsed.data.fromWarehouseId,
+      toWarehouseId: parsed.data.toWarehouseId,
+      materialId: parsed.data.materialId,
+      productId: parsed.data.productId,
+      quantity: parsed.data.quantity,
+      userId: session.user.id,
+      comment: parsed.data.comment,
+      idempotencyKey: key(formData),
+    });
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Не удалось переместить." };
+  }
+
+  await writeAudit({
+    userId: session.user.id,
+    action: "stock.transfer",
+    entityType: "stock_movement",
+    newValue: parsed.data,
+  });
+  revalidatePath("/warehouse");
+  revalidatePath("/warehouse/finished");
+  revalidatePath("/warehouse/movements");
   return { ok: true };
 }

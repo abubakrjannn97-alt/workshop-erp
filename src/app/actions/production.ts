@@ -74,3 +74,47 @@ export async function createBatch(formData: FormData) {
 }
 
 export { closeBatch } from "@/core/production/close-batch-action";
+
+export async function saveProductionStage(formData: FormData) {
+  const session = await requirePermission("production.manage");
+  const code = String(formData.get("code") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  const sortOrder = Number(formData.get("sortOrder") ?? "0") || 0;
+  try {
+    const { upsertProductionStage } = await import("@core/production/stages");
+    const row = await upsertProductionStage({ code, name, sortOrder });
+    await writeAudit({
+      userId: session.user.id,
+      action: "production.stage.upsert",
+      entityType: "production_stage",
+      entityId: row.id,
+      newValue: { code: row.code, name: row.name },
+    });
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Не удалось сохранить этап." };
+  }
+  revalidatePath("/production");
+  return { ok: true };
+}
+
+export async function assignProductionStage(formData: FormData) {
+  const session = await requirePermission("production.manage");
+  const productionOrderId = String(formData.get("productionOrderId") ?? "");
+  const stageId = String(formData.get("stageId") ?? "") || null;
+  try {
+    const { setProductionOrderStage } = await import("@core/production/stages");
+    await setProductionOrderStage(productionOrderId, stageId);
+    await writeAudit({
+      userId: session.user.id,
+      action: "production.stage.assign",
+      entityType: "production_order",
+      entityId: productionOrderId,
+      newValue: { stageId },
+    });
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Не удалось назначить этап." };
+  }
+  revalidatePath("/production");
+  revalidatePath(`/production/${productionOrderId}`);
+  return { ok: true };
+}

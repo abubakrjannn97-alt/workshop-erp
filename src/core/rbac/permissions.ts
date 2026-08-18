@@ -54,6 +54,19 @@ export function hasPermission(
   return Boolean(permissions?.includes(code));
 }
 
+/** Sale price is ok; recipe/purchase cost is not for sales_manager (TZ: seller must not see себестоимость). */
+export function canSeeMaterialCost(
+  permissions: string[] | undefined,
+  roleCode: string | undefined,
+) {
+  return (
+    hasPermission(permissions, roleCode, "materials.view") ||
+    hasPermission(permissions, roleCode, "recipes.view") ||
+    hasPermission(permissions, roleCode, "finance.view") ||
+    hasPermission(permissions, roleCode, "products.manage")
+  );
+}
+
 /** Permissions the owner can grant when adding an employee (no admin/user management). */
 export const EMPLOYEE_ASSIGNABLE: PermissionCode[] = (
   Object.keys(PERMISSIONS) as PermissionCode[]

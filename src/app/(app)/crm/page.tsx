@@ -4,7 +4,7 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { hasPermission } from "@core/auth/authz";
 import { createCustomer } from "@/app/actions/customers";
-import { createLead, moveLead } from "@/app/actions/leads";
+import { createLead, createLeadDocument, moveLead } from "@/app/actions/leads";
 import { PipelineCard } from "./pipeline-card";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { RevealList } from "@/components/reveal-list";
@@ -57,6 +57,10 @@ export default async function CrmPage() {
   async function moveAction(formData: FormData) {
     "use server";
     await moveLead(formData);
+  }
+  async function docAction(formData: FormData) {
+    "use server";
+    await createLeadDocument(formData);
   }
 
   return (
@@ -129,6 +133,36 @@ export default async function CrmPage() {
             </form>
           </DashPanel>
         </div>
+      ) : null}
+      {canManage ? (
+        <DashPanel title={t("crm.documents")}>
+          <form action={docAction} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <FormField label={t("crm.newLead")}>
+              <select name="leadId" className="ui-input" required>
+                {leads.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.name}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+            <FormField label={t("common.type")}>
+              <select name="type" className="ui-input">
+                <option value="CALCULATION">{t("crm.docCalc")}</option>
+                <option value="OFFER">{t("crm.docOffer")}</option>
+              </select>
+            </FormField>
+            <FormField label={t("common.name")}>
+              <input name="title" required className="ui-input" />
+            </FormField>
+            <FormField label={`${t("common.amount")}, с`}>
+              <input name="amount" className="ui-input" inputMode="decimal" />
+            </FormField>
+            <PendingButton className="ui-btn-secondary min-h-[44px] sm:col-span-2 lg:col-span-4" pendingLabel={t("common.sending")}>
+              {t("crm.addDocument")}
+            </PendingButton>
+          </form>
+        </DashPanel>
       ) : null}
 
       <DashPanel title={t("crm.pipeline")} tour="crm-pipeline">

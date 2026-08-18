@@ -1,10 +1,15 @@
 import { getTranslator } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
-import { requirePermission } from "@core/auth/authz";
+import { requirePermission, hasPermission } from "@core/auth/authz";
 import { qtyDisplay } from "@core/shared/decimal";
 import { StatusBadge, jobTone } from "@/components/status-badge";
 import { PageHeader } from "@/components/page-header";
 import { RevealList } from "@/components/reveal-list";
+import { DashPanel } from "@/components/dash-panel";
+import { FormField } from "@/components/form-field";
+import { PendingButton } from "@/components/pending-button";
+import { saveProductionStage } from "@/app/actions/production";
+import { isProductionScopedWorker } from "@core/production/batch-auth";
 import {
   DataList,
   DataListCell,
@@ -29,22 +34,57 @@ function jobStatus(t: (k: string) => string, s: string) {
 export default async function ProductionPage() {
   const { t } = await getTranslator();
   const session = await requirePermission("production.view");
-  const jobs = await prisma.productionOrder.findMany({
-    where:
-      session.user.roleCode === "worker"
-        ? { batches: { some: { responsibleUserId: session.user.id } } }
-        : undefined,
+  const canManage = hasPermission(session.user.permissions, session.user.roleCode, "production.manage");
+  const [jobs, stages] = await Promise.all([
+    prisma.productionOrder.findMany({
+    where: isProductionScopedWorker(session.user.roleCode, session.user.permissions ?? [])
+      ? { batches: { some: { responsibleUserId: session.user.id } } }
+      : undefined,
     include: {
       order: { include: { customer: true, items: { include: { product: true } } } },
       batches: true,
     },
     orderBy: { createdAt: "desc" },
     take: 40,
-  });
+    }),
+    canManage
+      ? prisma.productionStage.findMany({ orderBy: { sortOrder: "asc" } })
+      : Promise.resolve([]),
+  ]);
+
+  async function stageCtor(formData: FormData) {
+    "use server";
+    await saveProductionStage(formData);
+  }
 
   return (
     <div className="page-stack">
       <PageHeader title={t("page.production")} description={t("prod.hint")} />
+      {canManage ? (
+        <DashPanel title={t("prod.stages")}>
+          <ul className="mb-3 text-sm">
+            {stages.map((s) => (
+              <li key={s.id}>
+                {s.sortOrder}. {s.name} ({s.code})
+              </li>
+            ))}
+          </ul>
+          <form action={stageCtor} className="grid gap-3 sm:grid-cols-3">
+            <FormField label={t("common.code")}>
+              <input name="code" className="ui-input" />
+            </FormField>
+            <FormField label={t("common.name")}>
+              <input name="name" className="ui-input" />
+            </FormField>
+            <FormField label={t("prod.sortOrder")}>
+              <input name="sortOrder" defaultValue={String((stages.at(-1)?.sortOrder ?? 0) + 10)} className="ui-input" />
+            </FormField>
+            <PendingButton className="ui-btn-secondary min-h-[44px] sm:col-span-3" pendingLabel={t("common.sending")}>
+              {t("prod.addStage")}
+            </PendingButton>
+          </form>
+        </DashPanel>
+      ) : null}
       <DataTableSection tour="production-list">
         {jobs.length === 0 ? (
           <DataListEmpty>{t("prod.empty")}</DataListEmpty>

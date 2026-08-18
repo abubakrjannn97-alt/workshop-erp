@@ -514,3 +514,108 @@ export async function reverseMovement(movementId: string, userId: string, idempo
     });
   });
 }
+
+export async function transferStock(
+  input: {
+    fromWarehouseId: string;
+    toWarehouseId: string;
+    materialId?: string | null;
+    productId?: string | null;
+    quantity: string;
+    userId: string;
+    comment?: string;
+    relatedType?: string;
+    relatedId?: string;
+    idempotencyKey?: string;
+  },
+  externalTx?: Tx,
+) {
+  const run = async (tx: Tx) => {
+    if (input.fromWarehouseId === input.toWarehouseId) {
+      throw new Error("Склады отправления и назначения должны отличаться.");
+    }
+    if (!input.materialId && !input.productId) {
+      throw new Error("Укажите материал или изделие.");
+    }
+    if (input.materialId && input.productId) {
+      throw new Error("Перемещение: либо сырьё, либо готовая продукция.");
+    }
+    const outKey = input.idempotencyKey ? `${input.idempotencyKey}-out` : null;
+    const inKey = input.idempotencyKey ? `${input.idempotencyKey}-in` : null;
+    const existingOut = await existingByKey(tx, outKey);
+    const existingIn = await existingByKey(tx, inKey);
+    if (existingOut && existingIn) return { out: existingOut, in: existingIn };
+
+    await assertPeriodOpen();
+    const qtyMove = n(input.quantity);
+    if (qtyMove.lte(0)) throw new Error("Количество перемещения должно быть больше нуля.");
+
+    const source = input.materialId
+      ? await getOrCreateMaterialStock(tx, input.fromWarehouseId, input.materialId)
+      : await getOrCreateProductStock(tx, input.fromWarehouseId, input.productId!);
+    const dest = input.materialId
+      ? await getOrCreateMaterialStock(tx, input.toWarehouseId, input.materialId)
+      : await getOrCreateProductStock(tx, input.toWarehouseId, input.productId!);
+
+    const avail = available(source.qtyOnHand, source.qtyReserved);
+    if (avail.lt(qtyMove)) {
+      throw new Error(`Недостаточно остатка для перемещения. Доступно: ${avail.toFixed(3)}.`);
+    }
+
+    const unitCost = n(source.wacUnitCost);
+    await tx.stockItem.update({
+      where: { id: source.id },
+      data: { qtyOnHand: qty(n(source.qtyOnHand).sub(qtyMove)) },
+    });
+    const destQty = n(dest.qtyOnHand);
+    const destWac = n(dest.wacUnitCost);
+    const newDestQty = destQty.add(qtyMove);
+    const newDestWac = destQty.lte(0)
+      ? unitCost
+      : destQty.mul(destWac).add(qtyMove.mul(unitCost)).div(newDestQty);
+    await tx.stockItem.update({
+      where: { id: dest.id },
+      data: { qtyOnHand: qty(newDestQty), wacUnitCost: qty(newDestWac) },
+    });
+    if (input.materialId) {
+      await syncMaterialQty(tx, input.materialId, input.fromWarehouseId);
+      await syncMaterialQty(tx, input.materialId, input.toWarehouseId);
+    }
+
+    const out = existingOut
+      ?? (await createMovementIdempotent(tx, {
+        data: {
+          warehouseId: input.fromWarehouseId,
+          stockItemId: source.id,
+          type: MOVEMENT.TRANSFER_OUT,
+          qty: qty(qtyMove.neg()),
+          unitCost: qty(unitCost),
+          amount: money(qtyMove.mul(unitCost).neg()),
+          comment: input.comment ?? null,
+          relatedType: input.relatedType ?? "warehouse_transfer",
+          relatedId: input.relatedId ?? input.toWarehouseId,
+          idempotencyKey: outKey,
+          createdById: input.userId,
+        },
+      }));
+    const inn = existingIn
+      ?? (await createMovementIdempotent(tx, {
+        data: {
+          warehouseId: input.toWarehouseId,
+          stockItemId: dest.id,
+          type: MOVEMENT.TRANSFER_IN,
+          qty: qty(qtyMove),
+          unitCost: qty(unitCost),
+          amount: money(qtyMove.mul(unitCost)),
+          comment: input.comment ?? null,
+          relatedType: input.relatedType ?? "warehouse_transfer",
+          relatedId: input.relatedId ?? input.fromWarehouseId,
+          idempotencyKey: inKey,
+          createdById: input.userId,
+        },
+      }));
+    return { out, in: inn };
+  };
+  if (externalTx) return run(externalTx);
+  return prisma.$transaction(run);
+}

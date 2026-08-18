@@ -552,10 +552,29 @@ model Lead {
   customer Customer?  @relation(fields: [customerId], references: [id])
   stage    LeadStage  @relation(fields: [stageId], references: [id])
   manager  User?      @relation("LeadManager", fields: [managerId], references: [id])
+  documents CrmDocument[]
 
   @@index([stageId])
   @@index([managerId])
   @@map("leads")
+}
+
+model CrmDocument {
+  id          String   @id @default(cuid())
+  leadId      String
+  type        String
+  number      String
+  title       String
+  amount      Decimal? @db.Decimal(18, 4)
+  payload     Json?
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@index([type, createdAt])
+  @@map("crm_documents")
 }
 
 model OrderStatus {
@@ -661,6 +680,20 @@ model Payment {
   @@map("payments")
 }
 
+model ProductionStage {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  sortOrder Int
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  jobs ProductionOrder[]
+
+  @@map("production_stages")
+}
+
 model ProductionOrder {
   id          String    @id @default(cuid())
   orderId     String    @unique
@@ -669,12 +702,15 @@ model ProductionOrder {
   producedQty Decimal   @default(0) @db.Decimal(18, 6)
   scrapQty    Decimal   @default(0) @db.Decimal(18, 6)
   dueAt       DateTime?
+  stageId     String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   order   Order              @relation(fields: [orderId], references: [id])
+  stage   ProductionStage?   @relation(fields: [stageId], references: [id])
   batches ProductionBatch[]
 
+  @@index([stageId])
   @@map("production_orders")
 }
 
@@ -808,6 +844,8 @@ model Obligation {
   relatedType String?
   relatedId   String?
   status      String    @default("OPEN")
+  interval    String?
+  lastPostedAt DateTime?
   dueAt       DateTime?
   comment     String?
   createdById String?

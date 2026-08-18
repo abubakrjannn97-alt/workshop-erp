@@ -17,9 +17,14 @@ import {
 
 export default async function BatchesPage() {
   const { t } = await getTranslator();
-  await requirePermission("production.view");
+  const session = await requirePermission("production.view");
+  const { isProductionScopedWorker } = await import("@core/production/batch-auth");
+  const scoped = isProductionScopedWorker(session.user.roleCode, session.user.permissions ?? []);
   const batches = await prisma.productionBatch.findMany({
-    where: { status: "OPEN" },
+    where: {
+      status: "OPEN",
+      ...(scoped ? { responsibleUserId: session.user.id } : {}),
+    },
     include: {
       production: { include: { order: { include: { customer: true, items: { include: { product: true } } } } } },
     },

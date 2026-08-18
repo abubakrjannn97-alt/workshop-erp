@@ -4,8 +4,9 @@ import { notFound } from "next/navigation";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { hasPermission } from "@core/auth/authz";
+import { isProductionScopedWorker } from "@core/production/batch-auth";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
-import { closeBatch, createBatch } from "@/app/actions/production";
+import { closeBatch, createBatch, assignProductionStage } from "@/app/actions/production";
 import { PendingButton } from "@/components/pending-button";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PageHeader } from "@/components/page-header";
@@ -49,6 +50,11 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
   });
   if (!job) notFound();
 
+  const scoped = isProductionScopedWorker(session.user.roleCode, session.user.permissions ?? []);
+  if (scoped && !job.batches.some((b) => b.responsibleUserId === session.user.id)) {
+    notFound();
+  }
+
   const canManage = hasPermission(session.user.permissions, session.user.roleCode, "production.manage");
   const canReport = hasPermission(session.user.permissions, session.user.roleCode, "production.report");
   const workers = await prisma.user.findMany({
@@ -56,6 +62,9 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
     select: { id: true, name: true },
     orderBy: { name: "asc" },
   });
+  const stages = canManage
+    ? await prisma.productionStage.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } })
+    : [];
   const remaining = D(String(job.plannedQty)).sub(
     job.batches.reduce((s, b) => s.add(String(b.plannedQty)), D(0)),
   );
@@ -69,6 +78,10 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
   async function finish(formData: FormData) {
     "use server";
     await closeBatch(formData);
+  }
+  async function stageAction(formData: FormData) {
+    "use server";
+    await assignProductionStage(formData);
   }
 
   return (
@@ -109,6 +122,27 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
         <KpiCard label={t("common.scrap")} value={qtyDisplay(job.scrapQty)} tone="out" />
         <KpiCard label={t("prod.batch")} value={String(job.batches.length)} tone="ink" />
       </DashKpiGrid>
+
+      {canManage && stages.length > 0 ? (
+        <DashPanel title={t("prod.stage")}>
+          <form action={stageAction} className="flex flex-wrap items-end gap-3">
+            <input type="hidden" name="productionOrderId" value={job.id} />
+            <FormField label={t("prod.stage")}>
+              <select name="stageId" defaultValue={job.stageId ?? ""} className="ui-input">
+                <option value="">—</option>
+                {stages.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+            <PendingButton className="ui-btn-secondary min-h-[44px]" pendingLabel={t("common.sending")}>
+              {t("common.save")}
+            </PendingButton>
+          </form>
+        </DashPanel>
+      ) : null}
 
       <DashPanel title={t("prod.planMaterials")}>
         <ul className="ui-list text-sm">
@@ -201,7 +235,7 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
                   </p>
                 ))}
               </div>
-            ) : canReport ? (
+            ) : canReport && (!scoped || batch.responsibleUserId === session.user.id) ? (
               <form action={finish} className="grid gap-3 sm:grid-cols-2">
                 <input type="hidden" name="batchId" value={batch.id} />
                 <IdempotencyField prefix={`close-${batch.id}`} />

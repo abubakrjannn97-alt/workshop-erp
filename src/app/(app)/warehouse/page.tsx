@@ -8,7 +8,7 @@ import { WarehouseNav } from "@/components/warehouse-nav";
 import { DataTableSection, UiTable } from "@/components/data-table";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { D } from "@core/shared/decimal";
-import { receiveOpening, writeOffStock } from "@/app/actions/inventory";
+import { receiveOpening, transferWarehouse, writeOffStock } from "@/app/actions/inventory";
 import { createPurchaseFromShortage } from "@/app/actions/purchasing";
 import { RevealList } from "@/components/reveal-list";
 import { IdempotencyField } from "@/components/idempotency-field";
@@ -30,7 +30,7 @@ export default async function WarehousePage() {
   const raw = await getRawWarehouse();
   const rawCode = await resolveRawWarehouseCode();
 
-  const [items, materials, suppliers] = await Promise.all([
+  const [items, materials, suppliers, warehouses] = await Promise.all([
     prisma.stockItem.findMany({
       where: { warehouseId: raw.id, materialId: { not: null } },
       include: { material: { include: { storageUnit: true } } },
@@ -42,6 +42,7 @@ export default async function WarehousePage() {
       orderBy: { name: "asc" },
     }),
     prisma.supplier.findMany({ where: { archivedAt: null }, orderBy: { name: "asc" } }),
+    prisma.warehouse.findMany({ orderBy: { code: "asc" } }),
   ]);
 
   return (
@@ -177,6 +178,44 @@ export default async function WarehousePage() {
             </FormField>
             <PendingButton className="ui-btn-danger min-h-[44px] sm:col-span-2 lg:col-span-5" pendingLabel={t("common.sending")}>
               {t("common.writeOff")}
+            </PendingButton>
+          </form>
+        </DashPanel>
+      ) : null}
+
+      {canAdjust ? (
+        <DashPanel title={t("wh.transfer")}>
+          <form action={transferWarehouse} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <input type="hidden" name="fromWarehouseId" value={raw.id} />
+            <IdempotencyField prefix="wh-tr" />
+            <FormField label={t("wh.toWarehouse")}>
+              <select name="toWarehouseId" className="ui-input">
+                {warehouses
+                  .filter((w) => w.id !== raw.id)
+                  .map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.name}
+                    </option>
+                  ))}
+              </select>
+            </FormField>
+            <FormField label={t("common.material")}>
+              <select name="materialId" className="ui-input">
+                {materials.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+            <FormField label={t("common.quantity")} required>
+              <input name="quantity" required className="ui-input" />
+            </FormField>
+            <FormField label={t("common.comment")}>
+              <input name="comment" className="ui-input" />
+            </FormField>
+            <PendingButton className="ui-btn-primary min-h-[44px] sm:col-span-2 lg:col-span-5" pendingLabel={t("common.sending")}>
+              {t("wh.transfer")}
             </PendingButton>
           </form>
         </DashPanel>

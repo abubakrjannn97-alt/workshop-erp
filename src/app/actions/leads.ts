@@ -75,3 +75,29 @@ export async function moveLead(formData: FormData) {
   revalidatePath("/sales");
   return { ok: true };
 }
+
+export async function createLeadDocument(formData: FormData) {
+  const session = await requirePermission("crm.manage");
+  const leadId = String(formData.get("leadId") ?? "");
+  const type = String(formData.get("type") ?? "CALCULATION");
+  const title = String(formData.get("title") ?? "").trim();
+  const amount = String(formData.get("amount") ?? "").trim();
+  if (!leadId || !title) return { error: "Лид и название документа обязательны." };
+  const { createCrmDocument } = await import("@core/crm/documents");
+  const doc = await createCrmDocument({
+    leadId,
+    type,
+    title,
+    amount: amount || null,
+    createdById: session.user.id,
+  });
+  await writeAudit({
+    userId: session.user.id,
+    action: "crm.document.create",
+    entityType: "crm_document",
+    entityId: doc.id,
+    newValue: { type: doc.type, number: doc.number },
+  });
+  revalidatePath("/crm");
+  return { ok: true, id: doc.id };
+}

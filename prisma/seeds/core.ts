@@ -201,6 +201,7 @@ export async function seedCore(prisma: PrismaClient) {
     { code: "THINKING", name: "Думает", sortOrder: 50, isLost: false, isWon: false },
     { code: "ORDER", name: "Заказ", sortOrder: 60, isLost: false, isWon: false },
     { code: "PAYMENT", name: "Оплата", sortOrder: 70, isLost: false, isWon: false },
+    { code: "PAID", name: "Оплата", sortOrder: 75, isLost: false, isWon: false },
     { code: "WON", name: "Выигран", sortOrder: 80, isLost: false, isWon: true },
     { code: "LOST", name: "Проигран", sortOrder: 90, isLost: true, isWon: false },
   ];
@@ -306,6 +307,20 @@ export async function seedCore(prisma: PrismaClient) {
         { schemeId: salesScheme.id, fromCount: 11, toCount: 15, percent: "4" },
         { schemeId: salesScheme.id, fromCount: 16, toCount: null, percent: "5" },
       ],
+    });
+  }
+
+  const productionStages = [
+    { code: "MIX", name: "Замес", sortOrder: 10 },
+    { code: "FORM", name: "Формовка", sortOrder: 20 },
+    { code: "DRY", name: "Сушка", sortOrder: 30 },
+    { code: "PACK", name: "Упаковка", sortOrder: 40 },
+  ];
+  for (const stage of productionStages) {
+    await prisma.productionStage.upsert({
+      where: { code: stage.code },
+      update: { name: stage.name, sortOrder: stage.sortOrder, isActive: true },
+      create: { ...stage, isActive: true },
     });
   }
 

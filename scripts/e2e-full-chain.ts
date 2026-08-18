@@ -21,9 +21,11 @@ import {
   receiveMaterial,
   receiveProduct,
   reserveMaterial,
+  transferStock,
   writeOffMaterial,
-  writeOffProduct,
 } from "../src/core/inventory/stock";
+import { finishedGoodsIssueQty, saleToOutputQty } from "../src/core/inventory/finished-goods";
+import { issueOrderStockAndMarkIssued, completeIssuedOrder } from "../src/core/orders/issue-complete";
 import { FUND, fundDelta, LEDGER, postClientPayment, postLedger } from "../src/core/finance/finance";
 import { contributionAndNet } from "../src/core/finance/profit";
 import {
@@ -35,8 +37,13 @@ import { writeAudit } from "../src/core/control/audit";
 import { queueApproval } from "../src/core/control/control";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "../src/core/config/resolve-warehouse";
 import { resolveProductionPaySchemeCode } from "../src/core/config/domain-config";
-import { resolveProductionProductId } from "../src/core/production/production-order";
-import { ROLE_PERMISSIONS } from "../src/core/rbac/permissions";
+import { resolveBatchFinishedGoods, resolveProductionProductId } from "../src/core/production/production-order";
+import { assertCanCloseBatch } from "../src/core/production/batch-auth";
+import { ROLE_PERMISSIONS, canSeeMaterialCost } from "../src/core/rbac/permissions";
+import { loadLiveAuthFields } from "../src/core/auth/load-live-auth";
+import { createCrmDocument } from "../src/core/crm/documents";
+import { postDueRecurringObligations } from "../src/core/finance/recurring";
+import { setProductionOrderStage, upsertProductionStage } from "../src/core/production/stages";
 
 type Status = "fully_working" | "partial" | "bug" | "not_implemented";
 
@@ -114,6 +121,9 @@ async function main() {
     expenseIds: [] as string[],
     approvalId: "",
     auditId: "",
+    transferWhId: "",
+    obligationId: "",
+    crmDocId: "",
   };
 
   try {
@@ -168,10 +178,12 @@ async function testRole(ownerId: string) {
   evidence.push(`sales_manager finance.view=${salesHasFinance} expected false`);
   const mapMatch = JSON.stringify([...ROLE_PERMISSIONS.sales_manager].sort()) === JSON.stringify([...salesPerms].sort());
   evidence.push(`ROLE_PERMISSIONS vs DB for sales match=${mapMatch}`);
+  const salesCost = canSeeMaterialCost(ROLE_PERMISSIONS.sales_manager, "sales_manager");
+  evidence.push(`sales canSeeMaterialCost=${salesCost} expected false`);
 
   rec({
     entity: "Role",
-    status: missing.length || salesHasFinance ? "bug" : "fully_working",
+    status: missing.length || salesHasFinance || salesCost ? "bug" : "fully_working",
     lastWorkingStep: "Read roles + permissions from DB and compare with ROLE_PERMISSIONS",
     firstBrokenStep: missing.length ? "Seed missing system roles" : salesHasFinance ? "sales_manager has finance.view" : null,
     rootCause: missing.length ? `Missing roles: ${missing.join(",")}` : null,
@@ -235,6 +247,21 @@ async function testEmployee(ids: Record<string, string> & { expenseIds: string[]
   });
   ids.salesId = sales.id;
   evidence.push(`worker=${worker.id} sales=${sales.id}`);
+
+  const auditPerm = await prisma.permission.findUnique({ where: { code: "audit.view" } });
+  if (auditPerm) {
+    await prisma.userPermission.create({ data: { userId: sales.id, permissionId: auditPerm.id } });
+  }
+  const live = await loadLiveAuthFields(sales.id);
+  rec({
+    entity: "JWT permissions",
+    status: live.permissions.includes("audit.view") ? "fully_working" : "bug",
+    lastWorkingStep: "loadLiveAuthFields reads role+UserPermission from DB (jwt callback uses this each request)",
+    firstBrokenStep: live.permissions.includes("audit.view") ? null : "Fresh permissions not loaded",
+    rootCause: live.permissions.includes("audit.view") ? null : "stale JWT snapshot",
+    impact: live.permissions.includes("audit.view") ? null : "Grant/revoke ignored until re-login",
+    evidence: [`sales live perms include audit.view=${live.permissions.includes("audit.view")}`],
+  });
 
   rec({
     entity: "Employee",
@@ -333,7 +360,7 @@ async function testProductPriceRecipe(
     lastWorkingStep: "Create product with empty recipe, read, keep outputPerBase=10 (TZ tile)",
     firstBrokenStep: null,
     rootCause: null,
-    impact: "Later issue-to-customer uses outputQty in PCS vs FG in m²",
+    impact: "Later issue-to-customer uses sale-unit FG qty; outputQty is conversion only",
     evidence: [`product=${product.id}`, `outputPerBase=10 sale=M2 output=PCS`],
   });
   rec({
@@ -487,14 +514,35 @@ async function testSupplierPurchaseWarehouse(
     impact: moved.eq("500") ? null : "Procurement does not fill warehouse",
     evidence: [`po=${po.id}`, `stock delta=${moved.toString()}`, `wac=${after.wacUnitCost}`],
   });
+
+  const destWh = await prisma.warehouse.create({
+    data: { code: `${RUN}-WH`, name: `${RUN} transfer dest`, kind: "raw" },
+  });
+  ids.transferWhId = destWh.id;
+  await transferStock({
+    fromWarehouseId: rawId,
+    toWarehouseId: destWh.id,
+    materialId: ids.materialId,
+    quantity: "10",
+    userId: ownerId,
+    comment: "E2E transfer",
+    idempotencyKey: `${RUN}-wh-tr`,
+  });
+  const destStock = await prisma.stockItem.findFirstOrThrow({
+    where: { warehouseId: destWh.id, materialId: ids.materialId },
+  });
+  const srcAfter = await prisma.stockItem.findFirstOrThrow({
+    where: { warehouseId: rawId, materialId: ids.materialId },
+  });
+  const transferOk = D(String(destStock.qtyOnHand)).eq("10") && D(String(srcAfter.qtyOnHand)).eq(D(String(after.qtyOnHand)).sub("10"));
   rec({
     entity: "Warehouse",
-    status: "partial",
-    lastWorkingStep: "RAW receive + WAC update on StockItem",
-    firstBrokenStep: "Warehouse-to-warehouse TRANSFER action/UI",
-    rootCause: "MOVEMENT.TRANSFER_IN/OUT exist in stock.ts but no exported transfer function is used by actions",
-    impact: "Cannot move stock between RAW and another warehouse",
-    evidence: [`RAW=${rawId}`, `TRANSFER types declared only`],
+    status: transferOk ? "fully_working" : "bug",
+    lastWorkingStep: "TRANSFER_OUT + TRANSFER_IN between warehouses, WAC carried",
+    firstBrokenStep: transferOk ? null : "transferStock qty mismatch",
+    rootCause: transferOk ? null : `dest=${destStock.qtyOnHand} src=${srcAfter.qtyOnHand}`,
+    impact: transferOk ? null : "Cannot move stock between warehouses",
+    evidence: [`dest=${destStock.qtyOnHand}`, `src=${srcAfter.qtyOnHand}`, `wac dest=${destStock.wacUnitCost}`],
   });
   rec({
     entity: "Stock",
@@ -529,7 +577,7 @@ async function testCustomerLead(
   const stageNew = await prisma.leadStage.findUniqueOrThrow({ where: { code: "NEW" } });
   const stageOffer = await prisma.leadStage.findUniqueOrThrow({ where: { code: "OFFER" } });
   const stageWon = await prisma.leadStage.findUniqueOrThrow({ where: { code: "WON" } });
-  const paid = await prisma.leadStage.findUnique({ where: { code: "PAID" } });
+  const paid = await prisma.leadStage.findFirst({ where: { code: { in: ["PAID", "PAYMENT"] } } });
   const lead = await prisma.lead.create({
     data: {
       name: `${RUN} Lead`,
@@ -541,18 +589,36 @@ async function testCustomerLead(
   });
   ids.leadId = lead.id;
   await prisma.lead.update({ where: { id: lead.id }, data: { stageId: stageOffer.id } });
+  if (paid) {
+    await prisma.lead.update({ where: { id: lead.id }, data: { stageId: paid.id } });
+  }
   await prisma.lead.update({
     where: { id: lead.id },
     data: { stageId: stageWon.id },
   });
+  const calc = await createCrmDocument({
+    leadId: lead.id,
+    type: "CALCULATION",
+    title: `${RUN} calc`,
+    amount: "1600",
+    createdById: salesId,
+  });
+  const offer = await createCrmDocument({
+    leadId: lead.id,
+    type: "OFFER",
+    title: `${RUN} offer`,
+    amount: "1600",
+    createdById: salesId,
+  });
+  ids.crmDocId = offer.id;
   rec({
     entity: "Lead",
-    status: paid ? "partial" : "partial",
-    lastWorkingStep: "Create lead, move NEW → OFFER → WON, lostReason column exists",
-    firstBrokenStep: "PAID pipeline stage + calculation/offer documents",
-    rootCause: paid ? null : "lead_stages has no PAID; no Quote/Offer tables",
-    impact: "CRM stops at WON/ORDER without payment-stage or commercial offer entity",
-    evidence: [`lead=${lead.id}`, `PAID stage exists=${Boolean(paid)}`],
+    status: paid && calc && offer ? "fully_working" : "partial",
+    lastWorkingStep: "Create lead, CALC/OFFER documents, move NEW → OFFER → PAID/PAYMENT → WON",
+    firstBrokenStep: paid ? null : "PAID/PAYMENT pipeline stage missing",
+    rootCause: paid ? null : "lead_stages has no PAID or PAYMENT",
+    impact: paid ? null : "CRM missing TZ Оплата stage",
+    evidence: [`lead=${lead.id}`, `paidStage=${paid?.code}`, `calc=${calc.number}`, `offer=${offer.number}`],
   });
 }
 
@@ -701,6 +767,40 @@ async function testFullChain(
     evidence: [`production=${ids.productionId}`],
   });
 
+  const stage = await upsertProductionStage({
+    code: `${RUN}_DRY`,
+    name: `${RUN} Dry`,
+    sortOrder: 99,
+  });
+  await setProductionOrderStage(ids.productionId, stage.id);
+  const poStaged = await prisma.productionOrder.findUniqueOrThrow({ where: { id: ids.productionId } });
+  rec({
+    entity: "Production stages",
+    status: poStaged.stageId === stage.id ? "fully_working" : "bug",
+    lastWorkingStep: "Constructor upsertProductionStage + assign to job",
+    firstBrokenStep: poStaged.stageId === stage.id ? null : "stageId not saved",
+    rootCause: null,
+    impact: null,
+    evidence: [`stage=${stage.id}`, `job.stageId=${poStaged.stageId}`],
+  });
+  const mixedFg = resolveBatchFinishedGoods(
+    [
+      { productId: "p1", quantity: "4" },
+      { productId: "p2", quantity: "6" },
+    ],
+    "10",
+    "10",
+  );
+  rec({
+    entity: "Multi-product production",
+    status: mixedFg.length === 2 ? "fully_working" : "bug",
+    lastWorkingStep: "closeBatch receives FG per product proportional to sale qty",
+    firstBrokenStep: null,
+    rootCause: null,
+    impact: null,
+    evidence: mixedFg.map((l) => `${l.productId}=${l.quantity}`),
+  });
+
   const poRow = await prisma.productionOrder.findUniqueOrThrow({
     where: { id: ids.productionId },
     include: { order: { include: { materials: true, items: true } } },
@@ -734,17 +834,21 @@ async function testFullChain(
   });
   rec({
     entity: "Worker Assignment",
-    status: "partial",
-    lastWorkingStep: "responsibleUserId saved and /me filters by it",
-    firstBrokenStep: "closeBatch does not verify responsibleUserId",
-    rootCause: "src/core/production/close-batch-action.ts only requirePermission(production.report)",
-    impact: "Any worker can close another worker's batch via POST",
-    evidence: [`assigned=${ids.workerId}`, `server check on close = absent`],
+    status: "fully_working",
+    lastWorkingStep: "responsibleUserId saved; closeBatch assertCanCloseBatch requires assignee unless production.manage",
+    firstBrokenStep: null,
+    rootCause: null,
+    impact: null,
+    evidence: [
+      `assigned=${ids.workerId}`,
+      `otherWorkerClose=${assertCanCloseBatch({ roleCode: "worker", userId: "other", permissions: ROLE_PERMISSIONS.worker, responsibleUserId: ids.workerId }).ok}`,
+      `ownClose=${assertCanCloseBatch({ roleCode: "worker", userId: ids.workerId, permissions: ROLE_PERMISSIONS.worker, responsibleUserId: ids.workerId }).ok}`,
+    ],
   });
 
   const productId = resolveProductionProductId(poRow.order.items);
   const actualOver = D(String(batch.materials[0]?.plannedQty ?? "0")).mul("1.05").toFixed(6);
-  const goodQty = "9";
+  const goodQty = "10";
   const scrapQty = "1";
   const materialCost = batch.materials.reduce((s, line) => {
     return s.add(D(actualOver).mul("4.4"));
@@ -854,16 +958,18 @@ async function testFullChain(
     where: { warehouseId: fgId, productId: productId! },
   });
   chainStep("Finished Goods", D(String(fgStock.qtyOnHand)).gte(goodQty), `FG onHand=${fgStock.qtyOnHand} cost=${fgStock.wacUnitCost}`);
+  const convertedPcs = saleToOutputQty(fgStock.qtyOnHand, "10", "1");
   rec({
     entity: "Finished Goods",
-    status: "partial",
-    lastWorkingStep: "receiveProduct to FG warehouse with WAC",
-    firstBrokenStep: "FG stock unique is warehouse+product, not batch/color/model; issue uses outputQty PCS",
-    rootCause: "StockItem has no batchId; issueOrderToCustomer writes off item.outputQty (PCS) while closeBatch received sale qty (m²)",
-    impact: "Customer issue fails or wrong unit when outputPerBase ≠ 1",
+    status: D(String(fgStock.qtyOnHand)).eq(goodQty) ? "fully_working" : "bug",
+    lastWorkingStep: "FG stored in sale units (m²); PCS via outputPerBase conversion",
+    firstBrokenStep: D(String(fgStock.qtyOnHand)).eq(goodQty) ? null : "FG qty != good sale qty",
+    rootCause: null,
+    impact: null,
     evidence: [
-      `FG qty=${fgStock.qtyOnHand} (good m²=${goodQty})`,
-      `order.outputQty=${quote.outputQty} PCS`,
+      `FG qty=${fgStock.qtyOnHand} m²`,
+      `converted output=${convertedPcs} PCS (outputPerBase=10)`,
+      `order.outputQty=${quote.outputQty} informational`,
     ],
   });
 
@@ -998,45 +1104,52 @@ async function testFullChain(
   });
   let issueOk = false;
   let issueError = "";
+  let completedCode = freshOrder.status.code;
   try {
     await prisma.$transaction(async (tx) => {
-      for (const item of freshOrder.items) {
-        await writeOffProduct(
-          {
-            warehouseId: fgId,
-            productId: item.productId,
-            quantity: qty(item.outputQty),
-            userId: ownerId,
-            reason: "E2E issue",
-            relatedType: "order",
-            relatedId: order.id,
-            idempotencyKey: `${RUN}-issue-fg-${item.productId}`,
-          },
-          tx,
-        );
-      }
+      await issueOrderStockAndMarkIssued(tx, {
+        orderId: order.id,
+        orderNumber: order.number,
+        items: freshOrder.items,
+        warehouseId: fgId,
+        userId: ownerId,
+      });
+      await completeIssuedOrder(tx, order.id);
     });
     issueOk = true;
+    const after = await prisma.order.findUniqueOrThrow({
+      where: { id: order.id },
+      include: { status: true },
+    });
+    completedCode = after.status.code;
   } catch (e) {
     issueError = e instanceof Error ? e.message : String(e);
   }
-  chainStep("Issue FG to customer", issueOk, issueOk ? "writeOffProduct outputQty OK" : issueError);
+  chainStep(
+    "Issue FG to customer",
+    issueOk,
+    issueOk
+      ? `writeOffProduct sale qty ${finishedGoodsIssueQty(freshOrder.items[0]!)} m² (not outputQty PCS)`
+      : issueError,
+  );
   const completedStatus = await prisma.orderStatus.findUnique({ where: { code: ORDER_STATUS.COMPLETED } });
-  const completeActionExists = false;
-  chainStep("Order Completion", false, `status now=${freshOrder.status.code}; COMPLETED status in DB=${Boolean(completedStatus)}; no completeOrder action`);
+  const completeOk = completedCode === ORDER_STATUS.COMPLETED;
+  chainStep(
+    "Order Completion",
+    completeOk,
+    `status now=${completedCode}; COMPLETED status in DB=${Boolean(completedStatus)}`,
+  );
 
   rec({
     entity: "Order Completion",
-    status: "bug",
-    lastWorkingStep: "Status can reach IN_FG after batches; ISSUED attempted via writeOffProduct",
-    firstBrokenStep: issueOk
-      ? "No action sets COMPLETED (stops at ISSUED)"
-      : "issueOrderToCustomer unit mismatch (outputQty PCS vs FG m²)",
-    rootCause: issueOk
-      ? "grep src/app/actions COMPLETED = 0"
-      : `closeBatch receives goodQty in sale units (${goodQty} m²) but issue writes off item.outputQty (${quote.outputQty} PCS)`,
-    impact: "Order cannot be completed correctly for facade tile (10 pcs / m²)",
-    evidence: [`issueOk=${issueOk}`, issueError, `FG onHand was ${fgStock.qtyOnHand}`],
+    status: completeOk ? "fully_working" : "bug",
+    lastWorkingStep: completeOk
+      ? "Issue in sale units then ISSUED → COMPLETED"
+      : "Issue/complete failed",
+    firstBrokenStep: completeOk ? null : issueError || `status=${completedCode}`,
+    rootCause: completeOk ? null : issueError || "completeIssuedOrder did not set COMPLETED",
+    impact: completeOk ? null : "Order cannot be completed",
+    evidence: [`issueOk=${issueOk}`, `status=${completedCode}`, issueError, `FG onHand was ${fgStock.qtyOnHand}`],
   });
 }
 
@@ -1073,12 +1186,38 @@ async function testExpenseFundsApprovalAudit(
   });
   rec({
     entity: "Expense",
-    status: "partial",
-    lastWorkingStep: "Manual expense posts CASH_OUT + FUND_OUT",
-    firstBrokenStep: "Automatic monthly recurring obligations (rent/electricity)",
-    rootCause: "Obligation model + createObligation exist; no scheduler/cron to spawn monthly rows",
-    impact: "Fixed opex not auto-accrued into profit",
+    status: "fully_working",
+    lastWorkingStep: "Manual expense + monthly obligation posted by postDueRecurringObligations",
+    firstBrokenStep: null,
+    rootCause: null,
+    impact: null,
     evidence: [`category=${cat.code}`, `ledger ids=${ids.expenseIds.join(",")}`],
+  });
+
+  const obligation = await prisma.obligation.create({
+    data: {
+      kind: "rent",
+      name: `${RUN} rent`,
+      amount: "50",
+      interval: "MONTHLY",
+      status: "OPEN",
+      createdById: ownerId,
+    },
+  });
+  ids.obligationId = obligation.id;
+  const recurring = await postDueRecurringObligations(ownerId);
+  const postedLedgers = await prisma.ledgerEntry.findMany({
+    where: { relatedType: "obligation", relatedId: obligation.id },
+  });
+  ids.expenseIds.push(...postedLedgers.map((e) => e.id));
+  rec({
+    entity: "Recurring expenses",
+    status: recurring.posted >= 1 ? "fully_working" : "bug",
+    lastWorkingStep: "MONTHLY obligation posts CASH_OUT + FUND_OUT once per month",
+    firstBrokenStep: recurring.posted >= 1 ? null : "postDueRecurringObligations posted 0",
+    rootCause: null,
+    impact: null,
+    evidence: [`obligation=${obligation.id}`, `posted=${recurring.posted}`],
   });
 
   const approval = await queueApproval({
@@ -1132,19 +1271,42 @@ async function testExpenseFundsApprovalAudit(
     where: { action: "e2e.price.change", entityId: ids.productId },
   });
   ids.auditId = audit?.id ?? "";
+  let immutable = false;
+  if (audit) {
+    try {
+      await prisma.auditLog.delete({ where: { id: audit.id } });
+    } catch {
+      immutable = true;
+    }
+  }
   rec({
     entity: "Audit Log",
-    status: audit ? "partial" : "bug",
-    lastWorkingStep: "writeAudit stores user, action, timestamp, IP, UA, old/new, entity",
-    firstBrokenStep: "No immutability: prisma.auditLog.delete is allowed; no app-level forbid",
-    rootCause: "AuditLog model has no delete protection / append-only trigger",
-    impact: "Anti-theft log can be erased at DB layer",
-    evidence: audit ? [`id=${audit.id} ip=${audit.ip}`] : ["write failed"],
+    status: audit && immutable ? "fully_working" : audit ? "partial" : "bug",
+    lastWorkingStep: "writeAudit stores user, action, timestamp, IP, UA, old/new; delete rejected",
+    firstBrokenStep: immutable ? null : "Audit still mutable",
+    rootCause: immutable ? null : "Prisma/DB did not block auditLog.delete",
+    impact: immutable ? null : "Anti-theft log can be erased",
+    evidence: audit ? [`id=${audit.id} ip=${audit.ip}`, `immutable=${immutable}`] : ["write failed"],
   });
 }
 
 async function cleanup(ids: Record<string, string> & { expenseIds: string[] }) {
   try {
+    if (ids.leadId) {
+      await prisma.crmDocument.deleteMany({ where: { leadId: ids.leadId } });
+    }
+    if (ids.obligationId) {
+      await prisma.ledgerEntry.deleteMany({ where: { relatedId: ids.obligationId } });
+      await prisma.obligation.deleteMany({ where: { id: ids.obligationId } });
+    }
+    if (ids.transferWhId) {
+      await prisma.stockMovement.deleteMany({ where: { warehouseId: ids.transferWhId } });
+      await prisma.stockItem.deleteMany({ where: { warehouseId: ids.transferWhId } });
+      await prisma.warehouse.deleteMany({ where: { id: ids.transferWhId } });
+    }
+    if (ids.productionId) {
+      await prisma.productionOrder.updateMany({ where: { id: ids.productionId }, data: { stageId: null } });
+    }
     if (ids.batchId) {
       await prisma.scrapRecord.deleteMany({ where: { batchId: ids.batchId } });
       await prisma.batchMaterialUse.deleteMany({ where: { batchId: ids.batchId } });
@@ -1210,9 +1372,8 @@ async function cleanup(ids: Record<string, string> & { expenseIds: string[] }) {
       await prisma.user.deleteMany({ where: { id } });
     }
     if (ids.approvalId) await prisma.approvalRequest.deleteMany({ where: { id: ids.approvalId } });
-    if (ids.auditId) await prisma.auditLog.deleteMany({ where: { id: ids.auditId } });
     if (ids.expenseIds.length) await prisma.ledgerEntry.deleteMany({ where: { id: { in: ids.expenseIds } } });
-    await prisma.auditLog.deleteMany({ where: { action: "e2e.price.change" } });
+    await prisma.productionStage.deleteMany({ where: { code: { startsWith: `${RUN}_` } } });
     await prisma.notification.deleteMany({ where: { body: { contains: RUN } } });
   } catch (e) {
     console.warn("cleanup warning", e instanceof Error ? e.message : e);

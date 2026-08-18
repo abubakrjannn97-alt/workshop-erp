@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { resolveProductionProductId } from "../src/core/production/production-order";
+import { resolveBatchFinishedGoods, resolveProductionProductId } from "../src/core/production/production-order";
 
 describe("resolveProductionProductId", () => {
   it("returns null for empty order items", () => {
@@ -29,5 +29,21 @@ describe("resolveProductionProductId", () => {
       ]),
       null,
     );
+  });
+});
+
+describe("resolveBatchFinishedGoods", () => {
+  it("splits batch actual qty across mixed products by sale-qty share", () => {
+    const lines = resolveBatchFinishedGoods(
+      [
+        { productId: "p1", quantity: "5" },
+        { productId: "p2", quantity: "5" },
+      ],
+      "10",
+      "10",
+    );
+    assert.equal(lines.length, 2);
+    assert.equal(lines.find((l) => l.productId === "p1")?.quantity, "5.000000");
+    assert.equal(lines.find((l) => l.productId === "p2")?.quantity, "5.000000");
   });
 });

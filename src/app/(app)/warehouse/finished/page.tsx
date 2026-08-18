@@ -12,6 +12,7 @@ import { receiveOpening } from "@/app/actions/inventory";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
 import { getFgWarehouse } from "@/core/config/resolve-warehouse";
+import { saleToOutputQty } from "@core/inventory/finished-goods";
 
 export default async function FinishedWarehousePage() {
   const { t, locale } = await getTranslator();
@@ -59,8 +60,14 @@ export default async function FinishedWarehousePage() {
                     <tr key={item.id} className="border-t border-[var(--line)]">
                       <td className="px-4 py-3 font-medium" data-label={t("common.product")}>
                         {item.product?.name}
+                      </td>
                       <td className="px-4 py-3 text-right font-mono text-xs" data-label={t("common.stock")}>
                         {qtyDisplay(onHand)} {item.product?.saleUnit.symbol}
+                        {item.product
+                          ? ` · ${qtyDisplay(
+                              saleToOutputQty(onHand, item.product.outputPerBase, item.product.recipeBaseQty),
+                            )} ${item.product.outputUnit.symbol}`
+                          : ""}
                       </td>
                       <td className="px-4 py-3 text-right font-mono text-xs" data-label={t("common.reserve")}>
                         {qtyDisplay(reserved)}

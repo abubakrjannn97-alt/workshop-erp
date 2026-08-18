@@ -8,7 +8,7 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money, qty } from "@core/shared/decimal";
-import { available, releaseMaterial, reserveMaterial, writeOffProduct } from "@core/inventory/stock";
+import { available, releaseMaterial, reserveMaterial } from "@core/inventory/stock";
 import { postClientPayment } from "@core/finance/finance";
 import {
   accrueSellerCommission,
@@ -24,6 +24,7 @@ import {
   quoteProduct,
   STATUS_FLOW,
 } from "@core/orders/orders";
+import { issueOrderStockAndMarkIssued, completeIssuedOrder } from "@core/orders/issue-complete";
 import { canSelfApprove, pendingFor, queueApproval } from "@core/control/control";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
 import { resolveProductionPaySchemeCode } from "@core/config/domain-config";
@@ -649,26 +650,16 @@ export async function issueOrderToCustomer(formData: FormData) {
   }
   const fg = await findFinishedGoodsWarehouse();
   if (!fg) return { error: "Склад ГП не найден." };
-  const issued = await prisma.orderStatus.findUniqueOrThrow({ where: { code: ORDER_STATUS.ISSUED } });
 
   try {
     await prisma.$transaction(async (tx) => {
-      for (const item of order.items) {
-        await writeOffProduct(
-          {
-            warehouseId: fg.id,
-            productId: item.productId,
-            quantity: qty(item.outputQty),
-            userId: session.user.id,
-            reason: `Выдача заказа #${order.number}`,
-            relatedType: "order",
-            relatedId: order.id,
-            idempotencyKey: `order-issue-${order.id}-${item.productId}`,
-          },
-          tx,
-        );
-      }
-      await tx.order.update({ where: { id }, data: { statusId: issued.id } });
+      await issueOrderStockAndMarkIssued(tx, {
+        orderId: order.id,
+        orderNumber: order.number,
+        items: order.items,
+        warehouseId: fg.id,
+        userId: session.user.id,
+      });
     });
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Не удалось выдать заказ." };
@@ -682,5 +673,26 @@ export async function issueOrderToCustomer(formData: FormData) {
   });
   revalidatePath(`/orders/${id}`);
   revalidatePath("/warehouse/finished");
+  return { ok: true };
+}
+
+export async function completeOrder(formData: FormData) {
+  const session = await requirePermission("orders.create");
+  const id = String(formData.get("id") ?? "");
+  try {
+    await prisma.$transaction(async (tx) => {
+      await completeIssuedOrder(tx, id);
+    });
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Не удалось завершить заказ." };
+  }
+  await writeAudit({
+    userId: session.user.id,
+    action: "order.complete",
+    entityType: "order",
+    entityId: id,
+  });
+  revalidatePath(`/orders/${id}`);
+  revalidatePath("/orders");
   return { ok: true };
 }

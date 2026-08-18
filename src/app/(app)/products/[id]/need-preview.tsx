@@ -18,6 +18,7 @@ export function NeedPreview({
   saleSymbol,
   recipeBaseQty,
   locale,
+  showCosts = true,
 }: {
   lines: Line[];
   outputPerBase: string;
@@ -25,6 +26,7 @@ export function NeedPreview({
   saleSymbol: string;
   recipeBaseQty: string;
   locale: Locale;
+  showCosts?: boolean;
 }) {
   const t = createT(locale);
   const [orderQty, setOrderQty] = useState("50");
@@ -65,14 +67,16 @@ export function NeedPreview({
               {line.materialName}: {qtyDisplay(D(line.quantity).mul(scale))} {line.unitSymbol}
             </span>
             <span className="font-mono text-xs">
-              {line.lineCost ? `${moneyDisplay(D(line.lineCost).mul(scale))} с` : t("products.noPrice")}
+              {showCosts && line.lineCost ? `${moneyDisplay(D(line.lineCost).mul(scale))} с` : showCosts ? t("products.noPrice") : ""}
             </span>
           </li>
         ))}
       </ul>
+      {showCosts ? (
       <p className="mt-3 text-sm font-semibold">
         {t("products.matsOnOrder")}: {moneyDisplay(total)} с
       </p>
+      ) : null}
     </div>
   );
 }

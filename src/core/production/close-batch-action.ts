@@ -12,7 +12,8 @@ import { accrueProductionWage } from "@core/payroll/payroll";
 import { notifyRoles } from "@core/control/control";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
 import { resolveProductionPaySchemeCode } from "@core/config/domain-config";
-import { resolveProductionProductId } from "@core/production/production-order";
+import { resolveBatchFinishedGoods } from "@core/production/production-order";
+import { assertCanCloseBatch } from "@core/production/batch-auth";
 
 function qtyStr(value: string) {
   return z.string().regex(/^\d+(\.\d{1,6})?$/).safeParse(value).success;
@@ -40,6 +41,13 @@ export async function closeBatch(formData: FormData) {
   });
   if (!batch) return { error: "Партия закрыта или не найдена." };
   if (batch.status === "CLOSED") return { ok: true };
+  const assignee = assertCanCloseBatch({
+    roleCode: session.user.roleCode,
+    userId: session.user.id,
+    permissions: session.user.permissions ?? [],
+    responsibleUserId: batch.responsibleUserId,
+  });
+  if (!assignee.ok) return { error: assignee.error };
 
   const actuals = batch.materials.map((line) => {
     const raw = String(formData.get(`actual-${line.materialId}`) ?? "") || String(line.plannedQty);
@@ -52,14 +60,13 @@ export async function closeBatch(formData: FormData) {
   const rawWh = await findRawWarehouse();
   const fg = await findFinishedGoodsWarehouse();
   if (!rawWh || !fg) return { error: "Склады RAW/FG не найдены." };
-  const productId = resolveProductionProductId(batch.production.order.items);
-  if (!productId) {
-    const hasItems = batch.production.order.items.length > 0;
-    return {
-      error: hasItems
-        ? "Заказ содержит несколько разных изделий. Производство поддерживает одно изделие на заказ."
-        : "В заказе нет изделия.",
-    };
+  const fgLines = resolveBatchFinishedGoods(
+    batch.production.order.items,
+    actualQty,
+    String(batch.production.plannedQty),
+  );
+  if (fgLines.length === 0 && D(actualQty).gt(0)) {
+    return { error: "В заказе нет изделия." };
   }
 
   const materialCost = actuals.reduce((s, row) => {
@@ -105,20 +112,22 @@ export async function closeBatch(formData: FormData) {
       }
 
       if (good.gt(0)) {
-        await receiveProduct(
-          {
-            warehouseId: fg.id,
-            productId,
-            quantity: qty(good),
-            unitCost: qty(unitCost),
-            userId: session.user.id,
-            comment: `Выпуск партии №${batch.number}`,
-            relatedType: "production_batch",
-            relatedId: batch.id,
-            idempotencyKey: `batch-fg-${batch.id}`,
-          },
-          tx,
-        );
+        for (const line of fgLines) {
+          await receiveProduct(
+            {
+              warehouseId: fg.id,
+              productId: line.productId,
+              quantity: qty(line.quantity),
+              unitCost: qty(unitCost),
+              userId: session.user.id,
+              comment: `Выпуск партии №${batch.number}`,
+              relatedType: "production_batch",
+              relatedId: batch.id,
+              idempotencyKey: `batch-fg-${batch.id}-${line.productId}`,
+            },
+            tx,
+          );
+        }
       }
 
       if (D(scrapQty).gt(0)) {
