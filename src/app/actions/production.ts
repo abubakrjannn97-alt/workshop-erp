@@ -7,6 +7,7 @@ import { requirePermission } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, qty } from "@core/shared/decimal";
 import { ORDER_STATUS } from "@core/orders/orders";
+import { closeBatch as closeBatchCore } from "@/core/production/close-batch-action";
 
 function qtyStr(value: string) {
   return z.string().regex(/^\d+(\.\d{1,6})?$/).safeParse(value).success;
@@ -73,7 +74,9 @@ export async function createBatch(formData: FormData) {
   return { ok: true, id: batch.id };
 }
 
-export { closeBatch } from "@/core/production/close-batch-action";
+export async function closeBatch(formData: FormData) {
+  return closeBatchCore(formData);
+}
 
 export async function saveProductionStage(formData: FormData) {
   const session = await requirePermission("production.manage");
