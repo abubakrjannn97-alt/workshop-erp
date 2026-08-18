@@ -1,11 +1,11 @@
-import { createSeedClient } from "./seeds/client";
-import { seedCore } from "./seeds/core";
+import { createSeedClient } from "./client";
+import { seedFacadeDomain } from "./domains/facade";
 
 const prisma = createSeedClient();
 
-seedCore(prisma)
+seedFacadeDomain(prisma)
   .then(async () => {
-    console.log("Core seed OK: permissions, roles, units, finance catalog, warehouses.");
+    console.log("Facade domain seed OK.");
     await prisma.$disconnect();
   })
   .catch(async (error) => {

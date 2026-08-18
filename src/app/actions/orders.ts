@@ -26,6 +26,7 @@ import {
 } from "@/lib/orders";
 import { canSelfApprove, pendingFor, queueApproval } from "@/lib/control";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
+import { resolveProductionPaySchemeCode } from "@/lib/domain-config";
 
 function moneyStr(value: string) {
   return z.string().regex(/^\d+(\.\d{1,4})?$/).safeParse(value).success;
@@ -393,6 +394,7 @@ export async function addPayment(formData: FormData) {
     return { error: "Нет доступа." };
   }
 
+  const productionSchemeCode = await resolveProductionPaySchemeCode();
   let paymentId: string | null = null;
   let created = false;
   await prisma.$transaction(async (tx) => {
@@ -451,7 +453,7 @@ export async function addPayment(formData: FormData) {
         scheme,
       });
     }
-    const prodScheme = await tx.payScheme.findUnique({ where: { code: "production_m2" } });
+    const prodScheme = await tx.payScheme.findUnique({ where: { code: productionSchemeCode } });
     const laborFromProd = prodScheme?.productionRate
       ? money(saleQty.mul(prodScheme.productionRate))
       : laborAmount;
@@ -509,6 +511,7 @@ export async function reversePayment(formData: FormData) {
     return { ok: true, pending: true };
   }
 
+  const productionSchemeCode = await resolveProductionPaySchemeCode();
   await prisma.$transaction(async (tx) => {
     const reversal = await tx.payment.create({
       data: {
@@ -532,7 +535,7 @@ export async function reversePayment(formData: FormData) {
       _sum: { amount: true },
     });
     await reverseCommissionForPayment(tx, payment.id);
-    const prodScheme = await tx.payScheme.findUnique({ where: { code: "production_m2" } });
+    const prodScheme = await tx.payScheme.findUnique({ where: { code: productionSchemeCode } });
     const saleQty = payment.order.items.reduce((s, item) => s.add(String(item.quantity)), D(0));
     await postClientPayment(tx, {
       orderId: payment.orderId,

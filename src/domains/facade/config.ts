@@ -12,6 +12,7 @@ export const FACADE_DOMAIN_CONFIG = {
     defaultSaleUnit: "M2",
     defaultOutputUnit: "PCS",
     defaultCategory: "Фасад",
+    defaultOutputPerBase: 10,
   },
 } as const;
 

@@ -17,6 +17,7 @@ export const DOMAIN_SETTING_KEYS = {
   productDefaultSaleUnit: "product.defaultSaleUnit",
   productDefaultOutputUnit: "product.defaultOutputUnit",
   productDefaultCategory: "product.defaultCategory",
+  productDefaultOutputPerBase: "product.defaultOutputPerBase",
 } as const;
 
 export type DomainSettings = {
@@ -27,6 +28,7 @@ export type DomainSettings = {
   productDefaultSaleUnit: string;
   productDefaultOutputUnit: string;
   productDefaultCategory: string;
+  productDefaultOutputPerBase: string;
 };
 
 export type BusinessSettings = {

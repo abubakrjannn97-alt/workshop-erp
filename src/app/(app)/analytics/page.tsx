@@ -7,6 +7,7 @@ import { FUND, LEDGER, fundDelta } from "@/lib/finance";
 import { contributionAndNet } from "@/lib/profit";
 import { coverageAndPurchaseNeed } from "@/lib/alerts";
 import { resolveRawWarehouseCode } from "@/core/config/resolve-warehouse";
+import { resolveProductionPaySchemeCode } from "@/lib/domain-config";
 import { getTranslator } from "@/lib/locale";
 import { KpiCard } from "@/components/kpi-card";
 import { RevealList } from "@/components/reveal-list";
@@ -16,7 +17,10 @@ import { StatusBadge, orderTone } from "@/components/status-badge";
 export default async function AnalyticsPage() {
   await requirePermission("analytics.view");
   const { t, n } = await getTranslator();
-  const rawCode = await resolveRawWarehouseCode();
+  const [rawCode, productionSchemeCode] = await Promise.all([
+    resolveRawWarehouseCode(),
+    resolveProductionPaySchemeCode(),
+  ]);
   const monthStart = new Date();
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
@@ -104,7 +108,7 @@ export default async function AnalyticsPage() {
         },
       },
     }),
-    prisma.payScheme.findUnique({ where: { code: "production_m2" } }),
+    prisma.payScheme.findUnique({ where: { code: productionSchemeCode } }),
   ]);
 
   const sold = monthOrders.reduce((s, o) => s.add(String(o.total)), D(0));

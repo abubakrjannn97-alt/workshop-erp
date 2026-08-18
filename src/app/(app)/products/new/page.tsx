@@ -5,14 +5,20 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { createProduct } from "@/app/actions/products";
 import { CatalogNav } from "@/components/catalog-nav";
+import { getDomainConfig } from "@/lib/domain-config";
 
 export default async function NewProductPage() {
   const { t, locale } = await getTranslator();
   await requirePermission("products.manage");
-  const units = await prisma.unit.findMany({
-    where: { archivedAt: null, isActive: true },
-    orderBy: { name: "asc" },
-  });
+  const [units, domainConfig] = await Promise.all([
+    prisma.unit.findMany({
+      where: { archivedAt: null, isActive: true },
+      orderBy: { name: "asc" },
+    }),
+    getDomainConfig(),
+  ]);
+  const defaultSaleUnitId = units.find((u) => u.code === domainConfig.product.defaultSaleUnit)?.id;
+  const defaultOutputUnitId = units.find((u) => u.code === domainConfig.product.defaultOutputUnit)?.id;
 
   async function action(formData: FormData) {
     "use server";
@@ -26,12 +32,12 @@ export default async function NewProductPage() {
       <CatalogNav current="products" locale={locale} />
       <form action={action} className="max-w-xl space-y-3 ui-card">
         <Field name="name" label={t("common.name")} required />
-        <Field name="category" label={t("common.category")} defaultValue={t("products.categoryDefault")} />
+        <Field name="category" label={t("common.category")} defaultValue={domainConfig.product.defaultCategory} />
         <label className="block text-sm">
           <span className="font-medium">{t("products.saleUnit")}</span>
           <select
             name="saleUnitId"
-            defaultValue={units.find((u) => u.code === "M2")?.id}
+            defaultValue={defaultSaleUnitId}
             className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
           >
             {units.map((u) => (
@@ -45,7 +51,7 @@ export default async function NewProductPage() {
           <span className="font-medium">{t("products.fgUnit")}</span>
           <select
             name="outputUnitId"
-            defaultValue={units.find((u) => u.code === "PCS")?.id}
+            defaultValue={defaultOutputUnitId}
             className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
           >
             {units.map((u) => (
@@ -56,7 +62,7 @@ export default async function NewProductPage() {
           </select>
         </label>
         <Field name="recipeBaseQty" label={t("products.recipeBase")} defaultValue="1" />
-        <Field name="outputPerBase" label={t("products.outputBase")} defaultValue="10" />
+        <Field name="outputPerBase" label={t("products.outputBase")} defaultValue={String(domainConfig.product.defaultOutputPerBase)} />
         <Field name="price" label={t("products.salePrice")} defaultValue="0" />
         <Field name="minPrice" label={t("products.minPrice")} defaultValue="0" />
         <button className="ui-btn-primary">{t("common.create")}</button>

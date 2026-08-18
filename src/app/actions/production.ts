@@ -11,6 +11,8 @@ import { ORDER_STATUS } from "@/lib/orders";
 import { accrueProductionWage } from "@/lib/payroll";
 import { notifyRoles } from "@/lib/control";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
+import { resolveProductionPaySchemeCode } from "@/lib/domain-config";
+import { resolveProductionProductId } from "@/lib/production-order";
 
 function qtyStr(value: string) {
   return z.string().regex(/^\d+(\.\d{1,6})?$/).safeParse(value).success;
@@ -110,8 +112,15 @@ export async function closeBatch(formData: FormData) {
   const rawWh = await findRawWarehouse();
   const fg = await findFinishedGoodsWarehouse();
   if (!rawWh || !fg) return { error: "Склады RAW/FG не найдены." };
-  const productId = batch.production.order.items[0]?.productId;
-  if (!productId) return { error: "В заказе нет изделия." };
+  const productId = resolveProductionProductId(batch.production.order.items);
+  if (!productId) {
+    const hasItems = batch.production.order.items.length > 0;
+    return {
+      error: hasItems
+        ? "Заказ содержит несколько разных изделий. Производство поддерживает одно изделие на заказ."
+        : "В заказе нет изделия.",
+    };
+  }
 
   const materialCost = actuals.reduce((s, row) => {
     const unit = row.line.material.averagePurchasePrice ?? row.line.material.lastPurchasePrice;
@@ -120,6 +129,7 @@ export async function closeBatch(formData: FormData) {
   }, D(0));
   const good = D(actualQty);
   const unitCost = good.gt(0) ? materialCost.div(good) : D(0);
+  const productionSchemeCode = await resolveProductionPaySchemeCode();
 
   try {
     let closedNow = false;
@@ -206,7 +216,7 @@ export async function closeBatch(formData: FormData) {
         });
         const rate =
           worker?.payScheme?.productionRate ??
-          (await tx.payScheme.findUnique({ where: { code: "production_m2" } }))?.productionRate;
+          (await tx.payScheme.findUnique({ where: { code: productionSchemeCode } }))?.productionRate;
         if (rate) {
           await accrueProductionWage(tx, {
             userId: batch.responsibleUserId,

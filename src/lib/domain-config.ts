@@ -16,6 +16,7 @@ export type DomainConfig = {
     defaultSaleUnit: string;
     defaultOutputUnit: string;
     defaultCategory: string;
+    defaultOutputPerBase: number;
   };
 };
 
@@ -42,6 +43,13 @@ export function getDomainPreset(): DomainConfig {
     };
   }
   throw new Error(`Unknown WORKSHOP_DOMAIN "${domain}". Supported: ${FACADE_DOMAIN_CONFIG.domain}.`);
+}
+
+function parseSettingNumber(value: unknown, fallback: number): number {
+  const raw = parseSettingValue(value).trim();
+  if (!raw) return fallback;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 export const getDomainConfig = cache(async (): Promise<DomainConfig> => {
@@ -74,11 +82,14 @@ export const getDomainConfig = cache(async (): Promise<DomainConfig> => {
         preset.product.defaultOutputUnit,
       ),
       defaultCategory: pick(DOMAIN_SETTING_KEYS.productDefaultCategory, preset.product.defaultCategory),
+      defaultOutputPerBase: parseSettingNumber(
+        byKey.get(DOMAIN_SETTING_KEYS.productDefaultOutputPerBase),
+        preset.product.defaultOutputPerBase,
+      ),
     },
   };
 });
 
-/** Phase 2 boundary — payroll hardcode removal follows in Phase 3. */
 export async function resolveProductionPaySchemeCode(): Promise<string> {
   const config = await getDomainConfig();
   return config.payroll.productionScheme;
