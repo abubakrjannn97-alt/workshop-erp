@@ -1,9 +1,19 @@
-import Link from "next/link";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { qtyDisplay } from "@core/shared/decimal";
 import { getTranslator } from "@core/shared/i18n/locale";
 import { PageHeader } from "@/components/page-header";
+import { DashPanel } from "@/components/dash-panel";
+import {
+  DataList,
+  DataListCell,
+  DataListEmpty,
+  DataListHead,
+  DataListHeadCell,
+  DataListPrimary,
+  DataListRow,
+  dataListStyles,
+} from "@/components/data-table";
 
 export default async function BatchesPage() {
   const { t } = await getTranslator();
@@ -19,22 +29,35 @@ export default async function BatchesPage() {
   return (
     <div className="page-stack">
       <PageHeader title={t("nav.batches")} description={t("prod.batchesHint")} />
-      {batches.length === 0 ? (
-        <p className="text-sm text-[var(--muted)]">{t("prod.noBatches")}</p>
-      ) : (
-        <ul className="space-y-2">
-          {batches.map((b) => (
-            <li key={b.id} className="ui-card px-4 py-3 text-sm">
-              <Link href={`/production/${b.productionOrderId}`} className="font-medium hover:underline">
-                {t("prod.batch")} №{b.number} · {b.production.order.customer.name}
-              </Link>
-              <p className="mt-1 text-[12px] text-[var(--muted)]">
-                {b.production.order.items[0]?.product.name ?? "—"} · {t("orders.plan")} {qtyDisplay(b.plannedQty)}
-              </p>
-            </li>
-          ))}
-        </ul>
-      )}
+      <DashPanel title={t("nav.batches")}>
+        {batches.length === 0 ? (
+          <DataListEmpty>{t("prod.noBatches")}</DataListEmpty>
+        ) : (
+          <DataList layout="cols3">
+            <DataListHead layout="cols3">
+              <DataListHeadCell>{t("prod.batch")}</DataListHeadCell>
+              <DataListHeadCell>{t("common.product")}</DataListHeadCell>
+              <DataListHeadCell align="right">{t("orders.plan")}</DataListHeadCell>
+            </DataListHead>
+            <ul className={dataListStyles.rows}>
+              {batches.map((b) => (
+                <DataListRow key={b.id} layout="cols3">
+                  <DataListPrimary
+                    title={`№${b.number} · ${b.production.order.customer.name}`}
+                    href={`/production/${b.productionOrderId}`}
+                  />
+                  <DataListCell label={t("common.product")}>
+                    {b.production.order.items[0]?.product.name ?? "—"}
+                  </DataListCell>
+                  <DataListCell label={t("orders.plan")} align="right">
+                    <span className="font-mono text-xs tabular-nums">{qtyDisplay(b.plannedQty)}</span>
+                  </DataListCell>
+                </DataListRow>
+              ))}
+            </ul>
+          </DataList>
+        )}
+      </DashPanel>
     </div>
   );
 }

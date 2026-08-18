@@ -9,6 +9,20 @@ import { closeBatch, createBatch } from "@/app/actions/production";
 import { PendingButton } from "@/components/pending-button";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PageHeader } from "@/components/page-header";
+import { FormField } from "@/components/form-field";
+import { DashPanel } from "@/components/dash-panel";
+import { DashKpiGrid } from "@/components/dashboard/dashboard-system";
+import { KpiCard } from "@/components/kpi-card";
+import { StatusBadge, jobTone } from "@/components/status-badge";
+
+function jobStatus(t: (k: string) => string, s: string) {
+  const map: Record<string, string> = {
+    OPEN: t("prod.open"),
+    IN_PROGRESS: t("prod.inProgress"),
+    DONE: t("prod.done"),
+  };
+  return map[s] ?? s;
+}
 
 export default async function ProductionJobPage({ params }: { params: Promise<{ id: string }> }) {
   const { t, locale } = await getTranslator();
@@ -46,6 +60,7 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
     job.batches.reduce((s, b) => s.add(String(b.plannedQty)), D(0)),
   );
   const product = job.order.items[0];
+  const unitSymbol = product?.product.saleUnit.symbol ?? t("orders.unitFallback");
 
   async function addBatch(formData: FormData) {
     "use server";
@@ -58,59 +73,82 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
 
   return (
     <div className="page-stack">
-      <div>
-<PageHeader title={`${t("common.order")} #${job.order.number}`} />
-        <p className="mt-1 text-sm text-[var(--text-muted)]">
-          {job.order.customer.name}
-          {product ? ` · ${product.product.name} ${qtyDisplay(product.quantity)} ${product.product.saleUnit.symbol}` : null}
-          {job.dueAt ? ` · ${t("prod.due")} ${job.dueAt.toLocaleDateString(intlLocale(locale))}` : null}
-        </p>
-        <p className="mt-1 text-sm font-medium">
-          {t("prod.progressLabel")}: {qtyDisplay(job.producedQty)} / {qtyDisplay(job.plannedQty)}
-          {product ? ` ${product.product.saleUnit.symbol}` : ""}
-        </p>
-        <Link href={`/production/${job.id}/print`} className="mt-2 inline-block text-sm text-[var(--titan-dark)] hover:underline">
-          {t("prod.printJob")}
-        </Link>
-      </div>
+      <PageHeader
+        title={`${t("common.order")} #${job.order.number}`}
+        description={[
+          job.order.customer.name,
+          product ? `${product.product.name} ${qtyDisplay(product.quantity)} ${unitSymbol}` : null,
+          job.dueAt ? `${t("prod.due")} ${job.dueAt.toLocaleDateString(intlLocale(locale))}` : null,
+        ]
+          .filter(Boolean)
+          .join(" · ")}
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <Link href={`/production/${job.id}/print`} className="ui-btn-secondary">
+              {t("prod.printJob")}
+            </Link>
+            <Link href={`/orders/${job.orderId}`} className="ui-btn-secondary">
+              {t("prod.openOrder")}
+            </Link>
+          </div>
+        }
+      />
 
-      <section className="ui-card">
-        <h2 className="text-sm font-semibold">{t("prod.planMaterials")}</h2>
-        <ul className="mt-3 space-y-1 text-sm">
+      <DashKpiGrid cols="4">
+        <div className="ui-card px-3 py-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-muted)]">{t("common.status")}</p>
+          <div className="mt-2">
+            <StatusBadge label={jobStatus(t, job.status)} tone={jobTone(job.status)} />
+          </div>
+        </div>
+        <KpiCard
+          label={t("common.progress")}
+          value={`${qtyDisplay(job.producedQty)} / ${qtyDisplay(job.plannedQty)} ${unitSymbol}`}
+          tone="in"
+        />
+        <KpiCard label={t("common.scrap")} value={qtyDisplay(job.scrapQty)} tone="out" />
+        <KpiCard label={t("prod.batch")} value={String(job.batches.length)} tone="ink" />
+      </DashKpiGrid>
+
+      <DashPanel title={t("prod.planMaterials")}>
+        <ul className="ui-list text-sm">
           {job.order.materials.map((need) => (
             <li key={need.id}>
               {need.material.name}: {qtyDisplay(need.plannedQty)} {need.material.storageUnit.symbol}
             </li>
           ))}
         </ul>
-      </section>
+      </DashPanel>
 
       {canManage && remaining.gt(0) && job.status !== "DONE" ? (
-        <form action={addBatch} className="max-w-xl space-y-2 ui-card">
-          <h2 className="text-sm font-semibold">{t("prod.newBatch")}</h2>
-          <input type="hidden" name="productionOrderId" value={job.id} />
-          <label className="block text-sm">
-            {t("prod.planQty")}, {product?.product.saleUnit.symbol ?? t("orders.unitFallback")} ({t("prod.remaining")} {qtyDisplay(remaining)})
-            <input
-              name="plannedQty"
-              defaultValue={qtyDisplay(remaining)}
-              className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
-            />
-          </label>
-          <label className="block text-sm">
-            {t("prod.responsible")}
-            <select name="responsibleUserId" className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm">
-              <option value="">—</option>
-              {workers.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <input name="comment" placeholder={t("common.comment")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-          <button className="ui-btn-primary">{t("prod.createBatch")}</button>
-        </form>
+        <DashPanel title={t("prod.newBatch")}>
+          <form action={addBatch} className="grid max-w-xl gap-3 sm:grid-cols-2">
+            <input type="hidden" name="productionOrderId" value={job.id} />
+            <FormField
+              label={`${t("prod.planQty")}, ${unitSymbol}`}
+              hint={`${t("prod.remaining")} ${qtyDisplay(remaining)}`}
+              className="sm:col-span-2"
+            >
+              <input name="plannedQty" defaultValue={qtyDisplay(remaining)} className="ui-input" inputMode="decimal" />
+            </FormField>
+            <FormField label={t("prod.responsible")} className="sm:col-span-2">
+              <select name="responsibleUserId" className="ui-input">
+                <option value="">—</option>
+                {workers.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+            <FormField label={t("common.comment")} className="sm:col-span-2">
+              <input name="comment" placeholder={t("common.comment")} className="ui-input" />
+            </FormField>
+            <PendingButton className="ui-btn-primary min-h-[44px] sm:col-span-2" pendingLabel={t("common.sending")}>
+              {t("prod.createBatch")}
+            </PendingButton>
+          </form>
+        </DashPanel>
       ) : null}
 
       {job.batches.map((batch) => {
@@ -119,25 +157,34 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
             ? D(String(batch.scrapQty)).div(D(String(batch.actualQty)).add(batch.scrapQty)).mul(100)
             : D(0);
         return (
-          <section key={batch.id} className="ui-card">
-            <h2 className="text-sm font-semibold">
-              {t("prod.batch")} №{batch.number} · {batch.status === "CLOSED" ? t("prod.closed") : t("prod.opened")} · {t("orders.plan")}{" "}
-              {qtyDisplay(batch.plannedQty)}
-            </h2>
+          <DashPanel
+            key={batch.id}
+            title={`${t("prod.batch")} №${batch.number}`}
+            action={
+              <StatusBadge
+                label={batch.status === "CLOSED" ? t("prod.closed") : t("prod.opened")}
+                tone={batch.status === "CLOSED" ? "good" : "warn"}
+              />
+            }
+          >
+            <p className="mb-3 text-[12px] text-[var(--muted)]">
+              {t("orders.plan")} {qtyDisplay(batch.plannedQty)} {unitSymbol}
+            </p>
             {batch.status === "CLOSED" ? (
-              <div className="mt-3 space-y-2 text-sm">
+              <div className="space-y-2 text-sm">
                 <p>
-                  {t("prod.goodQty")}: {qtyDisplay(batch.actualQty)}, {t("common.scrap")}: {qtyDisplay(batch.scrapQty)} ({qtyDisplay(scrapPct)}%)
+                  {t("prod.goodQty")}: {qtyDisplay(batch.actualQty)}, {t("common.scrap")}: {qtyDisplay(batch.scrapQty)} (
+                  {qtyDisplay(scrapPct)}%)
                 </p>
-                <ul className="space-y-1">
+                <ul className="ui-list space-y-1">
                   {batch.materials.map((line) => {
                     const plan = D(String(line.plannedQty));
                     const fact = D(String(line.actualQty));
                     const over = plan.gt(0) ? fact.sub(plan).div(plan).mul(100) : D(0);
                     return (
                       <li key={line.id}>
-                        {line.material.name}: {t("orders.plan")} {qtyDisplay(plan)} {line.material.storageUnit.symbol}, {t("prod.actual")}{" "}
-                        {qtyDisplay(fact)}
+                        {line.material.name}: {t("orders.plan")} {qtyDisplay(plan)} {line.material.storageUnit.symbol},{" "}
+                        {t("prod.actual")} {qtyDisplay(fact)}
                         {over.gte(5) ? (
                           <span className="ml-2 text-amber-800">
                             {t("prod.overNorm")} {qtyDisplay(over)}%
@@ -155,50 +202,49 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
                 ))}
               </div>
             ) : canReport ? (
-              <form action={finish} className="mt-3 space-y-2">
+              <form action={finish} className="grid gap-3 sm:grid-cols-2">
                 <input type="hidden" name="batchId" value={batch.id} />
                 <IdempotencyField prefix={`close-${batch.id}`} />
-                <label className="block text-sm">
-                  {t("prod.actualGood")}
-                  <input
-                    name="actualQty"
-                    defaultValue={qtyDisplay(batch.plannedQty)}
-                    className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
-                  />
-                </label>
-                <label className="block text-sm">
-                  {t("common.scrap")}
-                  <input name="scrapQty" defaultValue="0" className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-                </label>
-                <input name="scrapReason" placeholder={t("prod.scrapReason")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-                <input name="photoUrl" placeholder={t("prod.scrapPhoto")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
+                <FormField label={t("prod.actualGood")}>
+                  <input name="actualQty" defaultValue={qtyDisplay(batch.plannedQty)} className="ui-input" inputMode="decimal" />
+                </FormField>
+                <FormField label={t("common.scrap")}>
+                  <input name="scrapQty" defaultValue="0" className="ui-input" inputMode="decimal" />
+                </FormField>
+                <FormField label={t("prod.scrapReason")} className="sm:col-span-2">
+                  <input name="scrapReason" placeholder={t("prod.scrapReason")} className="ui-input" />
+                </FormField>
+                <FormField label={t("prod.scrapPhoto")} className="sm:col-span-2">
+                  <input name="photoUrl" placeholder={t("prod.scrapPhoto")} className="ui-input" />
+                </FormField>
                 {batch.materials.map((line) => (
-                  <label key={line.id} className="block text-sm">
-                    {line.material.name}, {t("prod.actual")} ({line.material.storageUnit.symbol}), {t("orders.plan")} {qtyDisplay(line.plannedQty)}
+                  <FormField
+                    key={line.id}
+                    label={`${line.material.name}, ${t("prod.actual")} (${line.material.storageUnit.symbol})`}
+                    hint={`${t("orders.plan")} ${qtyDisplay(line.plannedQty)}`}
+                    className="sm:col-span-2"
+                  >
                     <input
                       name={`actual-${line.materialId}`}
                       defaultValue={qtyDisplay(line.plannedQty)}
-                      className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
+                      className="ui-input"
+                      inputMode="decimal"
                     />
-                  </label>
+                  </FormField>
                 ))}
-                <textarea name="comment" placeholder={t("common.comment")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-                <PendingButton className="ui-btn-primary" pendingLabel={t("common.sending")}>
+                <FormField label={t("common.comment")} className="sm:col-span-2">
+                  <textarea name="comment" placeholder={t("common.comment")} className="ui-input min-h-[4rem]" />
+                </FormField>
+                <PendingButton className="ui-btn-primary min-h-[44px] sm:col-span-2" pendingLabel={t("common.sending")}>
                   {t("prod.closeBatch")}
                 </PendingButton>
               </form>
             ) : (
-              <p className="mt-2 text-sm text-[var(--muted)]">{t("prod.awaitFact")}</p>
+              <p className="text-sm text-[var(--muted)]">{t("prod.awaitFact")}</p>
             )}
-          </section>
+          </DashPanel>
         );
       })}
-
-      <p className="text-sm">
-        <Link href={`/orders/${job.orderId}`} className="text-[var(--titan-dark)] hover:underline">
-          {t("prod.openOrder")}
-        </Link>
-      </p>
     </div>
   );
 }

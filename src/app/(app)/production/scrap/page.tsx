@@ -4,6 +4,17 @@ import { requirePermission } from "@core/auth/authz";
 import { qtyDisplay } from "@core/shared/decimal";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import { PageHeader } from "@/components/page-header";
+import { DashPanel } from "@/components/dash-panel";
+import {
+  DataList,
+  DataListCell,
+  DataListEmpty,
+  DataListHead,
+  DataListHeadCell,
+  DataListPrimary,
+  DataListRow,
+  dataListStyles,
+} from "@/components/data-table";
 
 export default async function ScrapPage() {
   const { t, locale } = await getTranslator();
@@ -25,29 +36,47 @@ export default async function ScrapPage() {
     take: 50,
   });
 
+  const loc = intlLocale(locale);
+
   return (
     <div className="page-stack">
       <PageHeader title={t("nav.scrap")} description={t("prod.scrapHint")} />
-      {scraps.length === 0 ? (
-        <p className="text-sm text-[var(--muted)]">{t("an.noScrap")}</p>
-      ) : (
-        <ul className="space-y-2">
-          {scraps.map((s) => {
-            const product = s.batch.production.order.items[0]?.product;
-            const unitSymbol = product?.outputUnit?.symbol ?? t("common.unitGeneric");
-            return (
-            <li key={s.id} className="ui-card px-4 py-3 text-sm">
-              <Link href={`/production/${s.batch.productionOrderId}`} className="font-medium hover:underline">
-                {product?.name ?? "—"}
-              </Link>
-              <p className="mt-1 text-[12px] text-[var(--muted)]">
-                {qtyDisplay(s.quantity)} {unitSymbol} · {s.reason} · {s.createdAt.toLocaleDateString(intlLocale(locale))}
-              </p>
-            </li>
-          );
-          })}
-        </ul>
-      )}
+      <DashPanel title={t("nav.scrap")}>
+        {scraps.length === 0 ? (
+          <DataListEmpty>{t("an.noScrap")}</DataListEmpty>
+        ) : (
+          <DataList layout="cols3">
+            <DataListHead layout="cols3">
+              <DataListHeadCell>{t("common.product")}</DataListHeadCell>
+              <DataListHeadCell>{t("list.col.when")}</DataListHeadCell>
+              <DataListHeadCell align="right">{t("common.qty")}</DataListHeadCell>
+            </DataListHead>
+            <ul className={dataListStyles.rows}>
+              {scraps.map((s) => {
+                const product = s.batch.production.order.items[0]?.product;
+                const unitSymbol = product?.outputUnit?.symbol ?? t("common.unitGeneric");
+                return (
+                  <DataListRow key={s.id} layout="cols3">
+                    <DataListPrimary
+                      title={product?.name ?? "—"}
+                      subtitle={s.reason}
+                      href={`/production/${s.batch.productionOrderId}`}
+                    />
+                    <DataListCell label={t("list.col.when")}>
+                      {s.createdAt.toLocaleDateString(loc)}
+                    </DataListCell>
+                    <DataListCell label={t("common.qty")} align="right">
+                      <span className="font-mono text-xs tabular-nums">
+                        {qtyDisplay(s.quantity)} {unitSymbol}
+                      </span>
+                    </DataListCell>
+                  </DataListRow>
+                );
+              })}
+            </ul>
+          </DataList>
+        )}
+      </DashPanel>
     </div>
   );
 }
