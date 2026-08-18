@@ -1,4 +1,4 @@
-const CACHE = "workshop-shell-v10";
+const CACHE = "workshop-shell-v11";
 const OFFLINE_URL = "/offline.html";
 const PRECACHE = [
   OFFLINE_URL,
@@ -23,8 +23,8 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-function isNavigation(request) {
-  return request.mode === "navigate" || request.headers.get("accept")?.includes("text/html");
+function isDocumentNavigation(request) {
+  return request.mode === "navigate";
 }
 
 self.addEventListener("fetch", (event) => {
@@ -34,33 +34,20 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith("/api/")) return;
+  if (url.pathname.startsWith("/_next/")) return;
+  if (url.pathname.startsWith("/login")) return;
 
-  if (isNavigation(req)) {
-    if (url.pathname.startsWith("/login")) {
-      event.respondWith(fetch(req));
-      return;
-    }
+  if (isDocumentNavigation(req)) {
     event.respondWith(
-      fetch(req)
-        .then((res) => {
-          if (res.ok) {
-            const copy = res.clone();
-            caches.open(CACHE).then((cache) => cache.put(req, copy));
-          }
-          return res;
-        })
-        .catch(async () => {
-          const cached = await caches.match(req);
-          if (cached) return cached;
-          const offline = await caches.match(OFFLINE_URL);
-          return offline || Response.error();
-        }),
+      fetch(req).catch(async () => {
+        const offline = await caches.match(OFFLINE_URL);
+        return offline || Response.error();
+      }),
     );
     return;
   }
 
   if (
-    url.pathname.startsWith("/_next/static/") ||
     url.pathname === "/logo.png" ||
     url.pathname.endsWith(".png") ||
     url.pathname.endsWith(".webmanifest")
