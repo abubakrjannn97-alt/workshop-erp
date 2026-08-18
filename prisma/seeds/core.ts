@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { DEMO_PASSWORD } from "../../src/core/auth/demo-users";
-import { PERMISSIONS, ROLE_PERMISSIONS } from "../../src/lib/permissions";
+import { PERMISSIONS, ROLE_PERMISSIONS } from "../../src/core/rbac/permissions";
 import { DEFAULT_SETTINGS, SETTING_KEYS } from "../../src/core/config/settings";
 const CORE_WAREHOUSE_RAW_CODE = "RAW";
 const CORE_WAREHOUSE_FG_CODE = "FG";
