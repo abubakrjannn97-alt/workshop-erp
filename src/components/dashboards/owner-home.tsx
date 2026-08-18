@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
-import { FUND, fundDelta, LEDGER } from "@/lib/finance";
+import { FUND, fundDelta, LEDGER } from "@core/finance/finance";
 import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@core/inventory/alerts";
 import { getTranslator, intlLocale } from "@/lib/locale";
 import { KpiCard } from "@/components/kpi-card";

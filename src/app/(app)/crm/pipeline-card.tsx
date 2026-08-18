@@ -1,6 +1,6 @@
 "use client";
 
-import { LOST_REASONS } from "@/lib/orders";
+import { LOST_REASONS } from "@core/orders/orders";
 import { createT, named, type Locale } from "@/lib/i18n";
 
 type Stage = { id: string; code: string; name: string; isLost: boolean };

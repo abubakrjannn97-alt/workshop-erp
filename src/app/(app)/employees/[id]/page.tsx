@@ -5,7 +5,7 @@ import { requirePermission } from "@/lib/authz";
 import { hasPermission } from "@/lib/authz";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { assignPayScheme, payEmployee } from "@/app/actions/payroll";
-import { periodKey, periodRange } from "@/lib/payroll";
+import { periodKey, periodRange } from "@core/payroll/payroll";
 import { getTranslator } from "@/lib/locale";
 import { intlLocale } from "@/lib/i18n";
 import { KpiCard } from "@/components/kpi-card";

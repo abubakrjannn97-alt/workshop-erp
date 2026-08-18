@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { D, moneyDisplay } from "@core/shared/decimal";
-import { cashDelta } from "@/lib/finance";
+import { cashDelta } from "@core/finance/finance";
 
 export async function getCashShiftBarData() {
   const [accounts, entries, shifts] = await Promise.all([

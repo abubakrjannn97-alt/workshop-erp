@@ -3,7 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
-import { FUND, LEDGER, fundDelta } from "@/lib/finance";
+import { FUND, LEDGER, fundDelta } from "@core/finance/finance";
 import { contributionAndNet } from "@core/finance/profit";
 import { coverageAndPurchaseNeed } from "@core/inventory/alerts";
 import { resolveRawWarehouseCode } from "@/core/config/resolve-warehouse";

@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 import { D, moneyDisplay } from "@core/shared/decimal";
-import { periodKey, periodRange } from "@/lib/payroll";
+import { periodKey, periodRange } from "@core/payroll/payroll";
 import { getTranslator } from "@/lib/locale";
 import { PageHeader } from "@/components/page-header";
 import { KpiCard } from "@/components/kpi-card";

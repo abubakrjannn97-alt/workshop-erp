@@ -6,8 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money } from "@core/shared/decimal";
-import { FUND, LEDGER, postLedger } from "@/lib/finance";
-import { periodKey } from "@/lib/payroll";
+import { FUND, LEDGER, postLedger } from "@core/finance/finance";
+import { periodKey } from "@core/payroll/payroll";
 
 export async function assignPayScheme(formData: FormData) {
   const session = await requirePermission("users.edit");

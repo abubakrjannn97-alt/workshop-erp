@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money } from "@core/shared/decimal";
-import { LEDGER, postLedger } from "@/lib/finance";
+import { LEDGER, postLedger } from "@core/finance/finance";
 import { canSelfApprove, queueApproval } from "@core/control/control";
 
 function moneyStr(value: string) {

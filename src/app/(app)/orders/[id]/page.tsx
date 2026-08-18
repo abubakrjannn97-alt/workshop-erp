@@ -9,7 +9,7 @@ import { IdempotencyField } from "@/components/idempotency-field";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { available } from "@core/inventory/stock";
 import { findRawWarehouse } from "@/core/config/resolve-warehouse";
-import { PAYMENT_METHODS, STATUS_FLOW } from "@/lib/orders";
+import { PAYMENT_METHODS, STATUS_FLOW } from "@core/orders/orders";
 import { intlLocale } from "@/lib/i18n";
 import { PageHeader } from "@/components/page-header";
 import {

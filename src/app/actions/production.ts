@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, qty } from "@core/shared/decimal";
-import { ORDER_STATUS } from "@/lib/orders";
+import { ORDER_STATUS } from "@core/orders/orders";
 
 function qtyStr(value: string) {
   return z.string().regex(/^\d+(\.\d{1,6})?$/).safeParse(value).success;

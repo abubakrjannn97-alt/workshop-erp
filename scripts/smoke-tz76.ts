@@ -12,10 +12,10 @@ import {
   ORDER_STATUS,
   paymentStatusOf,
   quoteProduct,
-} from "../src/lib/orders";
+} from "../src/core/orders/orders";
 import { MOVEMENT, reserveMaterial, writeOffMaterial, receiveProduct } from "../src/core/inventory/stock";
-import { FUND, fundDelta, postClientPayment } from "../src/lib/finance";
-import { accrueProductionWage, accrueSellerCommission, commissionPercentNow } from "../src/lib/payroll";
+import { FUND, fundDelta, postClientPayment } from "../src/core/finance/finance";
+import { accrueProductionWage, accrueSellerCommission, commissionPercentNow } from "../src/core/payroll/payroll";
 import { hasPermission, ROLE_PERMISSIONS } from "../src/lib/permissions";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "../src/core/config/resolve-warehouse";
 import { resolveProductionPaySchemeCode } from "../src/lib/domain-config";

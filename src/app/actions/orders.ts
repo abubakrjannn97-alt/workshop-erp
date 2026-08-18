@@ -9,12 +9,12 @@ import { requirePermission } from "@/lib/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money, qty } from "@core/shared/decimal";
 import { available, releaseMaterial, reserveMaterial, writeOffProduct } from "@core/inventory/stock";
-import { postClientPayment } from "@/lib/finance";
+import { postClientPayment } from "@core/finance/finance";
 import {
   accrueSellerCommission,
   commissionPercentNow,
   reverseCommissionForPayment,
-} from "@/lib/payroll";
+} from "@core/payroll/payroll";
 import {
   discountLimitPercent,
   mergeMaterialNeeds,
@@ -23,7 +23,7 @@ import {
   paymentStatusOf,
   quoteProduct,
   STATUS_FLOW,
-} from "@/lib/orders";
+} from "@core/orders/orders";
 import { canSelfApprove, pendingFor, queueApproval } from "@core/control/control";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
 import { resolveProductionPaySchemeCode } from "@/lib/domain-config";

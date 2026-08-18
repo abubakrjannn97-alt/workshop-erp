@@ -7,7 +7,7 @@ import { requirePermission } from "@/lib/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money, qty } from "@core/shared/decimal";
 import { receiveMaterial } from "@core/inventory/stock";
-import { accountByCode, FUND, fundByCode, LEDGER, postLedger } from "@/lib/finance";
+import { accountByCode, FUND, fundByCode, LEDGER, postLedger } from "@core/finance/finance";
 import { findRawWarehouse } from "@/core/config/resolve-warehouse";
 
 async function nextNumber() {

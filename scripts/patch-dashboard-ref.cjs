@@ -47,7 +47,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/authz";
 import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
-import { FUND, fundDelta } from "@/lib/finance";
+import { FUND, fundDelta } from "@core/finance/finance";
 import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@core/inventory/alerts";
 import { getTranslator, intlLocale } from "@/lib/locale";
 import { KpiCard } from "@/components/kpi-card";

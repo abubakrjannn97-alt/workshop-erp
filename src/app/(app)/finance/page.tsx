@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { hasPermission } from "@/lib/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
-import { cashDelta, fundDelta, FUND } from "@/lib/finance";
+import { cashDelta, fundDelta, FUND } from "@core/finance/finance";
 import { createExpense, createExpenseCategory, createObligation, transferCash } from "@/app/actions/finance";
 import { closeCashShift, openCashShift } from "@/app/actions/control";
 import { KpiCard } from "@/components/kpi-card";

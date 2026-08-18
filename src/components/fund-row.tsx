@@ -7,7 +7,7 @@ import {
   Crown,
   Wallet,
 } from "lucide-react";
-import { FUND } from "@/lib/finance";
+import { FUND } from "@core/finance/finance";
 
 const FUND_STYLES: Record<string, { icon: LucideIcon; box: string; iconColor: string }> = {
   [FUND.MATERIALS]: {

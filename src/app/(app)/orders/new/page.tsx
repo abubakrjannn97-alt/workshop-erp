@@ -5,7 +5,7 @@ import { requirePermission } from "@/lib/authz";
 import { hasPermission } from "@/lib/authz";
 import { createOrder } from "@/app/actions/orders";
 import { OrderForm } from "../order-form";
-import { discountLimitPercent } from "@/lib/orders";
+import { discountLimitPercent } from "@core/orders/orders";
 import { PageHeader } from "@/components/page-header";
 
 export default async function NewOrderPage({

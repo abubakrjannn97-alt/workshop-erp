@@ -6,7 +6,7 @@ import { requirePermission, requireSession } from "@/lib/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money } from "@core/shared/decimal";
 import { canSelfApprove, notifyRoles, queueApproval } from "@core/control/control";
-import { cashDelta } from "@/lib/finance";
+import { cashDelta } from "@core/finance/finance";
 import { writeOffMaterial } from "@core/inventory/stock";
 import { confirmInventoryCount } from "@/app/actions/inventory";
 import { transferCash } from "@/app/actions/finance";

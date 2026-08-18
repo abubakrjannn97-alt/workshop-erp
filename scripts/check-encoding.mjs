@@ -11,7 +11,7 @@ for (const p of [
   "src/app/(app)/orders/page.tsx",
   "src/lib/i18n.ts",
   "src/components/language-switcher.tsx",
-  "src/lib/finance.ts",
+  "src/core/finance/finance.ts",
   "src/core/inventory/stock.ts",
 ]) {
   if (!fs.existsSync(p)) {
