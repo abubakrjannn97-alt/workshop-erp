@@ -24,11 +24,12 @@ export type StatisticsCardProps = {
   title: string;
   value: string;
   subtitle?: string;
-  icon: ReactNode;
+  icon?: ReactNode;
   accent?: StatisticsCardAccent;
   trend?: StatisticsCardTrend;
   onMenuClick?: () => void;
   menuAriaLabel?: string;
   hideMenu?: boolean;
+  showTrend?: boolean;
   className?: string;
 };

@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
+import { Segmented } from "@/components/segmented";
 
 export type SettingsNavId =
   | "business"
@@ -20,26 +20,20 @@ export function SettingsNav({ current, locale }: { current: SettingsNavId; local
     { href: "/settings/approvals", id: "approvals" as const, label: t("set.approvals") },
     { href: "/settings/audit", id: "audit" as const, label: t("set.audit") },
     { href: "/settings/backups", id: "backups" as const, label: t("set.backupsTitle") },
+    { href: "/employees", id: null, label: t("page.employees") },
+    { href: "/products", id: null, label: t("page.products") },
   ];
 
   return (
-    <div className="no-scrollbar flex flex-wrap gap-1.5 overflow-x-auto pb-1" data-tour="set-nav">
-      {items.map((item) => (
-        <Link
-          key={item.id}
-          href={item.href}
-          prefetch
-          className={`shrink-0 ${current === item.id ? "ui-chip-on" : "ui-chip"}`}
-        >
-          {item.label}
-        </Link>
-      ))}
-      <Link href="/employees" className="ui-chip shrink-0">
-        {t("page.employees")}
-      </Link>
-      <Link href="/products" className="ui-chip shrink-0">
-        {t("page.products")}
-      </Link>
-    </div>
+    <Segmented
+      aria-label={t("page.settings")}
+      className="w-full"
+      tour="set-nav"
+      items={items.map((item) => ({
+        href: item.href,
+        label: item.label,
+        active: item.id !== null && current === item.id,
+      }))}
+    />
   );
 }

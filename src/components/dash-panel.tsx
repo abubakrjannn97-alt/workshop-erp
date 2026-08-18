@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import { ICON_STROKE } from "@/components/nav-icons";
 
 export function DashPanel({
   title,
@@ -22,7 +23,7 @@ export function DashPanel({
         <h2 className="section-title">
           {Icon ? (
             <span className="section-title-icon">
-              <Icon size={12} strokeWidth={1.6} />
+              <Icon size={14} strokeWidth={ICON_STROKE} aria-hidden />
             </span>
           ) : null}
           {title}

@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
+import { Segmented } from "@/components/segmented";
 
 export function CatalogNav({
   current,
@@ -10,13 +10,12 @@ export function CatalogNav({
 }) {
   const t = createT(locale);
   return (
-    <div className="flex flex-wrap gap-1.5">
-      <Link href="/products" className={current === "products" ? "ui-chip-on" : "ui-chip"}>
-        {t("catalog.products")}
-      </Link>
-      <Link href="/materials" className={current === "materials" ? "ui-chip-on" : "ui-chip"}>
-        {t("catalog.materials")}
-      </Link>
-    </div>
+    <Segmented
+      aria-label={t("catalog.products")}
+      items={[
+        { href: "/products", label: t("catalog.products"), active: current === "products" },
+        { href: "/materials", label: t("catalog.materials"), active: current === "materials" },
+      ]}
+    />
   );
 }

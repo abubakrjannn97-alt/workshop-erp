@@ -69,11 +69,11 @@ export function ConfirmDialog({
         aria-labelledby={titleId}
         aria-describedby={description ? descId : undefined}
       >
-        <h2 id={titleId} className="text-h2 text-[var(--color-text-primary)]">
+        <h2 id={titleId} className="ui-dialog-title">
           {title}
         </h2>
         {description ? (
-          <p id={descId} className="mt-2 text-body text-[var(--color-text-muted)]">
+          <p id={descId} className="ui-dialog-desc">
             {description}
           </p>
         ) : null}

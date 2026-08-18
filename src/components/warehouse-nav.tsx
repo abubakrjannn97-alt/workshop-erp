@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
+import { Segmented } from "@/components/segmented";
 
 export function WarehouseNav({
   current,
@@ -10,23 +11,20 @@ export function WarehouseNav({
 }) {
   const t = createT(locale);
   const items = [
-    { href: "/warehouse", id: "raw", labelKey: "whNav.raw" },
-    { href: "/warehouse/finished", id: "fg", labelKey: "whNav.fg" },
-    { href: "/warehouse/movements", id: "moves", labelKey: "whNav.moves" },
-    { href: "/warehouse/inventory", id: "inventory", labelKey: "whNav.inventory" },
-  ] as const;
+    { href: "/warehouse", id: "raw" as const, labelKey: "whNav.raw" },
+    { href: "/warehouse/finished", id: "fg" as const, labelKey: "whNav.fg" },
+    { href: "/warehouse/movements", id: "moves" as const, labelKey: "whNav.moves" },
+    { href: "/warehouse/inventory", id: "inventory" as const, labelKey: "whNav.inventory" },
+  ];
   return (
-    <div className="no-scrollbar flex gap-1.5 overflow-x-auto pb-1">
-      {items.map((item) => (
-        <Link
-          key={item.id}
-          href={item.href}
-          prefetch
-          className={`shrink-0 ${current === item.id ? "ui-chip-on" : "ui-chip"}`}
-        >
-          {t(item.labelKey)}
-        </Link>
-      ))}
-    </div>
+    <Segmented
+      scroll
+      aria-label={t("page.warehouse")}
+      items={items.map((item) => ({
+        href: item.href,
+        label: t(item.labelKey),
+        active: current === item.id,
+      }))}
+    />
   );
 }

@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import { ICON_STROKE } from "@/components/nav-icons";
 
 export function EmptyState({
   icon: Icon,
@@ -17,14 +18,14 @@ export function EmptyState({
   return (
     <div className="empty-state" role="status">
       {Icon ? (
-        <span className="mb-1 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]">
-          <Icon size={20} strokeWidth={1.75} aria-hidden />
+        <span className="empty-state-icon">
+          <Icon size={18} strokeWidth={ICON_STROKE} aria-hidden />
         </span>
       ) : null}
       <p className="empty-state-title">{title}</p>
       {description ? <p className="empty-state-desc">{description}</p> : null}
       {action || secondaryAction ? (
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
           {action}
           {secondaryAction}
         </div>

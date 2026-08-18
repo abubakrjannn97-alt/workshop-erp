@@ -1,3 +1,5 @@
+@import "@fontsource-variable/inter";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -25,6 +27,7 @@
   --bad-soft: #f7ebea;
   --on-navy: #f8f7f4;
   --on-accent: #1a1d23;
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -289,7 +292,8 @@ main::-webkit-scrollbar-corner,
 
 @layer components {
   .ui-card,
-  .ui-card-solid {
+  .ui-card-solid,
+  .ui-card-panel {
     border-radius: var(--radius-card);
     border: 1px solid var(--line);
     background: var(--surface);
@@ -357,8 +361,8 @@ main::-webkit-scrollbar-corner,
   .ui-card-body .ui-list > li,
   .ui-card > .section-title + * .ui-list > li,
   .ui-card > .section-title + ul > li {
-    min-height: 44px;
-    padding: var(--space-2) var(--space-3);
+    min-height: 48px;
+    padding: 14px var(--space-3);
     border-radius: 0;
     border: none;
     border-bottom: 1px solid var(--line);
@@ -404,8 +408,10 @@ main::-webkit-scrollbar-corner,
   }
   .ui-btn-icon {
     @apply ui-btn;
-    width: var(--control-h-mobile);
-    min-width: var(--control-h-mobile);
+    width: var(--control-h);
+    min-width: var(--control-h);
+    min-height: var(--control-h);
+    height: var(--control-h);
     padding: 0;
   }
   .ui-btn-primary {
@@ -431,6 +437,7 @@ main::-webkit-scrollbar-corner,
   }
   .ui-btn-ghost {
     @apply ui-btn;
+    border: 1px solid transparent;
     background: transparent;
     color: var(--ink-2);
   }
@@ -462,21 +469,60 @@ main::-webkit-scrollbar-corner,
     text-decoration: underline;
   }
 
-  .ui-chip {
-    @apply inline-flex items-center rounded-full px-3 py-1 text-[13px] font-medium;
+  .ui-seg {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    padding: 4px;
+    border-radius: var(--radius-control);
     border: 1px solid var(--line);
-    background: var(--surface);
-    color: var(--ink-2);
+    background: var(--surface-2);
   }
+  .ui-seg-scroll {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+  .ui-seg-item,
+  .ui-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--control-h);
+    padding: 0 var(--space-3);
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--ink-2);
+    font-size: var(--font-size-small);
+    font-weight: 500;
+    line-height: var(--line-height-small);
+    white-space: nowrap;
+    text-decoration: none;
+  }
+  .ui-seg-item:hover,
   .ui-chip:hover {
     color: var(--ink);
+    background: var(--surface);
   }
+  .ui-seg-item-on,
   .ui-chip-on {
-    @apply inline-flex items-center rounded-full px-3 py-1 text-[13px] font-semibold;
-    border: 1px solid var(--navy);
-    background: var(--navy);
-    color: var(--on-navy);
-    box-shadow: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--control-h);
+    padding: 0 var(--space-3);
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: var(--font-size-small);
+    font-weight: 600;
+    line-height: var(--line-height-small);
+    white-space: nowrap;
+    text-decoration: none;
+    box-shadow: var(--shadow);
   }
 
   .ui-input {
@@ -520,6 +566,9 @@ main::-webkit-scrollbar-corner,
     height: auto;
     min-height: 88px;
     padding: 10px 12px;
+  }
+  select.ui-input {
+    cursor: pointer;
   }
   .ui-label {
     @apply mb-1.5 block;
@@ -568,9 +617,10 @@ main::-webkit-scrollbar-corner,
   }
   .ui-table td {
     border-top: 1px solid var(--line);
-    padding: var(--space-3);
+    padding: 14px var(--space-3);
     height: auto;
-    min-height: 44px;
+    min-height: 48px;
+    font-size: 13px;
   }
   .ui-table tbody tr:hover td {
     background: var(--surface-2);
@@ -594,7 +644,17 @@ main::-webkit-scrollbar-corner,
     background: var(--bad-soft);
   }
   .ui-badge {
-    @apply inline-flex rounded-full px-2.5 py-1 text-xs font-medium;
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    border-radius: 999px;
+    padding: 0 var(--space-2);
+    font-size: var(--font-size-small);
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--ink-2);
+    background: var(--surface-2);
   }
 
   .page-header {
@@ -769,19 +829,45 @@ main::-webkit-scrollbar-corner,
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: min(420px, calc(100vw - 32px));
+    width: min(420px, calc(100vw - 24px));
+    max-height: calc(100vh - 32px);
+    overflow: auto;
     border-radius: var(--radius-sheet);
     border: 1px solid var(--line);
     background: var(--surface);
     box-shadow: var(--shadow);
     padding: var(--space-5);
   }
+  .ui-dialog-title {
+    margin: 0;
+    font-size: var(--font-size-h2);
+    font-weight: 600;
+    line-height: var(--line-height-h2);
+    color: var(--ink);
+  }
+  .ui-dialog-desc {
+    margin: var(--space-2) 0 0;
+    font-size: var(--font-size-body);
+    line-height: var(--line-height-body);
+    color: var(--ink-2);
+  }
 }
 
 @media (max-width: 639px) {
-  .ui-btn:not(.ui-btn-icon) {
+  .ui-btn,
+  .ui-btn-icon {
     min-height: var(--control-h-mobile);
     height: var(--control-h-mobile);
+  }
+  .ui-btn-icon {
+    width: var(--control-h-mobile);
+    min-width: var(--control-h-mobile);
+  }
+  .ui-seg-item,
+  .ui-seg-item-on,
+  .ui-chip,
+  .ui-chip-on {
+    min-height: var(--control-h-mobile);
   }
   .ui-input,
   main input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]),
@@ -794,32 +880,51 @@ main::-webkit-scrollbar-corner,
     height: auto;
     min-height: 88px;
   }
+  .ui-dialog {
+    width: calc(100vw - 24px);
+    padding: var(--space-4);
+  }
 }
 
-/* Unified form controls across all pages */
+/* Unified form controls across all pages — same language as .ui-input */
 main input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]),
 main select,
 main textarea {
   transition: border-color var(--transition);
   border-radius: var(--radius-control);
-  border-color: var(--line-strong);
+  border: 1px solid var(--line-strong);
   font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
   color: var(--ink);
   background: var(--surface);
 }
 main input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]),
 main select {
   min-height: var(--control-h);
+  height: var(--control-h);
   padding-left: var(--space-3);
   padding-right: var(--space-3);
 }
+main textarea {
+  min-height: 88px;
+  padding: 10px 12px;
+}
 main input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]):focus,
 main select:focus,
-main textarea:focus {
+main textarea:focus,
+main input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]):focus-visible,
+main select:focus-visible,
+main textarea:focus-visible {
   border-color: var(--accent);
   box-shadow: none;
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+main input[aria-invalid="true"],
+main select[aria-invalid="true"],
+main textarea[aria-invalid="true"] {
+  border-color: var(--bad);
+  box-shadow: none;
 }
 
 @media print {
@@ -1091,7 +1196,9 @@ main table thead th {
 
 main table thead th {
   padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-small);
+  height: 40px;
+  font-size: 13px;
+  font-weight: 600;
   border-bottom: 1px solid var(--line);
 }
 
@@ -1108,8 +1215,10 @@ main .ui-card .ui-table-wrap tbody tr + tr td {
 main table tbody td {
   background: transparent;
   border-color: var(--line);
-  padding: var(--space-3);
-  font-size: var(--font-size-small);
+  padding: 14px var(--space-3);
+  min-height: 48px;
+  font-size: 13px;
+  line-height: 20px;
   color: var(--ink-2);
 }
 
@@ -1140,10 +1249,7 @@ main table tbody tr:hover td {
   color: var(--warn);
   background: var(--warn-soft);
 }
-.st-info {
-  color: var(--navy);
-  background: var(--surface-2);
-}
+.st-info,
 .st-neutral {
   color: var(--ink-2);
   background: var(--surface-2);
@@ -1181,18 +1287,38 @@ main table tbody tr:hover td {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 24px 16px;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-4);
   text-align: center;
 }
+.empty-state-compact {
+  padding: var(--space-4) var(--space-3);
+  gap: var(--space-2);
+}
+.empty-state-icon {
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
 .empty-state-title {
-  font-size: 15px;
+  margin: 0;
+  font-size: var(--font-size-body);
   font-weight: 600;
-  color: var(--color-text-primary);
+  line-height: var(--line-height-body);
+  color: var(--ink);
 }
 .empty-state-desc {
-  font-size: 13px;
-  color: var(--color-text-muted);
+  margin: 0;
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+  color: var(--ink-2);
   max-width: 28rem;
 }
 
@@ -1223,7 +1349,8 @@ main .ui-card > .section-title {
 @media (max-width: 1023px) {
   .page-header,
   .ui-card,
-  .ui-card-solid {
+  .ui-card-solid,
+  .ui-card-panel {
     border-radius: var(--radius-card);
     border: 1px solid var(--line);
     background: var(--surface);

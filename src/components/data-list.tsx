@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Inbox } from "lucide-react";
+import { ICON_STROKE } from "@/components/nav-icons";
 import styles from "./data-list.module.css";
 
 export type DataListLayout = "cols2" | "cols3" | "cols4" | "cols5" | "colsOrder" | "colsOrders";
@@ -106,9 +108,7 @@ export function DataListMetric({
         ? styles.metricValueBad
         : tone === "muted"
           ? styles.metricValueMuted
-          : tone === "gold"
-            ? styles.metricValueGold
-            : "";
+          : "";
 
   return (
     <div className={styles.metric}>
@@ -138,7 +138,14 @@ export function DataListCell({
 }
 
 export function DataListEmpty({ children }: { children: ReactNode }) {
-  return <p className={styles.empty}>{children}</p>;
+  return (
+    <div className={`empty-state empty-state-compact ${styles.empty}`} role="status">
+      <span className="empty-state-icon">
+        <Inbox size={18} strokeWidth={ICON_STROKE} aria-hidden />
+      </span>
+      <p className="empty-state-desc">{children}</p>
+    </div>
+  );
 }
 
 export { styles as dataListStyles };

@@ -1,15 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import { PwaRegister } from "@/components/pwa-register";
 import { PwaInstall } from "@/components/pwa-install";
 import { getTranslator } from "@core/shared/i18n/locale";
 import "./globals.css";
-
-const inter = Inter({
-  subsets: ["latin", "cyrillic"],
-  display: "swap",
-  variable: "--font-sans",
-});
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +34,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const { locale } = await getTranslator();
   return (
-    <html lang={locale === "tj" ? "tg" : "ru"} className={`${inter.variable} h-full antialiased`}>
+    <html lang={locale === "tj" ? "tg" : "ru"} className="h-full antialiased">
       <body className="min-h-full bg-[var(--color-background)] font-sans text-[var(--color-text-primary)]">
         <PwaRegister />
         <PwaInstall locale={locale} />

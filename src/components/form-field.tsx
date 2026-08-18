@@ -1,12 +1,28 @@
 import { cloneElement, isValidElement, useId, type ReactElement, type ReactNode } from "react";
 
+const SKIP_INPUT_TYPES = new Set(["checkbox", "radio", "file", "hidden", "submit", "button", "reset"]);
+
 type ControlProps = {
   id?: string;
+  type?: string;
   "aria-describedby"?: string;
   "aria-invalid"?: boolean;
   "aria-required"?: boolean;
   className?: string;
 };
+
+function controlClassName(child: ReactElement<ControlProps>, error?: string): string | undefined {
+  const existing = child.props.className ?? "";
+  const tag = typeof child.type === "string" ? child.type : "";
+  const inputType = tag === "input" ? (child.props.type ?? "text") : "";
+  const skipNative = tag === "input" && SKIP_INPUT_TYPES.has(inputType);
+  const needsFieldClass =
+    !skipNative && (tag === "input" || tag === "select" || tag === "textarea") && !existing.includes("ui-input");
+  const merged = [needsFieldClass ? "ui-input" : "", error ? "ui-input-error" : "", existing]
+    .filter(Boolean)
+    .join(" ");
+  return merged || undefined;
+}
 
 export function FormField({
   label,
@@ -37,9 +53,7 @@ export function FormField({
         "aria-describedby": describedBy,
         "aria-invalid": error ? true : undefined,
         "aria-required": required ? true : undefined,
-        className: [error ? "ui-input-error" : "", (children as ReactElement<ControlProps>).props.className]
-          .filter(Boolean)
-          .join(" "),
+        className: controlClassName(children as ReactElement<ControlProps>, error),
       })
     : children;
 

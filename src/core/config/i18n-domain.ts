@@ -1,5 +1,5 @@
 import type { Dict, Locale } from "@core/shared/i18n/i18n";
-import { getWorkshopDomain } from "@core/config/domain-config";
+import { getWorkshopDomain } from "@core/config/workshop-domain";
 import { DOMAIN_REGISTRY } from "@/domains/registry";
 
 /** Domain-specific translation overrides for the active WORKSHOP_DOMAIN preset. */

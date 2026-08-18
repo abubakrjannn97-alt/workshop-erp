@@ -1,12 +1,14 @@
 import { cache } from "react";
 import { prisma } from "@core/infrastructure/prisma";
 import { DOMAIN_SETTING_KEYS } from "@core/config/settings";
+import { getWorkshopDomain } from "@core/config/workshop-domain";
 import {
-  DEFAULT_WORKSHOP_DOMAIN,
   DOMAIN_REGISTRY,
   SUPPORTED_WORKSHOP_DOMAINS,
   type DomainPreset,
 } from "@/domains/registry";
+
+export { getWorkshopDomain };
 
 export type DomainConfig = DomainPreset;
 
@@ -20,11 +22,6 @@ function parseSettingValue(value: unknown): string {
   if (typeof value === "string") return value.replace(/^"|"$/g, "");
   if (value == null) return "";
   return String(value);
-}
-
-/** Standalone clone domain id — not used for multi-tenancy. */
-export function getWorkshopDomain(): string {
-  return process.env.WORKSHOP_DOMAIN?.trim() || DEFAULT_WORKSHOP_DOMAIN;
 }
 
 /** Domain preset for the active WORKSHOP_DOMAIN. */

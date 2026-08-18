@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { Inbox } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
 
 export function ModuleToolbar({
   children,
@@ -30,13 +32,16 @@ export function ModuleEmpty({
   actionLabel?: string;
 }) {
   return (
-    <div className="ui-card px-4 py-8 text-center">
-      <p className="text-sm text-[var(--color-text-muted)]">{message}</p>
-      {actionHref && actionLabel ? (
-        <Link href={actionHref} className="ui-btn-primary mt-4 inline-flex min-h-[44px] items-center">
-          {actionLabel}
-        </Link>
-      ) : null}
-    </div>
+    <EmptyState
+      icon={Inbox}
+      title={message}
+      action={
+        actionHref && actionLabel ? (
+          <Link href={actionHref} className="ui-btn-primary">
+            {actionLabel}
+          </Link>
+        ) : undefined
+      }
+    />
   );
 }

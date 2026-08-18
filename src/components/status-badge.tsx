@@ -15,7 +15,7 @@ const TONE_CLASS: Record<BadgeTone, string> = {
   danger: "st-bad",
   warn: "st-warn",
   warning: "st-warn",
-  info: "st-info",
+  info: "st-neutral",
   neutral: "st-neutral",
 };
 

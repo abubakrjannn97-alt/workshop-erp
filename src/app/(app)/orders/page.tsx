@@ -26,6 +26,7 @@ import {
   dataListStyles,
 } from "@/components/data-table";
 import { ModuleToolbar } from "@/components/module/module-ui";
+import { Segmented } from "@/components/segmented";
 import { StatusBadge, orderTone } from "@/components/status-badge";
 
 export default async function OrdersPage({
@@ -118,23 +119,20 @@ export default async function OrdersPage({
         }
       />
 
-      <div className="flex flex-wrap gap-2">
-        {(
+      <Segmented
+        aria-label={t("home.period")}
+        items={(
           [
             ["month", t("orders.periodMonth")],
             ["prev", t("orders.periodPrev")],
             ["all", t("orders.periodAll")],
           ] as const
-        ).map(([p, label]) => (
-          <Link
-            key={p}
-            href={buildOrdersQuery({ ...baseQuery, period: p, page: undefined })}
-            className={resolvedPeriod === p ? "ui-chip-on" : "ui-chip"}
-          >
-            {label}
-          </Link>
-        ))}
-      </div>
+        ).map(([p, label]) => ({
+          href: buildOrdersQuery({ ...baseQuery, period: p, page: undefined }),
+          label,
+          active: resolvedPeriod === p,
+        }))}
+      />
 
       <ModuleToolbar tour="orders-search">
         <input type="hidden" name="period" value={resolvedPeriod === "custom" ? "custom" : resolvedPeriod} />
