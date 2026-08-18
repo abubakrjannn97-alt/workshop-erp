@@ -49,29 +49,14 @@ export function AppShell({
     .join("");
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#0B0E1A] lg:bg-[#FAF8F5] text-[var(--color-text-primary)]">
+    <div className="flex h-screen overflow-hidden bg-[var(--color-background)] text-[var(--color-text-primary)]">
       <Sidebar
         companyName={companyName}
         permissions={permissions}
         roleCode={roleCode}
         locale={locale}
       />
-      <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 z-0 hidden lg:block"
-          style={{
-            background:
-              "linear-gradient(100deg, #FFFFFF 0%, #FAF8F5 28%, #F0EBE4 52%, #E4DAD0 72%, #D8CBBE 88%, #CFC0B0 100%)",
-          }}
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 z-0 lg:hidden"
-          style={{
-            background: "linear-gradient(180deg, #0B0E1A 0%, #0B0E1A 320px, #16130F 400px, #F3F4F7 520px, #FFFFFF 100%)",
-          }}
-        />
+      <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden bg-[var(--color-background)]">
         <div className="relative z-20 print:hidden lg:hidden">
           <header
             className="flex items-center justify-between gap-3 px-5"

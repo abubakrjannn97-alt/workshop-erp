@@ -2,7 +2,7 @@
   display: grid;
   width: 100%;
   min-width: 0;
-  gap: 10px;
+  gap: 8px;
   grid-template-columns: minmax(0, 1fr);
 }
 
@@ -19,28 +19,19 @@
 }
 
 .stat-card {
-  --stat-gold: #d4af37;
   position: relative;
   display: flex;
   width: 100%;
   min-width: 0;
-  height: auto;
-  min-height: 118px;
+  min-height: 88px;
   flex-direction: column;
   overflow: hidden;
-  border-radius: 18px;
-  border: 1px solid rgba(232, 201, 120, 0.32);
-  background:
-    linear-gradient(125deg, rgba(255, 248, 230, 0.14) 0%, rgba(255, 255, 255, 0.03) 30%, transparent 48%),
-    linear-gradient(165deg, #3d3530 0%, #221e1a 42%, #12100e 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 244, 214, 0.28),
-    inset 0 -14px 24px rgba(0, 0, 0, 0.22),
-    0 10px 28px rgba(12, 10, 8, 0.22);
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
-  padding: 11px 13px 10px;
-  color: #fff;
+  border-radius: 10px;
+  border: 1px solid var(--color-border, #e5e7eb);
+  background: var(--color-surface, #ffffff);
+  box-shadow: var(--shadow-xs, 0 1px 2px rgba(14, 21, 34, 0.04));
+  padding: 10px 12px;
+  color: var(--color-text-primary, #101828);
   isolation: isolate;
 }
 
@@ -56,35 +47,51 @@
 .stat-card__header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
 }
 
 .stat-card__icon {
   display: inline-flex;
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  border: 1px solid rgba(232, 201, 120, 0.45);
-  background: linear-gradient(180deg, rgba(245, 213, 106, 0.18), rgba(245, 166, 35, 0.06));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  color: #d4af37;
+  border-radius: 6px;
+  border: 1px solid var(--color-border-soft, #eef0f3);
+  background: var(--color-surface-muted, #f8fafc);
+  color: var(--color-text-secondary, #667085);
 }
 
-.stat-card__icon--gold,
-.stat-card__icon--green,
-.stat-card__icon--blue,
+.stat-card__icon--gold {
+  border-color: rgba(212, 175, 55, 0.35);
+  background: rgba(248, 241, 216, 0.5);
+  color: #9a7b1a;
+}
+
+.stat-card__icon--green {
+  border-color: rgba(16, 185, 129, 0.25);
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.stat-card__icon--blue {
+  border-color: rgba(59, 130, 246, 0.25);
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
 .stat-card__icon--purple {
-  border-color: rgba(212, 175, 55, 0.5);
-  color: #d4af37;
+  border-color: rgba(139, 92, 246, 0.25);
+  background: #f5f3ff;
+  color: #6d28d9;
 }
 
 .stat-card__icon--red {
-  border-color: rgba(229, 115, 115, 0.55);
-  color: #e57373;
+  border-color: rgba(239, 68, 68, 0.25);
+  background: #fef2f2;
+  color: #b91c1c;
 }
 
 .stat-card__title {
@@ -93,55 +100,48 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   line-height: 1.2;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.82);
+  color: var(--color-text-muted, #98a2b3);
 }
 
 .stat-card__menu,
 .stat-card__menu-spacer {
   display: inline-flex;
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  margin-right: -2px;
 }
 
 .stat-card__menu {
   border: 0;
-  border-radius: 6px;
+  border-radius: 4px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.36);
+  color: var(--color-text-muted, #98a2b3);
   cursor: pointer;
 }
 
 .stat-card__menu:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.72);
-}
-
-.stat-card__menu:focus-visible {
-  outline: 2px solid rgba(212, 175, 55, 0.55);
-  outline-offset: 2px;
+  background: var(--color-surface-muted, #f8fafc);
+  color: var(--color-text-secondary, #667085);
 }
 
 .stat-card__value {
-  margin-top: 8px;
+  margin-top: 6px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1.15;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
   letter-spacing: -0.01em;
-  color: #ffffff;
+  color: var(--color-text-primary, #101828);
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 12px rgba(245, 213, 106, 0.12);
 }
 
 .stat-card__subtitle {
@@ -149,10 +149,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 400;
   line-height: 1.3;
-  color: rgba(255, 255, 255, 0.42);
+  color: var(--color-text-secondary, #667085);
 }
 
 .stat-card__trend-row {
@@ -160,7 +160,7 @@
   align-items: center;
   min-width: 0;
   margin-top: auto;
-  padding-top: 6px;
+  padding-top: 4px;
 }
 
 .stat-card__trend {
@@ -168,9 +168,9 @@
   max-width: 100%;
   min-width: 0;
   align-items: center;
-  gap: 4px;
-  height: 20px;
-  padding: 0 8px;
+  gap: 3px;
+  height: 18px;
+  padding: 0 6px;
   border-radius: 999px;
   font-size: 10px;
   font-weight: 500;
@@ -183,54 +183,34 @@
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: 400;
-  color: rgba(255, 255, 255, 0.62);
+  color: var(--color-text-muted, #98a2b3);
 }
 
 .stat-card__trend--gold {
-  border: 1px solid rgba(212, 175, 55, 0.28);
-  background: rgba(12, 14, 20, 0.55);
-  color: #d4af37;
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  background: rgba(248, 241, 216, 0.45);
+  color: #9a7b1a;
 }
 
 .stat-card__trend--red {
-  border: 1px solid rgba(229, 115, 115, 0.32);
-  background: rgba(12, 14, 20, 0.55);
-  color: #e57373;
-}
-
-.stat-card__line {
-  position: absolute;
-  right: -2%;
-  bottom: 2px;
-  z-index: 0;
-  width: 58%;
-  height: 52px;
-  pointer-events: none;
-  opacity: 0.55;
-  filter: drop-shadow(0 0 4px rgba(212, 175, 55, 0.35));
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: #fef2f2;
+  color: #b91c1c;
 }
 
 @media (max-width: 1023px) {
+  .stat-card {
+    min-height: 82px;
+  }
+
   .stat-card__title {
-    font-size: 10px;
     white-space: normal;
     overflow: visible;
     text-overflow: unset;
-    line-height: 1.25;
   }
 
   .stat-card__value {
-    font-size: clamp(15px, 4.2vw, 17px);
-    white-space: normal;
-    overflow: visible;
-    text-overflow: unset;
-    line-height: 1.2;
-  }
-
-  .stat-card__subtitle {
-    white-space: normal;
-    overflow: visible;
-    text-overflow: unset;
+    font-size: 14px;
   }
 }
 

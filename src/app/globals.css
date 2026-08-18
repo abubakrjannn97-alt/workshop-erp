@@ -102,7 +102,7 @@
   --shadow-lg: 0 8px 24px rgba(14, 21, 34, 0.06);
   --shadow-card: 0 1px 3px rgba(14, 21, 34, 0.04);
 
-  --sidebar-w: 196px;
+  --sidebar-w: 180px;
   --sidebar-collapsed: 48px;
   --sidebar-inset: 0px;
   --sidebar-inset-bottom: 0px;
@@ -244,14 +244,10 @@ main::-webkit-scrollbar-corner,
 @layer components {
   .ui-card,
   .ui-card-solid {
-    border-radius: 16px;
-    border: 1px solid rgba(232, 201, 120, 0.16);
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 250, 252, 0.92) 100%);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.95),
-      0 8px 24px rgba(16, 14, 10, 0.06);
-    backdrop-filter: blur(14px) saturate(1.12);
-    -webkit-backdrop-filter: blur(14px) saturate(1.12);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-xs);
     overflow: hidden;
   }
 
@@ -269,68 +265,17 @@ main::-webkit-scrollbar-corner,
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    padding: 9px 12px;
-    border-bottom: 1px solid rgba(232, 201, 120, 0.12);
-    background: linear-gradient(180deg, rgba(255, 252, 244, 0.82) 0%, rgba(246, 248, 251, 0.72) 100%);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.9),
-      inset 0 -1px 0 rgba(14, 21, 34, 0.03);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .ui-card-head::before {
-    content: "";
-    position: absolute;
-    left: 8px;
-    top: 50%;
-    width: 96px;
-    height: 16px;
-    transform: translateY(-50%);
-    background: radial-gradient(ellipse at center, rgba(212, 175, 55, 0.12), transparent 74%);
-    filter: blur(5px);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .ui-card-head > * {
-    position: relative;
-    z-index: 1;
-  }
-
-  .ui-card-head::after {
-    content: "";
-    position: absolute;
-    left: 10px;
-    right: 10px;
-    bottom: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.26), transparent);
-    pointer-events: none;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--color-border-soft);
+    background: var(--color-surface-muted);
   }
 
   .ui-card > .section-title,
   .ui-card > h2.section-title {
-    padding: 9px 12px;
+    padding: 8px 12px;
     margin: 0;
-    border-bottom: 1px solid rgba(232, 201, 120, 0.12);
-    background: linear-gradient(180deg, rgba(255, 252, 244, 0.82) 0%, rgba(246, 248, 251, 0.72) 100%);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.9),
-      inset 0 -1px 0 rgba(14, 21, 34, 0.03);
-    position: relative;
-  }
-
-  .ui-card > .section-title::after,
-  .ui-card > h2.section-title::after {
-    content: "";
-    position: absolute;
-    left: 10px;
-    right: 10px;
-    bottom: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.26), transparent);
-    pointer-events: none;
+    border-bottom: 1px solid var(--color-border-soft);
+    background: var(--color-surface-muted);
   }
 
   .ui-card-body,
@@ -342,16 +287,15 @@ main::-webkit-scrollbar-corner,
 
   .section-title-icon {
     display: inline-flex;
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    border-radius: 7px;
-    border: 1px solid rgba(212, 175, 55, 0.32);
-    background: linear-gradient(145deg, rgba(212, 175, 55, 0.16) 0%, rgba(212, 175, 55, 0.06) 100%);
-    color: var(--color-gold);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    border-radius: 6px;
+    border: 1px solid var(--color-border-soft);
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
   }
 
   .ui-list {
@@ -388,13 +332,9 @@ main::-webkit-scrollbar-corner,
   }
 
   .app-topbar {
-    border-bottom: 1px solid rgba(232, 201, 120, 0.14);
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(248, 250, 252, 0.78) 100%);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.92),
-      0 4px 18px rgba(16, 14, 10, 0.05);
-    backdrop-filter: blur(16px) saturate(1.15);
-    -webkit-backdrop-filter: blur(16px) saturate(1.15);
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-xs);
   }
 
   .ui-btn {
@@ -573,42 +513,17 @@ main::-webkit-scrollbar-corner,
     gap: 8px 12px;
     margin-bottom: 0;
     padding: 10px 12px;
-    border-radius: 16px;
-    border: 1px solid rgba(232, 201, 120, 0.14);
-    background: linear-gradient(180deg, rgba(255, 252, 244, 0.96) 0%, rgba(246, 248, 251, 0.9) 100%);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.95),
-      0 8px 24px rgba(16, 14, 10, 0.06);
-    backdrop-filter: blur(14px) saturate(1.12);
-    -webkit-backdrop-filter: blur(14px) saturate(1.12);
-    position: relative;
-    overflow: hidden;
-  }
-  .page-header::before {
-    content: "";
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    width: 120px;
-    height: 18px;
-    transform: translateY(-50%);
-    background: radial-gradient(ellipse at center, rgba(212, 175, 55, 0.12), transparent 74%);
-    filter: blur(5px);
-    pointer-events: none;
-  }
-  .page-header > * {
-    position: relative;
-    z-index: 1;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-xs);
   }
   .page-title {
-    font-size: 17px;
-    font-weight: 700;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-    color: #1c1810;
-    text-shadow:
-      0 0 5px rgba(212, 175, 55, 0.16),
-      0 0 10px rgba(212, 175, 55, 0.06);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--color-text-primary);
   }
   .page-subtitle {
     margin-top: 4px;
@@ -623,14 +538,11 @@ main::-webkit-scrollbar-corner,
     align-items: center;
     gap: 8px;
     margin: 0;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
     text-transform: uppercase;
-    color: #2a2418;
-    text-shadow:
-      0 0 5px rgba(212, 175, 55, 0.18),
-      0 0 10px rgba(212, 175, 55, 0.06);
+    color: var(--color-text-secondary);
   }
   .muted {
     color: var(--color-text-secondary);

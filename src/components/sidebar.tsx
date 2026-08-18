@@ -135,7 +135,7 @@ export function Sidebar({
   return (
     <aside
       className={`${styles.sidebar} z-30 hidden h-full shrink-0 flex-col transition-[width] duration-150 print:hidden lg:flex ${
-        collapsed ? "w-12" : "w-[196px]"
+        collapsed ? "w-12" : "w-[180px]"
       }`}
     >
       <div className={`${styles.brand} flex h-10 shrink-0 items-center ${collapsed ? "justify-center px-1" : "gap-1.5 px-2"}`}>
@@ -238,5 +238,5 @@ export function useSidebarOffsetClass() {
       window.removeEventListener("storage", onStorage);
     };
   }, []);
-  return collapsed ? "lg:pl-12" : "lg:pl-[196px]";
+  return collapsed ? "lg:pl-12" : "lg:pl-[180px]";
 }

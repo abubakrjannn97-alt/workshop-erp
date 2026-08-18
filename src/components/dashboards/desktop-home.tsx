@@ -18,6 +18,7 @@ import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { FUND, fundDelta } from "@/lib/finance";
 import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@/lib/alerts";
 import { getTranslator, intlLocale } from "@/lib/locale";
+import { PageHeader } from "@/components/page-header";
 import { StatisticsCards } from "@/components/dashboard/StatisticsCards";
 import type { StatisticsCardData, StatisticsCardTrend } from "@/components/dashboard/StatisticsCards";
 import { DashPanel } from "@/components/dash-panel";
@@ -264,6 +265,7 @@ export async function DesktopHome() {
 
   return (
     <div className="page-stack">
+      <PageHeader title={t("home.title")} subtitle={t("home.greetSub")} />
       <StatisticsCards cards={cards} />
 
       <div className="grid grid-cols-1 items-start gap-2 lg:grid-cols-5" data-tour="home-work">

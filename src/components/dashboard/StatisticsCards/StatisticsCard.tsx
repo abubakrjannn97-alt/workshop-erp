@@ -14,33 +14,6 @@ function MenuDots() {
   );
 }
 
-function GoldWave() {
-  return (
-    <svg className={styles["stat-card__line"]} viewBox="0 0 220 90" fill="none" aria-hidden="true">
-      <path
-        d="M8 72 C38 68, 52 52, 78 56 C104 60, 118 38, 148 42 C172 45, 188 28, 216 22"
-        stroke="#D4AF37"
-        strokeWidth="1.35"
-        strokeLinecap="round"
-      />
-      <path
-        d="M18 78 C46 70, 64 58, 90 62 C118 66, 136 46, 168 48 C190 50, 202 36, 220 30"
-        stroke="#D4AF37"
-        strokeWidth="1"
-        strokeLinecap="round"
-        opacity="0.55"
-      />
-      <path
-        d="M28 84 C58 76, 76 66, 104 70 C132 74, 150 56, 186 58"
-        stroke="#D4AF37"
-        strokeWidth="0.75"
-        strokeLinecap="round"
-        opacity="0.35"
-      />
-    </svg>
-  );
-}
-
 function trendArrow(direction: StatisticsCardTrend["direction"]) {
   return direction === "down" ? "↓" : "↑";
 }
@@ -66,7 +39,6 @@ export function StatisticsCard({
 
   return (
     <article className={[styles["stat-card"], className].filter(Boolean).join(" ")}>
-      <GoldWave />
       <div className={styles["stat-card__body"]}>
         <header className={styles["stat-card__header"]}>
           <CardIcon accent={accent}>{icon}</CardIcon>
