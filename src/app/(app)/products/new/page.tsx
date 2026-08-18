@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { createProduct } from "@/app/actions/products";
 import { CatalogNav } from "@/components/catalog-nav";
-import { getDomainConfig } from "@/lib/domain-config";
+import { getDomainConfig } from "@core/config/domain-config";
 
 export default async function NewProductPage() {
   const { t, locale } = await getTranslator();

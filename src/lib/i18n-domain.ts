@@ -1,5 +1,5 @@
 import type { Dict, Locale } from "@/lib/i18n";
-import { getWorkshopDomain } from "@/lib/domain-config";
+import { getWorkshopDomain } from "@core/config/domain-config";
 import { FACADE_DOMAIN_CONFIG } from "@/domains/facade/config";
 import { FACADE_I18N_OVERRIDES } from "@/domains/facade/i18n-overrides";
 import { FACADE_HELP_OVERRIDES } from "@/domains/facade/help-overrides";

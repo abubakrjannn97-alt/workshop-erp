@@ -18,7 +18,7 @@ import { FUND, fundDelta, postClientPayment } from "../src/core/finance/finance"
 import { accrueProductionWage, accrueSellerCommission, commissionPercentNow } from "../src/core/payroll/payroll";
 import { hasPermission, ROLE_PERMISSIONS } from "../src/core/rbac/permissions";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "../src/core/config/resolve-warehouse";
-import { resolveProductionPaySchemeCode } from "../src/lib/domain-config";
+import { resolveProductionPaySchemeCode } from "../src/core/config/domain-config";
 import { resolveProductionProductId } from "../src/core/production/production-order";
 
 type Step = { name: string; ok: boolean; detail?: string };

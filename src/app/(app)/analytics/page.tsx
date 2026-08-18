@@ -7,7 +7,7 @@ import { FUND, LEDGER, fundDelta } from "@core/finance/finance";
 import { contributionAndNet } from "@core/finance/profit";
 import { coverageAndPurchaseNeed } from "@core/inventory/alerts";
 import { resolveRawWarehouseCode } from "@/core/config/resolve-warehouse";
-import { resolveProductionPaySchemeCode } from "@/lib/domain-config";
+import { resolveProductionPaySchemeCode } from "@core/config/domain-config";
 import { getTranslator } from "@/lib/locale";
 import { KpiCard } from "@/components/kpi-card";
 import { RevealList } from "@/components/reveal-list";

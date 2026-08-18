@@ -26,7 +26,7 @@ import {
 } from "@core/orders/orders";
 import { canSelfApprove, pendingFor, queueApproval } from "@core/control/control";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
-import { resolveProductionPaySchemeCode } from "@/lib/domain-config";
+import { resolveProductionPaySchemeCode } from "@core/config/domain-config";
 
 function moneyStr(value: string) {
   return z.string().regex(/^\d+(\.\d{1,4})?$/).safeParse(value).success;

@@ -11,7 +11,7 @@ import { ORDER_STATUS } from "@core/orders/orders";
 import { accrueProductionWage } from "@core/payroll/payroll";
 import { notifyRoles } from "@core/control/control";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
-import { resolveProductionPaySchemeCode } from "@/lib/domain-config";
+import { resolveProductionPaySchemeCode } from "@core/config/domain-config";
 import { resolveProductionProductId } from "@core/production/production-order";
 
 function qtyStr(value: string) {
