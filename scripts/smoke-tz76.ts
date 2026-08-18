@@ -17,6 +17,9 @@ import { MOVEMENT, reserveMaterial, writeOffMaterial, receiveProduct } from "../
 import { FUND, fundDelta, postClientPayment } from "../src/lib/finance";
 import { accrueProductionWage, accrueSellerCommission, commissionPercentNow } from "../src/lib/payroll";
 import { hasPermission, ROLE_PERMISSIONS } from "../src/lib/permissions";
+import { findFinishedGoodsWarehouse, findRawWarehouse } from "../src/core/config/resolve-warehouse";
+import { resolveProductionPaySchemeCode } from "../src/lib/domain-config";
+import { resolveProductionProductId } from "../src/lib/production-order";
 
 type Step = { name: string; ok: boolean; detail?: string };
 
@@ -106,7 +109,8 @@ async function confirmOrderFlow(orderId: string, userId: string) {
     where: { id: orderId },
     include: { status: true, materials: true, items: true, production: true },
   });
-  const raw = await prisma.warehouse.findUniqueOrThrow({ where: { code: "RAW" } });
+  const raw = await findRawWarehouse();
+  if (!raw) throw new Error("Склад сырья не найден");
   const confirmed = await prisma.orderStatus.findUniqueOrThrow({ where: { code: ORDER_STATUS.CONFIRMED } });
 
   await prisma.$transaction(async (tx) => {
@@ -156,6 +160,7 @@ async function addPaymentFlow(orderId: string, amount: string, userId: string, k
     },
   });
 
+  const productionSchemeCode = await resolveProductionPaySchemeCode();
   await prisma.$transaction(async (tx) => {
     const payment = await tx.payment.create({
       data: {
@@ -190,7 +195,7 @@ async function addPaymentFlow(orderId: string, amount: string, userId: string, k
         scheme,
       });
     }
-    const prodScheme = await tx.payScheme.findUnique({ where: { code: "production_m2" } });
+    const prodScheme = await tx.payScheme.findUnique({ where: { code: productionSchemeCode } });
     const laborFromProd = prodScheme?.productionRate
       ? money(saleQty.mul(prodScheme.productionRate))
       : laborAmount;
@@ -222,10 +227,11 @@ async function closeBatchFlow(input: {
       production: { include: { order: { include: { items: true, materials: true } } } },
     },
   });
-  const rawWh = await prisma.warehouse.findUniqueOrThrow({ where: { code: "RAW" } });
-  const fg = await prisma.warehouse.findUniqueOrThrow({ where: { code: "FG" } });
-  const productId = batch.production.order.items[0]?.productId;
-  if (!productId) throw new Error("Нет изделия в заказе");
+  const rawWh = await findRawWarehouse();
+  const fg = await findFinishedGoodsWarehouse();
+  if (!rawWh || !fg) throw new Error("Склады RAW/FG не найдены");
+  const productId = resolveProductionProductId(batch.production.order.items);
+  if (!productId) throw new Error("Нет изделия в заказе или заказ содержит несколько разных изделий");
 
   const actuals = batch.materials.map((line) => ({ line, actual: String(line.plannedQty) }));
   const materialCost = actuals.reduce((s, row) => {
@@ -235,6 +241,7 @@ async function closeBatchFlow(input: {
   }, D(0));
   const good = D(input.actualQty);
   const unitCost = good.gt(0) ? materialCost.div(good) : D(0);
+  const productionSchemeCode = await resolveProductionPaySchemeCode();
 
   await prisma.$transaction(async (tx) => {
     for (const row of actuals) {
@@ -302,7 +309,7 @@ async function closeBatchFlow(input: {
           include: { payScheme: true },
         })
       )?.payScheme?.productionRate ??
-      (await tx.payScheme.findUnique({ where: { code: "production_m2" } }))?.productionRate;
+      (await tx.payScheme.findUnique({ where: { code: productionSchemeCode } }))?.productionRate;
     if (rate && good.gt(0)) {
       await accrueProductionWage(tx, {
         userId: input.workerId,

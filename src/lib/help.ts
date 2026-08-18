@@ -1,4 +1,5 @@
 import type { Locale } from "@/lib/i18n";
+import { getDomainHelpOverrides } from "@/lib/i18n-domain";
 
 export type HelpPageId =
   | "home"
@@ -99,7 +100,7 @@ const ruTour: Record<HelpPageId, TourStep[]> = {
     {
       targets: ["nav-products"],
       title: "Продукция",
-      text: "Изделия, которые продаёте, и рецепт сырья на единицу (обычно 1 м²).",
+      text: "Изделия, которые продаёте, и рецепт сырья на единицу продажи.",
     },
     {
       targets: ["products-new"],
@@ -366,7 +367,7 @@ const tjTour: Record<HelpPageId, TourStep[]> = {
     {
       targets: ["nav-products"],
       title: "Маҳсулот",
-      text: "Молҳое, ки мефурӯшед, ва рецепти ашё ба 1 м².",
+      text: "Молҳое, ки мефурӯшед, ва рецепти ашё ба 1 воҳиди фурӯш.",
     },
     {
       targets: ["products-new"],
@@ -581,7 +582,13 @@ const tjTour: Record<HelpPageId, TourStep[]> = {
 };
 
 export function helpTour(locale: Locale, id: HelpPageId): TourStep[] {
-  return (locale === "tj" ? tjTour : ruTour)[id];
+  const steps = (locale === "tj" ? tjTour : ruTour)[id];
+  const { tour } = getDomainHelpOverrides(locale);
+  return steps.map((step, i) => {
+    const key = `${id}:${step.targets[0] ?? String(i)}`;
+    const text = tour?.[key];
+    return text ? { ...step, text } : step;
+  });
 }
 
 export type FaqItem = { id: string; q: string; a: string };
@@ -625,7 +632,7 @@ const ruFaq: FaqItem[] = [
   {
     id: "product",
     q: "Как добавить изделие и рецепт?",
-    a: "«Продукция» → создать → карточка → рецепт: сырьё на 1 м². Без рецепта себестоимость не считается.",
+    a: "«Продукция» → создать → карточка → рецепт: сырьё на единицу. Без рецепта себестоимость не считается.",
   },
   {
     id: "low-stock",
@@ -688,7 +695,7 @@ const tjFaq: FaqItem[] = [
   {
     id: "product",
     q: "Чӣ тавр мол ва рецепт илова кунам?",
-    a: "«Маҳсулот» → сохтан → корт → рецепт ба 1 м².",
+    a: "«Маҳсулот» → сохтан → корт → рецепт ба 1 воҳиди фурӯш.",
   },
   {
     id: "low-stock",
@@ -713,5 +720,10 @@ const tjFaq: FaqItem[] = [
 ];
 
 export function helpFaq(locale: Locale): FaqItem[] {
-  return locale === "tj" ? tjFaq : ruFaq;
+  const faq = locale === "tj" ? tjFaq : ruFaq;
+  const { faq: overrides } = getDomainHelpOverrides(locale);
+  return faq.map((item) => {
+    const a = overrides?.[item.id];
+    return a ? { ...item, a } : item;
+  });
 }
