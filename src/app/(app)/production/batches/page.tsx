@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { qtyDisplay } from "@core/shared/decimal";
 import { getTranslator } from "@core/shared/i18n/locale";

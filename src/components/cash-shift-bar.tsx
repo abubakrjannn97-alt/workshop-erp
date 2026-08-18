@@ -1,6 +1,6 @@
 import { CashShiftControl } from "@/components/cash-shift-control";
 import { hasPermission } from "@core/auth/authz";
-import { getCashShiftBarData } from "@/lib/cash-shift-data";
+import { getCashShiftBarData } from "@core/infrastructure/cash-shift-data";
 import type { Locale } from "@core/shared/i18n/i18n";
 
 export async function CashShiftBar({

@@ -10,7 +10,7 @@ import {
   Truck,
   ChartColumn,
 } from "lucide-react";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { FUND, fundDelta, LEDGER } from "@core/finance/finance";
 import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@core/inventory/alerts";

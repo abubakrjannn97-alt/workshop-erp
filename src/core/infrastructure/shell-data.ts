@@ -1,6 +1,6 @@
 import { unstable_cache } from "next/cache";
-import { prisma } from "@/lib/prisma";
-import { DEFAULT_SETTINGS, SETTING_KEYS } from "@/lib/settings";
+import { prisma } from "@core/infrastructure/prisma";
+import { DEFAULT_SETTINGS, SETTING_KEYS } from "@core/config/settings";
 
 export function getShellData(userId: string) {
   return unstable_cache(

@@ -1,6 +1,6 @@
 import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { FUND, LEDGER, fundDelta } from "@core/finance/finance";

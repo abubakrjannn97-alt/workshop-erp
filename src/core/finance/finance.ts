@@ -1,8 +1,8 @@
 import type { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { D, money } from "@core/shared/decimal";
 import { assertPeriodOpen } from "@core/control/control";
-import { SETTING_KEYS } from "@/lib/settings";
+import { SETTING_KEYS } from "@core/config/settings";
 
 type Tx = Prisma.TransactionClient;
 

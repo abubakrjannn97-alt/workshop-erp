@@ -1,5 +1,5 @@
 import { getTranslator } from "@core/shared/i18n/locale";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { archiveUser, createUser, updateUser } from "@/app/actions/users";
 import Link from "next/link";

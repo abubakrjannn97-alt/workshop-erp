@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { AppShell } from "@/components/app-shell";
 import { CashShiftBar } from "@/components/cash-shift-bar";
 import { getTranslator } from "@core/shared/i18n/locale";
-import { getShellData } from "@/lib/shell-data";
+import { getShellData } from "@core/infrastructure/shell-data";
 
 export const dynamic = "force-dynamic";
 

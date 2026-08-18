@@ -44,7 +44,7 @@ import {
   Truck,
   ChartColumn,
 } from "lucide-react";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requireSession } from "@core/auth/authz";
 import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { FUND, fundDelta } from "@core/finance/finance";

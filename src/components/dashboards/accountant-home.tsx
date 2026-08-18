@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { FUND, fundDelta, LEDGER } from "@core/finance/finance";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";

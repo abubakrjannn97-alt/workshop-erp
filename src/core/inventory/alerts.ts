@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { D } from "@core/shared/decimal";
 import { notifyRoles } from "@core/control/control";
 import { available } from "@core/inventory/stock";

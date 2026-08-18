@@ -1,6 +1,6 @@
 import { PageHeader } from "@/components/page-header";
 import { getTranslator } from "@core/shared/i18n/locale";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { WarehouseNav } from "@/components/warehouse-nav";
 import { UiTable } from "@/components/ui-table";
@@ -11,7 +11,7 @@ import { createPurchaseFromShortage } from "@/app/actions/purchasing";
 import { RevealList } from "@/components/reveal-list";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
-import { getRawWarehouse } from "@/lib/warehouses";
+import { getRawWarehouse } from "@/core/config/resolve-warehouse";
 import { resolveRawWarehouseCode } from "@/core/config/resolve-warehouse";
 
 export default async function WarehousePage() {

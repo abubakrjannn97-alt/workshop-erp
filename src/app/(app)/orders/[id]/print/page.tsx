@@ -1,8 +1,8 @@
 import { notFound, redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
-import { SETTING_KEYS, DEFAULT_SETTINGS } from "@/lib/settings";
+import { SETTING_KEYS, DEFAULT_SETTINGS } from "@core/config/settings";
 import { PrintFrame } from "@/components/print-frame";
 import { getTranslator } from "@core/shared/i18n/locale";
 import { intlLocale } from "@core/shared/i18n/i18n";

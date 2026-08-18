@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 
 export function canSelfApprove(roleCode: string | undefined) {
   return roleCode === "owner" || roleCode === "director";

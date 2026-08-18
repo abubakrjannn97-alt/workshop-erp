@@ -4,7 +4,7 @@
  */
 import { writeFileSync } from "fs";
 import { Prisma } from "@prisma/client";
-import { prisma } from "../src/lib/prisma";
+import { prisma } from "../src/core/infrastructure/prisma";
 import { D, money, qty } from "../src/lib/decimal";
 import {
   mergeMaterialNeeds,

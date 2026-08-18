@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import Decimal from "decimal.js";
-import { DOMAIN_SETTING_KEYS } from "../../src/lib/settings";
+import { DOMAIN_SETTING_KEYS } from "../../src/core/config/settings";
 import { FACADE_DOMAIN_CONFIG } from "../../src/domains/facade/config";
 import { receiveMaterial } from "../../src/core/inventory/stock";
 

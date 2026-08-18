@@ -1,8 +1,8 @@
 import type { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { D, money, qty } from "@core/shared/decimal";
 import { materialCostForRecipe, scaleNeed } from "@core/costing/costing";
-import { SETTING_KEYS } from "@/lib/settings";
+import { SETTING_KEYS } from "@core/config/settings";
 
 export const PAYMENT_STATUS = {
   unpaid: "Не оплачен",

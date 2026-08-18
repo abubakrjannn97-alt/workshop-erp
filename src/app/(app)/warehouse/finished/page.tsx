@@ -1,6 +1,6 @@
 import { PageHeader } from "@/components/page-header";
 import { getTranslator } from "@core/shared/i18n/locale";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { WarehouseNav } from "@/components/warehouse-nav";
 import { UiTable } from "@/components/ui-table";
@@ -8,7 +8,7 @@ import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { D } from "@core/shared/decimal";
 import { receiveOpening } from "@/app/actions/inventory";
 import { IdempotencyField } from "@/components/idempotency-field";
-import { getFgWarehouse } from "@/lib/warehouses";
+import { getFgWarehouse } from "@/core/config/resolve-warehouse";
 
 export default async function FinishedWarehousePage() {
   const { t, locale } = await getTranslator();

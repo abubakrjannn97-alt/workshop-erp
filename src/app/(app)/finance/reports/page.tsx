@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";

@@ -1,7 +1,7 @@
 import { getTranslator } from "@core/shared/i18n/locale";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
-import { DEFAULT_SETTINGS, SETTING_KEYS } from "@/lib/settings";
+import { DEFAULT_SETTINGS, SETTING_KEYS } from "@core/config/settings";
 import { renameLeadStage, renameOrderStatus, updateBusinessSettings } from "@/app/actions/settings";
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";

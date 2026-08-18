@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { requireSession } from "@core/auth/authz";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { periodKey, periodRange } from "@core/payroll/payroll";
 import { getTranslator } from "@core/shared/i18n/locale";

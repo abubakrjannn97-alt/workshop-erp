@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { PrintFrame } from "@/components/print-frame";

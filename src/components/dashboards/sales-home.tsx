@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requireSession } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { periodKey, periodRange } from "@core/payroll/payroll";

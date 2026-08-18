@@ -1,5 +1,5 @@
 import { requirePermission } from "@core/auth/authz";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { qtyDisplay } from "@core/shared/decimal";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import { PageHeader } from "@/components/page-header";

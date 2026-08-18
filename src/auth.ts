@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { writeAudit } from "@core/control/audit";
 import { authConfig } from "@/auth.config";
 import { bypassOwnerSession, isAuthBypass } from "@core/auth/dev-auth";

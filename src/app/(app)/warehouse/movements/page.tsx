@@ -1,5 +1,5 @@
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { WarehouseNav } from "@/components/warehouse-nav";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";

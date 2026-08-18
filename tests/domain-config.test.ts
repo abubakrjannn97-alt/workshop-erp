@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { FACADE_DOMAIN_CONFIG } from "../src/domains/facade/config";
-import { DOMAIN_SETTING_KEYS } from "../src/lib/settings";
+import { DOMAIN_SETTING_KEYS } from "../src/core/config/settings";
 import { getDomainPreset } from "../src/core/config/domain-config";
 
 describe("facade domain config", () => {

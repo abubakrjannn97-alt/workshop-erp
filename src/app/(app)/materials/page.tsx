@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/page-header";
 import { FormField } from "@/components/form-field";
 import { getTranslator } from "@core/shared/i18n/locale";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { CatalogNav } from "@/components/catalog-nav";
 import { createMaterial, archiveMaterial } from "@/app/actions/materials";

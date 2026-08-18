@@ -1,5 +1,5 @@
 import { requirePermission } from "@core/auth/authz";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { D, qtyDisplay } from "@core/shared/decimal";
 import { getTranslator } from "@core/shared/i18n/locale";
 import { MeJobsView } from "@/components/me-jobs-view";

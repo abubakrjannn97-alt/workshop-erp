@@ -1,7 +1,7 @@
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { hasPermission } from "@core/auth/authz";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";

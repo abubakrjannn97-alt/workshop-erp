@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requireSession } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
 import { EMPLOYEE_ASSIGNABLE, type PermissionCode } from "@core/rbac/permissions";

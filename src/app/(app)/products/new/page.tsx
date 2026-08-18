@@ -1,7 +1,7 @@
 import { PageHeader } from "@/components/page-header";
 import { getTranslator } from "@core/shared/i18n/locale";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { createProduct } from "@/app/actions/products";
 import { CatalogNav } from "@/components/catalog-nav";

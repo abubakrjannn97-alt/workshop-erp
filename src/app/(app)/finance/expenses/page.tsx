@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { hasPermission } from "@core/auth/authz";
 import { moneyDisplay } from "@core/shared/decimal";

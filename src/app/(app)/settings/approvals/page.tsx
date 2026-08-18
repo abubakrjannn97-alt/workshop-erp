@@ -1,6 +1,6 @@
 import { PageHeader } from "@/components/page-header";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { hasPermission } from "@core/auth/authz";
 import { decideApproval, closePeriod } from "@/app/actions/control";

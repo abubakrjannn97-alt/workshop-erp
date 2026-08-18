@@ -2,10 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
-import { SETTING_KEYS } from "@/lib/settings";
+import { SETTING_KEYS } from "@core/config/settings";
 
 const schema = z.object({
   companyName: z.string().trim().min(1).max(200),

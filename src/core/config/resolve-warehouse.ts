@@ -1,6 +1,6 @@
 import { cache } from "react";
 import type { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { getDomainConfig } from "@core/config/domain-config";
 
 type WarehouseClient = Pick<typeof prisma, "warehouse"> | Prisma.TransactionClient;

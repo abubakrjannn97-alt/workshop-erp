@@ -1,6 +1,6 @@
 import { cache } from "react";
-import { prisma } from "@/lib/prisma";
-import { DOMAIN_SETTING_KEYS } from "@/lib/settings";
+import { prisma } from "@core/infrastructure/prisma";
+import { DOMAIN_SETTING_KEYS } from "@core/config/settings";
 import { FACADE_DOMAIN_CONFIG } from "@/domains/facade/config";
 
 export type DomainConfig = {

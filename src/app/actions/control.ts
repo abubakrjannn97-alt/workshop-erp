@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, requireSession } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money } from "@core/shared/decimal";

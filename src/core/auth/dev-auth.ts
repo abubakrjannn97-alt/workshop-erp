@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import type { PermissionCode } from "@core/rbac/permissions";
 import { resolveUserPermissions } from "@core/rbac/permissions";
 import { isAuthBypassEnabled } from "@core/shared/env-guard";

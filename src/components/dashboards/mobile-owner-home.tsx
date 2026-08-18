@@ -14,14 +14,14 @@ import {
   Bell,
   ChevronRight,
 } from "lucide-react";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requireSession } from "@core/auth/authz";
 import { D, qtyDisplay } from "@core/shared/decimal";
 import { FUND, fundDelta } from "@core/finance/finance";
 import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@core/inventory/alerts";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import { orderNo } from "@core/shared/format";
-import { CURRENCY_SYMBOL } from "@/lib/settings";
+import { CURRENCY_SYMBOL } from "@core/config/settings";
 import { orderTone } from "@/components/status-badge";
 import { FinancePeriodPicker } from "@/components/finance-period-picker";
 import {

@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/page-header";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { moneyDisplay } from "@core/shared/decimal";
 import { D } from "@core/shared/decimal";
