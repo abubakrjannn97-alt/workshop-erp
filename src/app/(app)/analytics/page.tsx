@@ -12,6 +12,8 @@ import { getTranslator } from "@core/shared/i18n/locale";
 import { KpiCard } from "@/components/kpi-card";
 import { RevealList } from "@/components/reveal-list";
 import { CustomerRef } from "@/components/entity-ref";
+import { DashPanel } from "@/components/dash-panel";
+import { UiTable } from "@/components/data-table";
 import { StatusBadge, orderTone } from "@/components/status-badge";
 
 export default async function AnalyticsPage() {
@@ -43,7 +45,6 @@ export default async function AnalyticsPage() {
     entries,
     purchaseOrders,
     overUses,
-    scrapsFull,
     cover,
     productItems,
     prodScheme,
@@ -74,7 +75,16 @@ export default async function AnalyticsPage() {
       where: { warehouse: { code: rawCode }, materialId: { not: null } },
       include: { material: true },
     }),
-    prisma.scrapRecord.findMany({ where: { createdAt: { gte: monthStart } } }),
+    prisma.scrapRecord.findMany({
+      where: { createdAt: { gte: monthStart } },
+      include: {
+        batch: {
+          include: {
+            production: { include: { order: { include: { items: { include: { product: { include: { outputUnit: true } } } } } } } },
+          },
+        },
+      },
+    }),
     prisma.payrollAccrual.groupBy({
       by: ["kind"],
       where: { status: "ACCRUED" },
@@ -86,16 +96,6 @@ export default async function AnalyticsPage() {
     prisma.batchMaterialUse.findMany({
       where: { batch: { status: "CLOSED" } },
       include: { material: true, batch: { include: { production: { include: { order: true } } } } },
-    }),
-    prisma.scrapRecord.findMany({
-      where: { createdAt: { gte: monthStart } },
-      include: {
-        batch: {
-          include: {
-            production: { include: { order: { include: { items: { include: { product: { include: { outputUnit: true } } } } } } } },
-          },
-        },
-      },
     }),
     coverageAndPurchaseNeed(),
     prisma.orderItem.findMany({
@@ -195,7 +195,7 @@ export default async function AnalyticsPage() {
 
   const scrapByUser = new Map<string, ReturnType<typeof D>>();
   const scrapByProduct = new Map<string, ReturnType<typeof D>>();
-  for (const r of scrapsFull) {
+  for (const r of scraps) {
     const q = D(String(r.quantity));
     if (r.userId) scrapByUser.set(r.userId, (scrapByUser.get(r.userId) ?? D(0)).add(q));
     const pname = r.batch.production.order.items[0]?.product.name ?? "—";
@@ -240,9 +240,8 @@ export default async function AnalyticsPage() {
         />
       </div>
 
-      <section className="ui-card">
-        <h2 className="text-sm font-semibold">{t("an.saleTotal")}</h2>
-        <ul className="mt-2 space-y-1 text-sm">
+      <DashPanel title={t("an.saleTotal")}>
+        <ul className="space-y-1 text-sm">
           <li>{t("an.sale")}: {moneyDisplay(sold)} с</li>
           <li>{t("an.matCost")}: {moneyDisplay(materialCost)} с</li>
           <li>{t("an.payroll")}: {moneyDisplay(labor)} с</li>
@@ -252,66 +251,64 @@ export default async function AnalyticsPage() {
           <li className="font-semibold">{t("an.netProfit")}: {moneyDisplay(net)} с</li>
           <li className="text-xs text-[var(--muted)]">{t("an.profitInCash")}: {moneyDisplay(profit)} с</li>
         </ul>
-      </section>
+      </DashPanel>
 
-      <section className="overflow-x-auto ui-card">
-        <div className="border-b border-[var(--line)] px-5 py-3">
-          <h2 className="text-sm font-semibold">{t("an.byProduct")}</h2>
-          </div>
-        <table className="w-full min-w-[720px] text-left text-sm">
-          <thead className="bg-[var(--surface-muted)] text-xs text-[var(--muted)]">
-            <tr>
-              <th className="px-4 py-2">{t("common.product")}</th>
-              <th className="px-4 py-2">{t("an.sold")}</th>
-              <th className="px-4 py-2">{t("an.revenue")}</th>
-              <th className="px-4 py-2">{t("an.avgPrice")}</th>
-              <th className="px-4 py-2">{t("an.materials")}</th>
-              <th className="px-4 py-2">{t("an.labor")}</th>
-              <th className="px-4 py-2">{t("an.commission")}, с</th>
-              <th className="px-4 py-2">{t("an.fullCost")}</th>
-              <th className="px-4 py-2">{t("an.profit")}</th>
-              <th className="px-4 py-2">{t("an.marginPct")}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[var(--border)]">
-            {[...byProduct.values()].length === 0 ? (
-              <tr>
-                <td colSpan={10} className="px-4 py-6 text-[var(--muted)]">
-                  {t("an.noSales")}
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-          {[...byProduct.values()].length > 0 ? (
-            <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={5} className="divide-y divide-[var(--border)]">
-              {[...byProduct.values()].map((row) => {
-                const fullCost = row.materials.add(row.labor).add(row.commission);
-                const profitRow = row.revenue.sub(fullCost);
-                const margin = row.revenue.gt(0) ? profitRow.div(row.revenue).mul(100) : D(0);
-                const avg = row.qty.gt(0) ? row.revenue.div(row.qty) : D(0);
-                return (
-                  <tr key={row.name}>
-                    <td className="px-4 py-2 font-medium">{row.name}</td>
-                    <td className="px-4 py-2 font-mono text-xs">{qtyDisplay(row.qty)} {row.unit}</td>
-                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(row.revenue)} с</td>
-                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(avg)} с</td>
-                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(row.materials)} с</td>
-                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(row.labor)} с</td>
-                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(row.commission)} с</td>
-                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(fullCost)} с</td>
-                    <td className="px-4 py-2 font-mono text-xs">{moneyDisplay(profitRow)} с</td>
-                    <td className="px-4 py-2 font-mono text-xs">{margin.toFixed(1)}%</td>
+      <DashPanel title={t("an.byProduct")}>
+        <UiTable>
+          <table className="w-full text-left text-sm">
+              <thead className="bg-[var(--surface-muted)] text-xs text-[var(--muted)]">
+                <tr>
+                  <th className="px-4 py-2">{t("common.product")}</th>
+                  <th className="px-4 py-2">{t("an.sold")}</th>
+                  <th className="px-4 py-2">{t("an.revenue")}</th>
+                  <th className="px-4 py-2">{t("an.avgPrice")}</th>
+                  <th className="px-4 py-2">{t("an.materials")}</th>
+                  <th className="px-4 py-2">{t("an.labor")}</th>
+                  <th className="px-4 py-2">{t("an.commission")}, с</th>
+                  <th className="px-4 py-2">{t("an.fullCost")}</th>
+                  <th className="px-4 py-2">{t("an.profit")}</th>
+                  <th className="px-4 py-2">{t("an.marginPct")}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border)]">
+                {[...byProduct.values()].length === 0 ? (
+                  <tr>
+                    <td colSpan={10} className="px-4 py-6 text-[var(--muted)]">
+                      {t("an.noSales")}
+                    </td>
                   </tr>
-                );
-              })}
-            </RevealList>
-          ) : null}
-        </table>
-      </section>
+                ) : null}
+              </tbody>
+              {[...byProduct.values()].length > 0 ? (
+                <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={5} className="divide-y divide-[var(--border)]">
+                  {[...byProduct.values()].map((row) => {
+                    const fullCost = row.materials.add(row.labor).add(row.commission);
+                    const profitRow = row.revenue.sub(fullCost);
+                    const margin = row.revenue.gt(0) ? profitRow.div(row.revenue).mul(100) : D(0);
+                    const avg = row.qty.gt(0) ? row.revenue.div(row.qty) : D(0);
+                    return (
+                      <tr key={row.name}>
+                        <td className="px-4 py-2 font-medium" data-label={t("common.product")}>{row.name}</td>
+                        <td className="px-4 py-2 font-mono text-xs" data-label={t("an.sold")}>{qtyDisplay(row.qty)} {row.unit}</td>
+                        <td className="px-4 py-2 font-mono text-xs" data-label={t("an.revenue")}>{moneyDisplay(row.revenue)} с</td>
+                        <td className="px-4 py-2 font-mono text-xs" data-label={t("an.avgPrice")}>{moneyDisplay(avg)} с</td>
+                        <td className="px-4 py-2 font-mono text-xs" data-label={t("an.materials")}>{moneyDisplay(row.materials)} с</td>
+                        <td className="px-4 py-2 font-mono text-xs" data-label={t("an.labor")}>{moneyDisplay(row.labor)} с</td>
+                        <td className="px-4 py-2 font-mono text-xs" data-label={t("an.commission")}>{moneyDisplay(row.commission)} с</td>
+                        <td className="px-4 py-2 font-mono text-xs" data-label={t("an.fullCost")}>{moneyDisplay(fullCost)} с</td>
+                        <td className="px-4 py-2 font-mono text-xs" data-label={t("an.profit")}>{moneyDisplay(profitRow)} с</td>
+                        <td className="px-4 py-2 font-mono text-xs" data-label={t("an.marginPct")}>{margin.toFixed(1)}%</td>
+                      </tr>
+                    );
+                  })}
+                </RevealList>
+              ) : null}
+            </table>
+        </UiTable>
+      </DashPanel>
 
       {cover.purchaseNeed.length > 0 ? (
-        <section className="rounded-[var(--radius-md)] border border-[var(--warning)]/40 bg-[var(--warning)]/10 p-5">
-          <h2 className="text-sm font-semibold">{t("an.needBuy")}</h2>
+        <DashPanel title={t("an.needBuy")} className="border border-[var(--warning)]/40 bg-[var(--warning)]/10">
           <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")}>
             {cover.purchaseNeed.map((n) => (
               <li key={n.name}>
@@ -322,37 +319,35 @@ export default async function AnalyticsPage() {
           <Link href="/purchasing" className="mt-2 inline-block text-sm text-[var(--titan-dark)]">
             {t("page.purchasing")}
           </Link>
-        </section>
+        </DashPanel>
       ) : null}
 
-      <section className="ui-card">
-        <h2 className="text-sm font-semibold">{t("an.inProdNow")}</h2>
+      <DashPanel title={t("an.inProdNow")}>
         {inProd.length === 0 ? (
           <p className="mt-2 text-sm text-[var(--muted)]">{t("an.noOpenJobs")}</p>
         ) : (
           <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")}>
             {inProd.map((j) => (
-              <li key={j.id} className="flex items-center justify-between gap-2">
+              <li key={j.id} className="flex min-w-0 items-center justify-between gap-2">
                 <CustomerRef
                   name={j.order.customer.name}
                   href={`/production/${j.id}`}
                   manager={j.order.items[0]?.product.name}
                 />
-                <span className="text-[12px] tabular-nums text-[#2563a6]">
+                <span className="shrink-0 text-[12px] tabular-nums text-[#2563a6]">
                   {qtyDisplay(j.producedQty)} / {qtyDisplay(j.plannedQty)}
                 </span>
               </li>
             ))}
           </RevealList>
         )}
-      </section>
+      </DashPanel>
 
       {overdue.length > 0 ? (
-        <section className="rounded-[var(--radius-md)] border border-[var(--warning)]/40 bg-[var(--warning)]/10 p-5">
-          <h2 className="text-sm font-semibold">{t("an.overdue")}</h2>
+        <DashPanel title={t("an.overdue")} className="border border-[var(--warning)]/40 bg-[var(--warning)]/10">
           <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")}>
             {overdue.map((o) => (
-              <li key={o.id} className="flex items-center justify-between gap-2">
+              <li key={o.id} className="flex min-w-0 items-center justify-between gap-2">
                 <div className="min-w-0">
                   <CustomerRef name={o.customer.name} href={`/orders/${o.id}`} />
                 </div>
@@ -360,18 +355,17 @@ export default async function AnalyticsPage() {
               </li>
             ))}
           </RevealList>
-        </section>
+        </DashPanel>
       ) : null}
 
-      <section className="ui-card">
-        <h2 className="text-sm font-semibold">{t("an.criticalRaw")}</h2>
+      <DashPanel title={t("an.criticalRaw")}>
         {critical.length === 0 ? (
           <p className="mt-2 text-sm text-[var(--muted)]">{t("an.noBelowMin")}</p>
         ) : (
           <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")}>
             {critical.map((m) => (
-              <li key={m.id} className="flex justify-between gap-2">
-                <span>{m.name}</span>
+              <li key={m.id} className="flex min-w-0 justify-between gap-2">
+                <span className="min-w-0 truncate">{m.name}</span>
                 <span className="text-[12px] font-semibold text-[var(--warn)]">
                   {qtyDisplay(m.stockItems.reduce((s, i) => s.add(i.qtyOnHand), D(0)))} {m.storageUnit.symbol}
                 </span>
@@ -382,11 +376,10 @@ export default async function AnalyticsPage() {
         <p className="mt-2 text-xs text-[var(--muted)]">
           {t("an.rawPositions", { n: rawItems.length })}
         </p>
-      </section>
+      </DashPanel>
 
       {over.length > 0 ? (
-        <section className="rounded-[var(--radius-md)] border border-[var(--warning)]/40 bg-[var(--warning)]/10 p-5">
-          <h2 className="text-sm font-semibold">{t("an.overuse")}</h2>
+        <DashPanel title={t("an.overuse")} className="border border-[var(--warning)]/40 bg-[var(--warning)]/10">
           <ul className="mt-2 space-y-1 text-sm">
             {over.slice(0, 20).map((u) => (
               <li key={u.id}>
@@ -394,12 +387,11 @@ export default async function AnalyticsPage() {
               </li>
             ))}
           </ul>
-        </section>
+        </DashPanel>
       ) : null}
 
-      <section className="ui-card">
-        <h2 className="text-sm font-semibold">{t("an.scrapBy")}</h2>
-        <p className="mt-1 text-sm leading-snug text-[var(--text-muted)]">{t("an.scrapHint")}</p>
+      <DashPanel title={t("an.scrapBy")}>
+        <p className="text-sm leading-snug text-[var(--text-muted)]">{t("an.scrapHint")}</p>
         <p className="mt-1 text-xs text-[var(--muted)]">{t("an.periodMonth")}</p>
         {scrapByUser.size === 0 && scrapByProduct.size === 0 ? (
           <p className="mt-2 text-sm text-[var(--muted)]">{t("an.noScrap")}</p>
@@ -410,8 +402,8 @@ export default async function AnalyticsPage() {
                 <p className="text-xs font-semibold text-[#344054]">{t("an.scrapPerson")}</p>
                 <ul className="mt-1 space-y-1">
                   {[...scrapByUser.entries()].map(([id, q]) => (
-                    <li key={id} className="flex justify-between gap-3">
-                      <span>{userName.get(id) ?? id}</span>
+                    <li key={id} className="flex min-w-0 justify-between gap-3">
+                      <span className="min-w-0 truncate">{userName.get(id) ?? id}</span>
                       <span className="font-mono text-xs font-semibold tabular-nums">{qtyDisplay(q)} {outputUnitSymbol}</span>
                     </li>
                   ))}
@@ -423,8 +415,8 @@ export default async function AnalyticsPage() {
                 <p className="text-xs font-semibold text-[#344054]">{t("an.scrapProduct")}</p>
                 <ul className="mt-1 space-y-1">
                   {[...scrapByProduct.entries()].map(([name, q]) => (
-                    <li key={name} className="flex justify-between gap-3">
-                      <span>{name}</span>
+                    <li key={name} className="flex min-w-0 justify-between gap-3">
+                      <span className="min-w-0 truncate">{name}</span>
                       <span className="font-mono text-xs font-semibold tabular-nums">{qtyDisplay(q)} {outputUnitSymbol}</span>
                     </li>
                   ))}
@@ -433,7 +425,7 @@ export default async function AnalyticsPage() {
             ) : null}
           </div>
         )}
-      </section>
+      </DashPanel>
     </div>
   );
 }
