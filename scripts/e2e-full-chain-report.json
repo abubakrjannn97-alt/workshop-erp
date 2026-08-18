@@ -1,0 +1,516 @@
+{
+  "run": "E2E-msyqe0al",
+  "generatedAt": "2026-08-18T14:01:34.852Z",
+  "entities": [
+    {
+      "entity": "Role",
+      "status": "fully_working",
+      "lastWorkingStep": "Read roles + permissions from DB and compare with ROLE_PERMISSIONS",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
+      "evidence": [
+        "roles in db: owner,director,sales_manager,production_manager,worker,employee,warehouse_manager,accountant",
+        "sales_manager finance.view=false expected false",
+        "ROLE_PERMISSIONS vs DB for sales match=true"
+      ]
+    },
+    {
+      "entity": "Employee",
+      "status": "fully_working",
+      "lastWorkingStep": "Create / read / update user + extra UserPermission + payScheme link",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
+      "evidence": [
+        "created employee cmsyqe26m0001ubcw9nk29yo7, extra perms=production.report",
+        "update name=E2E-msyqe0al Employee edited",
+        "worker=cmsyqe27k0003ubcw83ho89ns sales=cmsyqe27p0005ubcwyr6t6iwo"
+      ]
+    },
+    {
+      "entity": "Material",
+      "status": "fully_working",
+      "lastWorkingStep": "Create material, open, change package price, append price history",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
+      "evidence": [
+        "id=cmsyqe27u0007ubcw0spgckde",
+        "history rows=2"
+      ]
+    },
+    {
+      "entity": "Product",
+      "status": "fully_working",
+      "lastWorkingStep": "Create product with empty recipe, read, keep outputPerBase=10 (TZ tile)",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": "Later issue-to-customer uses outputQty in PCS vs FG in m²",
+      "evidence": [
+        "product=cmsyqe28r000dubcw14alt4ia",
+        "outputPerBase=10 sale=M2 output=PCS"
+      ]
+    },
+    {
+      "entity": "Price",
+      "status": "fully_working",
+      "lastWorkingStep": "Close previous price (validTo) and insert new current price",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
+      "evidence": [
+        "prices=2",
+        "current=160"
+      ]
+    },
+    {
+      "entity": "Price History",
+      "status": "fully_working",
+      "lastWorkingStep": "Old price remains with validTo; new price validTo=null",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
+      "evidence": [
+        "150 validTo=set",
+        "160 validTo=null"
+      ]
+    },
+    {
+      "entity": "Recipe",
+      "status": "fully_working",
+      "lastWorkingStep": "Recipe row created with product (1:1), items on versions",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
+      "evidence": [
+        "recipe=cmsyqe28r000eubcwbl67zat1"
+      ]
+    },
+    {
+      "entity": "Recipe Version",
+      "status": "fully_working",
+      "lastWorkingStep": "v1 closed with validTo, v2 current with different qty 8 vs 7",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": "Old orders must keep snapshot of v used at create time",
+      "evidence": [
+        "v1=cmsyqe2a0000kubcwjh94c9bw qty=7",
+        "v2=cmsyqe2ak000oubcwbfgr9quf qty=8"
+      ]
+    },
+    {
+      "entity": "Product Variant",
+      "status": "not_implemented",
+      "lastWorkingStep": "Prisma insert into product_variants succeeds",
+      "firstBrokenStep": "Create/edit/use variant in UI or server action / order line",
+      "rootCause": "No src references to ProductVariant besides schema; orders store productId only",
+      "impact": "Color/model on FG and sales variants cannot be used in the live flow",
+      "evidence": [
+        "db row cmsyqe2ar000subcwtysv035l created; grep src = 0 usages"
+      ]
+    },
+    {
+      "entity": "Supplier",
+      "status": "fully_working",
+      "lastWorkingStep": "Create supplier, link material, reopen",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
+      "evidence": [
+        "supplier=cmsyqe2az000tubcwu76ty6lc"
+      ]
+    },
+    {
+      "entity": "Purchase",
+      "status": "fully_working",
+      "lastWorkingStep": "REQUEST → ORDERED → receiveMaterial → RECEIVED",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
+      "evidence": [
+        "po=cmsyqe2be000vubcwif8jc7a8",
+        "stock delta=500",
+        "wac=4.4"
+      ]
+    },
+    {
+      "entity": "Warehouse",
+      "status": "partial",
+      "lastWorkingStep": "RAW receive + WAC update on StockItem",
+      "firstBrokenStep": "Warehouse-to-warehouse TRANSFER action/UI",
+      "rootCause": "MOVEMENT.TRANSFER_IN/OUT exist in stock.ts but no exported transfer function is used by actions",
+      "impact": "Cannot move stock between RAW and another warehouse",
+      "evidence": [
+        "RAW=cmsou7t95001jubhwo7gzc5o2",
+        "TRANSFER types declared only"
+      ]
+    },
+    {
+      "entity": "Stock",
+      "status": "fully_working",
+      "lastWorkingStep": "qtyOnHand and wacUnitCost after receipt; movement RECEIPT with idempotencyKey",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
+      "evidence": [
+        "onHand=500",
+        "wac=4.4"
+      ]
+    },
+    {
+      "entity": "Customer",
+      "status": "fully_working",
+      "lastWorkingStep": "Create, read, update, manager link",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
+      "evidence": [
+        "customer=cmsyqe42q0013ubcwc8v4f9sk"
+      ]
+    },
+    {
+      "entity": "Lead",
+      "status": "partial",
+      "lastWorkingStep": "Create lead, move NEW → OFFER → WON, lostReason column exists",
+      "firstBrokenStep": "PAID pipeline stage + calculation/offer documents",
+      "rootCause": "lead_stages has no PAID; no Quote/Offer tables",
+      "impact": "CRM stops at WON/ORDER without payment-stage or commercial offer entity",
+      "evidence": [
+        "lead=cmsyqe43h0015ubcwj8c5447z",
+        "PAID stage exists=false"
+      ]
+    },
+    {
+      "entity": "Order",
+      "status": "fully_working",
+      "lastWorkingStep": "Create order with price snapshot, recipeVersionId, material needs, lead.convertedOrderId",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
+      "evidence": [
+        "order=cmsyqe45a0017ubcwvdzxw7uv",
+        "recipeVersion on item=cmsyqe2ak000oubcwbfgr9quf",
+        "current product version=cmsyqe2ak000oubcwbfgr9quf",
+        "matches current=true"
+      ]
+    },
+    {
+      "entity": "Reservation",
+      "status": "fully_working",
+      "lastWorkingStep": "confirmOrder-equivalent: RESERVE movement, qtyReserved, ProductionOrder created",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
+      "evidence": [
+        "need=80",
+        "reservedDelta=80"
+      ]
+    },
+    {
+      "entity": "Production Order",
+      "status": "fully_working",
+      "lastWorkingStep": "Auto-create ProductionOrder plannedQty = sale qty (10 m²)",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
+      "evidence": [
+        "production=cmsyqe478001hubcwjv1nk91r"
+      ]
+    },
+    {
+      "entity": "Production Batch",
+      "status": "fully_working",
+      "lastWorkingStep": "Create batch, scale materials, assign worker",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
+      "evidence": [
+        "batch=cmsyqe47x001jubcwyg1v7xyw"
+      ]
+    },
+    {
+      "entity": "Worker Assignment",
+      "status": "partial",
+      "lastWorkingStep": "responsibleUserId saved and /me filters by it",
+      "firstBrokenStep": "closeBatch does not verify responsibleUserId",
+      "rootCause": "src/core/production/close-batch-action.ts only requirePermission(production.report)",
+      "impact": "Any worker can close another worker's batch via POST",
+      "evidence": [
+        "assigned=cmsyqe27k0003ubcw83ho89ns",
+        "server check on close = absent"
+      ]
+    },
+    {
+      "entity": "Material Usage",
+      "status": "fully_working",
+      "lastWorkingStep": "ISSUE from RAW with consumeReserved; actualQty stored; delta vs plan computable",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
+      "evidence": [
+        "plan=80",
+        "fact=84"
+      ]
+    },
+    {
+      "entity": "Waste",
+      "status": "fully_working",
+      "lastWorkingStep": "ScrapRecord with reason, employee, batch, materialCost",
+      "firstBrokenStep": "photoUrl not required/tested; shift dimension absent",
+      "rootCause": "ScrapRecord has photoUrl nullable; no shift field in schema",
+      "impact": "TZ scrap analytics by shift cannot be filled",
+      "evidence": [
+        "scrap=cmsyqe4a8001vubcwlaa8ty30",
+        "photo=null"
+      ]
+    },
+    {
+      "entity": "Finished Goods",
+      "status": "partial",
+      "lastWorkingStep": "receiveProduct to FG warehouse with WAC",
+      "firstBrokenStep": "FG stock unique is warehouse+product, not batch/color/model; issue uses outputQty PCS",
+      "rootCause": "StockItem has no batchId; issueOrderToCustomer writes off item.outputQty (PCS) while closeBatch received sale qty (m²)",
+      "impact": "Customer issue fails or wrong unit when outputPerBase ≠ 1",
+      "evidence": [
+        "FG qty=9 (good m²=9)",
+        "order.outputQty=100.000000 PCS"
+      ]
+    },
+    {
+      "entity": "Payroll",
+      "status": "fully_working",
+      "lastWorkingStep": "Accrual on accepted qty only (scrap excluded)",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
+      "evidence": [
+        "qty=9 amount=198"
+      ]
+    },
+    {
+      "entity": "Payment",
+      "status": "fully_working",
+      "lastWorkingStep": "Create payment, update paidAmount/paymentStatus, ledger via postClientPayment, idempotencyKey unique",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
+      "evidence": [
+        "payment=cmsyqe4cf001zubcw4mwc0dcl",
+        "amount=1600"
+      ]
+    },
+    {
+      "entity": "Commission",
+      "status": "fully_working",
+      "lastWorkingStep": "accrueSellerCommission from PAID amount with scheme tiers",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
+      "evidence": [
+        "amount=48 pct=3"
+      ]
+    },
+    {
+      "entity": "Financial Transaction",
+      "status": "fully_working",
+      "lastWorkingStep": "Ledger CASH_IN + FUND_IN allocations from payment; no stored balance field",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
+      "evidence": [
+        "CASH_IN 1600",
+        "FUND_IN 352",
+        "FUND_IN 198",
+        "FUND_IN 48",
+        "FUND_IN 1002"
+      ]
+    },
+    {
+      "entity": "Financial Funds",
+      "status": "partial",
+      "lastWorkingStep": "Allocation to MATERIALS/LABOR/COMMISSION/OPEX/PROFIT from one physical CASH in",
+      "firstBrokenStep": "TZ §32 three kassas vs five allocation funds",
+      "rootCause": "Implementation follows cash vs funds split (§33) with 5 funds, not 3 kassas",
+      "impact": "Owner dashboard funds do not match TZ three-box names",
+      "evidence": [
+        "{\"MATERIALS\":\"352\",\"LABOR\":\"198\",\"COMMISSION\":\"48\",\"OPEX\":\"0\",\"PROFIT\":\"1002\"}"
+      ]
+    },
+    {
+      "entity": "Order Completion",
+      "status": "bug",
+      "lastWorkingStep": "Status can reach IN_FG after batches; ISSUED attempted via writeOffProduct",
+      "firstBrokenStep": "issueOrderToCustomer unit mismatch (outputQty PCS vs FG m²)",
+      "rootCause": "closeBatch receives goodQty in sale units (9 m²) but issue writes off item.outputQty (100.000000 PCS)",
+      "impact": "Order cannot be completed correctly for facade tile (10 pcs / m²)",
+      "evidence": [
+        "issueOk=false",
+        "Недостаточно готовой продукции. Доступно: 9.000.",
+        "FG onHand was 9"
+      ]
+    },
+    {
+      "entity": "Expense",
+      "status": "partial",
+      "lastWorkingStep": "Manual expense posts CASH_OUT + FUND_OUT",
+      "firstBrokenStep": "Automatic monthly recurring obligations (rent/electricity)",
+      "rootCause": "Obligation model + createObligation exist; no scheduler/cron to spawn monthly rows",
+      "impact": "Fixed opex not auto-accrued into profit",
+      "evidence": [
+        "category=RENT",
+        "ledger ids=cmsyqe4ie002dubcw5pihudv0,cmsyqe4is002fubcwv9g68rur"
+      ]
+    },
+    {
+      "entity": "Approval",
+      "status": "partial",
+      "lastWorkingStep": "queueApproval creates PENDING + notifies owner/director; status can be APPROVED",
+      "firstBrokenStep": "This harness cannot call decideApproval (needs Next session); DISCOUNT apply is a separate update",
+      "rootCause": "decideApproval is a server action with requirePermission + revalidatePath",
+      "impact": "E2E of approval→mutation coupling not executed inside Next request",
+      "evidence": [
+        "approval=cmsyqe4iz002gubcwf2nn62xt"
+      ]
+    },
+    {
+      "entity": "Audit Log",
+      "status": "partial",
+      "lastWorkingStep": "writeAudit stores user, action, timestamp, IP, UA, old/new, entity",
+      "firstBrokenStep": "No immutability: prisma.auditLog.delete is allowed; no app-level forbid",
+      "rootCause": "AuditLog model has no delete protection / append-only trigger",
+      "impact": "Anti-theft log can be erased at DB layer",
+      "evidence": [
+        "id=cmsyqe4ka002kubcwgqt23eee ip=127.0.0.1"
+      ]
+    }
+  ],
+  "fullChain": [
+    {
+      "step": "Owner",
+      "ok": true,
+      "detail": "owner@workshop.local cmsot411r0016ubb0gb9t45gk"
+    },
+    {
+      "step": "Employee",
+      "ok": true,
+      "detail": "sales=cmsyqe27p0005ubcwyr6t6iwo worker=cmsyqe27k0003ubcw83ho89ns"
+    },
+    {
+      "step": "Material",
+      "ok": true,
+      "detail": "cmsyqe27u0007ubcw0spgckde"
+    },
+    {
+      "step": "Product",
+      "ok": true,
+      "detail": "cmsyqe28r000dubcw14alt4ia"
+    },
+    {
+      "step": "Recipe",
+      "ok": true,
+      "detail": "current version cmsyqe2ak000oubcwbfgr9quf"
+    },
+    {
+      "step": "Supplier",
+      "ok": true,
+      "detail": "cmsyqe2az000tubcwu76ty6lc"
+    },
+    {
+      "step": "Purchase",
+      "ok": true,
+      "detail": "cmsyqe2be000vubcwif8jc7a8"
+    },
+    {
+      "step": "Warehouse",
+      "ok": true,
+      "detail": "RAW stock filled"
+    },
+    {
+      "step": "Customer",
+      "ok": true,
+      "detail": "cmsyqe42q0013ubcwc8v4f9sk"
+    },
+    {
+      "step": "Lead",
+      "ok": true,
+      "detail": "cmsyqe43h0015ubcwj8c5447z"
+    },
+    {
+      "step": "Quote",
+      "ok": true,
+      "detail": "amount=1600.0000 materialCost=352.0000 recipeVersion=cmsyqe2ak000oubcwbfgr9quf"
+    },
+    {
+      "step": "Order",
+      "ok": true,
+      "detail": "#1037 total=1600 snapshotVersion=cmsyqe2ak000oubcwbfgr9quf"
+    },
+    {
+      "step": "Reservation",
+      "ok": true,
+      "detail": "reserved+=80 available=420"
+    },
+    {
+      "step": "Batch",
+      "ok": true,
+      "detail": "batch cmsyqe47x001jubcwyg1v7xyw planned=10 worker=cmsyqe27k0003ubcw83ho89ns"
+    },
+    {
+      "step": "Material Usage",
+      "ok": true,
+      "detail": "plan=80 fact=84 delta=4"
+    },
+    {
+      "step": "Waste",
+      "ok": true,
+      "detail": "qty=1 cost=36.96"
+    },
+    {
+      "step": "Finished Goods",
+      "ok": true,
+      "detail": "FG onHand=9 cost=41.066667"
+    },
+    {
+      "step": "Payroll",
+      "ok": true,
+      "detail": "amount=198 qty=9"
+    },
+    {
+      "step": "Payment",
+      "ok": true,
+      "detail": "paid=1600 status updated"
+    },
+    {
+      "step": "Commission",
+      "ok": true,
+      "detail": "amount=48"
+    },
+    {
+      "step": "Finance / Ledger",
+      "ok": true,
+      "detail": "entries=5 funds={\"MATERIALS\":\"352\",\"LABOR\":\"198\",\"COMMISSION\":\"48\",\"OPEX\":\"0\",\"PROFIT\":\"1002\"}"
+    },
+    {
+      "step": "Profit",
+      "ok": true,
+      "detail": "contribution=1002 net=1002"
+    },
+    {
+      "step": "Issue FG to customer",
+      "ok": false,
+      "detail": "Недостаточно готовой продукции. Доступно: 9.000."
+    },
+    {
+      "step": "Order Completion",
+      "ok": false,
+      "detail": "status now=IN_FG; COMPLETED status in DB=true; no completeOrder action"
+    }
+  ],
+  "summary": {
+    "fully_working": 22,
+    "partial": 8,
+    "bug": 1,
+    "not_implemented": 1
+  }
+}
