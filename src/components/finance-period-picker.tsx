@@ -59,6 +59,7 @@ export function FinancePeriodPicker({
         className={styles.trigger}
         aria-haspopup="listbox"
         aria-expanded={open}
+        aria-label={t("home.periodPick")}
         onClick={() => setOpen((v) => !v)}
       >
         {financePeriodLabel(current, t)}

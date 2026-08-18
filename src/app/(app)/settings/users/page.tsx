@@ -90,10 +90,9 @@ export default async function UsersPage() {
                   ))}
                 </select>
               </FormField>
-              <label className="flex items-end gap-2 pb-2 text-sm">
+              <FormField label={t("set.active")} className="pb-2">
                 <input type="checkbox" name="isActive" defaultChecked={user.isActive} disabled={!canEdit} />
-                {t("set.active")}
-              </label>
+              </FormField>
               {canEdit ? (
                 <FormField label={t("set.newPassword")} hint={t("set.newPasswordHint")}>
                   <input name="password" type="password" className="ui-input" />

@@ -411,9 +411,10 @@ export function HelpGuide({ locale }: { locale: Locale }) {
   useEffect(() => {
     const el = targetRef.current;
     if (!active || !el || !liveStep || liveStep.intro) return;
+    const targets = liveStep.targets;
 
     function refresh() {
-      const current = findTarget(liveStep.targets) ?? el;
+      const current = findTarget(targets) ?? el;
       if (!current) return;
       const next = measure(current);
       setBox(next);

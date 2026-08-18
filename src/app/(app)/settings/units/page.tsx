@@ -61,9 +61,9 @@ export default async function UnitsPage() {
                 {t("common.add")}
               </button>
             </div>
-          <label className="flex w-full items-center gap-2 text-sm text-[var(--text-muted)]">
-            <input type="checkbox" name="isBase" /> {t("set.baseUnit")}
-          </label>
+          <FormField label={t("set.baseUnit")} className="w-full">
+            <input type="checkbox" name="isBase" className="mt-1" />
+          </FormField>
         </form>
       ) : null}
 
