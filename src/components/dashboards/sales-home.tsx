@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@core/infrastructure/prisma";
 import { requireSession } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
@@ -5,6 +6,8 @@ import { periodKey, periodRange } from "@core/payroll/payroll";
 import { getTranslator } from "@core/shared/i18n/locale";
 import { KpiCard } from "@/components/kpi-card";
 import { PageHeader } from "@/components/page-header";
+import { DashPanel } from "@/components/dash-panel";
+import { DashKpiGrid } from "@/components/dashboard/dashboard-system";
 import { RevealList } from "@/components/reveal-list";
 import {
   DataList,
@@ -54,14 +57,13 @@ export async function SalesHome() {
   return (
     <div className="page-stack">
       <PageHeader title={t("nav.home")} description={t("me.commissionHint")} />
-      <div className="grid gap-2 sm:grid-cols-2" data-tour="home-kpis">
+      <DashKpiGrid cols="2" tour="home-kpis">
         <KpiCard href="/orders" label={t("dash.planFact")} value={`${moneyDisplay(paid)} / ${moneyDisplay(fact)} с`} hint={t("home.period")} tone="in" />
         <KpiCard href="/me/commission" label={t("me.earned")} value={`${moneyDisplay(earned)} с`} tone="in" />
         <KpiCard href="/crm" label={t("dash.myLeads")} value={String(leads.length)} tone="ink" />
         <KpiCard href="/crm" label={t("dash.myClients")} value={String(customers.length)} tone="ink" />
-      </div>
-      <section className="ui-card overflow-hidden" data-tour="home-work">
-        <h2 className="text-sm font-semibold">{t("dash.myLeads")}</h2>
+      </DashKpiGrid>
+      <DashPanel title={t("dash.myLeads")} tour="home-work">
         {leads.length === 0 ? (
           <DataListEmpty>{t("common.empty")}</DataListEmpty>
         ) : (
@@ -82,9 +84,8 @@ export async function SalesHome() {
             </RevealList>
           </DataList>
         )}
-      </section>
-      <section className="ui-card overflow-hidden">
-        <h2 className="text-sm font-semibold">{t("sales.recentOrders")}</h2>
+      </DashPanel>
+      <DashPanel title={t("sales.recentOrders")}>
         {orders.length === 0 ? (
           <DataListEmpty>{t("crm.noOrders")}</DataListEmpty>
         ) : (
@@ -103,7 +104,7 @@ export async function SalesHome() {
             </RevealList>
           </DataList>
         )}
-      </section>
+      </DashPanel>
     </div>
   );
 }

@@ -10,7 +10,7 @@ import {
   type FinancePeriod,
   financePeriodLabel,
 } from "@core/shared/order-period";
-import styles from "@/components/dashboards/mobile-owner-home.module.css";
+import styles from "@/components/finance-period-picker.module.css";
 
 export function FinancePeriodPicker({
   locale,
@@ -53,24 +53,24 @@ export function FinancePeriodPicker({
   }
 
   return (
-    <div ref={rootRef} className={styles.periodWrap}>
+    <div ref={rootRef} className={styles.wrap}>
       <button
         type="button"
-        className={styles.period}
+        className={styles.trigger}
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
         {financePeriodLabel(current, t)}
-        <ChevronDown size={14} strokeWidth={1.8} className={open ? styles.periodChevronOpen : undefined} />
+        <ChevronDown size={14} strokeWidth={1.8} className={open ? styles.chevronOpen : undefined} />
       </button>
       {open ? (
-        <ul className={styles.periodMenu} role="listbox" aria-label={t("home.periodPick")}>
+        <ul className={styles.menu} role="listbox" aria-label={t("home.periodPick")}>
           {FINANCE_PERIODS.map((period) => (
             <li key={period} role="option" aria-selected={period === current}>
               <button
                 type="button"
-                className={period === current ? styles.periodOptionActive : styles.periodOption}
+                className={period === current ? styles.optionActive : styles.option}
                 onClick={() => selectPeriod(period)}
               >
                 {financePeriodLabel(period, t)}

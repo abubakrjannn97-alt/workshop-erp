@@ -5,6 +5,8 @@ import { getTranslator } from "@core/shared/i18n/locale";
 import { getDomainConfig } from "@core/config/domain-config";
 import { PageHeader } from "@/components/page-header";
 import { KpiCard } from "@/components/kpi-card";
+import { DashPanel } from "@/components/dash-panel";
+import { DashKpiGrid } from "@/components/dashboard/dashboard-system";
 import { RevealList } from "@/components/reveal-list";
 
 export async function ProductionHome() {
@@ -34,40 +36,38 @@ export async function ProductionHome() {
   return (
     <div className="page-stack">
       <PageHeader title={t("nav.home")} />
-      <div className="grid gap-2 sm:grid-cols-3" data-tour="home-kpis">
+      <DashKpiGrid cols="3" tour="home-kpis">
         <KpiCard href="/production" label={t("dash.openJobs")} value={String(openJobs.length)} tone="ink" />
         <KpiCard href="/production/batches" label={t("nav.batches")} value={String(openBatches)} tone="ink" />
         <KpiCard href="/production/scrap" label={t("nav.scrap")} value={`${qtyDisplay(scrap._sum.quantity ?? 0)} ${outputUnitSymbol}`} tone="out" />
-      </div>
+      </DashKpiGrid>
       {overdue.length > 0 ? (
-        <section className="ui-card">
-          <h2 className="text-sm font-semibold">{t("home.alert.overdue")}</h2>
-          <ul className="mt-2 space-y-1 text-sm">
+        <DashPanel title={t("home.alert.overdue")}>
+          <ul className="ui-list">
             {overdue.map((j) => (
-              <li key={j.id}>
-                <Link href={`/production/${j.id}`} className="hover:underline">
+              <li key={j.id} className="ui-list-row min-h-[44px] text-sm">
+                <Link href={`/production/${j.id}`} className="font-medium hover:underline">
                   {j.order.customer.name} · {j.order.items[0]?.product.name}
                 </Link>
               </li>
             ))}
           </ul>
-        </section>
+        </DashPanel>
       ) : null}
-      <section className="ui-card" data-tour="home-work">
-        <h2 className="text-sm font-semibold">{t("dash.openJobs")}</h2>
-        <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={6}>
+      <DashPanel title={t("dash.openJobs")} tour="home-work">
+        <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={6} className="ui-list">
           {openJobs.map((j) => (
-            <li key={j.id} className="flex justify-between gap-2 text-sm">
+            <li key={j.id} className="ui-list-row flex min-h-[44px] items-center justify-between gap-2 text-sm">
               <Link href={`/production/${j.id}`} className="truncate hover:underline">
                 {j.order.customer.name} · {j.order.items[0]?.product.name ?? "—"}
               </Link>
-              <span className="shrink-0 font-mono text-xs">
+              <span className="shrink-0 font-mono text-xs tabular-nums">
                 {qtyDisplay(j.producedQty)} / {qtyDisplay(j.plannedQty)}
               </span>
             </li>
           ))}
         </RevealList>
-      </section>
+      </DashPanel>
     </div>
   );
 }

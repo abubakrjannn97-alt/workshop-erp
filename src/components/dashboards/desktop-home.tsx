@@ -1,20 +1,14 @@
-import Link from "next/link";
 import {
   Landmark,
   Bell,
   Zap,
   ClipboardList,
-  Users,
-  Package,
-  Factory,
-  Truck,
-  ChartColumn,
   Wallet,
   FileText,
 } from "lucide-react";
 import { prisma } from "@core/infrastructure/prisma";
 import { requireSession } from "@core/auth/authz";
-import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
+import { D, moneyDisplay } from "@core/shared/decimal";
 import { FUND, fundDelta } from "@core/finance/finance";
 import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@core/inventory/alerts";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
@@ -23,19 +17,20 @@ import { StatisticsCards } from "@/components/dashboard/StatisticsCards";
 import type { StatisticsCardData, StatisticsCardTrend } from "@/components/dashboard/StatisticsCards";
 import { DashPanel } from "@/components/dash-panel";
 import { FundRow } from "@/components/fund-row";
-import { StatusBadge, orderTone } from "@/components/status-badge";
-import { QuickAction } from "@/components/quick-action";
-import { RevealList } from "@/components/reveal-list";
-import { orderNo } from "@core/shared/format";
+import {
+  buildOwnerDashAlerts,
+  DashAlertList,
+  DashQuickActionsDesktop,
+  DashRecentOrders,
+  DashRecentOrdersAction,
+  ownerQuickActions,
+  ownerSecondaryActions,
+} from "@/components/dashboard/dashboard-system";
 import {
   DataList,
   DataListHead,
   DataListHeadCell,
-  DataListMetric,
-  DataListPrimary,
-  DataListRow,
-  dataListStyles,
-} from "@/components/data-list";
+} from "@/components/data-table";
 
 const CARD_ICON = { size: 13, strokeWidth: 1.7, "aria-hidden": true } as const;
 
@@ -69,7 +64,7 @@ function cardTrend(
 }
 
 function orderDebt(o: { total: unknown; paidAmount: unknown }) {
-  return D(String(o.total)).sub(o.paidAmount);
+  return D(String(o.total)).sub(String(o.paidAmount));
 }
 
 export async function DesktopHome() {
@@ -177,51 +172,13 @@ export async function DesktopHome() {
   });
   const loc = intlLocale(locale);
 
-  type Alert = {
-    href: string;
-    title: string;
-    detail?: string;
-    tone: "rose" | "amber" | "blue";
-    amount?: string;
-    amountDanger?: boolean;
-  };
-  const alerts: Alert[] = [];
-  for (const o of overdue.slice(0, 4)) {
-    alerts.push({
-      href: `/orders/${o.id}`,
-      title: `${t("home.alert.overdue")} ${orderNo(o.number)}`,
-      detail: o.customer.name,
-      tone: "amber",
-    });
-  }
-  for (const o of unpaid.filter((row) => D(String(row.total)).sub(row.paidAmount).gt(0)).slice(0, 4)) {
-    const due = D(String(o.total)).sub(o.paidAmount);
-    alerts.push({
-      href: `/orders/${o.id}`,
-      title: `${t("home.alert.debt")} ${orderNo(o.number)}`,
-      detail: o.customer.name,
-      amount: `${moneyDisplay(due)} с`,
-      amountDanger: true,
-      tone: "rose",
-    });
-  }
-  for (const m of critical.slice(0, 3)) {
-    const onHand = m.stockItems.reduce((s, i) => s.add(i.qtyOnHand), D(0));
-    alerts.push({
-      href: "/warehouse",
-      title: t("home.alert.stock"),
-      detail: `${m.name} · ${qtyDisplay(onHand)} ${m.storageUnit.symbol}`,
-      tone: "amber",
-    });
-  }
-  if (cover.purchaseNeed.length > 0) {
-    alerts.push({
-      href: "/purchasing",
-      title: t("home.alert.purchase"),
-      detail: String(cover.purchaseNeed.length),
-      tone: "blue",
-    });
-  }
+  const alerts = buildOwnerDashAlerts({
+    t,
+    overdue,
+    unpaid,
+    criticalMaterials: critical,
+    purchaseNeedCount: cover.purchaseNeed.length,
+  });
 
   const vsPrev = t("home.vsPrev");
   const cards: StatisticsCardData[] = [
@@ -265,11 +222,29 @@ export async function DesktopHome() {
 
   return (
     <div className="page-stack">
-      <PageHeader title={t("home.title")} subtitle={t("home.greetSub")} />
+      <PageHeader title={t("home.title")} description={t("home.greetSub")} />
       <StatisticsCards cards={cards} />
 
       <div className="grid grid-cols-1 items-start gap-2 lg:grid-cols-5" data-tour="home-work">
-        <DashPanel title={t("home.funds")} icon={Landmark} className="lg:col-span-3">
+        <DashPanel title={t("home.attention")} icon={Bell} className="lg:col-span-2" tour="home-attention">
+          <DashAlertList
+            alerts={alerts}
+            empty={t("home.noAlerts")}
+            moreLabel={t("home.seeAll")}
+            lessLabel={t("home.hide")}
+          />
+        </DashPanel>
+
+        <DashPanel title={t("home.quickActions")} icon={Zap} className="lg:col-span-3" tour="home-shortcuts">
+          <DashQuickActionsDesktop
+            primary={ownerQuickActions(t)}
+            secondary={ownerSecondaryActions(t)}
+          />
+        </DashPanel>
+      </div>
+
+      <div className="grid grid-cols-1 items-start gap-2 lg:grid-cols-5">
+        <DashPanel title={t("home.funds")} icon={Landmark} className="lg:col-span-2">
           <DataList layout="cols2">
             <DataListHead layout="cols2">
               <DataListHeadCell>{t("home.col.fund")}</DataListHeadCell>
@@ -289,99 +264,26 @@ export async function DesktopHome() {
           </DataList>
         </DashPanel>
 
-        <DashPanel title={t("home.attention")} icon={Bell} className="lg:col-span-2" tour="home-attention">
-          {alerts.length === 0 ? (
-            <p className="text-[12px] text-[#98A2B3]">{t("home.noAlerts")}</p>
-          ) : (
-            <DataList layout="cols2">
-              <DataListHead layout="cols2">
-                <DataListHeadCell>{t("list.col.what")}</DataListHeadCell>
-                <DataListHeadCell align="right">{t("list.col.sum")}</DataListHeadCell>
-              </DataListHead>
-              <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={5} className={dataListStyles.rows}>
-                {alerts.map((a, i) => (
-                  <DataListRow key={`${a.href}-${i}`} layout="cols2">
-                    <DataListPrimary title={a.title} subtitle={a.detail} href={a.href} />
-                    {a.amount ? (
-                      <DataListMetric
-                        label={t("list.col.sum")}
-                        value={a.amount}
-                        tone={a.amountDanger ? "bad" : "default"}
-                      />
-                    ) : (
-                      <DataListMetric label={t("list.col.sum")} value="—" tone="muted" />
-                    )}
-                  </DataListRow>
-                ))}
-              </RevealList>
-            </DataList>
-          )}
-        </DashPanel>
-      </div>
-
-      <div className="grid grid-cols-1 gap-2 lg:grid-cols-5">
         <DashPanel
           title={t("home.recentOrders")}
           icon={ClipboardList}
-          className="overflow-x-auto lg:col-span-3"
+          className="lg:col-span-3"
           tour="home-orders"
           action={
-            <Link href="/orders?period=month" className="text-[11px] font-semibold text-[#667085] hover:text-[#101828]">
+            <DashRecentOrdersAction href="/orders?period=month">
               {t("page.orders")} →
-            </Link>
+            </DashRecentOrdersAction>
           }
         >
-          {recentOrders.length === 0 ? (
-            <p className="text-[13px] text-[#98A2B3]">{t("crm.noOrders")}</p>
-          ) : (
-            <table className="w-full min-w-[32rem] text-[13px]">
-              <thead>
-                <tr className="border-b border-[#EEF0F3] text-[11px] font-medium uppercase tracking-wide text-[#98A2B3]">
-                  <th className="pb-2 text-left font-medium">{t("home.col.order")}</th>
-                  <th className="pb-2 text-left font-medium">{t("home.col.customer")}</th>
-                  <th className="pb-2 text-left font-medium">{t("home.col.date")}</th>
-                  <th className="pb-2 text-right font-medium">{t("home.col.amount")}</th>
-                  <th className="pb-2 text-left font-medium">{t("home.col.status")}</th>
-                </tr>
-              </thead>
-              <RevealList
-                as="tbody"
-                moreLabel={t("home.seeAll")}
-                lessLabel={t("home.hide")}
-                limit={5}
-                className="divide-y divide-[#EEF0F3]"
-              >
-                {recentOrders.map((o) => (
-                  <tr key={o.id} className="h-8">
-                    <td>
-                      <Link href={`/orders/${o.id}`} className="font-medium text-[#101828] hover:underline">
-                        {orderNo(o.number)}
-                      </Link>
-                    </td>
-                    <td className="max-w-[10rem] truncate text-[#667085]">{o.customer.name}</td>
-                    <td className="whitespace-nowrap text-[#667085]">
-                      {o.createdAt.toLocaleDateString(loc, { day: "2-digit", month: "2-digit", year: "2-digit" })}
-                    </td>
-                    <td className="text-right font-mono tabular-nums text-[#101828]">{moneyDisplay(o.total)} с</td>
-                    <td>
-                      <StatusBadge label={n("ostatus", o.status.code, o.status.name)} tone={orderTone(o.status.code)} />
-                    </td>
-                  </tr>
-                ))}
-              </RevealList>
-            </table>
-          )}
-        </DashPanel>
-
-        <DashPanel title={t("home.quickActions")} icon={Zap} className="lg:col-span-2" tour="home-shortcuts">
-          <div className="grid grid-cols-2 gap-2">
-            <QuickAction href="/orders/new" label={t("sales.newOrder")} icon={ClipboardList} />
-            <QuickAction href="/crm" label={t("nav.crm")} icon={Users} />
-            <QuickAction href="/products" label={t("nav.products")} icon={Package} />
-            <QuickAction href="/production" label={t("nav.production")} icon={Factory} />
-            <QuickAction href="/purchasing" label={t("nav.purchasing")} icon={Truck} />
-            <QuickAction href="/analytics" label={t("nav.analytics")} icon={ChartColumn} />
-          </div>
+          <DashRecentOrders
+            orders={recentOrders}
+            empty={t("crm.noOrders")}
+            moreLabel={t("home.seeAll")}
+            lessLabel={t("home.hide")}
+            t={t}
+            n={n}
+            locale={loc}
+          />
         </DashPanel>
       </div>
     </div>
