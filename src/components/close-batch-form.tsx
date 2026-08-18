@@ -106,7 +106,7 @@ export function CloseBatchForm({
       ))}
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       {message ? <p className="text-sm text-[var(--color-gold-dark,#8B6914)]">{message}</p> : null}
-      <button type="submit" disabled={pending} className="ui-btn-primary w-full" aria-busy={pending}>
+      <button type="submit" disabled={pending} className="ui-btn-primary min-h-[44px] w-full" aria-busy={pending}>
         {pending ? t("common.sending") : t("prod.closeBatch")}
       </button>
     </form>

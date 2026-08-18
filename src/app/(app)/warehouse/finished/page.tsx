@@ -57,7 +57,8 @@ export default async function FinishedWarehousePage() {
                   const reserved = D(String(item.qtyReserved));
                   return (
                     <tr key={item.id} className="border-t border-[var(--line)]">
-                      <td className="px-4 py-3 font-medium">{item.product?.name}</td>
+                      <td className="px-4 py-3 font-medium" data-label={t("common.product")}>
+                        {item.product?.name}
                       <td className="px-4 py-3 text-right font-mono text-xs" data-label={t("common.stock")}>
                         {qtyDisplay(onHand)} {item.product?.saleUnit.symbol}
                       </td>

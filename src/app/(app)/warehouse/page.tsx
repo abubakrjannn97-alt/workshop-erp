@@ -81,7 +81,7 @@ export default async function WarehousePage() {
                 const low = onHand.lte(material.minStock);
                 return (
                   <tr key={material.id} className="border-t border-[var(--line)]">
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3" data-label={t("common.material")}>
                       <p className="font-medium">{material.name}</p>
                       {low ? <p className="text-xs text-amber-700">{t("wh.belowMin")}</p> : null}
                     </td>

@@ -73,7 +73,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
               {t("crm.purchaseHistory")}
             </Link>
             {canCreateOrder ? (
-              <Link href={`/orders/new?customerId=${customer.id}`} className="ui-btn-primary">
+              <Link href={`/orders/new?customerId=${customer.id}`} className="ui-btn-primary inline-flex min-h-[44px] items-center">
                 {t("sales.newOrder")}
               </Link>
             ) : null}

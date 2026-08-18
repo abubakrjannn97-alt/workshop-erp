@@ -77,7 +77,7 @@ export function EmployeeAccessForm({ locale, userId, permissions, modules, selec
       ) : null}
       {state?.ok ? <p className="text-sm text-[var(--success)]">{t("emp.accessSaved")}</p> : null}
 
-      <PendingButton className="ui-btn-primary w-full sm:w-auto" pendingLabel={t("common.saving")}>
+      <PendingButton className="ui-btn-primary min-h-[44px] w-full sm:w-auto" pendingLabel={t("common.saving")}>
         {t("emp.saveAccess")}
       </PendingButton>
     </form>

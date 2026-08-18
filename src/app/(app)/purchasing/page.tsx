@@ -74,8 +74,8 @@ export default async function PurchasingPage() {
             const turnover = s.orders.reduce((sum, o) => sum.add(o.total), D(0));
             const debt = s.orders.reduce((sum, o) => sum.add(D(String(o.total)).sub(o.paidAmount)), D(0));
             return (
-              <li key={s.id} className="flex justify-between gap-4">
-                <Link href={`/purchasing/suppliers/${s.id}`} className="font-medium hover:underline">
+              <li key={s.id} className="flex min-w-0 justify-between gap-4">
+                <Link href={`/purchasing/suppliers/${s.id}`} className="min-w-0 truncate font-medium hover:underline">
                   {s.name}
                 </Link>
                 <span className="font-mono text-xs">

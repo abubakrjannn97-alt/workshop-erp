@@ -45,7 +45,7 @@ export default async function ProductsPage() {
         description={t("products.hint")}
         actions={
           canManage ? (
-            <Link href="/products/new" className="ui-btn-primary" data-tour="products-new">
+            <Link href="/products/new" className="ui-btn-primary inline-flex min-h-[44px] items-center" data-tour="products-new">
               {t("products.newTitle")}
             </Link>
           ) : null
@@ -84,7 +84,7 @@ export default async function ProductsPage() {
                   const price = product.prices[0]?.price;
                   return (
                     <tr key={product.id} className="border-t border-[var(--line)]">
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3" data-label={t("common.product")}>
                         <Link href={`/products/${product.id}`} className="font-medium text-[var(--titan-dark)] hover:underline">
                           {product.name}
                         </Link>

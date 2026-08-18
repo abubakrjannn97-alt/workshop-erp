@@ -7,7 +7,7 @@ import type { MeJobsSnapshot } from "@/lib/offline/types";
 
 export default async function MyJobsPage() {
   const session = await requirePermission("production.view");
-  const { locale } = await getTranslator();
+  const { t, locale } = await getTranslator();
 
   const jobs = await prisma.productionOrder.findMany({
     where: {

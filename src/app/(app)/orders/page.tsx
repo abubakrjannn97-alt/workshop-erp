@@ -110,7 +110,7 @@ export default async function OrdersPage({
               {t("crm.purchaseHistory")}
             </Link>
             {canCreate ? (
-              <Link href="/orders/new" className="ui-btn-primary" data-tour="orders-new">
+              <Link href="/orders/new" className="ui-btn-primary inline-flex min-h-[44px] items-center" data-tour="orders-new">
                 {t("sales.newOrder")}
               </Link>
             ) : null}

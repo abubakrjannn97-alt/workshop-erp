@@ -40,7 +40,7 @@ export function AddEmployeeForm({ locale, permissions, modules }: Props) {
     return (
       <section className="ui-card border border-[var(--success)]/30 bg-[var(--success)]/5 p-4">
         <p className="font-medium text-[var(--success)]">{t("emp.addSuccess")}</p>
-        <button type="button" onClick={() => window.location.reload()} className="ui-btn-primary mt-3">
+        <button type="button" onClick={() => window.location.reload()} className="ui-btn-primary mt-3 min-h-[44px]">
           OK
         </button>
       </section>
@@ -49,7 +49,7 @@ export function AddEmployeeForm({ locale, permissions, modules }: Props) {
 
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)} className="ui-btn-primary">
+      <button type="button" onClick={() => setOpen(true)} className="ui-btn-primary min-h-[44px]">
         {t("emp.addEmployee")}
       </button>
     );
@@ -130,7 +130,7 @@ export function AddEmployeeForm({ locale, permissions, modules }: Props) {
               />
             </FormField>
             <div className="sm:col-span-2">
-              <button type="button" onClick={goToStep2} className="ui-btn-primary w-full sm:w-auto">
+              <button type="button" onClick={goToStep2} className="ui-btn-primary min-h-[44px] w-full sm:w-auto">
                 {t("emp.addNext")}
               </button>
             </div>
@@ -180,7 +180,7 @@ export function AddEmployeeForm({ locale, permissions, modules }: Props) {
               <button type="button" onClick={() => setStep(1)} className="ui-btn-secondary">
                 {t("emp.addBack")}
               </button>
-              <PendingButton className="ui-btn-primary w-full sm:w-auto" pendingLabel={t("emp.addPending")}>
+              <PendingButton className="ui-btn-primary min-h-[44px] w-full sm:w-auto" pendingLabel={t("emp.addPending")}>
                 {t("emp.addSubmit")}
               </PendingButton>
             </div>

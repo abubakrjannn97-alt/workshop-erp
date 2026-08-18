@@ -61,7 +61,7 @@ export default async function InventoryDetailPage({ params }: { params: Promise<
               <tbody>
                 {count.lines.map((line) => (
                   <tr key={line.id} className="border-t border-[var(--line)]">
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3" data-label={t("wh.position")}>
                       {line.stockItem.material?.name ?? line.stockItem.product?.name}
                       <input type="hidden" name="lineId" value={line.id} />
                     </td>

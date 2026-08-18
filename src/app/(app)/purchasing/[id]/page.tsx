@@ -78,7 +78,7 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
             <tbody>
               {order.items.map((item) => (
                 <tr key={item.id} className="border-t border-[var(--line)]">
-                  <td className="px-4 py-3">{item.material.name}</td>
+                  <td className="px-4 py-3" data-label={t("common.material")}>{item.material.name}</td>
                   <td className="px-4 py-3 text-right font-mono text-xs" data-label={t("common.qty")}>
                     {qtyDisplay(item.quantity)} {item.material.storageUnit.symbol}
                   </td>

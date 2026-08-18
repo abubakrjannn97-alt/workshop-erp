@@ -172,7 +172,7 @@ export function OrderForm({
         {t("orders.sum")}: <span className="ui-num font-semibold">{moneyDisplay(totals.total)} с</span>
       </p>
 
-      <PendingButton className="ui-btn-primary w-full sm:w-auto" pendingLabel={t("common.saving")}>
+      <PendingButton className="ui-btn-primary min-h-[44px] w-full sm:w-auto" pendingLabel={t("common.saving")}>
         {t("orders.create")}
       </PendingButton>
     </form>
