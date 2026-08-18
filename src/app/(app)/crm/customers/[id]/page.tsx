@@ -8,12 +8,28 @@ import { hasPermission } from "@core/auth/authz";
 import { archiveCustomer, updateCustomer } from "@/app/actions/customers";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { formatPhone } from "@core/shared/format";
+import { FormField } from "@/components/form-field";
+import { DashPanel } from "@/components/dash-panel";
+import { DashKpiGrid } from "@/components/dashboard/dashboard-system";
 import { KpiCard } from "@/components/kpi-card";
-import { RevealList } from "@/components/reveal-list";
+import { PendingButton } from "@/components/pending-button";
+import {
+  DataList,
+  DataListEmpty,
+  DataListHead,
+  DataListHeadCell,
+  DataListMetric,
+  DataListPrimary,
+  DataListRow,
+  DataListCell,
+  DataTableSection,
+  dataListStyles,
+} from "@/components/data-table";
 import { StatusBadge, orderTone, payTone } from "@/components/status-badge";
+import { ClipboardList } from "lucide-react";
 
 export default async function CustomerPage({ params }: { params: Promise<{ id: string }> }) {
-  const { t, n } = await getTranslator();
+  const { t, n, locale } = await getTranslator();
   const session = await requirePermission("crm.view");
   const { id } = await params;
   const customer = await prisma.customer.findUnique({
@@ -29,10 +45,12 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
   }
 
   const canManage = hasPermission(session.user.permissions, session.user.roleCode, "crm.manage");
+  const canCreateOrder = hasPermission(session.user.permissions, session.user.roleCode, "orders.create");
   const turnover = customer.orders.reduce((s, o) => s.add(String(o.total)), D(0));
-  const debt = customer.orders.reduce((s, o) => s.add(D(String(o.total)).sub(o.paidAmount)), D(0));
+  const debt = customer.orders.reduce((s, o) => s.add(D(String(o.total)).sub(String(o.paidAmount))), D(0));
   const avg = customer.orders.length ? turnover.div(customer.orders.length) : D(0);
   const last = customer.orders[0];
+  const loc = locale;
 
   async function save(formData: FormData) {
     "use server";
@@ -46,92 +64,96 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="page-stack">
-      <div>
-        <PageHeader
-          title={customer.name}
-          actions={
+      <PageHeader
+        title={customer.name}
+        description={customer.phone ? `${t("common.tel")} ${formatPhone(customer.phone)}` : undefined}
+        actions={
+          <div className="flex flex-wrap gap-2">
             <Link href={`/crm/history?customerId=${customer.id}`} className="ui-btn-secondary">
               {t("crm.purchaseHistory")}
             </Link>
-          }
-        />
-        {customer.phone ? (
-          <p className="mt-1 text-sm text-[var(--text-secondary)]">
-            {t("common.tel")} {formatPhone(customer.phone)}
-          </p>
-        ) : null}
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {canCreateOrder ? (
+              <Link href={`/orders/new?customerId=${customer.id}`} className="ui-btn-primary">
+                {t("sales.newOrder")}
+              </Link>
+            ) : null}
+          </div>
+        }
+      />
+
+      <DashKpiGrid cols="4">
         <KpiCard label={t("crm.purchases")} value={`${moneyDisplay(turnover)} с`} tone="in" />
         <KpiCard label={t("common.debt")} value={`${moneyDisplay(debt)} с`} tone="out" />
         <KpiCard label={t("crm.avgCheck")} value={`${moneyDisplay(avg)} с`} tone="ink" />
-        <KpiCard label={t("crm.lastPurchase")} value={last ? last.createdAt.toLocaleDateString() : "—"} tone="ink" />
-      </div>
+        <KpiCard label={t("crm.lastPurchase")} value={last ? last.createdAt.toLocaleDateString(loc) : "—"} tone="ink" />
+      </DashKpiGrid>
 
       {canManage && !customer.archivedAt ? (
-        <form action={save} className="max-w-xl space-y-2 ui-card p-4">
-          <input type="hidden" name="id" value={customer.id} />
-          <Field name="name" label={t("crm.fioCompany")} defaultValue={customer.name} />
-          <Field name="phone" label={t("common.phone")} defaultValue={customer.phone ?? ""} />
-          <Field name="whatsapp" label={t("common.whatsapp")} defaultValue={customer.whatsapp ?? ""} />
-          <Field name="address" label={t("common.address")} defaultValue={customer.address ?? ""} />
-          <Field name="source" label={t("common.source")} defaultValue={customer.source ?? ""} />
-          <label className="block text-sm">
-            <span className="font-medium">{t("common.comment")}</span>
-            <textarea
-              name="comment"
-              defaultValue={customer.comment ?? ""}
-              className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
-            />
-          </label>
-          <div className="flex gap-2">
-            <button className="ui-btn-primary">{t("common.save")}</button>
-          </div>
-        </form>
+        <DashPanel title={t("crm.editCustomer")}>
+          <form action={save} className="grid max-w-xl gap-3 sm:grid-cols-2">
+            <input type="hidden" name="id" value={customer.id} />
+            <FormField label={t("crm.fioCompany")} className="sm:col-span-2">
+              <input name="name" defaultValue={customer.name} className="ui-input" required />
+            </FormField>
+            <FormField label={t("common.phone")}>
+              <input name="phone" defaultValue={customer.phone ?? ""} className="ui-input" />
+            </FormField>
+            <FormField label={t("common.whatsapp")}>
+              <input name="whatsapp" defaultValue={customer.whatsapp ?? ""} className="ui-input" />
+            </FormField>
+            <FormField label={t("common.address")} className="sm:col-span-2">
+              <input name="address" defaultValue={customer.address ?? ""} className="ui-input" />
+            </FormField>
+            <FormField label={t("common.source")}>
+              <input name="source" defaultValue={customer.source ?? ""} className="ui-input" />
+            </FormField>
+            <FormField label={t("common.comment")} className="sm:col-span-2">
+              <textarea name="comment" defaultValue={customer.comment ?? ""} className="ui-input min-h-[5rem]" />
+            </FormField>
+            <PendingButton className="ui-btn-primary min-h-[44px] sm:col-span-2" pendingLabel={t("common.sending")}>
+              {t("common.save")}
+            </PendingButton>
+          </form>
+          <form action={archive} className="mt-3">
+            <input type="hidden" name="id" value={customer.id} />
+            <button type="submit" className="min-h-[44px] text-sm text-[var(--danger)] hover:underline">
+              {t("crm.archiveCustomer")}
+            </button>
+          </form>
+        </DashPanel>
       ) : null}
 
-      {canManage && !customer.archivedAt ? (
-        <form action={archive}>
-          <input type="hidden" name="id" value={customer.id} />
-          <button className="text-sm text-[var(--danger)] hover:underline">{t("crm.archiveCustomer")}</button>
-        </form>
-      ) : null}
-
-      <section className="ui-card">
-        <div className="border-b border-[var(--line)] px-5 py-3">
-          <h2 className="text-sm font-semibold">{t("crm.orderHistory")}</h2>
-        </div>
+      <DashPanel title={t("crm.orderHistory")} icon={ClipboardList}>
         {customer.orders.length === 0 ? (
-          <p className="px-5 py-6 text-sm text-[var(--muted)]">{t("crm.noOrders")}</p>
+          <DataListEmpty>{t("crm.noOrders")}</DataListEmpty>
         ) : (
-          <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} className="divide-y divide-[var(--border)]">
-            {customer.orders.map((o) => (
-              <li key={o.id} className="flex items-center justify-between px-5 py-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <Link href={`/orders/${o.id}`} className="font-medium hover:underline">
-                    {o.createdAt.toLocaleDateString()}
-                  </Link>
-                  <StatusBadge label={n("ostatus", o.status.code, o.status.name)} tone={orderTone(o.status.code)} />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold tabular-nums">{moneyDisplay(o.total)} с</span>
-                  <StatusBadge label={t(`pay.${o.paymentStatus}`)} tone={payTone(o.paymentStatus)} />
-                </div>
-              </li>
-            ))}
-          </RevealList>
+          <DataList layout="cols4">
+            <DataListHead layout="cols4">
+              <DataListHeadCell>{t("list.col.when")}</DataListHeadCell>
+              <DataListHeadCell align="right">{t("home.col.amount")}</DataListHeadCell>
+              <DataListHeadCell>{t("home.col.status")}</DataListHeadCell>
+              <DataListHeadCell align="right">{t("common.payment")}</DataListHeadCell>
+            </DataListHead>
+            <ul className={dataListStyles.rows}>
+              {customer.orders.map((o) => (
+                <DataListRow key={o.id} layout="cols4">
+                  <DataListPrimary
+                    title={o.createdAt.toLocaleDateString(loc)}
+                    href={`/orders/${o.id}`}
+                  />
+                  <DataListMetric label={t("home.col.amount")} value={`${moneyDisplay(o.total)} с`} />
+                  <DataListCell label={t("home.col.status")}>
+                    <StatusBadge label={n("ostatus", o.status.code, o.status.name)} tone={orderTone(o.status.code)} />
+                  </DataListCell>
+                  <DataListCell label={t("common.payment")} align="right">
+                    <StatusBadge label={t(`pay.${o.paymentStatus}`)} tone={payTone(o.paymentStatus)} />
+                  </DataListCell>
+                </DataListRow>
+              ))}
+            </ul>
+          </DataList>
         )}
-      </section>
+      </DashPanel>
     </div>
-  );
-}
-
-
-function Field({ name, label, defaultValue }: { name: string; label: string; defaultValue: string }) {
-  return (
-    <label className="block text-sm">
-      <span className="font-medium">{label}</span>
-      <input name={name} defaultValue={defaultValue} className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-    </label>
   );
 }

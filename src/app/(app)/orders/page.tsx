@@ -12,7 +12,7 @@ import {
   resolveOrderDateRange,
 } from "@core/shared/order-period";
 import { PageHeader } from "@/components/page-header";
-import { KpiCard } from "@/components/kpi-card";
+import { DashKpiGrid } from "@/components/dashboard/dashboard-system";
 import {
   DataList,
   DataListEmpty,
@@ -22,8 +22,10 @@ import {
   DataListPrimary,
   DataListRow,
   DataListCell,
+  DataTableSection,
   dataListStyles,
-} from "@/components/data-list";
+} from "@/components/data-table";
+import { ModuleToolbar } from "@/components/module/module-ui";
 import { StatusBadge, orderTone } from "@/components/status-badge";
 
 export default async function OrdersPage({
@@ -134,7 +136,7 @@ export default async function OrdersPage({
         ))}
       </div>
 
-      <form className="ui-card flex flex-wrap items-end gap-2 p-3" data-tour="orders-search">
+      <ModuleToolbar tour="orders-search">
         <input type="hidden" name="period" value={resolvedPeriod === "custom" ? "custom" : resolvedPeriod} />
         <label className="min-w-[8rem] flex-1 text-sm">
           <span className="ui-label">{t("orders.searchPh")}</span>
@@ -167,20 +169,27 @@ export default async function OrdersPage({
         <button type="submit" name="period" value="custom" className="ui-btn-secondary">
           {t("common.search")}
         </button>
-      </form>
+      </ModuleToolbar>
 
-      <div className="grid gap-2 sm:grid-cols-3">
-        <KpiCard label={t("orders.found")} value={String(total)} hint={periodLabel} tone="ink" />
-        <KpiCard label={t("orders.totalSum")} value={`${moneyDisplay(totalSum)} с`} hint={periodLabel} tone="in" />
-        <KpiCard
-          label={t("orders.pageOf")}
-          value={`${page} / ${totalPages}`}
-          hint={t("orders.perPage", { n: String(ORDERS_PAGE_SIZE) })}
-          tone="ink"
-        />
-      </div>
+      <DashKpiGrid cols="3">
+        <div className="ui-card px-3 py-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-muted)]">{t("orders.found")}</p>
+          <p className="mt-1 text-lg font-semibold tabular-nums">{total}</p>
+          <p className="text-[11px] text-[var(--color-text-muted)]">{periodLabel}</p>
+        </div>
+        <div className="ui-card px-3 py-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-muted)]">{t("orders.totalSum")}</p>
+          <p className="mt-1 text-lg font-semibold tabular-nums">{moneyDisplay(totalSum)} с</p>
+          <p className="text-[11px] text-[var(--color-text-muted)]">{periodLabel}</p>
+        </div>
+        <div className="ui-card px-3 py-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-muted)]">{t("orders.pageOf")}</p>
+          <p className="mt-1 text-lg font-semibold tabular-nums">{page} / {totalPages}</p>
+          <p className="text-[11px] text-[var(--color-text-muted)]">{t("orders.perPage", { n: String(ORDERS_PAGE_SIZE) })}</p>
+        </div>
+      </DashKpiGrid>
 
-      <section className="overflow-hidden ui-card" data-tour="orders-list">
+      <DataTableSection tour="orders-list">
         {orders.length === 0 ? (
           <DataListEmpty>{t("orders.empty")}</DataListEmpty>
         ) : (
@@ -251,7 +260,7 @@ export default async function OrdersPage({
             )}
           </div>
         ) : null}
-      </section>
+      </DataTableSection>
     </div>
   );
 }

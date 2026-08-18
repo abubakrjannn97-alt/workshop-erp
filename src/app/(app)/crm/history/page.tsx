@@ -6,7 +6,11 @@ import { requirePermission } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { orderNo } from "@core/shared/format";
 import { PageHeader } from "@/components/page-header";
+import { DashKpiGrid } from "@/components/dashboard/dashboard-system";
 import { KpiCard } from "@/components/kpi-card";
+import { FormField } from "@/components/form-field";
+import { DashPanel } from "@/components/dash-panel";
+import { ModuleToolbar } from "@/components/module/module-ui";
 import {
   DataList,
   DataListEmpty,
@@ -17,7 +21,7 @@ import {
   DataListRow,
   DataListCell,
   dataListStyles,
-} from "@/components/data-list";
+} from "@/components/data-table";
 import { StatusBadge, orderTone } from "@/components/status-badge";
 
 export default async function CrmHistoryPage({
@@ -88,26 +92,24 @@ export default async function CrmHistoryPage({
         }
       />
 
-      <form className="ui-card flex flex-wrap gap-2 p-3">
-        <label className="min-w-[12rem] flex-1 text-sm">
-          <span className="ui-label">{t("crm.searchCustomer")}</span>
-          <input
-            name="q"
-            defaultValue={q ?? ""}
-            placeholder={t("crm.searchCustomer")}
-            className="ui-input mt-1 w-full"
-          />
-        </label>
-        <button type="submit" className="ui-btn-secondary self-end">
-          {t("common.search")}
-        </button>
-      </form>
+      {!customerId ? (
+        <ModuleToolbar tour="crm-history-search">
+          <FormField label={t("crm.searchCustomer")} className="min-w-[12rem] flex-1">
+            <input
+              name="q"
+              defaultValue={q ?? ""}
+              placeholder={t("crm.searchCustomer")}
+              className="ui-input w-full"
+            />
+          </FormField>
+          <button type="submit" className="ui-btn-secondary min-h-[44px]">
+            {t("common.search")}
+          </button>
+        </ModuleToolbar>
+      ) : null}
 
       {!customerId ? (
-        <section className="ui-card overflow-hidden">
-          <div className="border-b border-[var(--line)] px-4 py-3">
-            <h2 className="text-sm font-semibold">{t("crm.pickCustomer")}</h2>
-          </div>
+        <DashPanel title={t("crm.pickCustomer")}>
           {customers.length === 0 ? (
             <DataListEmpty>{q?.trim() ? t("orders.empty") : t("crm.noCustomers")}</DataListEmpty>
           ) : (
@@ -121,7 +123,10 @@ export default async function CrmHistoryPage({
                   <DataListRow key={c.id} layout="cols2">
                     <DataListPrimary title={c.name} subtitle={c.phone ?? undefined} />
                     <DataListCell label={t("common.open")} align="right">
-                      <Link href={`/crm/history?customerId=${c.id}`} className="text-[12px] font-semibold text-[#0E1522] hover:underline">
+                      <Link
+                        href={`/crm/history?customerId=${c.id}`}
+                        className="text-[12px] font-semibold text-[#0E1522] hover:underline"
+                      >
                         {t("crm.purchaseHistory")} →
                       </Link>
                     </DataListCell>
@@ -130,7 +135,7 @@ export default async function CrmHistoryPage({
               </ul>
             </DataList>
           )}
-        </section>
+        </DashPanel>
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-2">
@@ -142,18 +147,15 @@ export default async function CrmHistoryPage({
             </Link>
           </div>
 
-          <div className="grid gap-2 sm:grid-cols-4">
+          <DashKpiGrid cols="4">
             <KpiCard label={t("home.col.customer")} value={customer!.name} tone="ink" />
             <KpiCard label={t("crm.purchases")} value={`${moneyDisplay(turnover)} с`} tone="in" />
             <KpiCard label={t("common.debt")} value={`${moneyDisplay(debt)} с`} tone="out" />
             <KpiCard label={t("crm.orderHistory")} value={String(customer!.orders.length)} tone="ink" />
-          </div>
+          </DashKpiGrid>
 
-          <section className="ui-card overflow-hidden">
-            <div className="border-b border-[var(--line)] px-4 py-3">
-              <h2 className="text-sm font-semibold">{t("crm.orderHistory")}</h2>
-              <p className="mt-1 text-[12px] text-[var(--muted)]">{t("orders.periodAll")}</p>
-            </div>
+          <DashPanel title={t("crm.orderHistory")}>
+            <p className="mb-3 text-[12px] text-[var(--muted)]">{t("orders.periodAll")}</p>
             {customer!.orders.length === 0 ? (
               <DataListEmpty>{t("crm.noOrders")}</DataListEmpty>
             ) : (
@@ -190,7 +192,7 @@ export default async function CrmHistoryPage({
                 </ul>
               </DataList>
             )}
-          </section>
+          </DashPanel>
         </>
       )}
     </div>

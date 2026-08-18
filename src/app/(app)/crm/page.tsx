@@ -10,6 +10,9 @@ import { D, moneyDisplay } from "@core/shared/decimal";
 import { RevealList } from "@/components/reveal-list";
 import { PageHeader } from "@/components/page-header";
 import { pipelineStageStyle } from "@core/shared/pipeline-stage-style";
+import { FormField } from "@/components/form-field";
+import { DashPanel } from "@/components/dash-panel";
+import { PendingButton } from "@/components/pending-button";
 import {
   DataList,
   DataListCell,
@@ -20,7 +23,7 @@ import {
   DataListPrimary,
   DataListRow,
   dataListStyles,
-} from "@/components/data-list";
+} from "@/components/data-table";
 import styles from "./crm.module.css";
 
 export default async function CrmPage() {
@@ -60,6 +63,7 @@ export default async function CrmPage() {
     <div className="page-stack">
       <PageHeader
         title={t("page.crm")}
+        description={t("crm.purchaseHistoryHint")}
         actions={
           <div className="flex flex-wrap gap-2">
             <Link href="/crm/history" className="ui-btn-secondary">
@@ -73,36 +77,61 @@ export default async function CrmPage() {
       />
       {canManage ? (
         <div className="grid gap-4 lg:grid-cols-2">
-          <form action={customerAction} className="space-y-2 ui-card p-4" data-tour="crm-new">
-            <h2 className="text-sm font-semibold">{t("crm.newCustomer")}</h2>
-            <input name="name" required placeholder={t("crm.fioCompany")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-            <input name="phone" placeholder={t("common.phone")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-            <input name="whatsapp" placeholder={t("common.whatsapp")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-            <input name="address" placeholder={t("common.address")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-            <input name="source" placeholder={t("common.source")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-            <textarea name="comment" placeholder={t("common.comment")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-            <button className="ui-btn-primary">{t("common.save")}</button>
-          </form>
-          <form action={leadAction} className="space-y-2 ui-card p-4" data-tour="crm-lead">
-            <h2 className="text-sm font-semibold">{t("crm.newLead")}</h2>
-            <input name="name" required placeholder={t("crm.leadName")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-            <input name="phone" placeholder={t("common.phone")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-            <select name="customerId" className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm">
-              <option value="">{t("crm.noCustomerCard")}</option>
-              {customers.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            <textarea name="comment" placeholder={t("common.comment")} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-            <button className="ui-btn-primary">{t("crm.toPipeline")}</button>
-          </form>
+          <DashPanel title={t("crm.newCustomer")} tour="crm-new">
+            <form action={customerAction} className="grid gap-3">
+              <FormField label={t("crm.fioCompany")}>
+                <input name="name" required placeholder={t("crm.fioCompany")} className="ui-input" />
+              </FormField>
+              <FormField label={t("common.phone")}>
+                <input name="phone" placeholder={t("common.phone")} className="ui-input" />
+              </FormField>
+              <FormField label={t("common.whatsapp")}>
+                <input name="whatsapp" placeholder={t("common.whatsapp")} className="ui-input" />
+              </FormField>
+              <FormField label={t("common.address")}>
+                <input name="address" placeholder={t("common.address")} className="ui-input" />
+              </FormField>
+              <FormField label={t("common.source")}>
+                <input name="source" placeholder={t("common.source")} className="ui-input" />
+              </FormField>
+              <FormField label={t("common.comment")}>
+                <textarea name="comment" placeholder={t("common.comment")} className="ui-input min-h-[4rem]" />
+              </FormField>
+              <PendingButton className="ui-btn-primary min-h-[44px]" pendingLabel={t("common.sending")}>
+                {t("common.save")}
+              </PendingButton>
+            </form>
+          </DashPanel>
+          <DashPanel title={t("crm.newLead")} tour="crm-lead">
+            <form action={leadAction} className="grid gap-3">
+              <FormField label={t("crm.leadName")}>
+                <input name="name" required placeholder={t("crm.leadName")} className="ui-input" />
+              </FormField>
+              <FormField label={t("common.phone")}>
+                <input name="phone" placeholder={t("common.phone")} className="ui-input" />
+              </FormField>
+              <FormField label={t("crm.noCustomerCard")}>
+                <select name="customerId" className="ui-input">
+                  <option value="">{t("crm.noCustomerCard")}</option>
+                  {customers.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+              <FormField label={t("common.comment")}>
+                <textarea name="comment" placeholder={t("common.comment")} className="ui-input min-h-[4rem]" />
+              </FormField>
+              <PendingButton className="ui-btn-primary min-h-[44px]" pendingLabel={t("common.sending")}>
+                {t("crm.toPipeline")}
+              </PendingButton>
+            </form>
+          </DashPanel>
         </div>
       ) : null}
 
-      <section data-tour="crm-pipeline">
-        <h2 className="mb-3 text-sm font-semibold">{t("crm.pipeline")}</h2>
+      <DashPanel title={t("crm.pipeline")} tour="crm-pipeline">
         <div className={`${styles.pipelineTrack} ui-scroll`}>
           {stages.map((stage) => {
             const column = leads.filter((l) => l.stageId === stage.id);
@@ -163,12 +192,9 @@ export default async function CrmPage() {
             );
           })}
         </div>
-      </section>
+      </DashPanel>
 
-      <section className="ui-card overflow-hidden">
-        <div className="border-b border-[var(--line)] px-5 py-3">
-          <h2 className="text-sm font-semibold">{t("crm.customers")}</h2>
-        </div>
+      <DashPanel title={t("crm.customers")} tour="crm-customers">
         {customers.length === 0 ? (
           <DataListEmpty>{t("crm.noCustomers")}</DataListEmpty>
         ) : (
@@ -201,7 +227,7 @@ export default async function CrmPage() {
             </RevealList>
           </DataList>
         )}
-      </section>
+      </DashPanel>
     </div>
   );
 }
