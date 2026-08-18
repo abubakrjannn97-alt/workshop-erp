@@ -1,11 +1,4 @@
-import {
-  Landmark,
-  Bell,
-  Zap,
-  ClipboardList,
-  Wallet,
-  FileText,
-} from "lucide-react";
+import Link from "next/link";
 import { prisma } from "@core/infrastructure/prisma";
 import { requireSession } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
@@ -13,59 +6,16 @@ import { FUND, fundDelta } from "@core/finance/finance";
 import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@core/inventory/alerts";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import { PageHeader } from "@/components/page-header";
-import { StatisticsCards } from "@/components/dashboard/StatisticsCards";
-import type { StatisticsCardData, StatisticsCardTrend } from "@/components/dashboard/StatisticsCards";
-import { DashPanel } from "@/components/dash-panel";
 import { FundRow } from "@/components/fund-row";
 import {
   buildOwnerDashAlerts,
   DashAlertList,
-  DashQuickActionsDesktop,
+  DashMetricStrip,
   DashRecentOrders,
   DashRecentOrdersAction,
-  ownerQuickActions,
-  ownerSecondaryActions,
+  DashSection,
 } from "@/components/dashboard/dashboard-system";
-import {
-  DataList,
-  DataListHead,
-  DataListHeadCell,
-} from "@/components/data-table";
-
-const CARD_ICON = { size: 13, strokeWidth: 1.7, "aria-hidden": true } as const;
-
-function moneyCard(value: { toString(): string }) {
-  const [int, frac] = D(value).toDecimalPlaces(2).toFixed(2).split(".");
-  const spaced = int.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-  return `${spaced}.${frac} с`;
-}
-
-function cardTrend(
-  now: { toString(): string },
-  prev: { toString(): string },
-  label: string,
-): StatisticsCardTrend {
-  const a = D(String(now));
-  const b = D(String(prev));
-
-  if (b.eq(0)) {
-    if (a.eq(0)) {
-      return { value: "0.0%", direction: "up", label };
-    }
-    return { value: "100%", direction: "up", label };
-  }
-
-  const pct = Number(a.sub(b).div(b).mul(100).toFixed(1));
-  return {
-    value: `${Math.abs(pct).toFixed(Math.abs(pct) >= 10 ? 0 : 1)}%`,
-    direction: pct >= 0 ? "up" : "down",
-    label,
-  };
-}
-
-function orderDebt(o: { total: unknown; paidAmount: unknown }) {
-  return D(String(o.total)).sub(String(o.paidAmount));
-}
+import styles from "@/components/dashboard/dash-home.module.css";
 
 export async function DesktopHome() {
   await requireSession();
@@ -73,30 +23,10 @@ export async function DesktopHome() {
   const monthStart = new Date();
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
-  const prevStart = new Date(monthStart);
-  prevStart.setMonth(prevStart.getMonth() - 1);
 
-  const [
-    monthOrders,
-    prevOrders,
-    unpaid,
-    overdue,
-    lowMaterials,
-    funds,
-    entries,
-    purchaseOrders,
-    cover,
-    recentOrders,
-  ] = await Promise.all([
+  const [monthOrders, unpaid, overdue, lowMaterials, funds, entries, cover, recentOrders] = await Promise.all([
     prisma.order.findMany({
       where: { createdAt: { gte: monthStart }, status: { code: { not: "CANCELLED" } } },
-      include: { payments: true },
-    }),
-    prisma.order.findMany({
-      where: {
-        createdAt: { gte: prevStart, lt: monthStart },
-        status: { code: { not: "CANCELLED" } },
-      },
       include: { payments: true },
     }),
     prisma.order.findMany({
@@ -118,50 +48,21 @@ export async function DesktopHome() {
     }),
     prisma.financialFund.findMany({ orderBy: { sortOrder: "asc" } }),
     prisma.ledgerEntry.findMany({ where: { status: "POSTED" }, orderBy: { createdAt: "desc" } }),
-    prisma.purchaseOrder.findMany({ where: { status: { not: "CANCELLED" } } }),
     coverageAndPurchaseNeed(),
     prisma.order.findMany({
       include: { customer: true, status: true },
       orderBy: { createdAt: "desc" },
-      take: 20,
+      take: 8,
     }),
   ]);
   await refreshOwnerAlerts();
 
   const sold = monthOrders.reduce((s, o) => s.add(String(o.total)), D(0));
-  const received = monthOrders.reduce(
-    (s, o) => s.add(o.payments.reduce((p, pay) => p.add(String(pay.amount)), D(0))),
-    D(0),
-  );
-  const prevSold = prevOrders.reduce((s, o) => s.add(String(o.total)), D(0));
-  const prevReceived = prevOrders.reduce(
-    (s, o) => s.add(o.payments.reduce((p, pay) => p.add(String(pay.amount)), D(0))),
-    D(0),
-  );
   const clientDebt = unpaid.reduce((s, o) => s.add(D(String(o.total)).sub(o.paidAmount)), D(0));
-  const weOwe = purchaseOrders.reduce((s, o) => s.add(D(String(o.total)).sub(o.paidAmount)), D(0));
   const profitFund = funds.find((f) => f.code === FUND.PROFIT);
   const profit = profitFund
     ? entries.reduce((s, e) => s.add(fundDelta(e, profitFund.id)), D(0))
     : D(0);
-  const profitThisMonth = profitFund
-    ? entries
-        .filter((e) => e.createdAt >= monthStart)
-        .reduce((s, e) => s.add(fundDelta(e, profitFund.id)), D(0))
-    : D(0);
-  const profitPrevMonth = profitFund
-    ? entries
-        .filter((e) => e.createdAt >= prevStart && e.createdAt < monthStart)
-        .reduce((s, e) => s.add(fundDelta(e, profitFund.id)), D(0))
-    : D(0);
-  const debtFromThisMonth = monthOrders.reduce((s, o) => {
-    const due = orderDebt(o);
-    return due.gt(0) ? s.add(due) : s;
-  }, D(0));
-  const debtFromPrevMonth = prevOrders.reduce((s, o) => {
-    const due = orderDebt(o);
-    return due.gt(0) ? s.add(due) : s;
-  }, D(0));
   const fundBalances = funds.map((f) => ({
     ...f,
     balance: entries.reduce((s, e) => s.add(fundDelta(e, f.id)), D(0)),
@@ -180,99 +81,43 @@ export async function DesktopHome() {
     purchaseNeedCount: cover.purchaseNeed.length,
   });
 
-  const vsPrev = t("home.vsPrev");
-  const cards: StatisticsCardData[] = [
-    {
-      id: "sales",
-      title: t("home.sold"),
-      value: moneyCard(sold),
-      subtitle: t("home.period"),
-      accent: "gold",
-      icon: <Wallet {...CARD_ICON} />,
-      trend: cardTrend(sold, prevSold, vsPrev),
-    },
-    {
-      id: "received",
-      title: t("home.received"),
-      value: moneyCard(received),
-      subtitle: t("home.period"),
-      accent: "gold",
-      icon: <Wallet {...CARD_ICON} />,
-      trend: cardTrend(received, prevReceived, vsPrev),
-    },
-    {
-      id: "client-debt",
-      title: t("home.clientDebt"),
-      value: moneyCard(clientDebt),
-      subtitle: `${t("home.weOwe")} ${moneyCard(weOwe)}`,
-      accent: "red",
-      icon: <FileText {...CARD_ICON} />,
-      trend: cardTrend(debtFromThisMonth, debtFromPrevMonth, vsPrev),
-    },
-    {
-      id: "withdrawable",
-      title: t("home.withdrawable"),
-      value: moneyCard(profit),
-      subtitle: t("home.profitFund"),
-      accent: "gold",
-      icon: <Landmark {...CARD_ICON} />,
-      trend: cardTrend(profitThisMonth, profitPrevMonth, vsPrev),
-    },
-  ];
-
   return (
     <div className="page-stack">
-      <PageHeader title={t("home.title")} description={t("home.greetSub")} />
-      <StatisticsCards cards={cards} />
+      <PageHeader
+        title={t("home.title")}
+        description={t("home.greetSub")}
+        actions={
+          <Link href="/orders/new" className="ui-btn-primary">
+            {t("sales.newOrder")}
+          </Link>
+        }
+      />
 
-      <div className="grid grid-cols-1 items-start gap-2 lg:grid-cols-5" data-tour="home-work">
-        <DashPanel title={t("home.attention")} icon={Bell} className="lg:col-span-2" tour="home-attention">
-          <DashAlertList
-            alerts={alerts}
-            empty={t("home.noAlerts")}
-            moreLabel={t("home.seeAll")}
-            lessLabel={t("home.hide")}
-          />
-        </DashPanel>
+      <DashMetricStrip
+        tour="home-income"
+        metrics={[
+          { id: "sales", label: t("home.sold"), value: `${moneyDisplay(sold)} с`, hint: t("home.period") },
+          { id: "debt", label: t("home.needPay"), value: `${moneyDisplay(clientDebt)} с` },
+          { id: "free", label: t("home.withdrawable"), value: `${moneyDisplay(profit)} с`, hint: t("home.profitFund") },
+        ]}
+      />
 
-        <DashPanel title={t("home.quickActions")} icon={Zap} className="lg:col-span-3" tour="home-shortcuts">
-          <DashQuickActionsDesktop
-            primary={ownerQuickActions(t)}
-            secondary={ownerSecondaryActions(t)}
-          />
-        </DashPanel>
-      </div>
+      <DashSection title={t("home.attention")} tour="home-attention">
+        <DashAlertList
+          alerts={alerts}
+          empty={t("home.noAlerts")}
+          moreLabel={t("home.seeAll")}
+          lessLabel={t("home.hide")}
+          openLabel={t("home.open")}
+        />
+      </DashSection>
 
-      <div className="grid grid-cols-1 items-start gap-2 lg:grid-cols-5">
-        <DashPanel title={t("home.funds")} icon={Landmark} className="lg:col-span-2">
-          <DataList layout="cols2">
-            <DataListHead layout="cols2">
-              <DataListHeadCell>{t("home.col.fund")}</DataListHeadCell>
-              <DataListHeadCell align="right">{t("home.col.balance")}</DataListHeadCell>
-            </DataListHead>
-            <ul className="ui-list ui-fund-list">
-              {fundBalances.map((f) => (
-                <FundRow
-                  key={f.id}
-                  code={f.code}
-                  label={n("fund", f.code, f.name)}
-                  amount={`${moneyDisplay(f.balance)} с`}
-                  highlight={f.code === FUND.PROFIT}
-                />
-              ))}
-            </ul>
-          </DataList>
-        </DashPanel>
-
-        <DashPanel
+      <div className={styles.split}>
+        <DashSection
           title={t("home.recentOrders")}
-          icon={ClipboardList}
-          className="lg:col-span-3"
           tour="home-orders"
           action={
-            <DashRecentOrdersAction href="/orders?period=month">
-              {t("page.orders")} →
-            </DashRecentOrdersAction>
+            <DashRecentOrdersAction href="/orders?period=month">{t("home.allOrders")} →</DashRecentOrdersAction>
           }
         >
           <DashRecentOrders
@@ -284,7 +129,21 @@ export async function DesktopHome() {
             n={n}
             locale={loc}
           />
-        </DashPanel>
+        </DashSection>
+
+        <DashSection title={t("home.funds")}>
+          <ul>
+            {fundBalances.map((f) => (
+              <FundRow
+                key={f.id}
+                code={f.code}
+                label={n("fund", f.code, f.name)}
+                amount={`${moneyDisplay(f.balance)} с`}
+                highlight={f.code === FUND.PROFIT}
+              />
+            ))}
+          </ul>
+        </DashSection>
       </div>
     </div>
   );

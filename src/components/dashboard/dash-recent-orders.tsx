@@ -105,7 +105,7 @@ export function DashRecentOrders({
 
 export function DashRecentOrdersAction({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <Link href={href} className="text-[11px] font-semibold text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]">
+    <Link href={href} className="text-[13px] font-semibold text-[var(--ink-2)] hover:text-[var(--ink)]">
       {children}
     </Link>
   );

@@ -7,8 +7,9 @@ import {
   Truck,
   ChartColumn,
 } from "lucide-react";
-import { QuickAction } from "@/components/quick-action";
-import styles from "./dash-quick-actions.module.css";
+import Link from "next/link";
+import { ICON_STROKE } from "@/components/nav-icons";
+import styles from "./dash-home.module.css";
 
 export type DashQuickAction = {
   href: string;
@@ -34,39 +35,40 @@ export function ownerSecondaryActions(t: (key: string) => string): DashQuickActi
 
 export function DashQuickActionsDesktop({
   primary,
-  secondary = [],
 }: {
   primary: DashQuickAction[];
   secondary?: DashQuickAction[];
 }) {
   return (
-    <div className="grid grid-cols-2 gap-2">
-      {primary.map((a) => (
-        <QuickAction key={a.href} href={a.href} label={a.label} icon={a.icon} />
+    <ul>
+      {primary.map((action) => (
+        <li key={action.href}>
+          <Link href={action.href} className={styles.row}>
+            <action.icon size={20} strokeWidth={ICON_STROKE} aria-hidden />
+            <span className={styles.rowTitle}>{action.label}</span>
+            <span className={styles.rowGo}>→</span>
+          </Link>
+        </li>
       ))}
-      {secondary.map((a) => (
-        <QuickAction key={a.href} href={a.href} label={a.label} icon={a.icon} />
-      ))}
-    </div>
+    </ul>
   );
 }
 
 export function DashQuickActionsMobile({ actions }: { actions: DashQuickAction[] }) {
   return (
-    <div className={styles.strip}>
-      <div className={`${styles.row} no-scrollbar snap-x`}>
-        {actions.map((a) => {
-          const Icon = a.icon;
-          return (
-            <a key={a.href} href={a.href} className={`${styles.chip} snap-start`}>
-              <span className={styles.chipIcon}>
-                <Icon size={18} strokeWidth={2} aria-hidden />
-              </span>
-              <span className={styles.chipLabel}>{a.label}</span>
-            </a>
-          );
-        })}
-      </div>
-    </div>
+    <ul>
+      {actions.map((action) => {
+        const Icon = action.icon;
+        return (
+          <li key={action.href}>
+            <Link href={action.href} className={styles.row}>
+              <Icon size={20} strokeWidth={ICON_STROKE} aria-hidden />
+              <span className={styles.rowTitle}>{action.label}</span>
+              <span className={styles.rowGo}>→</span>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

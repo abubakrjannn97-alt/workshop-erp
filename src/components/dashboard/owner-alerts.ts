@@ -47,8 +47,8 @@ export function buildOwnerDashAlerts({
     alerts.push({
       id: `overdue-${o.id}`,
       href: `/orders/${o.id}`,
-      title: `${t("home.alert.overdue")} ${orderNo(String(o.number))}`,
-      subtitle: o.customer.name,
+      title: `${orderNo(String(o.number))} · ${o.customer.name}`,
+      subtitle: t("home.alert.overdue"),
       tone: "warning",
     });
   }
@@ -58,8 +58,8 @@ export function buildOwnerDashAlerts({
     alerts.push({
       id: `debt-${o.id}`,
       href: `/orders/${o.id}`,
-      title: `${t("home.alert.debt")} ${orderNo(String(o.number))}`,
-      subtitle: o.customer.name,
+      title: `${orderNo(String(o.number))} · ${o.customer.name}`,
+      subtitle: t("home.needPay"),
       amount: `${moneyDisplay(due)} с`,
       tone: "critical",
     });
@@ -70,8 +70,8 @@ export function buildOwnerDashAlerts({
     alerts.push({
       id: `stock-${m.id}`,
       href: "/warehouse",
-      title: t("home.alert.stock"),
-      subtitle: `${m.name} · ${qtyDisplay(onHand)} ${m.storageUnit.symbol}`,
+      title: m.name,
+      subtitle: `${t("home.lowStock")} · ${qtyDisplay(onHand)} ${m.storageUnit.symbol}`,
       tone: "warning",
     });
   }
