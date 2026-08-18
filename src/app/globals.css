@@ -16,6 +16,17 @@
   --color-surface-soft: #f9fafb;
   --color-surface-muted: #f8fafc;
 
+  /* Phase 5.1 semantic aliases */
+  --color-bg: var(--color-background);
+  --color-surface-elevated: var(--color-surface-soft);
+  --color-border-strong: #d0d5dd;
+  --color-text: var(--color-text-primary);
+  --color-text-subtle: var(--color-text-muted);
+  --color-primary: var(--color-navy);
+  --color-primary-foreground: var(--color-text-on-dark);
+  --color-accent: var(--color-gold);
+  --color-focus: var(--color-gold);
+
   /* Borders */
   --color-border: #e5e7eb;
   --color-border-soft: #eef0f3;
@@ -92,10 +103,10 @@
   --info-color: var(--color-info);
 
   /* Spacing / radius / shadow */
-  --radius-sm: 8px;
+  --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 12px;
-  --radius-xl: 14px;
+  --radius-xl: 16px;
   --shadow-xs: 0 1px 2px rgba(14, 21, 34, 0.04);
   --shadow-sm: 0 2px 6px rgba(14, 21, 34, 0.04);
   --shadow-md: 0 4px 12px rgba(14, 21, 34, 0.05);
@@ -177,6 +188,24 @@ body {
   font-size: 14px;
   line-height: 1.5;
   font-weight: 400;
+}
+
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-skeleton,
+  .loading-spinner {
+    animation: none !important;
+  }
 }
 
 * {
@@ -339,18 +368,33 @@ main::-webkit-scrollbar-corner,
 
   .ui-btn {
     @apply inline-flex items-center justify-center gap-1.5 font-semibold;
-    height: 32px;
-    padding: 0 12px;
+    min-height: 40px;
+    height: 40px;
+    padding: 0 14px;
     border-radius: var(--radius-md);
-    font-size: 12px;
+    font-size: 13px;
+    line-height: 1.25;
     transition: background var(--transition), color var(--transition), border-color var(--transition),
-      opacity var(--transition), transform var(--transition);
+      opacity var(--transition), transform var(--transition), box-shadow var(--transition);
   }
-  .ui-btn:disabled {
+  .ui-btn:disabled,
+  .ui-btn[aria-busy="true"] {
     opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
   }
-  .ui-btn:hover:not(:disabled) {
+  .ui-btn:hover:not(:disabled):not([aria-busy="true"]) {
     transform: translateY(-1px);
+  }
+  .ui-btn:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+  .ui-btn-icon {
+    @apply ui-btn;
+    width: 44px;
+    min-width: 44px;
+    padding: 0;
   }
   .ui-btn-primary {
     @apply ui-btn;
@@ -396,6 +440,20 @@ main::-webkit-scrollbar-corner,
   .ui-btn-danger:hover:not(:disabled) {
     background: var(--bad-soft);
   }
+  .ui-btn-tertiary {
+    @apply ui-btn;
+    border: none;
+    background: transparent;
+    color: var(--color-primary);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    box-shadow: none;
+  }
+  .ui-btn-tertiary:hover:not(:disabled) {
+    background: var(--color-surface-muted);
+    text-decoration: underline;
+  }
 
   .ui-chip {
     @apply inline-flex items-center rounded-full px-3 py-1 text-[13px] font-medium;
@@ -415,18 +473,41 @@ main::-webkit-scrollbar-corner,
   }
 
   .ui-input {
-    @apply w-full text-sm outline-none;
-    height: 32px;
-    padding: 0 10px;
+    @apply w-full outline-none;
+    min-height: 40px;
+    height: 40px;
+    padding: 0 12px;
     border-radius: var(--radius-md);
     border: 1px solid var(--color-border-input);
     background: var(--color-surface);
     color: var(--color-text-primary);
-    font-size: 12px;
+    font-size: 14px;
+    line-height: 1.25;
+    transition: border-color var(--transition), box-shadow var(--transition);
   }
-  .ui-input:focus {
+  .ui-input:hover:not(:disabled):not([readonly]) {
+    border-color: var(--color-border-strong);
+  }
+  .ui-input:focus-visible {
     border-color: var(--color-gold);
     box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.18);
+    outline: 2px solid var(--color-focus);
+    outline-offset: 1px;
+  }
+  .ui-input:disabled,
+  .ui-input[aria-disabled="true"] {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: var(--color-surface-muted);
+  }
+  .ui-input[readonly] {
+    background: var(--color-surface-soft);
+    cursor: default;
+  }
+  .ui-input-error,
+  .ui-input[aria-invalid="true"] {
+    border-color: var(--color-danger);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
   }
   textarea.ui-input {
     height: auto;
@@ -437,7 +518,13 @@ main::-webkit-scrollbar-corner,
     @apply mb-1.5 block;
     font-size: 13px;
     font-weight: 600;
+    line-height: 1.25;
     color: #344054;
+  }
+  .ui-label-required::after {
+    content: " *";
+    color: var(--color-danger);
+    font-weight: 600;
   }
   input::placeholder,
   textarea::placeholder {
@@ -552,6 +639,153 @@ main::-webkit-scrollbar-corner,
     display: flex;
     flex-direction: column;
     gap: 8px;
+  }
+
+  /* Phase 5.1 typography scale */
+  .text-display {
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .text-h1 {
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .text-h2 {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+  }
+  .text-h3 {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+  }
+  .text-body {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+  }
+  .text-small {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 400;
+  }
+  .text-caption {
+    font-size: 11px;
+    line-height: 14px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .ui-num {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+
+  .ui-skeleton {
+    animation: ui-skeleton-pulse 1.5s ease-in-out infinite;
+    border-radius: var(--radius-md);
+    background: linear-gradient(
+      90deg,
+      var(--color-surface-muted) 0%,
+      var(--color-surface-soft) 50%,
+      var(--color-surface-muted) 100%
+    );
+    background-size: 200% 100%;
+  }
+  @keyframes ui-skeleton-pulse {
+    0% {
+      background-position: 100% 0;
+    }
+    100% {
+      background-position: -100% 0;
+    }
+  }
+
+  .error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 24px 16px;
+    text-align: center;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+  }
+  .error-state-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+  .error-state-desc {
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--color-text-muted);
+    max-width: 28rem;
+  }
+  .loading-state {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--color-text-muted);
+  }
+  .loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: ui-spin 0.8s linear infinite;
+  }
+  @keyframes ui-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .ui-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(14, 21, 34, 0.45);
+  }
+  .ui-dialog {
+    position: fixed;
+    z-index: 101;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(420px, calc(100vw - 32px));
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-md);
+    padding: 20px;
+  }
+}
+
+@media (max-width: 639px) {
+  .ui-btn:not(.ui-btn-icon) {
+    min-height: 44px;
+    height: 44px;
+  }
+  .ui-input,
+  main input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]),
+  main select {
+    min-height: 44px;
+    height: 44px;
+  }
+  textarea.ui-input,
+  main textarea {
+    height: auto;
+    min-height: 88px;
   }
 }
 

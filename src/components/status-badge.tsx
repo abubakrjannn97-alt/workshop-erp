@@ -1,7 +1,30 @@
-export type BadgeTone = "good" | "bad" | "warn" | "info" | "neutral";
+export type BadgeTone =
+  | "good"
+  | "bad"
+  | "warn"
+  | "info"
+  | "neutral"
+  | "success"
+  | "danger"
+  | "warning";
+
+const TONE_CLASS: Record<BadgeTone, string> = {
+  good: "st-good",
+  success: "st-good",
+  bad: "st-bad",
+  danger: "st-bad",
+  warn: "st-warn",
+  warning: "st-warn",
+  info: "st-info",
+  neutral: "st-neutral",
+};
 
 export function StatusBadge({ label, tone = "neutral" }: { label: string; tone?: BadgeTone }) {
-  return <span className={`st-badge st-${tone}`}>{label}</span>;
+  return (
+    <span className={`st-badge ${TONE_CLASS[tone]}`} aria-label={label}>
+      {label}
+    </span>
+  );
 }
 
 export function payTone(status: string): BadgeTone {
