@@ -37,6 +37,8 @@ describe("domain registry", () => {
     assert.equal(entry!.seed.seedExport, "seedFacadeDomain");
     assert.equal(entry!.seed.seedModule, "domains/facade");
     assert.match(entry!.seed.runScript, /run-domain-facade/);
+    assert.equal(entry!.seed.demoModule, "demo/facade-history");
+    assert.equal(entry!.seed.demoExport, "seedFacadeDemo");
   });
 
   it("lists all registered entries", () => {

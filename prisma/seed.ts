@@ -1,10 +1,13 @@
 import { createSeedClient } from "./seeds/client";
-import { seedWorkshopFacade } from "./seeds/index";
+import { seedWorkshop } from "./seeds/orchestrator";
 
 const prisma = createSeedClient();
 
-seedWorkshopFacade(prisma)
-  .then(async () => {
+seedWorkshop(prisma)
+  .then(async (result) => {
+    console.log(
+      `Seed OK: domain=${result.domainId} demo=${result.demoSeeded ? "yes" : "no"} (WORKSHOP_DOMAIN=${process.env.WORKSHOP_DOMAIN ?? "default"})`,
+    );
     await prisma.$disconnect();
   })
   .catch(async (error) => {

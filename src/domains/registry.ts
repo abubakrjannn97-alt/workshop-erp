@@ -31,6 +31,8 @@ export type DomainSeedMeta = {
   seedExport: string;
   seedModule: string;
   runScript: string;
+  demoModule?: string;
+  demoExport?: string;
 };
 
 export type DomainRegistryEntry = {
@@ -66,6 +68,8 @@ export const DOMAIN_REGISTRY: Record<string, DomainRegistryEntry> = {
       seedExport: "seedFacadeDomain",
       seedModule: "domains/facade",
       runScript: "prisma/seeds/run-domain-facade.ts",
+      demoModule: "demo/facade-history",
+      demoExport: "seedFacadeDemo",
     },
   },
 };

@@ -5,7 +5,7 @@ const prisma = createSeedClient();
 
 seedDomainOnly(prisma)
   .then(async ({ domainId }) => {
-    console.log(`${domainId} domain seed OK.`);
+    console.log(`${domainId} domain seed OK (WORKSHOP_DOMAIN=${process.env.WORKSHOP_DOMAIN ?? "default"}).`);
     await prisma.$disconnect();
   })
   .catch(async (error) => {
