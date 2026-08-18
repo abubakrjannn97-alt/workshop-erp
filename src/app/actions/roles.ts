@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
 
 export async function updateRolePermissions(formData: FormData) {

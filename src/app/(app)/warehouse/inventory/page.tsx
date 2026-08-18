@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/page-header";
 import { getTranslator, intlLocale } from "@/lib/locale";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
 import { WarehouseNav } from "@/components/warehouse-nav";
 import { createInventoryCount } from "@/app/actions/inventory";
 

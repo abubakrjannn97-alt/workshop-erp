@@ -5,7 +5,7 @@ import {
   recordLoginFailure,
   recordLoginSuccess,
   resetLoginGuardState,
-} from "../src/lib/login-guard";
+} from "../src/core/auth/login-guard";
 import { resetRateLimitState } from "../src/core/shared/rate-limit";
 
 describe("login-guard", () => {

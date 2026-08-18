@@ -1,7 +1,7 @@
 import { getTranslator, intlLocale } from "@/lib/locale";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
 import { PageHeader } from "@/components/page-header";
 
 export default async function AuditPage() {

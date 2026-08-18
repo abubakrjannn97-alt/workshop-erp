@@ -1,8 +1,8 @@
 import { getTranslator } from "@/lib/locale";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
-import { hasPermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
+import { hasPermission } from "@core/auth/authz";
 import { createOrder } from "@/app/actions/orders";
 import { OrderForm } from "../order-form";
 import { discountLimitPercent } from "@core/orders/orders";

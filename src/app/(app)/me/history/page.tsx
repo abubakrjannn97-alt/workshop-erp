@@ -1,4 +1,4 @@
-import { requirePermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
 import { prisma } from "@/lib/prisma";
 import { qtyDisplay } from "@core/shared/decimal";
 import { getTranslator, intlLocale } from "@/lib/locale";

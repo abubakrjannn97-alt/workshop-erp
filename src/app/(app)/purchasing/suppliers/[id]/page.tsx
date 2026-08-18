@@ -3,7 +3,7 @@ import { getTranslator, intlLocale } from "@/lib/locale";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
 import { moneyDisplay } from "@core/shared/decimal";
 import { D } from "@core/shared/decimal";
 

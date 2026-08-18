@@ -1,6 +1,6 @@
 import { getTranslator } from "@/lib/locale";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
 import { DEFAULT_SETTINGS, SETTING_KEYS } from "@/lib/settings";
 import { renameLeadStage, renameOrderStatus, updateBusinessSettings } from "@/app/actions/settings";
 import Link from "next/link";

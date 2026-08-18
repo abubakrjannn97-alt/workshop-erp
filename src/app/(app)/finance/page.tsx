@@ -1,7 +1,7 @@
 import { getTranslator, intlLocale } from "@/lib/locale";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
-import { hasPermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
+import { hasPermission } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { cashDelta, fundDelta, FUND } from "@core/finance/finance";
 import { createExpense, createExpenseCategory, createObligation, transferCash } from "@/app/actions/finance";

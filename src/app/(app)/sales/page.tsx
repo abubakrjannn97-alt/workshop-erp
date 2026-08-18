@@ -1,8 +1,8 @@
 import { getTranslator } from "@/lib/locale";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
-import { hasPermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
+import { hasPermission } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { intlLocale } from "@/lib/i18n";
 import { KpiCard } from "@/components/kpi-card";

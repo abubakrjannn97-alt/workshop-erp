@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { hasPermission } from "@/lib/authz";
+import { hasPermission } from "@core/auth/authz";
 import type { PermissionCode } from "@core/rbac/permissions";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 

@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/page-header";
 import { getTranslator } from "@/lib/locale";
 import { readFile } from "fs/promises";
 import path from "path";
-import { requirePermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
 
 type Entry = { at?: string; file?: string; ok?: boolean; error?: string; size?: number };
 

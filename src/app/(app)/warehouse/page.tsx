@@ -1,7 +1,7 @@
 import { PageHeader } from "@/components/page-header";
 import { getTranslator } from "@/lib/locale";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
 import { WarehouseNav } from "@/components/warehouse-nav";
 import { UiTable } from "@/components/ui-table";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";

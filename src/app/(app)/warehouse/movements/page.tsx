@@ -1,6 +1,6 @@
 import { getTranslator, intlLocale } from "@/lib/locale";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
 import { WarehouseNav } from "@/components/warehouse-nav";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { reverseStockMovement } from "@/app/actions/inventory";

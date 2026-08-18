@@ -1,5 +1,5 @@
 import { CashShiftControl } from "@/components/cash-shift-control";
-import { hasPermission } from "@/lib/authz";
+import { hasPermission } from "@core/auth/authz";
 import { getCashShiftBarData } from "@/lib/cash-shift-data";
 import type { Locale } from "@/lib/i18n";
 

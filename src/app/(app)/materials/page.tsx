@@ -3,7 +3,7 @@ import { FormField } from "@/components/form-field";
 import { getTranslator } from "@/lib/locale";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
 import { CatalogNav } from "@/components/catalog-nav";
 import { createMaterial, archiveMaterial } from "@/app/actions/materials";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";

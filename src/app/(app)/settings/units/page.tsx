@@ -1,7 +1,7 @@
 import { getTranslator } from "@/lib/locale";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
 import { archiveUnit, createUnit, updateUnit } from "@/app/actions/units";
 import { PageHeader } from "@/components/page-header";
 import { FormField } from "@/components/form-field";

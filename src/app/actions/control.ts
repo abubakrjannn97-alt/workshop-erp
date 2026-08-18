@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requirePermission, requireSession } from "@/lib/authz";
+import { requirePermission, requireSession } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money } from "@core/shared/decimal";
 import { canSelfApprove, notifyRoles, queueApproval } from "@core/control/control";

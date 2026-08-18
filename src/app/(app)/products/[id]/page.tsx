@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/page-header";
 import { getTranslator, intlLocale } from "@/lib/locale";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
 import { updateProduct } from "@/app/actions/products";
 import { CatalogNav } from "@/components/catalog-nav";
 import { materialCostForRecipe } from "@core/costing/costing";

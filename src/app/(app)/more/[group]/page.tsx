@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { requireSession } from "@/lib/authz";
+import { requireSession } from "@core/auth/authz";
 import { getTranslator } from "@/lib/locale";
 import { PageHeader } from "@/components/page-header";
 import { isMoreGroupId, moreGroupsForRole } from "@/lib/nav";

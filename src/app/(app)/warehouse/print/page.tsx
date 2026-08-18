@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { PrintFrame } from "@/components/print-frame";
 import { getTranslator } from "@/lib/locale";

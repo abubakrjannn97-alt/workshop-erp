@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
-import { hasPermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
+import { hasPermission } from "@core/auth/authz";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { assignPayScheme, payEmployee } from "@/app/actions/payroll";
 import { periodKey, periodRange } from "@core/payroll/payroll";

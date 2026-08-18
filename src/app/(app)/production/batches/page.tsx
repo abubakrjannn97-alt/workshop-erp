@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
 import { qtyDisplay } from "@core/shared/decimal";
 import { getTranslator } from "@/lib/locale";
 import { PageHeader } from "@/components/page-header";

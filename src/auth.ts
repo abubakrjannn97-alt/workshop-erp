@@ -4,15 +4,15 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { writeAudit } from "@core/control/audit";
 import { authConfig } from "@/auth.config";
-import { bypassOwnerSession, isAuthBypass } from "@/lib/dev-auth";
+import { bypassOwnerSession, isAuthBypass } from "@core/auth/dev-auth";
 import { resolveUserPermissions } from "@core/rbac/permissions";
 import { isValidPhone, normalizePhone } from "@core/shared/phone";
 import {
   assertLoginAllowed,
   recordLoginFailure,
   recordLoginSuccess,
-} from "@/lib/login-guard";
-import { takeLoginRequestIp } from "@/lib/login-context";
+} from "@core/auth/login-guard";
+import { takeLoginRequestIp } from "@core/auth/login-context";
 
 const userInclude = {
   role: {

@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { DEMO_USERS } from "../../src/lib/demo-users";
+import { DEMO_USERS } from "../../src/core/auth/demo-users";
 import { seedWorkshopHistory } from "../../seed-history";
 
 type DemoSeedOptions = {

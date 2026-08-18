@@ -1,7 +1,7 @@
 import { handlers } from "@/auth";
 import { headers } from "next/headers";
 import { rateLimit } from "@core/shared/rate-limit";
-import { setLoginRequestIp } from "@/lib/login-context";
+import { setLoginRequestIp } from "@core/auth/login-context";
 
 function clientIp(h: Headers) {
   return h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";

@@ -1,6 +1,6 @@
 import { getTranslator } from "@/lib/locale";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
 import { archiveUser, createUser, updateUser } from "@/app/actions/users";
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";

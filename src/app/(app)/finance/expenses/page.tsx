@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
-import { hasPermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
+import { hasPermission } from "@core/auth/authz";
 import { moneyDisplay } from "@core/shared/decimal";
 import { LEDGER } from "@core/finance/finance";
 import { createExpense } from "@/app/actions/finance";

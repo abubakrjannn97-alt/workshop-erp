@@ -1,4 +1,4 @@
-import { requireSession } from "@/lib/authz";
+import { requireSession } from "@core/auth/authz";
 import { getTranslator } from "@/lib/locale";
 import { PageHeader } from "@/components/page-header";
 import { LogoutButton } from "@/components/logout-button";

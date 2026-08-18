@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { DEMO_PASSWORD } from "../../src/lib/demo-users";
+import { DEMO_PASSWORD } from "../../src/core/auth/demo-users";
 import { PERMISSIONS, ROLE_PERMISSIONS } from "../../src/lib/permissions";
 import { DEFAULT_SETTINGS, SETTING_KEYS } from "../../src/lib/settings";
 import { FACADE_DOMAIN_CONFIG } from "../../src/domains/facade/config";

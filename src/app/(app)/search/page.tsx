@@ -2,7 +2,7 @@ import { getTranslator } from "@/lib/locale";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/authz";
+import { requireSession } from "@core/auth/authz";
 import { PageHeader } from "@/components/page-header";
 
 export default async function SearchPage({

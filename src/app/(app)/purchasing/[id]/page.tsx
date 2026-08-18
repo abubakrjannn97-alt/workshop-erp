@@ -3,7 +3,7 @@ import { getTranslator } from "@/lib/locale";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
 import {
   cancelPurchaseOrder,
   confirmPurchaseOrder,

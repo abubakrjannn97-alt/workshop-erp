@@ -13,7 +13,7 @@ import {
   FileText,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/authz";
+import { requireSession } from "@core/auth/authz";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { FUND, fundDelta } from "@core/finance/finance";
 import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@core/inventory/alerts";

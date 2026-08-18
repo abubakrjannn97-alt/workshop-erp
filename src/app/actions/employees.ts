@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/authz";
+import { requireSession } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
 import { EMPLOYEE_ASSIGNABLE, type PermissionCode } from "@core/rbac/permissions";
 import { isValidPhone, normalizePhone, staffEmailFromPhone } from "@core/shared/phone";

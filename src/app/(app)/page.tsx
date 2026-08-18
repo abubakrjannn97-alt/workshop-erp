@@ -1,5 +1,5 @@
 import { hasPermission, usesWorkerMobileExperience } from "@core/rbac/permissions";
-import { requireSession } from "@/lib/authz";
+import { requireSession } from "@core/auth/authz";
 import { DesktopHome } from "@/components/dashboards/desktop-home";
 import { OwnerHome } from "@/components/dashboards/owner-home";
 import { MobileOwnerHome } from "@/components/dashboards/mobile-owner-home";

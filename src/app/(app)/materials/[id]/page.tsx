@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/page-header";
 import { getTranslator, intlLocale } from "@/lib/locale";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
 import { updateMaterial } from "@/app/actions/materials";
 import { CatalogNav } from "@/components/catalog-nav";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";

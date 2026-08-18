@@ -3,9 +3,9 @@
 import { AuthError } from "next-auth";
 import { headers } from "next/headers";
 import { signIn, signOut } from "@/auth";
-import { DEMO_PASSWORD, DEMO_USERS, isDemoUserEmail } from "@/lib/demo-users";
-import { assertLoginAllowed } from "@/lib/login-guard";
-import { setLoginRequestIp } from "@/lib/login-context";
+import { DEMO_PASSWORD, DEMO_USERS, isDemoUserEmail } from "@core/auth/demo-users";
+import { assertLoginAllowed } from "@core/auth/login-guard";
+import { setLoginRequestIp } from "@core/auth/login-context";
 import { isValidPhone, normalizePhone } from "@core/shared/phone";
 
 function clientIp(h: Headers) {

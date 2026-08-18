@@ -1,7 +1,7 @@
 import { getTranslator } from "@/lib/locale";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
 import { confirmInventoryCount } from "@/app/actions/inventory";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { D } from "@core/shared/decimal";

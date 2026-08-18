@@ -1,8 +1,8 @@
 import { getTranslator } from "@/lib/locale";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
-import { hasPermission } from "@/lib/authz";
+import { requirePermission } from "@core/auth/authz";
+import { hasPermission } from "@core/auth/authz";
 import { createCustomer } from "@/app/actions/customers";
 import { createLead, moveLead } from "@/app/actions/leads";
 import { PipelineCard } from "./pipeline-card";

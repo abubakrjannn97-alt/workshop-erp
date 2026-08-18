@@ -2,7 +2,7 @@ import { getTranslator } from "@/lib/locale";
 import { intlLocale } from "@/lib/i18n";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/authz";
+import { requireSession } from "@core/auth/authz";
 import { markNotificationsRead } from "@/app/actions/control";
 import { PageHeader } from "@/components/page-header";
 import { RevealList } from "@/components/reveal-list";
