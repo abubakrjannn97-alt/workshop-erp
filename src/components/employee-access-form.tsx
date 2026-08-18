@@ -1,8 +1,9 @@
 "use client";
 
 import { useActionState } from "react";
-import { useFormStatus } from "react-dom";
 import { updateEmployeeAccess } from "@/app/actions/employees";
+import { FormField } from "@/components/form-field";
+import { PendingButton } from "@/components/pending-button";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
 import type { PermissionCode } from "@core/rbac/permissions";
 import type { PermissionOption } from "@/components/add-employee-form";
@@ -15,41 +16,30 @@ type Props = {
   selectedCodes: PermissionCode[];
 };
 
-function SubmitButton({ t }: { t: (k: string) => string }) {
-  const { pending } = useFormStatus();
-  return (
-    <button type="submit" disabled={pending} className="ui-btn-primary">
-      {pending ? t("common.saving") : t("emp.saveAccess")}
-    </button>
-  );
-}
-
 export function EmployeeAccessForm({ locale, userId, permissions, modules, selectedCodes }: Props) {
   const t = createT(locale);
   const selected = new Set(selectedCodes);
   const [state, action] = useActionState(updateEmployeeAccess, undefined);
 
   return (
-    <form action={action} className="ui-card p-4">
+    <form action={action} className="ui-card space-y-4 p-4">
       <input type="hidden" name="id" value={userId} />
       <h2 className="text-sm font-semibold">{t("emp.accessTitle")}</h2>
-      <p className="mt-1 text-sm text-[var(--text-muted)]">{t("emp.accessHint")}</p>
+      <p className="text-sm text-[var(--text-muted)]">{t("emp.accessHint")}</p>
 
-      <label className="mt-4 block max-w-xs text-sm">
-        <span className="ui-label mb-1">{t("emp.newPin")}</span>
+      <FormField label={t("emp.newPin")} hint={t("emp.newPinHint")} className="max-w-xs">
         <input
           name="pin"
           type="password"
           inputMode="numeric"
           pattern="\d{4,6}"
           maxLength={6}
-          placeholder="••••"
+          autoComplete="one-time-code"
           className="ui-input font-mono"
         />
-        <span className="mt-1 block text-xs text-[var(--muted)]">{t("emp.newPinHint")}</span>
-      </label>
+      </FormField>
 
-      <div className="mt-4 max-h-[min(20rem,45vh)] space-y-4 overflow-y-auto pr-1">
+      <div className="max-h-[min(20rem,45vh)] space-y-4 overflow-y-auto pr-1">
         {modules.map((moduleName) => {
           const items = permissions.filter((p) => p.module === moduleName);
           if (items.length === 0) return null;
@@ -62,14 +52,14 @@ export function EmployeeAccessForm({ locale, userId, permissions, modules, selec
                 {items.map((perm) => (
                   <label
                     key={perm.id}
-                    className="flex items-start gap-2 rounded-lg border border-[var(--border)] p-2.5 text-sm"
+                    className="flex min-h-11 items-start gap-2 rounded-lg border border-[var(--border)] p-2.5 text-sm"
                   >
                     <input
                       type="checkbox"
                       name="permissionCode"
                       value={perm.code}
                       defaultChecked={selected.has(perm.code)}
-                      className="mt-0.5"
+                      className="mt-1"
                     />
                     <span>{t(`perm.${perm.code}`)}</span>
                   </label>
@@ -80,12 +70,16 @@ export function EmployeeAccessForm({ locale, userId, permissions, modules, selec
         })}
       </div>
 
-      {state?.error ? <p className="mt-3 text-sm text-[var(--danger)]">{state.error}</p> : null}
-      {state?.ok ? <p className="mt-3 text-sm text-[var(--success)]">{t("emp.accessSaved")}</p> : null}
+      {state?.error ? (
+        <p className="text-sm text-[var(--color-danger)]" role="alert">
+          {state.error}
+        </p>
+      ) : null}
+      {state?.ok ? <p className="text-sm text-[var(--success)]">{t("emp.accessSaved")}</p> : null}
 
-      <div className="mt-4">
-        <SubmitButton t={t} />
-      </div>
+      <PendingButton className="ui-btn-primary w-full sm:w-auto" pendingLabel={t("common.saving")}>
+        {t("emp.saveAccess")}
+      </PendingButton>
     </form>
   );
 }

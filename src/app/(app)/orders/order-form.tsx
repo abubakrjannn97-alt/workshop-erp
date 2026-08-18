@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { D, moneyDisplay } from "@core/shared/decimal";
+import { FormField } from "@/components/form-field";
 import { PendingButton } from "@/components/pending-button";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
 
@@ -59,15 +60,15 @@ export function OrderForm({
   }, [qty, price, discount]);
 
   return (
-    <form action={action} className="max-w-xl space-y-3 ui-card">
+    <form action={action} className="ui-card max-w-xl space-y-4 p-4">
       {leadId ? <input type="hidden" name="leadId" value={leadId} /> : null}
-      <label className="block text-sm">
-        <span className="font-medium">{t("common.customer")}</span>
+
+      <FormField label={t("common.customer")} required={!leadId}>
         <select
           name="customerId"
           required={!leadId}
           defaultValue={defaultCustomerId ?? ""}
-          className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
+          className="ui-input"
         >
           <option value="">{leadId ? t("orders.leadCard") : t("orders.select")}</option>
           {customers.map((c) => (
@@ -76,9 +77,9 @@ export function OrderForm({
             </option>
           ))}
         </select>
-      </label>
-      <label className="block text-sm">
-        <span className="font-medium">{t("common.product")}</span>
+      </FormField>
+
+      <FormField label={t("common.product")} required>
         <select
           name="productId"
           value={productId}
@@ -87,7 +88,8 @@ export function OrderForm({
             const next = products.find((p) => p.id === e.target.value);
             if (next) setPrice(next.price);
           }}
-          className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
+          className="ui-input"
+          required
         >
           {products.map((p) => (
             <option key={p.id} value={p.id}>
@@ -95,84 +97,82 @@ export function OrderForm({
             </option>
           ))}
         </select>
-      </label>
-      <label className="block text-sm">
-        <span className="font-medium">
-          {t("orders.qtyWithUnit")}, {product?.saleSymbol ?? t("orders.unitFallback")}
-        </span>
+      </FormField>
+
+      <FormField
+        label={`${t("orders.qtyWithUnit")}, ${product?.saleSymbol ?? t("orders.unitFallback")}`}
+        required
+      >
         <input
           name="quantity"
           value={qty}
           onChange={(e) => setQty(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
+          className="ui-input"
           required
+          inputMode="decimal"
         />
-      </label>
-      <label className="block text-sm">
-        <span className="font-medium">{t("orders.unitPrice")}</span>
+      </FormField>
+
+      <FormField
+        label={t("orders.unitPrice")}
+        hint={product ? `${t("orders.minPrice")}: ${moneyDisplay(product.minPrice)}` : undefined}
+        required
+      >
         <input
           name="unitPrice"
           value={price}
           onChange={(e) => setPrice(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
+          className="ui-input"
           required
+          inputMode="decimal"
         />
-        {product ? (
-          <span className="mt-1 block text-xs text-[var(--muted)]">
-            {t("orders.minPrice")}: {moneyDisplay(product.minPrice)}
-          </span>
-        ) : null}
-      </label>
+      </FormField>
+
       {canDiscount ? (
-        <label className="block text-sm">
-          <span className="font-medium">{t("orders.discountPct")}</span>
+        <FormField label={t("orders.discountPct")} hint={`${t("orders.discountLimit")}: ${discountLimit}%`}>
           <input
             name="discountPercent"
             value={discount}
             onChange={(e) => setDiscount(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
+            className="ui-input"
+            inputMode="decimal"
           />
-          <span className="mt-1 block text-xs text-[var(--muted)]">
-            {t("orders.discountLimit")}: {discountLimit}%
-          </span>
-        </label>
+        </FormField>
       ) : (
         <input type="hidden" name="discountPercent" value="0" />
       )}
+
       {canChooseSeller ? (
-        <label className="block text-sm">
-          <span className="font-medium">{t("orders.seller")}</span>
-          <select
-            name="sellerId"
-            defaultValue={defaultSellerId}
-            className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
-          >
+        <FormField label={t("orders.seller")}>
+          <select name="sellerId" defaultValue={defaultSellerId} className="ui-input">
             {sellers.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
               </option>
             ))}
           </select>
-        </label>
+        </FormField>
       ) : (
         <input type="hidden" name="sellerId" value={defaultSellerId} />
       )}
-      <label className="block text-sm">
-        <span className="font-medium">{t("orders.payMethod")}</span>
-        <select name="paymentMethod" className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm">
+
+      <FormField label={t("orders.payMethod")}>
+        <select name="paymentMethod" className="ui-input" defaultValue="cash">
           <option value="cash">{t("orders.cash")}</option>
           <option value="bank">{t("orders.transfer")}</option>
           <option value="card">{t("orders.card")}</option>
         </select>
-      </label>
-      <label className="block text-sm">
-        <span className="font-medium">{t("orders.dueReady")}</span>
-        <input name="dueAt" type="date" className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm" />
-      </label>
-      <p className="text-sm">
-        {t("orders.sum")}: <span className="font-semibold">{moneyDisplay(totals.total)} с</span>
+      </FormField>
+
+      <FormField label={t("orders.dueReady")}>
+        <input name="dueAt" type="date" className="ui-input" />
+      </FormField>
+
+      <p className="text-body">
+        {t("orders.sum")}: <span className="ui-num font-semibold">{moneyDisplay(totals.total)} с</span>
       </p>
-      <PendingButton className="ui-btn-primary" pendingLabel={t("common.saving")}>
+
+      <PendingButton className="ui-btn-primary w-full sm:w-auto" pendingLabel={t("common.saving")}>
         {t("orders.create")}
       </PendingButton>
     </form>

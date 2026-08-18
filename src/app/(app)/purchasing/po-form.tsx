@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createPurchaseOrder } from "@/app/actions/purchasing";
+import { FormField } from "@/components/form-field";
+import { PendingButton } from "@/components/pending-button";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
 
 type Opt = { id: string; name: string; extra?: string };
@@ -28,70 +30,92 @@ export function PurchaseOrderForm({
   }
 
   return (
-    <form action={submit} className="space-y-3 ui-card" data-tour="po-new">
-      <select name="supplierId" className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm">
-        {suppliers.map((s) => (
-          <option key={s.id} value={s.id}>
-            {s.name}
-          </option>
+    <form action={submit} className="ui-card space-y-4 p-4" data-tour="po-new">
+      <FormField label={t("common.supplier")} required>
+        <select name="supplierId" className="ui-input" required defaultValue={suppliers[0]?.id}>
+          {suppliers.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.name}
+            </option>
+          ))}
+        </select>
+      </FormField>
+
+      <div className="space-y-3">
+        {rows.map((row, i) => (
+          <div key={i} className="grid gap-3 sm:grid-cols-3">
+            <FormField label={i === 0 ? t("common.material") : `${t("common.material")} ${i + 1}`} required>
+              <select
+                name="materialId"
+                value={row.materialId}
+                onChange={(e) => {
+                  const next = [...rows];
+                  next[i] = { ...row, materialId: e.target.value };
+                  setRows(next);
+                }}
+                className="ui-input"
+                required
+              >
+                {materials.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+            <FormField label={i === 0 ? t("po.qtyStorage") : `${t("po.qtyStorage")} ${i + 1}`} required>
+              <input
+                name="quantity"
+                value={row.quantity}
+                onChange={(e) => {
+                  const next = [...rows];
+                  next[i] = { ...row, quantity: e.target.value };
+                  setRows(next);
+                }}
+                className="ui-input"
+                required
+                inputMode="decimal"
+              />
+            </FormField>
+            <FormField label={i === 0 ? t("common.unitPrice") : `${t("common.unitPrice")} ${i + 1}`} required>
+              <input
+                name="unitPrice"
+                value={row.unitPrice}
+                onChange={(e) => {
+                  const next = [...rows];
+                  next[i] = { ...row, unitPrice: e.target.value };
+                  setRows(next);
+                }}
+                className="ui-input"
+                required
+                inputMode="decimal"
+              />
+            </FormField>
+          </div>
         ))}
-      </select>
-      {rows.map((row, i) => (
-        <div key={i} className="grid gap-2 sm:grid-cols-3">
-          <select
-            name="materialId"
-            value={row.materialId}
-            onChange={(e) => {
-              const next = [...rows];
-              next[i] = { ...row, materialId: e.target.value };
-              setRows(next);
-            }}
-            className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
-          >
-            {materials.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
-          <input
-            name="quantity"
-            placeholder={t("po.qtyStorage")}
-            value={row.quantity}
-            onChange={(e) => {
-              const next = [...rows];
-              next[i] = { ...row, quantity: e.target.value };
-              setRows(next);
-            }}
-            className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
-          />
-          <input
-            name="unitPrice"
-            placeholder={t("common.unitPrice")}
-            value={row.unitPrice}
-            onChange={(e) => {
-              const next = [...rows];
-              next[i] = { ...row, unitPrice: e.target.value };
-              setRows(next);
-            }}
-            className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
-          />
-        </div>
-      ))}
+      </div>
+
       <button
         type="button"
-        className="text-sm text-[var(--titan-dark)]"
+        className="ui-btn-tertiary"
         onClick={() => setRows([...rows, { materialId: materials[0]?.id ?? "", quantity: "", unitPrice: "" }])}
       >
         {t("po.addLine")}
       </button>
-      <input
-        name="comment"
-        placeholder={t("common.comment")}
-        className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
-      />
-      {error ? <p className="text-sm text-[var(--danger)]">{error}</p> : null}
-      <button className="ui-btn-primary">{t("po.createRequest")}</button>
+
+      <FormField label={t("common.comment")}>
+        <input name="comment" className="ui-input" />
+      </FormField>
+
+      {error ? (
+        <p className="text-sm text-[var(--color-danger)]" role="alert">
+          {error}
+        </p>
+      ) : null}
+
+      <PendingButton className="ui-btn-primary w-full sm:w-auto" pendingLabel={t("common.saving")}>
+        {t("po.createRequest")}
+      </PendingButton>
     </form>
   );
 }

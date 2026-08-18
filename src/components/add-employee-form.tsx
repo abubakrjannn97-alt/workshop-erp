@@ -1,8 +1,9 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { useFormStatus } from "react-dom";
 import { createEmployee } from "@/app/actions/employees";
+import { FormField } from "@/components/form-field";
+import { PendingButton } from "@/components/pending-button";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
 import type { PermissionCode } from "@core/rbac/permissions";
 
@@ -17,15 +18,6 @@ type Props = {
   permissions: PermissionOption[];
   modules: string[];
 };
-
-function SubmitButton({ t }: { t: (k: string) => string }) {
-  const { pending } = useFormStatus();
-  return (
-    <button type="submit" disabled={pending} className="ui-btn-primary w-full sm:w-auto">
-      {pending ? t("emp.addPending") : t("emp.addSubmit")}
-    </button>
-  );
-}
 
 export function AddEmployeeForm({ locale, permissions, modules }: Props) {
   const t = createT(locale);
@@ -83,14 +75,14 @@ export function AddEmployeeForm({ locale, permissions, modules }: Props) {
       <div className="mb-4 flex gap-2">
         <span
           className={`rounded-full px-3 py-1 text-xs font-medium ${
-            step === 1 ? "bg-[var(--titan-dark)] text-white" : "bg-[var(--surface-muted)]"
+            step === 1 ? "bg-[var(--color-primary)] text-white" : "bg-[var(--surface-muted)]"
           }`}
         >
           1. {t("emp.addStep1")}
         </span>
         <span
           className={`rounded-full px-3 py-1 text-xs font-medium ${
-            step === 2 ? "bg-[var(--titan-dark)] text-white" : "bg-[var(--surface-muted)]"
+            step === 2 ? "bg-[var(--color-primary)] text-white" : "bg-[var(--surface-muted)]"
           }`}
         >
           2. {t("emp.addStep2")}
@@ -103,9 +95,8 @@ export function AddEmployeeForm({ locale, permissions, modules }: Props) {
         <input type="hidden" name="pin" value={pin} />
 
         {step === 1 ? (
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="block text-sm sm:col-span-2">
-              <span className="ui-label mb-1">{t("emp.addName")}</span>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField label={t("emp.addName")} required className="sm:col-span-2">
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -113,21 +104,19 @@ export function AddEmployeeForm({ locale, permissions, modules }: Props) {
                 maxLength={120}
                 className="ui-input"
               />
-            </label>
-            <label className="block text-sm">
-              <span className="ui-label mb-1">{t("login.phone")}</span>
+            </FormField>
+            <FormField label={t("login.phone")} required>
               <input
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 type="tel"
                 required
                 inputMode="tel"
-                placeholder="+992 90 123 4567"
+                autoComplete="tel"
                 className="ui-input"
               />
-            </label>
-            <label className="block text-sm">
-              <span className="ui-label mb-1">{t("login.pin")}</span>
+            </FormField>
+            <FormField label={t("login.pin")} hint={t("emp.pinOwnerHint")} required>
               <input
                 value={pin}
                 onChange={(e) => setPin(e.target.value)}
@@ -136,13 +125,12 @@ export function AddEmployeeForm({ locale, permissions, modules }: Props) {
                 inputMode="numeric"
                 pattern="\d{4,6}"
                 maxLength={6}
-                placeholder="1234"
+                autoComplete="one-time-code"
                 className="ui-input font-mono"
               />
-              <span className="mt-1 block text-xs text-[var(--muted)]">{t("emp.pinOwnerHint")}</span>
-            </label>
+            </FormField>
             <div className="sm:col-span-2">
-              <button type="button" onClick={goToStep2} className="ui-btn-primary">
+              <button type="button" onClick={goToStep2} className="ui-btn-primary w-full sm:w-auto">
                 {t("emp.addNext")}
               </button>
             </div>
@@ -167,13 +155,13 @@ export function AddEmployeeForm({ locale, permissions, modules }: Props) {
                       {items.map((perm) => (
                         <label
                           key={perm.id}
-                          className="flex items-start gap-2 rounded-lg border border-[var(--border)] p-2.5 text-sm"
+                          className="flex min-h-11 items-start gap-2 rounded-lg border border-[var(--border)] p-2.5 text-sm"
                         >
                           <input
                             type="checkbox"
                             name="permissionCode"
                             value={perm.code}
-                            className="mt-0.5"
+                            className="mt-1"
                           />
                           <span>{t(`perm.${perm.code}`)}</span>
                         </label>
@@ -184,13 +172,17 @@ export function AddEmployeeForm({ locale, permissions, modules }: Props) {
               })}
             </div>
             {state?.error ? (
-              <p className="mt-3 text-sm text-[var(--danger)]">{state.error}</p>
+              <p className="mt-3 text-sm text-[var(--color-danger)]" role="alert">
+                {state.error}
+              </p>
             ) : null}
             <div className="mt-4 flex flex-wrap gap-3">
               <button type="button" onClick={() => setStep(1)} className="ui-btn-secondary">
                 {t("emp.addBack")}
               </button>
-              <SubmitButton t={t} />
+              <PendingButton className="ui-btn-primary w-full sm:w-auto" pendingLabel={t("emp.addPending")}>
+                {t("emp.addSubmit")}
+              </PendingButton>
             </div>
           </div>
         )}

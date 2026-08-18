@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/page-header";
+import { FormField } from "@/components/form-field";
 import { getTranslator } from "@core/shared/i18n/locale";
 import { redirect } from "next/navigation";
 import { prisma } from "@core/infrastructure/prisma";
@@ -30,67 +31,55 @@ export default async function NewProductPage() {
     <div className="page-stack">
       <PageHeader title={t("products.newTitle")} />
       <CatalogNav current="products" locale={locale} />
-      <form action={action} className="max-w-xl space-y-3 ui-card">
-        <Field name="name" label={t("common.name")} required />
-        <Field name="category" label={t("common.category")} defaultValue={domainConfig.product.defaultCategory} />
-        <label className="block text-sm">
-          <span className="font-medium">{t("products.saleUnit")}</span>
-          <select
-            name="saleUnitId"
-            defaultValue={defaultSaleUnitId}
-            className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
-          >
+      <form action={action} className="ui-card max-w-xl space-y-4 p-4">
+        <FormField label={t("common.name")} required>
+          <input name="name" required className="ui-input" />
+        </FormField>
+        <FormField label={t("common.category")}>
+          <input
+            name="category"
+            defaultValue={domainConfig.product.defaultCategory}
+            className="ui-input"
+          />
+        </FormField>
+        <FormField label={t("products.saleUnit")} required>
+          <select name="saleUnitId" defaultValue={defaultSaleUnitId} className="ui-input" required>
             {units.map((u) => (
               <option key={u.id} value={u.id}>
                 {u.name} ({u.symbol})
               </option>
             ))}
           </select>
-        </label>
-        <label className="block text-sm">
-          <span className="font-medium">{t("products.fgUnit")}</span>
-          <select
-            name="outputUnitId"
-            defaultValue={defaultOutputUnitId}
-            className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
-          >
+        </FormField>
+        <FormField label={t("products.fgUnit")} required>
+          <select name="outputUnitId" defaultValue={defaultOutputUnitId} className="ui-input" required>
             {units.map((u) => (
               <option key={u.id} value={u.id}>
                 {u.name} ({u.symbol})
               </option>
             ))}
           </select>
-        </label>
-        <Field name="recipeBaseQty" label={t("products.recipeBase")} defaultValue="1" />
-        <Field name="outputPerBase" label={t("products.outputBase")} defaultValue={String(domainConfig.product.defaultOutputPerBase)} />
-        <Field name="price" label={t("products.salePrice")} defaultValue="0" />
-        <Field name="minPrice" label={t("products.minPrice")} defaultValue="0" />
-        <button className="ui-btn-primary">{t("common.create")}</button>
+        </FormField>
+        <FormField label={t("products.recipeBase")}>
+          <input name="recipeBaseQty" defaultValue="1" className="ui-input" />
+        </FormField>
+        <FormField label={t("products.outputBase")}>
+          <input
+            name="outputPerBase"
+            defaultValue={String(domainConfig.product.defaultOutputPerBase)}
+            className="ui-input"
+          />
+        </FormField>
+        <FormField label={t("products.salePrice")}>
+          <input name="price" defaultValue="0" className="ui-input" inputMode="decimal" />
+        </FormField>
+        <FormField label={t("products.minPrice")}>
+          <input name="minPrice" defaultValue="0" className="ui-input" inputMode="decimal" />
+        </FormField>
+        <button type="submit" className="ui-btn-primary w-full sm:w-auto">
+          {t("common.create")}
+        </button>
       </form>
     </div>
-  );
-}
-
-function Field({
-  name,
-  label,
-  defaultValue,
-  required,
-}: {
-  name: string;
-  label: string;
-  defaultValue?: string;
-  required?: boolean;
-}) {
-  return (
-    <label className="block text-sm">
-      <span className="font-medium">{label}</span>
-      <input
-        name={name}
-        defaultValue={defaultValue}
-        required={required}
-        className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
-      />
-    </label>
   );
 }
