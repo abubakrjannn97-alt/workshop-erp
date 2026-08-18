@@ -153,7 +153,7 @@ export default async function AnalyticsPage() {
     commission,
     fixedExpenses: expenses,
   });
-  const rate = D(String(prodScheme?.productionRate ?? "22"));
+  const rate = D(String(prodScheme?.productionRate ?? "0"));
 
   type ProdRow = {
     name: string;
