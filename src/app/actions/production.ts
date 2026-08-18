@@ -10,6 +10,7 @@ import { MOVEMENT, receiveProduct, releaseMaterial, writeOffMaterial } from "@/l
 import { ORDER_STATUS } from "@/lib/orders";
 import { accrueProductionWage } from "@/lib/payroll";
 import { notifyRoles } from "@/lib/control";
+import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
 
 function qtyStr(value: string) {
   return z.string().regex(/^\d+(\.\d{1,6})?$/).safeParse(value).success;
@@ -106,8 +107,8 @@ export async function closeBatch(formData: FormData) {
     if (!qtyStr(row.actual) || D(row.actual).lt(0)) return { error: "Проверьте фактический расход сырья." };
   }
 
-  const rawWh = await prisma.warehouse.findUnique({ where: { code: "RAW" } });
-  const fg = await prisma.warehouse.findUnique({ where: { code: "FG" } });
+  const rawWh = await findRawWarehouse();
+  const fg = await findFinishedGoodsWarehouse();
   if (!rawWh || !fg) return { error: "Склады RAW/FG не найдены." };
   const productId = batch.production.order.items[0]?.productId;
   if (!productId) return { error: "В заказе нет изделия." };
@@ -231,7 +232,7 @@ export async function closeBatch(formData: FormData) {
       });
 
       if (allClosed) {
-        const raw = await tx.warehouse.findUnique({ where: { code: "RAW" } });
+        const raw = await findRawWarehouse(tx);
         if (raw) {
           const uses = await tx.batchMaterialUse.findMany({
             where: { batch: { productionOrderId: batch.productionOrderId } },

@@ -25,6 +25,7 @@ import {
   STATUS_FLOW,
 } from "@/lib/orders";
 import { canSelfApprove, pendingFor, queueApproval } from "@/lib/control";
+import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
 
 function moneyStr(value: string) {
   return z.string().regex(/^\d+(\.\d{1,4})?$/).safeParse(value).success;
@@ -209,7 +210,7 @@ export async function confirmOrder(formData: FormData) {
     return { error: "Скидка на согласовании у руководителя." };
   }
 
-  const raw = await prisma.warehouse.findUnique({ where: { code: "RAW" } });
+  const raw = await findRawWarehouse();
   if (!raw) return { error: "Склад сырья не найден." };
   const confirmed = await prisma.orderStatus.findUniqueOrThrow({ where: { code: ORDER_STATUS.CONFIRMED } });
 
@@ -299,7 +300,7 @@ export async function cancelOrder(formData: FormData) {
   }
 
   const cancelled = await prisma.orderStatus.findUniqueOrThrow({ where: { code: ORDER_STATUS.CANCELLED } });
-  const raw = await prisma.warehouse.findUnique({ where: { code: "RAW" } });
+  const raw = await findRawWarehouse();
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -569,7 +570,7 @@ export async function createPurchaseFromDeficit(formData: FormData) {
   });
   if (!order) return { error: "Заказ не найден." };
 
-  const raw = await prisma.warehouse.findUnique({ where: { code: "RAW" } });
+  const raw = await findRawWarehouse();
   if (!raw) return { error: "Склад сырья не найден." };
 
   const shortages: { materialId: string; quantity: string; unitPrice: string }[] = [];
@@ -643,7 +644,7 @@ export async function issueOrderToCustomer(formData: FormData) {
   if (order.status.code !== ORDER_STATUS.IN_FG && order.status.code !== ORDER_STATUS.READY) {
     return { error: "Выдавать можно с склада готовой продукции." };
   }
-  const fg = await prisma.warehouse.findUnique({ where: { code: "FG" } });
+  const fg = await findFinishedGoodsWarehouse();
   if (!fg) return { error: "Склад ГП не найден." };
   const issued = await prisma.orderStatus.findUniqueOrThrow({ where: { code: ORDER_STATUS.ISSUED } });
 

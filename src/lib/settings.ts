@@ -8,6 +8,27 @@ export const SETTING_KEYS = {
   opexReservePercent: "opex_reserve_percent",
 } as const;
 
+/** Domain configuration keys (standalone clone, not multi-tenant). */
+export const DOMAIN_SETTING_KEYS = {
+  workshopDomain: "workshop_domain",
+  warehouseRawCode: "warehouse.rawCode",
+  warehouseFgCode: "warehouse.fgCode",
+  payrollProductionScheme: "payroll.productionScheme",
+  productDefaultSaleUnit: "product.defaultSaleUnit",
+  productDefaultOutputUnit: "product.defaultOutputUnit",
+  productDefaultCategory: "product.defaultCategory",
+} as const;
+
+export type DomainSettings = {
+  workshopDomain: string;
+  warehouseRawCode: string;
+  warehouseFgCode: string;
+  payrollProductionScheme: string;
+  productDefaultSaleUnit: string;
+  productDefaultOutputUnit: string;
+  productDefaultCategory: string;
+};
+
 export type BusinessSettings = {
   companyName: string;
   logoUrl: string;

@@ -6,6 +6,7 @@ import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { FUND, LEDGER, fundDelta } from "@/lib/finance";
 import { contributionAndNet } from "@/lib/profit";
 import { coverageAndPurchaseNeed } from "@/lib/alerts";
+import { resolveRawWarehouseCode } from "@/core/config/resolve-warehouse";
 import { getTranslator } from "@/lib/locale";
 import { KpiCard } from "@/components/kpi-card";
 import { RevealList } from "@/components/reveal-list";
@@ -15,6 +16,7 @@ import { StatusBadge, orderTone } from "@/components/status-badge";
 export default async function AnalyticsPage() {
   await requirePermission("analytics.view");
   const { t, n } = await getTranslator();
+  const rawCode = await resolveRawWarehouseCode();
   const monthStart = new Date();
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
@@ -60,7 +62,7 @@ export default async function AnalyticsPage() {
       include: { storageUnit: true, stockItems: true },
     }),
     prisma.stockItem.findMany({
-      where: { warehouse: { code: "RAW" }, materialId: { not: null } },
+      where: { warehouse: { code: rawCode }, materialId: { not: null } },
       include: { material: true },
     }),
     prisma.scrapRecord.findMany({ where: { createdAt: { gte: monthStart } } }),

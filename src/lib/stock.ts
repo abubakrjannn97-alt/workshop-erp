@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { D, money, qty } from "@/lib/decimal";
 import { assertPeriodOpen } from "@/lib/control";
+import { resolveRawWarehouseCode } from "@/core/config/resolve-warehouse";
 
 export const MOVEMENT = {
   RECEIPT: "RECEIPT",
@@ -85,7 +86,8 @@ export async function getOrCreateProductStock(
 async function syncMaterialQty(tx: Tx, materialId: string | null, warehouseId: string) {
   if (!materialId) return;
   const warehouse = await tx.warehouse.findUnique({ where: { id: warehouseId } });
-  if (warehouse?.code !== "RAW") return;
+  const rawCode = await resolveRawWarehouseCode();
+  if (warehouse?.code !== rawCode) return;
   const item = await tx.stockItem.findUnique({
     where: { warehouseId_materialId: { warehouseId, materialId } },
   });

@@ -8,6 +8,7 @@ import { writeAudit } from "@/lib/audit";
 import { D, money, qty } from "@/lib/decimal";
 import { receiveMaterial } from "@/lib/stock";
 import { accountByCode, FUND, fundByCode, LEDGER, postLedger } from "@/lib/finance";
+import { findRawWarehouse } from "@/core/config/resolve-warehouse";
 
 async function nextNumber() {
   const last = await prisma.purchaseOrder.findFirst({ orderBy: { createdAt: "desc" } });
@@ -102,7 +103,8 @@ export async function receivePurchaseOrder(formData: FormData) {
     return { error: "Заказ нельзя принять." };
   }
 
-  const raw = await prisma.warehouse.findUniqueOrThrow({ where: { code: "RAW" } });
+  const raw = await findRawWarehouse();
+  if (!raw) return { error: "Склад сырья не найден." };
 
   try {
     await prisma.$transaction(async (tx) => {

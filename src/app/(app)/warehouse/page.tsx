@@ -12,6 +12,7 @@ import { RevealList } from "@/components/reveal-list";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
 import { getRawWarehouse } from "@/lib/warehouses";
+import { resolveRawWarehouseCode } from "@/core/config/resolve-warehouse";
 
 export default async function WarehousePage() {
   const { t, locale } = await getTranslator();
@@ -24,6 +25,7 @@ export default async function WarehousePage() {
     session.user.roleCode === "owner" || session.user.permissions.includes("purchasing.manage");
 
   const raw = await getRawWarehouse();
+  const rawCode = await resolveRawWarehouseCode();
 
   const [items, materials, suppliers] = await Promise.all([
     prisma.stockItem.findMany({
@@ -44,7 +46,7 @@ export default async function WarehousePage() {
       <div>
         <PageHeader title={t("wh.rawTitle")} />
         <p className="mt-1 text-sm text-[var(--text-muted)]">{t("wh.rawHint")}</p>
-        <a href="/warehouse/print?warehouse=RAW" className="mt-2 inline-block text-sm text-[var(--titan-dark)] hover:underline">
+        <a href={`/warehouse/print?warehouse=${rawCode}`} className="mt-2 inline-block text-sm text-[var(--titan-dark)] hover:underline">
           {t("wh.printStock")}
         </a>
       </div>

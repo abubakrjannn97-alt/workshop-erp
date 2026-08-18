@@ -3,7 +3,8 @@ import bcrypt from "bcryptjs";
 import Decimal from "decimal.js";
 import { DEMO_PASSWORD, DEMO_USERS } from "../src/lib/demo-users";
 import { PERMISSIONS, ROLE_PERMISSIONS } from "../src/lib/permissions";
-import { DEFAULT_SETTINGS, SETTING_KEYS } from "../src/lib/settings";
+import { DEFAULT_SETTINGS, DOMAIN_SETTING_KEYS, SETTING_KEYS } from "../src/lib/settings";
+import { FACADE_DOMAIN_CONFIG } from "../src/domains/facade/config";
 import { receiveMaterial } from "../src/lib/stock";
 import { seedWorkshopHistory } from "./seed-history";
 
@@ -158,6 +159,13 @@ async function main() {
     [SETTING_KEYS.timezone]: DEFAULT_SETTINGS.timezone,
     [SETTING_KEYS.discountLimitPercent]: DEFAULT_SETTINGS.discountLimitPercent,
     [SETTING_KEYS.opexReservePercent]: DEFAULT_SETTINGS.opexReservePercent,
+    [DOMAIN_SETTING_KEYS.workshopDomain]: FACADE_DOMAIN_CONFIG.domain,
+    [DOMAIN_SETTING_KEYS.warehouseRawCode]: FACADE_DOMAIN_CONFIG.warehouses.rawCode,
+    [DOMAIN_SETTING_KEYS.warehouseFgCode]: FACADE_DOMAIN_CONFIG.warehouses.fgCode,
+    [DOMAIN_SETTING_KEYS.payrollProductionScheme]: FACADE_DOMAIN_CONFIG.payroll.productionScheme,
+    [DOMAIN_SETTING_KEYS.productDefaultSaleUnit]: FACADE_DOMAIN_CONFIG.product.defaultSaleUnit,
+    [DOMAIN_SETTING_KEYS.productDefaultOutputUnit]: FACADE_DOMAIN_CONFIG.product.defaultOutputUnit,
+    [DOMAIN_SETTING_KEYS.productDefaultCategory]: FACADE_DOMAIN_CONFIG.product.defaultCategory,
   };
 
   for (const [key, value] of Object.entries(settings)) {
@@ -186,14 +194,22 @@ async function main() {
 
   await seedCatalog();
   await prisma.warehouse.upsert({
-    where: { code: "RAW" },
+    where: { code: FACADE_DOMAIN_CONFIG.warehouses.rawCode },
     update: { name: "Склад сырья", kind: "material" },
-    create: { code: "RAW", name: "Склад сырья", kind: "material" },
+    create: {
+      code: FACADE_DOMAIN_CONFIG.warehouses.rawCode,
+      name: "Склад сырья",
+      kind: "material",
+    },
   });
   await prisma.warehouse.upsert({
-    where: { code: "FG" },
+    where: { code: FACADE_DOMAIN_CONFIG.warehouses.fgCode },
     update: { name: "Склад готовой продукции", kind: "finished" },
-    create: { code: "FG", name: "Склад готовой продукции", kind: "finished" },
+    create: {
+      code: FACADE_DOMAIN_CONFIG.warehouses.fgCode,
+      name: "Склад готовой продукции",
+      kind: "finished",
+    },
   });
 
   const leadStages = [
@@ -543,7 +559,9 @@ async function seedDemoUsers(passwordHash: string, productionSchemeId: string, s
 }
 
 async function seedOpeningStock() {
-  const raw = await prisma.warehouse.findUnique({ where: { code: "RAW" } });
+  const raw = await prisma.warehouse.findUnique({
+    where: { code: FACADE_DOMAIN_CONFIG.warehouses.rawCode },
+  });
   const owner = await prisma.user.findFirst({ where: { email: process.env.OWNER_EMAIL ?? "owner@workshop.local" } });
   if (!raw || !owner) return;
 

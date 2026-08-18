@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { D } from "@/lib/decimal";
 import { notifyRoles } from "@/lib/control";
 import { available } from "@/lib/stock";
+import { findRawWarehouse } from "@/core/config/resolve-warehouse";
 
 async function alreadyToday(type: string, entityId: string) {
   const from = new Date();
@@ -88,7 +89,7 @@ export async function refreshOwnerAlerts() {
 }
 
 export async function coverageAndPurchaseNeed() {
-  const raw = await prisma.warehouse.findUnique({ where: { code: "RAW" } });
+  const raw = await findRawWarehouse();
   const product = await prisma.product.findFirst({
     where: { archivedAt: null, isActive: true },
     include: {

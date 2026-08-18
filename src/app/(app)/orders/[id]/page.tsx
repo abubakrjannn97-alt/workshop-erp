@@ -8,6 +8,7 @@ import { PendingButton } from "@/components/pending-button";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
 import { available } from "@/lib/stock";
+import { findRawWarehouse } from "@/core/config/resolve-warehouse";
 import { PAYMENT_METHODS, STATUS_FLOW } from "@/lib/orders";
 import { intlLocale } from "@/lib/i18n";
 import { PageHeader } from "@/components/page-header";
@@ -54,7 +55,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
     orderBy: { sortOrder: "asc" },
   });
 
-  const raw = await prisma.warehouse.findUnique({ where: { code: "RAW" } });
+  const raw = await findRawWarehouse();
   const stock = raw
     ? await prisma.stockItem.findMany({
         where: { warehouseId: raw.id, materialId: { in: order.materials.map((m) => m.materialId) } },
