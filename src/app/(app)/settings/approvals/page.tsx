@@ -4,7 +4,27 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { hasPermission } from "@core/auth/authz";
 import { decideApproval, closePeriod } from "@/app/actions/control";
-import Link from "next/link";
+import { SettingsNav } from "@/components/settings-nav";
+import { DashPanel } from "@/components/dash-panel";
+import { FormField } from "@/components/form-field";
+import { StatusBadge } from "@/components/status-badge";
+import {
+  DataList,
+  DataListEmpty,
+  DataListHead,
+  DataListHeadCell,
+  DataListPrimary,
+  DataListRow,
+  DataListCell,
+  dataListStyles,
+} from "@/components/data-table";
+
+function approvalTone(status: string) {
+  if (status === "APPROVED") return "good" as const;
+  if (status === "REJECTED") return "bad" as const;
+  if (status === "PENDING") return "warn" as const;
+  return "neutral" as const;
+}
 
 export default async function ApprovalsPage() {
   const { t, locale } = await getTranslator();
@@ -28,80 +48,103 @@ export default async function ApprovalsPage() {
 
   return (
     <div className="page-stack">
-      <div>
-<PageHeader title={t("set.approvalsTitle")} />
-      </div>
-      <Link href="/settings" className="text-sm text-[var(--titan-dark)] hover:underline">
-        {t("common.settingsBack")}
-      </Link>
+      <PageHeader title={t("set.approvalsTitle")} />
+      <SettingsNav current="approvals" locale={locale} />
 
-      <section className="ui-card">
-        <h2 className="text-sm font-semibold">{t("set.pending")}</h2>
-        <ul className="mt-3 space-y-3 text-sm">
-          {pending.length === 0 ? (
-            <li className="text-[var(--muted)]">{t("set.noRequests")}</li>
-          ) : (
-            pending.map((a) => (
+      <DashPanel title={t("set.pending")}>
+        {pending.length === 0 ? (
+          <DataListEmpty>{t("set.noRequests")}</DataListEmpty>
+        ) : (
+          <ul className="space-y-3 text-sm">
+            {pending.map((a) => (
               <li key={a.id} className="rounded-lg border border-[var(--line)] p-3">
-                <p className="font-medium">{a.title}</p>
-                <p className="text-xs text-[var(--muted)]">
-                  {a.type} · {a.createdAt.toLocaleString(intlLocale(locale))}
-                  {a.reason ? ` · ${a.reason}` : ""}
-                </p>
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <p className="font-medium">{a.title}</p>
+                    <p className="text-xs text-[var(--muted)]">
+                      {a.type} · {a.createdAt.toLocaleString(intlLocale(locale))}
+                      {a.reason ? ` · ${a.reason}` : ""}
+                    </p>
+                  </div>
+                  <StatusBadge label={a.status} tone={approvalTone(a.status)} />
+                </div>
                 {canDecide ? (
-                  <div className="mt-2 flex gap-2">
+                  <div className="mt-2 flex flex-wrap gap-2">
                     <form action={decide}>
                       <input type="hidden" name="id" value={a.id} />
                       <input type="hidden" name="decision" value="APPROVED" />
-                      <button className="ui-btn-primary">{t("common.confirm")}</button>
+                      <button type="submit" className="ui-btn-primary min-h-[44px]">
+                        {t("common.confirm")}
+                      </button>
                     </form>
                     <form action={decide}>
                       <input type="hidden" name="id" value={a.id} />
                       <input type="hidden" name="decision" value="REJECTED" />
-                      <button className="ui-btn-danger">{t("common.reject")}</button>
+                      <button type="submit" className="ui-btn-danger min-h-[44px]">
+                        {t("common.reject")}
+                      </button>
                     </form>
                   </div>
                 ) : null}
               </li>
-            ))
-          )}
-        </ul>
-      </section>
-
-      {canDecide ? (
-        <form action={close} className="flex flex-wrap items-end gap-2 ui-card">
-          <h2 className="w-full text-sm font-semibold">{t("set.closePeriod")}</h2>
-          <input
-            name="year"
-            defaultValue={String(now.getFullYear())}
-            className="w-24 rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
-          />
-          <input
-            name="month"
-            defaultValue={String(now.getMonth() + 1)}
-            className="w-20 rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
-          />
-          <button className="ui-btn-primary">{t("set.closeMonth")}</button>
-          <ul className="w-full text-xs text-[var(--muted)]">
-            {periods.map((p) => (
-              <li key={p.id}>
-                {p.month}.{p.year}: {p.status}
-              </li>
             ))}
           </ul>
-        </form>
+        )}
+      </DashPanel>
+
+      {canDecide ? (
+        <DashPanel title={t("set.closePeriod")}>
+          <form action={close} className="ui-card flex flex-wrap items-end gap-2 p-3">
+            <FormField label={t("home.periodYear")} className="min-w-[6rem]">
+              <input name="year" defaultValue={String(now.getFullYear())} className="ui-input" inputMode="numeric" />
+            </FormField>
+            <FormField label={t("home.periodMonth")} className="min-w-[5rem]">
+              <input name="month" defaultValue={String(now.getMonth() + 1)} className="ui-input" inputMode="numeric" />
+            </FormField>
+            <div className="flex items-end">
+              <button type="submit" className="ui-btn-primary min-h-[44px]">
+                {t("set.closeMonth")}
+              </button>
+            </div>
+          </form>
+            <ul className="mt-3 text-xs text-[var(--muted)]">
+              {periods.map((p) => (
+                <li key={p.id}>
+                  {p.month}.{p.year}: {p.status}
+                </li>
+              ))}
+            </ul>
+        </DashPanel>
       ) : null}
 
-      <section className="ui-card">
-        <h2 className="text-sm font-semibold">{t("common.history")}</h2>
-        <ul className="mt-3 space-y-2 text-sm">
-          {recent.map((a) => (
-            <li key={a.id}>
-              {a.status} · {a.title}
-            </li>
-          ))}
-        </ul>
-      </section>
+      <DashPanel title={t("common.history")}>
+        {recent.length === 0 ? (
+          <DataListEmpty>{t("common.empty")}</DataListEmpty>
+        ) : (
+          <DataList layout="cols3">
+            <DataListHead layout="cols3">
+              <DataListHeadCell>{t("common.status")}</DataListHeadCell>
+              <DataListHeadCell>{t("list.col.what")}</DataListHeadCell>
+              <DataListHeadCell align="right">{t("list.col.when")}</DataListHeadCell>
+            </DataListHead>
+            <ul className={dataListStyles.rows}>
+              {recent.map((a) => (
+                <DataListRow key={a.id} layout="cols3">
+                  <DataListCell label={t("common.status")}>
+                    <StatusBadge label={a.status} tone={approvalTone(a.status)} />
+                  </DataListCell>
+                  <DataListPrimary title={a.title} subtitle={a.type} />
+                  <DataListCell label={t("list.col.when")} align="right">
+                    <span className="text-xs text-[var(--muted)]">
+                      {a.createdAt.toLocaleString(intlLocale(locale))}
+                    </span>
+                  </DataListCell>
+                </DataListRow>
+              ))}
+            </ul>
+          </DataList>
+        )}
+      </DashPanel>
     </div>
   );
 }

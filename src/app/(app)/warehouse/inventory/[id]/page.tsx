@@ -8,7 +8,7 @@ import { D } from "@core/shared/decimal";
 import { PageHeader } from "@/components/page-header";
 import { DashPanel } from "@/components/dash-panel";
 import { FormField } from "@/components/form-field";
-import { DataTableSection, UiTable } from "@/components/data-table";
+import { UiTable } from "@/components/data-table";
 import { PendingButton } from "@/components/pending-button";
 import { StatusBadge, type BadgeTone } from "@/components/status-badge";
 
@@ -48,44 +48,42 @@ export default async function InventoryDetailPage({ params }: { params: Promise<
       <DashPanel title={t("wh.invTitle")}>
         <form action={confirmInventoryCount} className="space-y-4">
           <input type="hidden" name="id" value={count.id} />
-          <DataTableSection className="overflow-visible border-0 shadow-none">
-            <UiTable>
-              <table className="w-full text-left text-sm">
-                <thead className="bg-[var(--surface-muted)] text-xs uppercase tracking-wide text-[var(--muted)]">
-                  <tr>
-                    <th className="px-4 py-3">{t("wh.position")}</th>
-                    <th className="px-4 py-3 text-right">{t("wh.byBooks")}</th>
-                    <th className="px-4 py-3 text-right">{t("wh.fact")}</th>
-                    <th className="px-4 py-3 text-right">{t("wh.diff")}</th>
+          <UiTable>
+            <table className="w-full text-left text-sm">
+              <thead className="bg-[var(--surface-muted)] text-xs uppercase tracking-wide text-[var(--muted)]">
+                <tr>
+                  <th className="px-4 py-3">{t("wh.position")}</th>
+                  <th className="px-4 py-3 text-right">{t("wh.byBooks")}</th>
+                  <th className="px-4 py-3 text-right">{t("wh.fact")}</th>
+                  <th className="px-4 py-3 text-right">{t("wh.diff")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {count.lines.map((line) => (
+                  <tr key={line.id} className="border-t border-[var(--line)]">
+                    <td className="px-4 py-3">
+                      {line.stockItem.material?.name ?? line.stockItem.product?.name}
+                      <input type="hidden" name="lineId" value={line.id} />
+                    </td>
+                    <td className="px-4 py-3 text-right font-mono text-xs" data-label={t("wh.byBooks")}>
+                      {qtyDisplay(line.systemQty)}
+                    </td>
+                    <td className="px-4 py-3 text-right" data-label={t("wh.fact")}>
+                      <input
+                        name="actualQty"
+                        defaultValue={line.actualQty.toString()}
+                        disabled={count.status !== "DRAFT"}
+                        className="ui-input w-28 text-right"
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-right font-mono text-xs" data-label={t("wh.diff")}>
+                      {qtyDisplay(line.difference)} / {moneyDisplay(line.amount)} с
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {count.lines.map((line) => (
-                    <tr key={line.id} className="border-t border-[var(--line)]">
-                      <td className="px-4 py-3">
-                        {line.stockItem.material?.name ?? line.stockItem.product?.name}
-                        <input type="hidden" name="lineId" value={line.id} />
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono text-xs" data-label={t("wh.byBooks")}>
-                        {qtyDisplay(line.systemQty)}
-                      </td>
-                      <td className="px-4 py-3 text-right" data-label={t("wh.fact")}>
-                        <input
-                          name="actualQty"
-                          defaultValue={line.actualQty.toString()}
-                          disabled={count.status !== "DRAFT"}
-                          className="ui-input w-28 text-right"
-                        />
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono text-xs" data-label={t("wh.diff")}>
-                        {qtyDisplay(line.difference)} / {moneyDisplay(line.amount)} с
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </UiTable>
-          </DataTableSection>
+                ))}
+              </tbody>
+            </table>
+          </UiTable>
           {count.status === "DRAFT" && canConfirm ? (
             <>
               <FormField label={t("wh.diffReason")} required>

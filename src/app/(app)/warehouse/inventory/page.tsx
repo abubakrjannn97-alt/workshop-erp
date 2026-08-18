@@ -42,7 +42,7 @@ export default async function InventoryListPage() {
 
       <DashPanel title={t("wh.startCount")}>
         <form action={createInventoryCount} className="flex flex-wrap items-end gap-3">
-          <FormField label={t("whNav.raw")} className="min-w-[12rem] flex-1">
+          <FormField label={t("page.warehouse")} className="min-w-[12rem] flex-1">
             <select name="warehouseId" className="ui-input">
               {warehouses.map((w) => (
                 <option key={w.id} value={w.id}>
@@ -63,8 +63,8 @@ export default async function InventoryListPage() {
         ) : (
           <DataList layout="cols3">
             <DataListHead layout="cols3">
-              <DataListHeadCell>{t("whNav.raw")}</DataListHeadCell>
-              <DataListHeadCell>{t("common.date")}</DataListHeadCell>
+              <DataListHeadCell>{t("page.warehouse")}</DataListHeadCell>
+              <DataListHeadCell>{t("wh.time")}</DataListHeadCell>
               <DataListHeadCell>{t("common.status")}</DataListHeadCell>
             </DataListHead>
             <ul className={dataListStyles.rows}>
@@ -74,7 +74,7 @@ export default async function InventoryListPage() {
                     title={n("wh", c.warehouse.code, c.warehouse.name)}
                     href={`/warehouse/inventory/${c.id}`}
                   />
-                  <DataListCell label={t("common.date")}>
+                  <DataListCell label={t("wh.time")}>
                     {c.createdAt.toLocaleString(intlLocale(locale))}
                   </DataListCell>
                   <DataListCell label={t("common.status")}>

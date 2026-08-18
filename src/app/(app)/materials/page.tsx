@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/page-header";
+import { DashPanel } from "@/components/dash-panel";
 import { FormField } from "@/components/form-field";
 import { getTranslator } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
@@ -7,6 +8,7 @@ import { CatalogNav } from "@/components/catalog-nav";
 import { createMaterial, archiveMaterial } from "@/app/actions/materials";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { unitCost } from "@core/costing/costing";
+import { PendingButton } from "@/components/pending-button";
 import {
   DataList,
   DataListCell,
@@ -41,48 +43,50 @@ export default async function MaterialsPage() {
       <CatalogNav current="materials" locale={locale} />
 
       {canManage ? (
-        <form action={createMaterial} className="grid gap-3 ui-card p-4 sm:grid-cols-2 lg:grid-cols-4">
-          <p className="sm:col-span-2 lg:col-span-4 text-sm text-[var(--text-muted)]">{t("materials.formHint")}</p>
-          <FormField label={t("common.name")}>
-            <input name="name" required placeholder={t("materials.namePh")} className="ui-input" />
-          </FormField>
-          <FormField label={t("common.category")}>
-            <input name="category" required placeholder={t("materials.categoryPh")} className="ui-input" />
-          </FormField>
-          <FormField label={t("common.supplier")} hint={t("materials.supplierPh")}>
-            <input name="supplierName" placeholder={t("materials.supplierPh")} className="ui-input" />
-          </FormField>
-          <FormField label={t("materials.storageUnit")} hint={t("materials.storageHint")}>
-            <select name="storageUnitId" className="ui-input">
-              {units.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name} ({u.symbol})
-                </option>
-              ))}
-            </select>
-          </FormField>
-          <FormField label={t("materials.purchaseUnit")} hint={t("materials.purchaseHint")}>
-            <select name="purchaseUnitId" className="ui-input">
-              {units.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name} ({u.symbol})
-                </option>
-              ))}
-            </select>
-          </FormField>
-          <FormField label={t("materials.packWeight")} hint={t("materials.packWeightHint")}>
-            <input name="packageWeight" required inputMode="decimal" placeholder="25" className="ui-input" />
-          </FormField>
-          <FormField label={t("materials.packPrice")} hint={t("materials.packPriceHint")}>
-            <input name="packagePrice" required inputMode="decimal" placeholder="180" className="ui-input" />
-          </FormField>
-          <FormField label={t("materials.minStock")} hint={t("materials.minStockHint")}>
-            <input name="minStock" inputMode="decimal" placeholder="0" defaultValue="0" className="ui-input" />
-          </FormField>
-          <button className="ui-btn-primary sm:col-span-2 lg:col-span-4">
-            {t("materials.add")}
-          </button>
-        </form>
+        <DashPanel title={t("materials.add")}>
+          <form action={createMaterial} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <p className="sm:col-span-2 lg:col-span-4 text-sm text-[var(--text-muted)]">{t("materials.formHint")}</p>
+            <FormField label={t("common.name")}>
+              <input name="name" required placeholder={t("materials.namePh")} className="ui-input" />
+            </FormField>
+            <FormField label={t("common.category")}>
+              <input name="category" required placeholder={t("materials.categoryPh")} className="ui-input" />
+            </FormField>
+            <FormField label={t("common.supplier")} hint={t("materials.supplierPh")}>
+              <input name="supplierName" placeholder={t("materials.supplierPh")} className="ui-input" />
+            </FormField>
+            <FormField label={t("materials.storageUnit")} hint={t("materials.storageHint")}>
+              <select name="storageUnitId" className="ui-input">
+                {units.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} ({u.symbol})
+                  </option>
+                ))}
+              </select>
+            </FormField>
+            <FormField label={t("materials.purchaseUnit")} hint={t("materials.purchaseHint")}>
+              <select name="purchaseUnitId" className="ui-input">
+                {units.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} ({u.symbol})
+                  </option>
+                ))}
+              </select>
+            </FormField>
+            <FormField label={t("materials.packWeight")} hint={t("materials.packWeightHint")}>
+              <input name="packageWeight" required inputMode="decimal" placeholder="25" className="ui-input" />
+            </FormField>
+            <FormField label={t("materials.packPrice")} hint={t("materials.packPriceHint")}>
+              <input name="packagePrice" required inputMode="decimal" placeholder="180" className="ui-input" />
+            </FormField>
+            <FormField label={t("materials.minStock")} hint={t("materials.minStockHint")}>
+              <input name="minStock" inputMode="decimal" placeholder="0" defaultValue="0" className="ui-input" />
+            </FormField>
+            <PendingButton className="ui-btn-primary min-h-[44px] sm:col-span-2 lg:col-span-4" pendingLabel={t("common.sending")}>
+              {t("materials.add")}
+            </PendingButton>
+          </form>
+        </DashPanel>
       ) : null}
 
       <DataTableSection>

@@ -3,6 +3,19 @@ import { getTranslator } from "@core/shared/i18n/locale";
 import { readFile } from "fs/promises";
 import path from "path";
 import { requirePermission } from "@core/auth/authz";
+import { SettingsNav } from "@/components/settings-nav";
+import { DashPanel } from "@/components/dash-panel";
+import { StatusBadge } from "@/components/status-badge";
+import {
+  DataList,
+  DataListCell,
+  DataListEmpty,
+  DataListHead,
+  DataListHeadCell,
+  DataListPrimary,
+  DataListRow,
+  dataListStyles,
+} from "@/components/data-table";
 
 type Entry = { at?: string; file?: string; ok?: boolean; error?: string; size?: number };
 
@@ -25,28 +38,41 @@ export default async function BackupsPage() {
 
   return (
     <div className="page-stack">
-      <div>
-        <PageHeader title={t("set.backupsTitle")} />
-        <p className="mt-1 text-sm text-[var(--text-muted)]">{t("set.backupsHint")}</p>
-      </div>
-      <section className="ui-card">
-        <ul className="divide-y divide-[var(--border)] text-sm">
-          {rows.length === 0 ? (
-            <li className="px-5 py-6 text-[var(--muted)]">{t("set.noBackupLog")}</li>
-          ) : (
-            rows.map((r, i) => (
-              <li key={i} className="px-5 py-3">
-                <p className={r.ok ? "font-medium text-[var(--titan-dark)]" : "font-medium text-[var(--danger)]"}>
-                  {r.ok ? t("set.success") : t("set.fail")} · {r.at ?? "—"}
-                </p>
-                <p className="text-xs text-[var(--muted)]">
-                  {r.file ?? "—"} · {r.size ?? 0} B {r.error ? `· ${r.error}` : ""}
-                </p>
-              </li>
-            ))
-          )}
-        </ul>
-      </section>
+      <PageHeader title={t("set.backupsTitle")} description={t("set.backupsHint")} />
+      <SettingsNav current="backups" locale={locale} />
+
+      <DashPanel title={t("set.backupsTitle")}>
+        {rows.length === 0 ? (
+          <DataListEmpty>{t("set.noBackupLog")}</DataListEmpty>
+        ) : (
+          <DataList layout="cols3">
+            <DataListHead layout="cols3">
+              <DataListHeadCell>{t("common.status")}</DataListHeadCell>
+              <DataListHeadCell>{t("list.col.when")}</DataListHeadCell>
+              <DataListHeadCell>{t("list.col.what")}</DataListHeadCell>
+            </DataListHead>
+            <ul className={dataListStyles.rows}>
+              {rows.map((r, i) => (
+                <DataListRow key={i} layout="cols3">
+                  <DataListCell label={t("common.status")}>
+                    <StatusBadge
+                      label={r.ok ? t("set.success") : t("set.fail")}
+                      tone={r.ok ? "good" : "bad"}
+                    />
+                  </DataListCell>
+                  <DataListCell label={t("list.col.when")}>
+                    <span className="text-xs text-[var(--muted)]">{r.at ?? "—"}</span>
+                  </DataListCell>
+                  <DataListPrimary
+                    title={r.file ?? "—"}
+                    subtitle={[r.size != null ? `${r.size} B` : null, r.error].filter(Boolean).join(" · ") || undefined}
+                  />
+                </DataListRow>
+              ))}
+            </ul>
+          </DataList>
+        )}
+      </DashPanel>
     </div>
   );
 }

@@ -10,6 +10,8 @@ import { RevealList } from "@/components/reveal-list";
 import { AddEmployeeForm } from "@/components/add-employee-form";
 import { EMPLOYEE_ASSIGNABLE, type PermissionCode } from "@core/rbac/permissions";
 import { formatPhoneDisplay } from "@core/shared/phone";
+import { DashPanel } from "@/components/dash-panel";
+import { FormField } from "@/components/form-field";
 import { DataTableSection, UiTable } from "@/components/data-table";
 
 export default async function EmployeesPage() {
@@ -69,14 +71,14 @@ export default async function EmployeesPage() {
       <DataTableSection tour="emp-list">
         <UiTable>
           <table className="w-full text-left text-sm">
-            <thead className="bg-[var(--surface-muted)] text-xs text-[var(--muted)]">
+            <thead className="bg-[var(--surface-muted)] text-xs uppercase tracking-wide text-[var(--muted)]">
               <tr>
-                <th className="px-4 py-2">{t("emp.employee")}</th>
-                <th className="px-4 py-2">{t("emp.position")}</th>
-                <th className="px-4 py-2">{t("emp.scheme")}</th>
-                <th className="px-4 py-2">{t("emp.accrued")}</th>
-                <th className="px-4 py-2">{t("emp.paidOut")}</th>
-                <th className="px-4 py-2">{t("common.debt")}</th>
+                <th className="px-4 py-3">{t("emp.employee")}</th>
+                <th className="px-4 py-3">{t("emp.position")}</th>
+                <th className="px-4 py-3">{t("emp.scheme")}</th>
+                <th className="px-4 py-3">{t("emp.accrued")}</th>
+                <th className="px-4 py-3">{t("emp.paidOut")}</th>
+                <th className="px-4 py-3">{t("common.debt")}</th>
               </tr>
             </thead>
             <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={5} className="divide-y divide-[var(--border)]">
@@ -92,7 +94,7 @@ export default async function EmployeesPage() {
                   : "—";
                 return (
                   <tr key={u.id}>
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-3" data-label={t("emp.employee")}>
                       <Link href={`/employees/${u.id}`} className="font-medium text-[var(--titan-dark)] hover:underline">
                         {u.name}
                       </Link>
@@ -100,19 +102,19 @@ export default async function EmployeesPage() {
                         {u.phone ? formatPhoneDisplay(u.phone) : u.email}
                       </p>
                     </td>
-                    <td className="px-4 py-2" data-label={t("emp.position")}>
+                    <td className="px-4 py-3" data-label={t("emp.position")}>
                       {n("role", u.role.code, u.role.name)}
                     </td>
-                    <td className="px-4 py-2 text-xs" data-label={t("emp.scheme")}>
+                    <td className="px-4 py-3 text-xs" data-label={t("emp.scheme")}>
                       {schemeLabel}
                     </td>
-                    <td className="px-4 py-2 font-mono text-xs" data-label={t("emp.accrued")}>
+                    <td className="px-4 py-3 font-mono text-xs tabular-nums" data-label={t("emp.accrued")}>
                       {moneyDisplay(acc)} с
                     </td>
-                    <td className="px-4 py-2 font-mono text-xs" data-label={t("emp.paidOut")}>
+                    <td className="px-4 py-3 font-mono text-xs tabular-nums" data-label={t("emp.paidOut")}>
                       {moneyDisplay(paid)} с
                     </td>
-                    <td className="px-4 py-2 font-mono text-xs" data-label={t("common.debt")}>
+                    <td className="px-4 py-3 font-mono text-xs tabular-nums" data-label={t("common.debt")}>
                       {moneyDisplay(acc.sub(paid))} с
                     </td>
                   </tr>
@@ -134,75 +136,70 @@ export default async function EmployeesPage() {
               : scheme.name;
         const hint = isCommission ? t("emp.commissionHint") : isLabor ? t("emp.laborHint") : "";
         return (
-        <section key={scheme.id} className="ui-card p-4">
-          <h2 className="text-sm font-semibold">{title}</h2>
-          <p className="mt-1 text-sm leading-snug text-[var(--text-muted)]">{hint}</p>
-          {scheme.productionRate ? (
-            <p className="mt-1 text-xs text-[var(--text-muted)]">
-              {t("emp.currentRate", { n: qtyDisplay(scheme.productionRate) })}
-            </p>
-          ) : null}
-          {canEditScheme ? (
-            <form action={schemeAction} className="mt-3 space-y-3">
-              <input type="hidden" name="id" value={scheme.id} />
-              {isLabor ? (
-                <label className="block min-w-0 text-sm">
-                  <span className="ui-label mb-1">{t("emp.productionRate")}</span>
-                  <span className="block w-40">
+          <DashPanel key={scheme.id} title={title}>
+            {hint ? <p className="mb-3 text-sm leading-snug text-[var(--text-muted)]">{hint}</p> : null}
+            {scheme.productionRate ? (
+              <p className="mb-3 text-xs text-[var(--text-muted)]">
+                {t("emp.currentRate", { n: qtyDisplay(scheme.productionRate) })}
+              </p>
+            ) : null}
+            {canEditScheme ? (
+              <form action={schemeAction} className="grid gap-3">
+                <input type="hidden" name="id" value={scheme.id} />
+                {isLabor ? (
+                  <FormField label={t("emp.productionRate")} className="max-w-xs">
                     <input
                       name="productionRate"
                       inputMode="decimal"
                       defaultValue={qtyDisplay(scheme.productionRate ?? 0)}
                       className="ui-input"
                     />
-                  </span>
-                </label>
-              ) : null}
-              {isCommission ? (
-                <>
-                  <label className="block min-w-0 text-sm">
-                    <span className="ui-label mb-1">{t("emp.model")}</span>
-                    <select
-                      name="commissionMode"
-                      defaultValue={scheme.commissionMode ?? "PROGRESSIVE"}
-                      className="ui-input max-w-xl"
-                    >
-                      <option value="PROGRESSIVE">{t("emp.progressive")}</option>
-                      <option value="TIERED">{t("emp.tiered")}</option>
-                    </select>
-                  </label>
-                  <input type="hidden" name="commissionBase" value={scheme.commissionBase ?? "PAID"} />
-                  <p className="text-sm text-[var(--text-muted)]">{t("emp.basePaid")}</p>
-                  <div className="overflow-x-auto">
-                    <div className="mb-1 grid min-w-[20rem] grid-cols-3 gap-2 text-xs font-semibold text-[#344054]">
-                      <span>{t("emp.fromOrders")}</span>
-                      <span>{t("emp.toOrders")}</span>
-                      <span>{t("emp.percent")}</span>
-                    </div>
-                    {scheme.tiers.map((tier) => (
-                      <div key={tier.id} className="mb-2 grid min-w-[20rem] grid-cols-3 gap-2">
-                        <input name="fromCount" defaultValue={tier.fromCount} inputMode="numeric" className="ui-input" />
-                        <input name="toCount" defaultValue={tier.toCount ?? ""} placeholder="∞" inputMode="numeric" className="ui-input" />
-                        <input name="percent" defaultValue={qtyDisplay(tier.percent)} inputMode="decimal" className="ui-input" />
+                  </FormField>
+                ) : null}
+                {isCommission ? (
+                  <>
+                    <FormField label={t("emp.model")} className="max-w-xl">
+                      <select
+                        name="commissionMode"
+                        defaultValue={scheme.commissionMode ?? "PROGRESSIVE"}
+                        className="ui-input"
+                      >
+                        <option value="PROGRESSIVE">{t("emp.progressive")}</option>
+                        <option value="TIERED">{t("emp.tiered")}</option>
+                      </select>
+                    </FormField>
+                    <input type="hidden" name="commissionBase" value={scheme.commissionBase ?? "PAID"} />
+                    <p className="text-sm text-[var(--text-muted)]">{t("emp.basePaid")}</p>
+                    <div className="overflow-x-auto">
+                      <div className="mb-1 grid min-w-[20rem] grid-cols-3 gap-2 text-xs font-semibold text-[#344054]">
+                        <span>{t("emp.fromOrders")}</span>
+                        <span>{t("emp.toOrders")}</span>
+                        <span>{t("emp.percent")}</span>
                       </div>
-                    ))}
-                  </div>
-                </>
-              ) : null}
-              <button className="ui-btn-primary">
-                {isCommission ? t("emp.saveCommission") : isLabor ? t("emp.saveRate") : t("emp.saveScheme")}
-              </button>
-            </form>
-          ) : (
-            <ul className="mt-2 text-sm">
-              {scheme.tiers.map((tier) => (
-                <li key={tier.id}>
-                  {tier.fromCount}–{tier.toCount ?? "∞"} · {qtyDisplay(tier.percent)}%
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+                      {scheme.tiers.map((tier) => (
+                        <div key={tier.id} className="mb-2 grid min-w-[20rem] grid-cols-3 gap-2">
+                          <input name="fromCount" defaultValue={tier.fromCount} inputMode="numeric" className="ui-input" />
+                          <input name="toCount" defaultValue={tier.toCount ?? ""} placeholder="∞" inputMode="numeric" className="ui-input" />
+                          <input name="percent" defaultValue={qtyDisplay(tier.percent)} inputMode="decimal" className="ui-input" />
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : null}
+                <button type="submit" className="ui-btn-primary min-h-[44px]">
+                  {isCommission ? t("emp.saveCommission") : isLabor ? t("emp.saveRate") : t("emp.saveScheme")}
+                </button>
+              </form>
+            ) : (
+              <ul className="text-sm">
+                {scheme.tiers.map((tier) => (
+                  <li key={tier.id}>
+                    {tier.fromCount}–{tier.toCount ?? "∞"} · {qtyDisplay(tier.percent)}%
+                  </li>
+                ))}
+              </ul>
+            )}
+          </DashPanel>
         );
       })}
     </div>

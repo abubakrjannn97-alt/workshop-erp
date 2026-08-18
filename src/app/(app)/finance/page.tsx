@@ -14,7 +14,6 @@ import { PendingButton } from "@/components/pending-button";
 import { DashKpiGrid } from "@/components/dashboard/dashboard-system";
 import { DashPanel } from "@/components/dash-panel";
 import { FormField } from "@/components/form-field";
-import { ModuleToolbar } from "@/components/module/module-ui";
 import {
   DataList,
   DataListEmpty,
@@ -134,26 +133,24 @@ export default async function FinancePage() {
       </section>
 
       <DashPanel title={t("fin.shift")} tour="fin-shift">
-        <form action={openShift} className="contents">
-          <ModuleToolbar>
-            <FormField label={t("fin.accounts")} className="min-w-[10rem] flex-1">
-              <select name="accountId" className="ui-input">
-                {accounts.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {n("cash", a.code, a.name)}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-            <FormField label={t("fin.openBalance")} className="min-w-[8rem]">
-              <input name="openingAmount" placeholder={t("fin.openBalance")} className="ui-input" />
-            </FormField>
-            <div className="flex items-end">
-              <button type="submit" className="ui-btn-primary min-h-[44px]">
-                {t("fin.openShift")}
-              </button>
-            </div>
-          </ModuleToolbar>
+        <form action={openShift} className="ui-card flex flex-wrap items-end gap-2 p-3">
+          <FormField label={t("fin.accounts")} className="min-w-[10rem] flex-1">
+            <select name="accountId" className="ui-input">
+              {accounts.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {n("cash", a.code, a.name)}
+                </option>
+              ))}
+            </select>
+          </FormField>
+          <FormField label={t("fin.openBalance")} className="min-w-[8rem]">
+            <input name="openingAmount" placeholder={t("fin.openBalance")} className="ui-input" />
+          </FormField>
+          <div className="flex items-end">
+            <button type="submit" className="ui-btn-primary min-h-[44px]">
+              {t("fin.openShift")}
+            </button>
+          </div>
         </form>
         <ul className="mt-3 space-y-3 text-sm">
           {shifts.length === 0 ? (
@@ -269,13 +266,11 @@ export default async function FinancePage() {
               <FormField label={t("common.name")}>
                 <input name="name" placeholder={t("common.name")} className="ui-input" />
               </FormField>
-              <FormField label={t("common.type")}>
-                <select name="kind" className="ui-input">
+              <select name="kind" className="ui-input" aria-label={t("fin.obligation")}>
                   <option value="other">{t("fin.other")}</option>
                   <option value="supplier">{t("common.supplier")}</option>
                   <option value="tax">{t("fin.tax")}</option>
                 </select>
-              </FormField>
               <FormField label={`${t("common.amount")}, с`}>
                 <input name="amount" placeholder={t("common.amount")} className="ui-input" inputMode="decimal" />
               </FormField>

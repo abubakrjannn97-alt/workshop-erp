@@ -30,7 +30,7 @@ export function PurchaseOrderForm({
   }
 
   return (
-    <form action={submit} className="ui-card space-y-4 p-4" data-tour="po-new">
+    <form action={submit} className="space-y-4">
       <FormField label={t("common.supplier")} required>
         <select name="supplierId" className="ui-input" required defaultValue={suppliers[0]?.id}>
           {suppliers.map((s) => (
@@ -113,7 +113,7 @@ export function PurchaseOrderForm({
         </p>
       ) : null}
 
-      <PendingButton className="ui-btn-primary w-full sm:w-auto" pendingLabel={t("common.saving")}>
+      <PendingButton className="ui-btn-primary min-h-[44px] w-full sm:w-auto" pendingLabel={t("common.saving")}>
         {t("po.createRequest")}
       </PendingButton>
     </form>
