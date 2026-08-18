@@ -3,7 +3,8 @@ import bcrypt from "bcryptjs";
 import { DEMO_PASSWORD } from "../../src/core/auth/demo-users";
 import { PERMISSIONS, ROLE_PERMISSIONS } from "../../src/lib/permissions";
 import { DEFAULT_SETTINGS, SETTING_KEYS } from "../../src/core/config/settings";
-import { FACADE_DOMAIN_CONFIG } from "../../src/domains/facade/config";
+const CORE_WAREHOUSE_RAW_CODE = "RAW";
+const CORE_WAREHOUSE_FG_CODE = "FG";
 
 const ROLE_DEFS = [
   { code: "owner", name: "Owner", description: "Полный доступ" },
@@ -174,19 +175,19 @@ export async function seedCore(prisma: PrismaClient) {
   });
 
   await prisma.warehouse.upsert({
-    where: { code: FACADE_DOMAIN_CONFIG.warehouses.rawCode },
+    where: { code: CORE_WAREHOUSE_RAW_CODE },
     update: { name: "Склад сырья", kind: "material" },
     create: {
-      code: FACADE_DOMAIN_CONFIG.warehouses.rawCode,
+      code: CORE_WAREHOUSE_RAW_CODE,
       name: "Склад сырья",
       kind: "material",
     },
   });
   await prisma.warehouse.upsert({
-    where: { code: FACADE_DOMAIN_CONFIG.warehouses.fgCode },
+    where: { code: CORE_WAREHOUSE_FG_CODE },
     update: { name: "Склад готовой продукции", kind: "finished" },
     create: {
-      code: FACADE_DOMAIN_CONFIG.warehouses.fgCode,
+      code: CORE_WAREHOUSE_FG_CODE,
       name: "Склад готовой продукции",
       kind: "finished",
     },

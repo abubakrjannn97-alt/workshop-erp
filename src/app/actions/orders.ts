@@ -435,7 +435,7 @@ export async function addPayment(formData: FormData) {
       where: { id: orderId },
       data: { paidAmount: money(paid), paymentStatus: paymentStatusOf(order.total, paid, hadRefund) },
     });
-    // Ставка productionRate — за м² продажи, не за штуки готовой продукции (outputQty).
+    // productionRate applies to the sale-unit quantity, not finished-goods outputQty.
     const saleQty = order.items.reduce((s, item) => s.add(String(item.quantity)), D(0));
     const scheme = order.seller.payScheme;
     const laborAmount = scheme?.productionRate

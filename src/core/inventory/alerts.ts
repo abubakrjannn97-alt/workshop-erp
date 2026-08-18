@@ -93,6 +93,7 @@ export async function coverageAndPurchaseNeed() {
   const product = await prisma.product.findFirst({
     where: { archivedAt: null, isActive: true },
     include: {
+      saleUnit: true,
       recipe: {
         include: {
           versions: {
@@ -144,7 +145,7 @@ export async function coverageAndPurchaseNeed() {
 
   return {
     coverQty,
-    coverUnit: product?.saleUnitId ? "ед. продажи" : "м²",
+    coverUnit: product?.saleUnit?.symbol ?? "ед. продажи",
     productName: product?.name ?? null,
     purchaseNeed: [...buyMap.values()].map((r) => ({
       name: r.name,

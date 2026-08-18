@@ -14,6 +14,7 @@ import { EmployeeAccessForm } from "@/components/employee-access-form";
 import { EMPLOYEE_ASSIGNABLE, type PermissionCode } from "@core/rbac/permissions";
 import { formatPhoneDisplay } from "@core/shared/phone";
 import { archiveEmployee } from "@/app/actions/employees";
+import { getDomainConfig } from "@core/config/domain-config";
 
 export default async function EmployeePage({ params }: { params: Promise<{ id: string }> }) {
   const { t, locale, n } = await getTranslator();
@@ -36,7 +37,7 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
   const key = periodKey();
   const { start, end } = periodRange(key);
 
-  const [schemes, accounts, accruals, payouts, m2, accruedAgg, paidAgg, assignablePerms] =
+  const [schemes, accounts, accruals, payouts, m2, accruedAgg, paidAgg, assignablePerms, domainConfig] =
     await Promise.all([
     prisma.payScheme.findMany({ orderBy: { name: "asc" } }),
     prisma.cashAccount.findMany({ where: { archivedAt: null } }),
@@ -61,7 +62,12 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
           orderBy: [{ module: "asc" }, { code: "asc" }],
         })
       : Promise.resolve([]),
+    getDomainConfig(),
   ]);
+  const outputUnit = await prisma.unit.findUnique({
+    where: { code: domainConfig.product.defaultOutputUnit },
+  });
+  const outputUnitSymbol = outputUnit?.symbol ?? t("common.unitGeneric");
   const permModules = [...new Set(assignablePerms.map((p) => p.module))];
   const selectedPermCodes = user.permissions.map(
     (up) => up.permission.code as PermissionCode,
@@ -118,7 +124,7 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
       <div className="grid gap-4 sm:grid-cols-4">
         <KpiCard label={t("emp.monthSales")} value={`${moneyDisplay(monthTurnover)} с`} tone="in" />
         <KpiCard label={t("emp.clientPaid")} value={`${moneyDisplay(monthPaid)} с`} tone="in" />
-        <KpiCard label={t("emp.goodM2")} value={`${qtyDisplay(m2._sum.quantity ?? 0)} м²`} tone="ink" />
+        <KpiCard label={t("emp.goodOutput")} value={`${qtyDisplay(m2._sum.quantity ?? 0)} ${outputUnitSymbol}`} tone="ink" />
         <KpiCard label={t("common.debt")} value={`${moneyDisplay(debt)} с`} tone="out" />
       </div>
 
@@ -136,7 +142,7 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
               <option key={s.id} value={s.id}>
                 {s.kind === "SALES_COMMISSION"
                   ? t("emp.commissionTitle")
-                  : s.kind === "PRODUCTION_M2"
+                  : s.productionRate != null
                     ? t("emp.laborTitle")
                     : s.name}
               </option>

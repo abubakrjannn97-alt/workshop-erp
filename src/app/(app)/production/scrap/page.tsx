@@ -17,7 +17,7 @@ export default async function ScrapPage() {
     include: {
       batch: {
         include: {
-          production: { include: { order: { include: { items: { include: { product: true } } } } } },
+          production: { include: { order: { include: { items: { include: { product: { include: { outputUnit: true } } } } } } } },
         },
       },
     },
@@ -32,16 +32,20 @@ export default async function ScrapPage() {
         <p className="text-sm text-[var(--muted)]">{t("an.noScrap")}</p>
       ) : (
         <ul className="space-y-2">
-          {scraps.map((s) => (
+          {scraps.map((s) => {
+            const product = s.batch.production.order.items[0]?.product;
+            const unitSymbol = product?.outputUnit?.symbol ?? t("common.unitGeneric");
+            return (
             <li key={s.id} className="ui-card px-4 py-3 text-sm">
               <Link href={`/production/${s.batch.productionOrderId}`} className="font-medium hover:underline">
-                {s.batch.production.order.items[0]?.product.name ?? "—"}
+                {product?.name ?? "—"}
               </Link>
               <p className="mt-1 text-[12px] text-[var(--muted)]">
-                {qtyDisplay(s.quantity)} м² · {s.reason} · {s.createdAt.toLocaleDateString(intlLocale(locale))}
+                {qtyDisplay(s.quantity)} {unitSymbol} · {s.reason} · {s.createdAt.toLocaleDateString(intlLocale(locale))}
               </p>
             </li>
-          ))}
+          );
+          })}
         </ul>
       )}
     </div>

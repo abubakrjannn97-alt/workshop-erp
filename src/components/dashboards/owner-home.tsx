@@ -14,6 +14,7 @@ import { prisma } from "@core/infrastructure/prisma";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { FUND, fundDelta, LEDGER } from "@core/finance/finance";
 import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@core/inventory/alerts";
+import { getDomainConfig } from "@core/config/domain-config";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import { KpiCard } from "@/components/kpi-card";
 import { DashPanel } from "@/components/dash-panel";
@@ -32,6 +33,11 @@ function monthStart() {
 export async function OwnerHome() {
   const { t, n, locale } = await getTranslator();
   const start = monthStart();
+  const domainConfig = await getDomainConfig();
+  const outputUnit = await prisma.unit.findUnique({
+    where: { code: domainConfig.product.defaultOutputUnit },
+  });
+  const outputUnitSymbol = outputUnit?.symbol ?? t("common.unitGeneric");
 
   const [
     unpaid,
@@ -178,7 +184,7 @@ export async function OwnerHome() {
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5" data-tour="home-income">
         <KpiCard href="/sales" label={t("dash.todaySales")} value={`${moneyDisplay(sold)} с`} hint={t("home.period")} tone="in" />
         <KpiCard href="/sales" label={t("dash.todayPaid")} value={`${moneyDisplay(paid)} с`} hint={t("home.period")} tone="in" />
-        <KpiCard href="/production" label={t("dash.todayProd")} value={`${qtyDisplay(produced)} м²`} hint={t("home.period")} tone="ink" />
+        <KpiCard href="/production" label={t("dash.todayProd")} value={`${qtyDisplay(produced)} ${outputUnitSymbol}`} hint={t("home.period")} tone="ink" />
         <KpiCard href="/finance/expenses" label={t("dash.todayExp")} value={`${moneyDisplay(expenses)} с`} hint={t("home.period")} tone="out" />
         <KpiCard href="/finance" label={t("dash.todayProfit")} value={`${moneyDisplay(profit)} с`} tone="in" />
       </div>

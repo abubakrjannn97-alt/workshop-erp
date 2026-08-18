@@ -19,7 +19,7 @@ describe("i18n domain overrides", () => {
 
   it("applies facade m² terminology for known keys", () => {
     assert.match(translate("ru", "products.recipeBase"), /м²/);
-    assert.match(translate("ru", "emp.rateM2"), /м²/);
+    assert.match(translate("ru", "emp.productionRate"), /м²/);
     assert.equal(translate("ru", "products.categoryDefault"), "Фасад");
   });
 

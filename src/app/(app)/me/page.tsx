@@ -33,7 +33,7 @@ export default async function MyJobsPage() {
     )[0];
 
   const product = current?.job.order.items[0];
-  const unit = product?.product.saleUnit.symbol ?? "м²";
+  const unit = product?.product.saleUnit.symbol ?? t("common.unitGeneric");
   const planned = current ? D(String(current.job.plannedQty)) : D(0);
   const produced = current ? D(String(current.job.producedQty)) : D(0);
   const pct = planned.gt(0) ? Math.min(100, produced.div(planned).mul(100).toNumber()) : 0;

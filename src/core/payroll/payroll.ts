@@ -46,7 +46,7 @@ export async function accrueProductionWage(
       orderId: input.orderId,
       periodKey: periodKey(),
       status: "ACCRUED",
-      comment: `${qty(qtyGood)} × ${money(input.rate)} с/м²`,
+      comment: `${qty(qtyGood)} × ${money(input.rate)} с/ед.`,
     },
   });
 }

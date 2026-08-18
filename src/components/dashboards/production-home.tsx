@@ -2,12 +2,18 @@ import Link from "next/link";
 import { prisma } from "@core/infrastructure/prisma";
 import { qtyDisplay } from "@core/shared/decimal";
 import { getTranslator } from "@core/shared/i18n/locale";
+import { getDomainConfig } from "@core/config/domain-config";
 import { PageHeader } from "@/components/page-header";
 import { KpiCard } from "@/components/kpi-card";
 import { RevealList } from "@/components/reveal-list";
 
 export async function ProductionHome() {
   const { t } = await getTranslator();
+  const domainConfig = await getDomainConfig();
+  const outputUnit = await prisma.unit.findUnique({
+    where: { code: domainConfig.product.defaultOutputUnit },
+  });
+  const outputUnitSymbol = outputUnit?.symbol ?? t("common.unitGeneric");
   const start = new Date();
   start.setDate(1);
   start.setHours(0, 0, 0, 0);
@@ -31,7 +37,7 @@ export async function ProductionHome() {
       <div className="grid gap-2 sm:grid-cols-3" data-tour="home-kpis">
         <KpiCard href="/production" label={t("dash.openJobs")} value={String(openJobs.length)} tone="ink" />
         <KpiCard href="/production/batches" label={t("nav.batches")} value={String(openBatches)} tone="ink" />
-        <KpiCard href="/production/scrap" label={t("nav.scrap")} value={`${qtyDisplay(scrap._sum.quantity ?? 0)} м²`} tone="out" />
+        <KpiCard href="/production/scrap" label={t("nav.scrap")} value={`${qtyDisplay(scrap._sum.quantity ?? 0)} ${outputUnitSymbol}`} tone="out" />
       </div>
       {overdue.length > 0 ? (
         <section className="ui-card">

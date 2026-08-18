@@ -96,7 +96,7 @@ export default async function EmployeesPage() {
                     {u.payScheme
                       ? u.payScheme.kind === "SALES_COMMISSION"
                         ? t("emp.commissionTitle")
-                        : u.payScheme.kind === "PRODUCTION_M2"
+                        : u.payScheme.productionRate != null
                           ? t("emp.laborTitle")
                           : u.payScheme.name
                       : "—"}
@@ -117,7 +117,7 @@ export default async function EmployeesPage() {
         const title =
           scheme.kind === "SALES_COMMISSION"
             ? t("emp.commissionTitle")
-            : scheme.kind === "PRODUCTION_M2"
+            : scheme.productionRate != null
               ? t("emp.laborTitle")
               : scheme.name;
         const hint = isCommission ? t("emp.commissionHint") : isLabor ? t("emp.laborHint") : "";
@@ -135,7 +135,7 @@ export default async function EmployeesPage() {
               <input type="hidden" name="id" value={scheme.id} />
               {isLabor ? (
                 <label className="block min-w-0 text-sm">
-                  <span className="ui-label mb-1">{t("emp.rateM2")}</span>
+                  <span className="ui-label mb-1">{t("emp.productionRate")}</span>
                   <span className="block w-40">
                     <input
                       name="productionRate"
