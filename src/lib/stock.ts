@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { D, money, qty } from "@/lib/decimal";
+import { D, money, qty } from "@core/shared/decimal";
 import { assertPeriodOpen } from "@/lib/control";
 import { resolveRawWarehouseCode } from "@/core/config/resolve-warehouse";
 

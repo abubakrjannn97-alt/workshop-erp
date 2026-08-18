@@ -3,7 +3,7 @@
 import { useId, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { closeBatch } from "@/app/actions/production";
-import { qtyDisplay } from "@/lib/decimal";
+import { qtyDisplay } from "@core/shared/decimal";
 import type { Locale } from "@/lib/i18n";
 import { translate } from "@/lib/i18n";
 import { formDataToRecord } from "@/lib/offline/form";

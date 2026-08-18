@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { assertSafeProductionEnv, isAuthBypassEnabled } from "../src/lib/env-guard";
+import { assertSafeProductionEnv, isAuthBypassEnabled } from "../src/core/shared/env-guard";
 
 describe("env-guard", () => {
   const origNode = process.env.NODE_ENV;

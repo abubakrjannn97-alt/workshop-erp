@@ -16,11 +16,11 @@ import {
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/authz";
-import { D, qtyDisplay } from "@/lib/decimal";
+import { D, qtyDisplay } from "@core/shared/decimal";
 import { FUND, fundDelta } from "@/lib/finance";
 import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@/lib/alerts";
 import { getTranslator, intlLocale } from "@/lib/locale";
-import { orderNo } from "@/lib/format";
+import { orderNo } from "@core/shared/format";
 import { CURRENCY_SYMBOL } from "@/lib/settings";
 import { orderTone } from "@/components/status-badge";
 import { FinancePeriodPicker } from "@/components/finance-period-picker";
@@ -28,7 +28,7 @@ import {
   financePeriodCompareHint,
   resolveFinanceDateRange,
   type FinancePeriod,
-} from "@/lib/order-period";
+} from "@core/shared/order-period";
 import styles from "./mobile-owner-home.module.css";
 
 export type FinanceOverview = {

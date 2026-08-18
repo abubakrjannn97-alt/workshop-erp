@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
-import { D, moneyDisplay } from "@/lib/decimal";
+import { D, moneyDisplay } from "@core/shared/decimal";
 import { getTranslator, intlLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/page-header";
 import { RevealList } from "@/components/reveal-list";

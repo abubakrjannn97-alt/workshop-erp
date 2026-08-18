@@ -1,4 +1,4 @@
-import { D } from "@/lib/decimal";
+import { D } from "@core/shared/decimal";
 
 /** TZ §10: маржинальная vs чистая прибыль. */
 export function contributionAndNet(input: {

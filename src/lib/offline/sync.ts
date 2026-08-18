@@ -1,4 +1,4 @@
-import { closeBatch } from "@/app/actions/production";
+import { closeBatch } from "@/core/production/close-batch-action";
 import { idbDelete, idbGetAll, idbPut } from "@/lib/offline/db";
 import { recordToFormData } from "@/lib/offline/form";
 import type { OfflineActionType, QueuedAction } from "@/lib/offline/types";

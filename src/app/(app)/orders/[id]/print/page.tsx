@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
-import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
+import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { SETTING_KEYS, DEFAULT_SETTINGS } from "@/lib/settings";
 import { PrintFrame } from "@/components/print-frame";
 import { getTranslator } from "@/lib/locale";

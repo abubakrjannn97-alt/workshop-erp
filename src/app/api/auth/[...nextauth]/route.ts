@@ -1,6 +1,6 @@
 import { handlers } from "@/auth";
 import { headers } from "next/headers";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit } from "@core/shared/rate-limit";
 import { setLoginRequestIp } from "@/lib/login-context";
 
 function clientIp(h: Headers) {

@@ -2,7 +2,7 @@ import { getTranslator, intlLocale } from "@/lib/locale";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { WarehouseNav } from "@/components/warehouse-nav";
-import { moneyDisplay, qtyDisplay } from "@/lib/decimal";
+import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { reverseStockMovement } from "@/app/actions/inventory";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PageHeader } from "@/components/page-header";

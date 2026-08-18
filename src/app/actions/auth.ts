@@ -6,7 +6,7 @@ import { signIn, signOut } from "@/auth";
 import { DEMO_PASSWORD, DEMO_USERS, isDemoUserEmail } from "@/lib/demo-users";
 import { assertLoginAllowed } from "@/lib/login-guard";
 import { setLoginRequestIp } from "@/lib/login-context";
-import { isValidPhone, normalizePhone } from "@/lib/phone";
+import { isValidPhone, normalizePhone } from "@core/shared/phone";
 
 function clientIp(h: Headers) {
   return h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";

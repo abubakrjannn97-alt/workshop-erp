@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
-import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
+import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { FUND, LEDGER, fundDelta } from "@/lib/finance";
 import { contributionAndNet } from "@/lib/profit";
 import { coverageAndPurchaseNeed } from "@/lib/alerts";

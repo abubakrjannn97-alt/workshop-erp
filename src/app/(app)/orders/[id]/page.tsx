@@ -6,7 +6,7 @@ import { requirePermission } from "@/lib/authz";
 import { hasPermission } from "@/lib/authz";
 import { PendingButton } from "@/components/pending-button";
 import { IdempotencyField } from "@/components/idempotency-field";
-import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
+import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { available } from "@/lib/stock";
 import { findRawWarehouse } from "@/core/config/resolve-warehouse";
 import { PAYMENT_METHODS, STATUS_FLOW } from "@/lib/orders";

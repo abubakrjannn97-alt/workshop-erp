@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requirePermission, requireSession } from "@/lib/authz";
 import { writeAudit } from "@/lib/audit";
-import { D, money } from "@/lib/decimal";
+import { D, money } from "@core/shared/decimal";
 import { canSelfApprove, notifyRoles, queueApproval } from "@/lib/control";
 import { cashDelta } from "@/lib/finance";
 import { writeOffMaterial } from "@/lib/stock";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { D, moneyDisplay } from "@/lib/decimal";
+import { D, moneyDisplay } from "@core/shared/decimal";
 import { PendingButton } from "@/components/pending-button";
 import { createT, type Locale } from "@/lib/i18n";
 

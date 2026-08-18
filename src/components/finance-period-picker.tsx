@@ -9,7 +9,7 @@ import {
   FINANCE_PERIODS,
   type FinancePeriod,
   financePeriodLabel,
-} from "@/lib/order-period";
+} from "@core/shared/order-period";
 import styles from "@/components/dashboards/mobile-owner-home.module.css";
 
 export function FinancePeriodPicker({

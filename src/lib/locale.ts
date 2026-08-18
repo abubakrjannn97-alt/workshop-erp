@@ -1,7 +1,7 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { cookies } from "next/headers";
 import { DEFAULT_LOCALE, type Locale, LOCALES, createT, intlLocale, named } from "@/lib/i18n";
-import { LOCALE_COOKIE } from "@/lib/locale-cookie";
+import { LOCALE_COOKIE } from "@core/shared/locale-cookie";
 
 export { intlLocale, LOCALE_COOKIE };
 

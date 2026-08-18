@@ -3,14 +3,14 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { hasPermission } from "@/lib/authz";
-import { D, moneyDisplay } from "@/lib/decimal";
-import { orderNo } from "@/lib/format";
+import { D, moneyDisplay } from "@core/shared/decimal";
+import { orderNo } from "@core/shared/format";
 import {
   ORDERS_PAGE_SIZE,
   buildOrdersQuery,
   orderPeriodLabel,
   resolveOrderDateRange,
-} from "@/lib/order-period";
+} from "@core/shared/order-period";
 import { PageHeader } from "@/components/page-header";
 import { KpiCard } from "@/components/kpi-card";
 import {

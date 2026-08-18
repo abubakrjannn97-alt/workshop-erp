@@ -2,7 +2,7 @@ import { getTranslator, intlLocale } from "@/lib/locale";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { hasPermission } from "@/lib/authz";
-import { D, moneyDisplay } from "@/lib/decimal";
+import { D, moneyDisplay } from "@core/shared/decimal";
 import { cashDelta, fundDelta, FUND } from "@/lib/finance";
 import { createExpense, createExpenseCategory, createObligation, transferCash } from "@/app/actions/finance";
 import { closeCashShift, openCashShift } from "@/app/actions/control";

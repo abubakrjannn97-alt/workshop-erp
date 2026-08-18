@@ -4,8 +4,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
-import { moneyDisplay } from "@/lib/decimal";
-import { D } from "@/lib/decimal";
+import { moneyDisplay } from "@core/shared/decimal";
+import { D } from "@core/shared/decimal";
 
 export default async function SupplierPage({ params }: { params: Promise<{ id: string }> }) {
   const { t, locale } = await getTranslator();

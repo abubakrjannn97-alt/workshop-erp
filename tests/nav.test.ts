@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { ROLE_PERMISSIONS } from "../src/lib/permissions";
+import { ROLE_PERMISSIONS } from "../src/core/rbac/permissions";
 import {
   bottomTabsForRole,
   isTabActive,

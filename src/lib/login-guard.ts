@@ -1,4 +1,4 @@
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit } from "@core/shared/rate-limit";
 import { notifyRoles } from "@/lib/control";
 
 const ACCOUNT_WINDOW_MS = 10 * 60 * 1000;

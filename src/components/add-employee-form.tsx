@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { createEmployee } from "@/app/actions/employees";
 import { createT, type Locale } from "@/lib/i18n";
-import type { PermissionCode } from "@/lib/permissions";
+import type { PermissionCode } from "@core/rbac/permissions";
 
 export type PermissionOption = {
   id: string;

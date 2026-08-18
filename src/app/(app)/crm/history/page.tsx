@@ -3,8 +3,8 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
-import { D, moneyDisplay } from "@/lib/decimal";
-import { orderNo } from "@/lib/format";
+import { D, moneyDisplay } from "@core/shared/decimal";
+import { orderNo } from "@core/shared/format";
 import { PageHeader } from "@/components/page-header";
 import { KpiCard } from "@/components/kpi-card";
 import {

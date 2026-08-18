@@ -6,7 +6,7 @@ import { requirePermission } from "@/lib/authz";
 import { updateProduct } from "@/app/actions/products";
 import { CatalogNav } from "@/components/catalog-nav";
 import { materialCostForRecipe } from "@/lib/costing";
-import { moneyDisplay } from "@/lib/decimal";
+import { moneyDisplay } from "@core/shared/decimal";
 import { RecipeEditor } from "./recipe-editor";
 import { NeedPreview } from "./need-preview";
 

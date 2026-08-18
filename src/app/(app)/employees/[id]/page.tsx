@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { hasPermission } from "@/lib/authz";
-import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
+import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { assignPayScheme, payEmployee } from "@/app/actions/payroll";
 import { periodKey, periodRange } from "@/lib/payroll";
 import { getTranslator } from "@/lib/locale";
@@ -11,8 +11,8 @@ import { intlLocale } from "@/lib/i18n";
 import { KpiCard } from "@/components/kpi-card";
 import { PageHeader } from "@/components/page-header";
 import { EmployeeAccessForm } from "@/components/employee-access-form";
-import { EMPLOYEE_ASSIGNABLE, type PermissionCode } from "@/lib/permissions";
-import { formatPhoneDisplay } from "@/lib/phone";
+import { EMPLOYEE_ASSIGNABLE, type PermissionCode } from "@core/rbac/permissions";
+import { formatPhoneDisplay } from "@core/shared/phone";
 import { archiveEmployee } from "@/app/actions/employees";
 
 export default async function EmployeePage({ params }: { params: Promise<{ id: string }> }) {

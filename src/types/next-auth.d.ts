@@ -1,4 +1,4 @@
-import type { PermissionCode } from "@/lib/permissions";
+import type { PermissionCode } from "@core/rbac/permissions";
 import type { DefaultSession } from "next-auth";
 
 declare module "next-auth" {

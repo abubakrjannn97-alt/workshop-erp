@@ -1,5 +1,5 @@
-import type { PermissionCode } from "@/lib/permissions";
-import { hasPermission } from "@/lib/permissions";
+import type { PermissionCode } from "@core/rbac/permissions";
+import { hasPermission } from "@core/rbac/permissions";
 
 export type NavIcon =
   | "home"

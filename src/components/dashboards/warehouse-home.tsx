@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { D, qtyDisplay } from "@/lib/decimal";
+import { D, qtyDisplay } from "@core/shared/decimal";
 import { coverageAndPurchaseNeed } from "@/lib/alerts";
 import { getTranslator, intlLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/page-header";

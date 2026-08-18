@@ -5,7 +5,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { writeAudit } from "@/lib/audit";
-import { money, qty } from "@/lib/decimal";
+import { money, qty } from "@core/shared/decimal";
 import { unitCost } from "@/lib/costing";
 
 const schema = z.object({

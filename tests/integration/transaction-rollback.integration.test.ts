@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "crypto";
 import { prisma } from "../../src/lib/prisma";
 import { receiveProduct } from "../../src/lib/stock";
-import { D } from "../../src/lib/decimal";
+import { D } from "../../src/core/shared/decimal";
 import { integrationEnabled } from "./helpers";
 
 (integrationEnabled() ? describe : describe.skip)("transaction rollback integration", () => {

@@ -5,7 +5,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { writeAudit } from "@/lib/audit";
-import { money } from "@/lib/decimal";
+import { money } from "@core/shared/decimal";
 import { notifyRoles } from "@/lib/control";
 
 const productSchema = z.object({

@@ -5,8 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { writeAudit } from "@/lib/audit";
 import { authConfig } from "@/auth.config";
 import { bypassOwnerSession, isAuthBypass } from "@/lib/dev-auth";
-import { resolveUserPermissions } from "@/lib/permissions";
-import { isValidPhone, normalizePhone } from "@/lib/phone";
+import { resolveUserPermissions } from "@core/rbac/permissions";
+import { isValidPhone, normalizePhone } from "@core/shared/phone";
 import {
   assertLoginAllowed,
   recordLoginFailure,

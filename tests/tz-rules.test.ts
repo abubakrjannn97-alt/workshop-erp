@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { available } from "../src/lib/stock";
 import { percentForCount } from "../src/lib/payroll";
 import { scaleNeed } from "../src/lib/costing";
-import { D } from "../src/lib/decimal";
+import { D } from "../src/core/shared/decimal";
 
 describe("stock available", () => {
   it("onHand minus reserved", () => {

@@ -5,7 +5,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { writeAudit } from "@/lib/audit";
-import { qty } from "@/lib/decimal";
+import { qty } from "@core/shared/decimal";
 import { canSelfApprove, notifyRoles, queueApproval } from "@/lib/control";
 
 const itemSchema = z.object({

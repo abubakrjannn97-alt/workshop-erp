@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { D, moneyDisplay } from "@/lib/decimal";
+import { D, moneyDisplay } from "@core/shared/decimal";
 import { FUND, fundDelta, LEDGER } from "@/lib/finance";
 import { getTranslator, intlLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/page-header";

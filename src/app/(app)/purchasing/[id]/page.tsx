@@ -10,8 +10,8 @@ import {
   receivePurchaseOrder,
   registerPurchasePayment,
 } from "@/app/actions/purchasing";
-import { moneyDisplay, qtyDisplay } from "@/lib/decimal";
-import { D } from "@/lib/decimal";
+import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
+import { D } from "@core/shared/decimal";
 
 function poStatus(t: (k: string) => string, s: string) {
   const map: Record<string, string> = {

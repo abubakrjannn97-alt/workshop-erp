@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { D, moneyDisplay } from "@/lib/decimal";
+import { D, moneyDisplay } from "@core/shared/decimal";
 import { cashDelta } from "@/lib/finance";
 
 export async function getCashShiftBarData() {

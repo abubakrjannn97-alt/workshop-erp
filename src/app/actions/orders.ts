@@ -7,7 +7,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { writeAudit } from "@/lib/audit";
-import { D, money, qty } from "@/lib/decimal";
+import { D, money, qty } from "@core/shared/decimal";
 import { available, releaseMaterial, reserveMaterial, writeOffProduct } from "@/lib/stock";
 import { postClientPayment } from "@/lib/finance";
 import {

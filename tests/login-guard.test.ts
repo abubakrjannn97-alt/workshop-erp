@@ -6,7 +6,7 @@ import {
   recordLoginSuccess,
   resetLoginGuardState,
 } from "../src/lib/login-guard";
-import { resetRateLimitState } from "../src/lib/rate-limit";
+import { resetRateLimitState } from "../src/core/shared/rate-limit";
 
 describe("login-guard", () => {
   beforeEach(() => {

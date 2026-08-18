@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { CatalogNav } from "@/components/catalog-nav";
 import { createMaterial, archiveMaterial } from "@/app/actions/materials";
-import { moneyDisplay, qtyDisplay } from "@/lib/decimal";
+import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { unitCost } from "@/lib/costing";
 
 export default async function MaterialsPage() {

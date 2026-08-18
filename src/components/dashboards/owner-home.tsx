@@ -11,7 +11,7 @@ import {
   ChartColumn,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
+import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { FUND, fundDelta, LEDGER } from "@/lib/finance";
 import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@/lib/alerts";
 import { getTranslator, intlLocale } from "@/lib/locale";

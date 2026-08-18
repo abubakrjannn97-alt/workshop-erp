@@ -1,6 +1,6 @@
 import type { NextAuthConfig } from "next-auth";
-import type { PermissionCode } from "@/lib/permissions";
-import { isAuthBypassEnabled, assertSafeProductionEnv } from "@/lib/env-guard";
+import type { PermissionCode } from "@core/rbac/permissions";
+import { isAuthBypassEnabled, assertSafeProductionEnv } from "@core/shared/env-guard";
 
 assertSafeProductionEnv();
 

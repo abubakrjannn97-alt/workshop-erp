@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import type { PermissionCode } from "./permissions";
-export { hasPermission } from "./permissions";
+import type { PermissionCode } from "@core/rbac/permissions";
+export { hasPermission } from "@core/rbac/permissions";
 
 export async function requireSession() {
   const session = await auth();

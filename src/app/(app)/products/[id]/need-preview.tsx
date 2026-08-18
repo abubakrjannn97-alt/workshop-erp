@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
+import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { createT, type Locale } from "@/lib/i18n";
 
 type Line = {

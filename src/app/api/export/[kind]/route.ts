@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/authz";
-import type { PermissionCode } from "@/lib/permissions";
-import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
+import type { PermissionCode } from "@core/rbac/permissions";
+import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 
 function csv(rows: (string | number)[][]) {
   const body = rows

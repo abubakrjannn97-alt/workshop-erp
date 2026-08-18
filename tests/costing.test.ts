@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { D, money, moneyDisplay, qtyDisplay } from "../src/lib/decimal";
+import { D, money, moneyDisplay, qtyDisplay } from "../src/core/shared/decimal";
 import { materialCostForRecipe, scaleNeed, unitCost } from "../src/lib/costing";
 
 describe("decimal money", () => {

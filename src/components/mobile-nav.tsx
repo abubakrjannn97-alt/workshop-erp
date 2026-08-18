@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import type { PermissionCode } from "@/lib/permissions";
-import { hasPermission } from "@/lib/permissions";
+import type { PermissionCode } from "@core/rbac/permissions";
+import { hasPermission } from "@core/rbac/permissions";
 import type { Locale } from "@/lib/i18n";
 import { createT } from "@/lib/i18n";
 import { IconMenu } from "@/components/icons";

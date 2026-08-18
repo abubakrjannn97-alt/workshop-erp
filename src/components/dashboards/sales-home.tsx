@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/authz";
-import { D, moneyDisplay } from "@/lib/decimal";
+import { D, moneyDisplay } from "@core/shared/decimal";
 import { periodKey, periodRange } from "@/lib/payroll";
 import { getTranslator } from "@/lib/locale";
 import { KpiCard } from "@/components/kpi-card";

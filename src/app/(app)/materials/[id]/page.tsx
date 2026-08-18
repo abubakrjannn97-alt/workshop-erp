@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { updateMaterial } from "@/app/actions/materials";
 import { CatalogNav } from "@/components/catalog-nav";
-import { moneyDisplay, qtyDisplay } from "@/lib/decimal";
+import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { unitCost } from "@/lib/costing";
 
 export default async function MaterialDetailPage({ params }: { params: Promise<{ id: string }> }) {

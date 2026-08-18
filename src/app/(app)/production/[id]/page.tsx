@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { hasPermission } from "@/lib/authz";
-import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
+import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { closeBatch, createBatch } from "@/app/actions/production";
 import { PendingButton } from "@/components/pending-button";
 import { IdempotencyField } from "@/components/idempotency-field";

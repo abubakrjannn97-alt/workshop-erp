@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import { D, money, qty } from "@/lib/decimal";
+import { D, money, qty } from "@core/shared/decimal";
 
 type Tx = Prisma.TransactionClient;
 

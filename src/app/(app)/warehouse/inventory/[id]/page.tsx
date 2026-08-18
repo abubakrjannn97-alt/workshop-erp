@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { confirmInventoryCount } from "@/app/actions/inventory";
-import { moneyDisplay, qtyDisplay } from "@/lib/decimal";
-import { D } from "@/lib/decimal";
+import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
+import { D } from "@core/shared/decimal";
 import { PageHeader } from "@/components/page-header";
 
 export default async function InventoryDetailPage({ params }: { params: Promise<{ id: string }> }) {

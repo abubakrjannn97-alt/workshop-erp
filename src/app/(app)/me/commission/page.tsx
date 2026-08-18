@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
-import { D, moneyDisplay } from "@/lib/decimal";
+import { D, moneyDisplay } from "@core/shared/decimal";
 import { periodKey, periodRange } from "@/lib/payroll";
 import { getTranslator } from "@/lib/locale";
 import { PageHeader } from "@/components/page-header";

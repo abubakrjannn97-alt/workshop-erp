@@ -5,7 +5,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { writeAudit } from "@/lib/audit";
-import { D, money } from "@/lib/decimal";
+import { D, money } from "@core/shared/decimal";
 import { FUND, LEDGER, postLedger } from "@/lib/finance";
 import { periodKey } from "@/lib/payroll";
 

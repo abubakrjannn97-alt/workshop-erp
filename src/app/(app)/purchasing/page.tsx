@@ -4,8 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { createSupplier } from "@/app/actions/suppliers";
 import { PurchaseOrderForm } from "./po-form";
-import { moneyDisplay } from "@/lib/decimal";
-import { D } from "@/lib/decimal";
+import { moneyDisplay } from "@core/shared/decimal";
+import { D } from "@core/shared/decimal";
 import { PageHeader } from "@/components/page-header";
 
 function poStatus(t: (k: string) => string, s: string) {

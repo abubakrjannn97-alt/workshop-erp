@@ -1,5 +1,5 @@
 import Decimal from "decimal.js";
-import { D, money, qty } from "@/lib/decimal";
+import { D, money, qty } from "@core/shared/decimal";
 
 type DecimalType = Decimal;
 type QtyIn = string | number | bigint | Decimal | { toString(): string };

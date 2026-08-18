@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import type { PermissionCode } from "@/lib/permissions";
-import { resolveUserPermissions } from "@/lib/permissions";
-import { isAuthBypassEnabled } from "@/lib/env-guard";
+import type { PermissionCode } from "@core/rbac/permissions";
+import { resolveUserPermissions } from "@core/rbac/permissions";
+import { isAuthBypassEnabled } from "@core/shared/env-guard";
 
 /** Включён только при AUTH_BYPASS=1 вне production — для локального теста без формы входа. */
 export function isAuthBypass() {

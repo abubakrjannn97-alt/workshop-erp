@@ -6,10 +6,10 @@ import { hasPermission } from "@/lib/authz";
 import { createCustomer } from "@/app/actions/customers";
 import { createLead, moveLead } from "@/app/actions/leads";
 import { PipelineCard } from "./pipeline-card";
-import { D, moneyDisplay } from "@/lib/decimal";
+import { D, moneyDisplay } from "@core/shared/decimal";
 import { RevealList } from "@/components/reveal-list";
 import { PageHeader } from "@/components/page-header";
-import { pipelineStageStyle } from "@/lib/pipeline-stage-style";
+import { pipelineStageStyle } from "@core/shared/pipeline-stage-style";
 import {
   DataList,
   DataListCell,

@@ -1,6 +1,6 @@
 import { requirePermission } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
-import { D, qtyDisplay } from "@/lib/decimal";
+import { D, qtyDisplay } from "@core/shared/decimal";
 import { getTranslator } from "@/lib/locale";
 import { MeJobsView } from "@/components/me-jobs-view";
 import type { MeJobsSnapshot } from "@/lib/offline/types";

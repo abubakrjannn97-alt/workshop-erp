@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/authz";
-import { D, moneyDisplay, qtyDisplay } from "@/lib/decimal";
+import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { FUND, fundDelta } from "@/lib/finance";
 import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@/lib/alerts";
 import { getTranslator, intlLocale } from "@/lib/locale";
@@ -26,7 +26,7 @@ import { FundRow } from "@/components/fund-row";
 import { StatusBadge, orderTone } from "@/components/status-badge";
 import { QuickAction } from "@/components/quick-action";
 import { RevealList } from "@/components/reveal-list";
-import { orderNo } from "@/lib/format";
+import { orderNo } from "@core/shared/format";
 import {
   DataList,
   DataListHead,

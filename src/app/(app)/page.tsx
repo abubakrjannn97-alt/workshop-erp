@@ -1,4 +1,4 @@
-import { hasPermission, usesWorkerMobileExperience } from "@/lib/permissions";
+import { hasPermission, usesWorkerMobileExperience } from "@core/rbac/permissions";
 import { requireSession } from "@/lib/authz";
 import { DesktopHome } from "@/components/dashboards/desktop-home";
 import { OwnerHome } from "@/components/dashboards/owner-home";

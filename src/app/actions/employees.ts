@@ -6,8 +6,8 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/authz";
 import { writeAudit } from "@/lib/audit";
-import { EMPLOYEE_ASSIGNABLE, type PermissionCode } from "@/lib/permissions";
-import { isValidPhone, normalizePhone, staffEmailFromPhone } from "@/lib/phone";
+import { EMPLOYEE_ASSIGNABLE, type PermissionCode } from "@core/rbac/permissions";
+import { isValidPhone, normalizePhone, staffEmailFromPhone } from "@core/shared/phone";
 
 function requireOwner() {
   return requireSession().then((session) => {
