@@ -23,9 +23,8 @@ export function OwnerLoginForm({ locale }: { locale: Locale }) {
 
   return (
     <div className={styles.loginCard}>
-      <div className="mb-4 h-px w-8 bg-[var(--line)]" />
       <h1 className="page-title">{t("login.title")}</h1>
-      <p className="mt-1 text-sm text-[var(--muted)]">{t("login.subtitleOwner")}</p>
+      <p className="page-subtitle">{t("login.subtitleOwner")}</p>
 
       <form action={action} className={styles.form}>
         <input type="hidden" name="loginMode" value="admin" />
@@ -71,9 +70,8 @@ export function StaffLoginForm({ locale }: { locale: Locale }) {
 
   return (
     <div className={styles.loginCard}>
-      <div className="mb-4 h-px w-8 bg-[var(--line)]" />
       <h1 className="page-title">{t("login.staffTitle")}</h1>
-      <p className="mt-1 text-sm text-[var(--muted)]">{t("login.subtitleStaff")}</p>
+      <p className="page-subtitle">{t("login.subtitleStaff")}</p>
 
       <form action={action} className={styles.form}>
         <input type="hidden" name="loginMode" value="employee" />

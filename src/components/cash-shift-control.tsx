@@ -38,7 +38,7 @@ function useMobileSheet() {
 export function CashShiftControl({
   data,
   locale,
-  variant = "light",
+  variant: _variant = "light",
 }: {
   data: CashShiftControlData;
   locale: Locale;
@@ -54,7 +54,6 @@ export function CashShiftControl({
   const activeAccount = activeShift
     ? data.accounts.find((account) => account.id === activeShift.accountId)
     : null;
-  const dark = variant === "dark";
 
   useEffect(() => {
     setMounted(true);
@@ -165,14 +164,15 @@ export function CashShiftControl({
     <div className={styles.wrap} ref={wrapRef}>
       <button
         type="button"
-        className={`${styles.trigger} ${activeShift ? styles.triggerOpen : ""} ${dark ? styles.triggerDark : ""}`}
+        className={`${styles.trigger} ${activeShift ? styles.triggerOpen : ""}`}
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-haspopup="dialog"
+        aria-label={t("fin.shift")}
         title={t("fin.shift")}
       >
         <span className={`${styles.dot} ${activeShift ? styles.dotOpen : ""}`} aria-hidden="true" />
-        <Wallet size={13} strokeWidth={2} className="shrink-0 opacity-80" />
+        <Wallet size={18} strokeWidth={1.75} className="shrink-0" aria-hidden />
         <span className={styles.label}>
           {activeShift && activeAccount ? activeAccount.name : t("fin.openShift")}
         </span>

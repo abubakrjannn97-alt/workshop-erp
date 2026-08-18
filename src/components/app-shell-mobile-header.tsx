@@ -4,8 +4,10 @@ import { usePathname } from "next/navigation";
 import { BackButton } from "@/components/back-button";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { NotificationBell } from "@/components/notification-bell";
-import { WorkshopMark } from "@/components/workshop-mark";
+import { isNestedShellPath, shellPageContext } from "@/components/shell-page-context";
 import type { Locale } from "@core/shared/i18n/i18n";
+import { createT } from "@core/shared/i18n/i18n";
+import styles from "./app-shell-mobile-header.module.css";
 
 export function AppShellMobileHeader({
   companyName,
@@ -19,26 +21,18 @@ export function AppShellMobileHeader({
   mobileShiftBar?: React.ReactNode;
 }) {
   const path = usePathname();
-  const isHome = path === "/";
+  const t = createT(locale);
+  const ctx = shellPageContext(path);
+  const nested = isNestedShellPath(path);
+  const title = ctx ? t(ctx.labelKey) : companyName;
 
   return (
-    <header
-      className="app-shell-mobile-header flex min-h-[44px] items-center justify-between gap-3 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2"
-      style={{ paddingTop: "calc(8px + env(safe-area-inset-top))" }}
-    >
-      <div className="flex min-w-0 flex-1 items-center gap-2">
-        {isHome ? (
-          <>
-            <WorkshopMark size={32} className="rounded-[22%]" />
-            <p className="min-w-0 flex-1 truncate text-sm font-semibold text-[var(--color-text-primary)]">
-              {companyName}
-            </p>
-          </>
-        ) : (
-          <BackButton locale={locale} />
-        )}
+    <header className={styles.bar}>
+      <div className={styles.left}>
+        {nested ? <BackButton locale={locale} iconOnly /> : null}
+        <h1 className={styles.title}>{title}</h1>
       </div>
-      <div className="flex shrink-0 items-center gap-1">
+      <div className={styles.actions}>
         {mobileShiftBar}
         <LanguageSwitcher locale={locale} />
         <NotificationBell unread={unread} locale={locale} />

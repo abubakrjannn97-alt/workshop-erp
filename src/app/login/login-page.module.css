@@ -1,0 +1,28 @@
+.screen {
+  position: relative;
+  display: flex;
+  min-height: 100dvh;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: var(--bg);
+}
+
+.lang {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding-top: env(safe-area-inset-top);
+}
+
+.column {
+  position: relative;
+  width: 100%;
+  max-width: 22rem;
+}
+
+.brand {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}

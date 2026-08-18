@@ -70,7 +70,7 @@ export function BottomNav({
               className={`${styles.tab} ${active ? styles.tabActive : ""} ${pending ? styles.tabPending : ""}`}
             >
               <span className={styles.iconWrap}>
-                <Icon size={20} strokeWidth={1.75} aria-hidden />
+                <Icon size={22} strokeWidth={1.75} aria-hidden />
               </span>
               <span className={styles.label}>{label}</span>
             </Link>

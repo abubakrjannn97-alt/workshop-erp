@@ -1,0 +1,36 @@
+.bar {
+  display: flex;
+  min-height: calc(var(--header-h) + env(safe-area-inset-top));
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: env(safe-area-inset-top) 16px 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.left {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+}
+
+.title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  color: var(--ink);
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 2px;
+}

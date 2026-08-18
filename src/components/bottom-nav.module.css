@@ -12,10 +12,8 @@
   display: flex;
   align-items: stretch;
   justify-content: space-around;
-  gap: 0;
-  border-top: 1px solid var(--color-border);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-xs);
+  border-top: 1px solid var(--line);
+  background: var(--surface);
 }
 
 .tab {
@@ -28,17 +26,17 @@
   align-items: center;
   justify-content: center;
   gap: 2px;
-  padding: 6px 4px;
+  padding: 6px 4px 8px;
   text-decoration: none;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
-  line-height: 1.1;
-  color: var(--color-text-muted);
+  line-height: 16px;
+  color: var(--ink-3);
   transition: color var(--transition), background var(--transition);
 }
 
 .tab:focus-visible {
-  outline: 2px solid var(--color-focus);
+  outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
 
@@ -47,8 +45,19 @@
 }
 
 .tabActive {
-  color: var(--color-primary);
-  background: var(--color-surface-soft);
+  color: var(--navy);
+  background: transparent;
+}
+
+.tabActive::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  border-radius: 0 0 1px 1px;
+  background: var(--accent);
 }
 
 .iconWrap {
@@ -57,20 +66,22 @@
   height: 28px;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-md);
   color: inherit;
-  transition: color var(--transition), background var(--transition);
 }
 
 .tabActive .iconWrap {
-  color: var(--color-accent);
+  color: var(--navy);
 }
 
 .label {
-  max-width: 4.5rem;
+  max-width: 100%;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  text-align: center;
+  white-space: normal;
 }
 
 @media (prefers-reduced-motion: reduce) {

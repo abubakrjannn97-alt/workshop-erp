@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { IconHelp } from "@/components/icons";
+import { CircleQuestionMark } from "lucide-react";
 import type { Locale } from "@core/shared/i18n/i18n";
 import { createT } from "@core/shared/i18n/i18n";
 import {
@@ -571,9 +571,9 @@ export function HelpHeaderLink({ locale }: { locale: Locale }) {
       data-tour="tour-help"
       title={t("nav.help")}
       aria-label={t("nav.help")}
-      className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-[#E5E7EB] bg-white text-[#667085] hover:border-[#D4AF37]/40 hover:text-[#101828] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/40"
+      className="ui-header-icon"
     >
-      <IconHelp size={13} />
+      <CircleQuestionMark size={20} strokeWidth={1.75} aria-hidden />
     </Link>
   );
 }

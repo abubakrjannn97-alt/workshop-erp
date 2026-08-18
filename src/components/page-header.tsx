@@ -13,16 +13,16 @@ export function PageHeader({
 }) {
   return (
     <div className="page-header">
-      <div className="min-w-0">
+      <div className="page-header-text">
         <h1 className="page-title">{title}</h1>
         {description ? <p className="page-subtitle">{description}</p> : null}
       </div>
-      {(actions || meta) && (
-        <div className="flex flex-wrap items-center gap-2">
+      {actions || meta ? (
+        <div className="page-header-actions">
           {meta}
           {actions}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

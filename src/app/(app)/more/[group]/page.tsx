@@ -30,13 +30,12 @@ export default async function MoreGroupPage({ params }: { params: Promise<{ grou
             <Link
               href={item.href}
               prefetch
-              className="flex min-h-11 items-center gap-3 px-4 py-3 text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-surface-soft)]"
+              className="flex min-h-12 items-center gap-3 px-4 py-3 text-[15px] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-soft)]"
             >
-              <span className="text-[var(--color-gold)]">
-                <NavIconGlyph icon={item.icon} size={18} />
+              <span className="text-[var(--ink-2)]">
+                <NavIconGlyph icon={item.icon} size={20} />
               </span>
               <span className="flex-1 font-medium">{t(item.labelKey)}</span>
-              <span className="text-[#CBD5E1]">→</span>
             </Link>
           </li>
         ))}

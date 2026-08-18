@@ -14,10 +14,12 @@ function fallbackHref(path: string) {
 export function BackButton({
   locale,
   variant = "light",
+  iconOnly = false,
   className = "",
 }: {
   locale: Locale;
   variant?: "light" | "dark";
+  iconOnly?: boolean;
   className?: string;
 }) {
   const router = useRouter();
@@ -37,6 +39,19 @@ export function BackButton({
 
   const dark = variant === "dark";
 
+  if (iconOnly) {
+    return (
+      <button
+        type="button"
+        onClick={goBack}
+        aria-label={t("common.back")}
+        className={`ui-header-icon ${className}`}
+      >
+        <ChevronLeft size={22} strokeWidth={1.75} aria-hidden="true" />
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"
@@ -44,11 +59,11 @@ export function BackButton({
       aria-label={t("common.back")}
       className={
         dark
-          ? `inline-flex shrink-0 items-center gap-1 rounded-full border border-[rgba(232,201,120,0.38)] bg-[rgba(20,17,13,0.72)] px-2.5 py-1.5 text-[12px] font-semibold text-[#F7F4EE] transition-colors hover:border-[rgba(245,213,106,0.55)] hover:bg-[rgba(20,17,13,0.92)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F3B72F]/40 ${className}`
-          : `inline-flex shrink-0 items-center gap-1 rounded-full border border-[#E5E7EB] bg-white px-2.5 py-1 text-[12px] font-semibold text-[#344054] transition-colors hover:border-[#D4AF37]/45 hover:text-[#101828] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/40 ${className}`
+          ? `inline-flex h-10 shrink-0 items-center gap-1 rounded-lg px-2.5 text-[13px] font-semibold text-[#F7F4EE] transition-colors hover:bg-white/8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${className}`
+          : `inline-flex h-10 min-h-10 shrink-0 items-center gap-1 rounded-lg px-2 text-[13px] font-medium text-[var(--ink-2)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${className}`
       }
     >
-      <ChevronLeft size={16} strokeWidth={2.2} aria-hidden="true" />
+      <ChevronLeft size={18} strokeWidth={1.75} aria-hidden="true" />
       <span>{t("common.back")}</span>
     </button>
   );

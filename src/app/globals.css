@@ -141,11 +141,11 @@
   --shadow-lg: var(--shadow);
   --shadow-card: var(--shadow);
 
-  --sidebar-w: 180px;
-  --sidebar-collapsed: 48px;
+  --sidebar-w: 220px;
+  --sidebar-collapsed: 56px;
   --sidebar-inset: 0px;
   --sidebar-inset-bottom: 0px;
-  --header-h: var(--control-h);
+  --header-h: 56px;
   --transition: 160ms cubic-bezier(0.2, 0.7, 0.2, 1);
   --tour: var(--accent);
   --tour-ink: var(--ink);
@@ -662,13 +662,44 @@ main::-webkit-scrollbar-corner,
     flex-wrap: wrap;
     align-items: flex-end;
     justify-content: space-between;
-    gap: var(--space-2) var(--space-3);
-    margin-bottom: 0;
-    padding: var(--space-4) var(--space-5);
-    border-radius: var(--radius-card);
-    border: 1px solid var(--line);
-    background: var(--surface);
-    box-shadow: var(--shadow);
+    gap: var(--space-3) var(--space-4);
+    margin-bottom: var(--space-5);
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .page-header-text {
+    min-width: 0;
+  }
+  .page-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .ui-header-icon {
+    @apply inline-flex items-center justify-center;
+    width: var(--control-h);
+    height: var(--control-h);
+    min-width: var(--control-h);
+    min-height: var(--control-h);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--ink-2);
+    text-decoration: none;
+    transition: background var(--transition), color var(--transition);
+  }
+  .ui-header-icon:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+  .ui-header-icon:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
   .page-title {
     font-size: var(--font-size-h1);
@@ -1347,7 +1378,6 @@ main .ui-card > .section-title {
 }
 
 @media (max-width: 1023px) {
-  .page-header,
   .ui-card,
   .ui-card-solid,
   .ui-card-panel {
@@ -1358,8 +1388,26 @@ main .ui-card > .section-title {
   }
 
   .page-header {
-    background: var(--surface);
-    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .page-header .page-title {
+    display: none;
+  }
+
+  .page-header:not(:has(.page-subtitle)):not(:has(.page-header-actions)) {
+    display: none;
+  }
+
+  .ui-header-icon {
+    width: var(--control-h-mobile);
+    height: var(--control-h-mobile);
+    min-width: var(--control-h-mobile);
+    min-height: var(--control-h-mobile);
   }
 
   .page-title {

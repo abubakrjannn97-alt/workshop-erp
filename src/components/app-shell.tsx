@@ -37,6 +37,8 @@ export function AppShell({
     <div className="flex h-[100dvh] overflow-hidden bg-[var(--color-background)] text-[var(--color-text-primary)]">
       <Sidebar
         companyName={companyName}
+        userName={userName}
+        roleName={roleName}
         permissions={permissions}
         roleCode={roleCode}
         locale={locale}

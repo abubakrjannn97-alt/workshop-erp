@@ -1,61 +1,25 @@
 .loginCard {
   width: 100%;
-  max-width: 24rem;
-  padding: 1.5rem;
-  border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 24px 48px rgba(8, 10, 16, 0.28);
-}
-
-.tabs {
-  display: flex;
-  margin-top: 1.25rem;
-  padding: 4px;
-  border-radius: 10px;
-  background: #eef0f4;
-  gap: 4px;
-}
-
-.tab,
-.tabActive {
-  flex: 1;
-  display: block;
-  padding: 0.5rem 0.35rem;
-  border-radius: 8px;
-  text-align: center;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.2;
-  text-decoration: none;
-  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.tab {
-  color: #667085;
-}
-
-.tab:hover {
-  color: #344054;
-}
-
-.tabActive {
-  background: #fff;
-  color: #101828;
-  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.12);
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
 .form {
-  margin-top: 1rem;
+  margin-top: 16px;
 }
 
 .error {
-  margin-top: 0.75rem;
-  font-size: 0.875rem;
-  color: var(--danger);
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--bad);
 }
 
 .hint {
-  margin-top: 0.25rem;
-  font-size: 0.75rem;
-  color: #667085;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--ink-2);
 }

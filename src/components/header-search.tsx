@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import type { Locale } from "@core/shared/i18n/i18n";
 import { createT } from "@core/shared/i18n/i18n";
+import { ICON_STROKE } from "@/components/nav-icons";
+import styles from "./header-search.module.css";
 
 export function HeaderSearch({ locale }: { locale: Locale }) {
   const t = createT(locale);
@@ -42,14 +44,11 @@ export function HeaderSearch({ locale }: { locale: Locale }) {
   }, []);
 
   return (
-    <div ref={wrapRef} className="relative w-full max-w-[360px]" data-tour="nav-search">
-      <form
-        action="/search"
-        className="flex h-7 w-full items-center gap-1.5 rounded-lg border border-[#E5E7EB] bg-[#F8FAFC] px-2 focus-within:border-[#D4AF37] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#D4AF37]/20"
-      >
+    <div ref={wrapRef} className={styles.wrap} data-tour="nav-search">
+      <form action="/search" className={styles.form}>
         <button
           type="submit"
-          className="flex shrink-0 items-center justify-center text-[var(--color-text-muted)]"
+          className={styles.iconBtn}
           onClick={(e) => {
             if (!open && !inputRef.current?.value) {
               e.preventDefault();
@@ -58,19 +57,17 @@ export function HeaderSearch({ locale }: { locale: Locale }) {
           }}
           aria-label={t("search.title")}
         >
-          <Search size={13} strokeWidth={1.5} />
+          <Search size={18} strokeWidth={ICON_STROKE} aria-hidden />
         </button>
         <input
           ref={inputRef}
           name="q"
           placeholder={t("nav.search")}
           aria-label={t("search.title")}
-          className="min-w-0 flex-1 border-0 bg-transparent text-[12px] text-[var(--color-text-primary)] outline-none placeholder:text-[var(--color-text-muted)]"
+          className={styles.input}
           onFocus={() => setOpen(true)}
         />
-        <kbd className="hidden rounded border border-[var(--color-border)] bg-white px-1 py-px text-[9px] font-medium text-[var(--color-text-muted)] sm:inline">
-          ⌘K
-        </kbd>
+        <kbd className={styles.kbd}>⌘K</kbd>
       </form>
     </div>
   );

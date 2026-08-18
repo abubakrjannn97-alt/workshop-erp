@@ -14,11 +14,9 @@ export function DevRolePicker({ locale, users }: { locale: Locale; users: DemoUs
   if (users.length === 0) return null;
 
   return (
-    <div className="mt-4 w-full max-w-sm rounded-xl border border-dashed border-[var(--line)] bg-white/60 p-4 backdrop-blur-sm">
-      <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
-        {t("login.devRolesTitle")}
-      </p>
-      <p className="mt-1 text-xs text-[var(--muted)]">{t("login.devRolesHint")}</p>
+    <div className="mt-4 w-full rounded-[var(--radius-card)] border border-[var(--line)] bg-[var(--surface)] p-4">
+      <p className="text-[13px] font-semibold text-[var(--ink)]">{t("login.devRolesTitle")}</p>
+      <p className="mt-1 text-[13px] text-[var(--ink-2)]">{t("login.devRolesHint")}</p>
       <ul className="mt-3 space-y-1.5">
         {users.map((user) => (
           <li key={user.email}>
@@ -32,10 +30,10 @@ export function DevRolePicker({ locale, users }: { locale: Locale; users: DemoUs
                   if (result?.error) setError(result.error);
                 });
               }}
-              className="flex w-full items-center justify-between rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-left text-sm transition hover:border-[var(--color-gold)] hover:bg-[var(--color-background)] disabled:opacity-50"
+              className="flex min-h-10 w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition hover:bg-[var(--surface-2)] disabled:opacity-50"
             >
               <span className="font-medium">{t(`role.${user.roleCode}`)}</span>
-              <span className="truncate pl-2 font-mono text-[10px] text-[var(--muted)]">{user.email}</span>
+              <span className="truncate pl-2 font-mono text-[12px] text-[var(--ink-3)]">{user.email}</span>
             </button>
           </li>
         ))}
