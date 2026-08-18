@@ -1,42 +1,20 @@
 import { cache } from "react";
 import { prisma } from "@core/infrastructure/prisma";
 import { DOMAIN_SETTING_KEYS } from "@core/config/settings";
-import { FACADE_DOMAIN_CONFIG } from "@/domains/facade/config";
+import {
+  DEFAULT_WORKSHOP_DOMAIN,
+  DOMAIN_REGISTRY,
+  SUPPORTED_WORKSHOP_DOMAINS,
+  type DomainPreset,
+} from "@/domains/registry";
 
-export type DomainConfig = {
-  domain: string;
-  warehouses: {
-    rawCode: string;
-    fgCode: string;
-  };
-  payroll: {
-    productionScheme: string;
-  };
-  product: {
-    defaultSaleUnit: string;
-    defaultOutputUnit: string;
-    defaultCategory: string;
-    defaultOutputPerBase: number;
-  };
-};
+export type DomainConfig = DomainPreset;
 
-function facadePreset(): DomainConfig {
-  return {
-    domain: FACADE_DOMAIN_CONFIG.domain,
-    warehouses: { ...FACADE_DOMAIN_CONFIG.warehouses },
-    payroll: { ...FACADE_DOMAIN_CONFIG.payroll },
-    product: { ...FACADE_DOMAIN_CONFIG.product },
-  };
-}
+const DOMAIN_PRESETS: Record<string, DomainConfig> = Object.fromEntries(
+  Object.entries(DOMAIN_REGISTRY).map(([id, entry]) => [id, { ...entry.preset, domain: entry.preset.domain || id }]),
+);
 
-/** Registered domain presets — add new domains here without changing lookup logic. */
-const DOMAIN_PRESETS: Record<string, DomainConfig> = {
-  [FACADE_DOMAIN_CONFIG.domain]: facadePreset(),
-};
-
-export const SUPPORTED_WORKSHOP_DOMAINS = Object.freeze(Object.keys(DOMAIN_PRESETS));
-
-const DEFAULT_WORKSHOP_DOMAIN = FACADE_DOMAIN_CONFIG.domain;
+export { SUPPORTED_WORKSHOP_DOMAINS };
 
 function parseSettingValue(value: unknown): string {
   if (typeof value === "string") return value.replace(/^"|"$/g, "");

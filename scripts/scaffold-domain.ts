@@ -165,7 +165,7 @@ Options:
   }
 
   console.log(`
-Done. Registry integration is Phase 6.3 — Facade runtime unchanged.
+Done. Register this domain in src/domains/registry.ts (Phase 6.3).
 See src/domains/${slug}/SCAFFOLD.md for next steps.
 `);
 }

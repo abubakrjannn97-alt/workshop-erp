@@ -14,7 +14,7 @@ const coreBoundaryPatterns = [
   {
     group: ["@/domains", "@/domains/**"],
     message:
-      "Core must not import from domains (except domain-config.ts and i18n-domain.ts).",
+      "Core must not import from domains (except domain-config.ts and i18n-domain.ts importing registry).",
   },
 ];
 
