@@ -512,6 +512,7 @@
 
 .actionsMobileStrip {
   display: flex;
+  align-items: stretch;
   gap: 8px;
   overflow-x: auto;
   padding: 2px 0 4px;
@@ -525,21 +526,25 @@
 }
 
 .actionsMobileStrip > li {
-  flex: 0 0 calc(25% - 6px);
-  min-width: 76px;
+  display: flex;
+  flex: 1 0 calc(25% - 6px);
+  min-width: 0;
   scroll-snap-align: start;
 }
 
 .actionStrip {
-  min-height: 108px;
-  padding: 14px 8px 12px;
+  width: 100%;
+  height: 116px;
+  min-height: 116px;
+  padding: 12px 6px 10px;
   border-radius: 16px;
   border: 1px solid var(--mobile-glass-border);
   background: var(--mobile-glass);
   box-shadow: var(--mobile-glass-shadow);
   backdrop-filter: blur(var(--mobile-glass-blur));
   -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
-  gap: 10px;
+  gap: 8px;
+  box-sizing: border-box;
 }
 
 .actionStrip:hover {
@@ -549,13 +554,22 @@
 }
 
 .actionsMobileStrip .actionIcon {
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
   border-radius: 50%;
   opacity: 1;
 }
 
 .actionsMobileStrip .actionLabel {
+  width: 100%;
+  min-height: 28px;
+  max-height: 28px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   font-size: 11px;
   font-weight: 500;
   line-height: 14px;
