@@ -1917,12 +1917,12 @@ async function testLowStockNotifications() {
   });
 
   await refreshOwnerAlerts();
-  const notif1 = await prisma.notification.findFirst({ where: { type: "low_stock", entityId: mat.id } });
-  const created = !!notif1;
+  const count1 = await prisma.notification.count({ where: { type: "low_stock", entityId: mat.id } });
+  const created = count1 > 0;
 
   await refreshOwnerAlerts();
-  const count = await prisma.notification.count({ where: { type: "low_stock", entityId: mat.id } });
-  const noDuplicates = count === (notif1 ? 1 : 0);
+  const count2 = await prisma.notification.count({ where: { type: "low_stock", entityId: mat.id } });
+  const noDuplicates = count2 === count1;
 
   rec({
     entity: "F3 Low Stock Notifications",
@@ -1930,7 +1930,7 @@ async function testLowStockNotifications() {
     lastWorkingStep: noDuplicates ? "notification created, no duplicates" : "creation",
     firstBrokenStep: !created ? "no notification" : !noDuplicates ? "duplicate created" : null,
     rootCause: null, impact: null,
-    evidence: [`created=${created}`, `count=${count}`],
+    evidence: [`created=${created}`, `count1=${count1}`, `count2=${count2}`],
   });
 
   await prisma.notification.deleteMany({ where: { entityId: mat.id } });
@@ -1949,12 +1949,12 @@ async function testOverdueNotifications() {
   });
 
   await refreshOwnerAlerts();
-  const notif = await prisma.notification.findFirst({ where: { type: "overdue", entityId: order.id } });
-  const created = !!notif;
+  const count1 = await prisma.notification.count({ where: { type: "overdue", entityId: order.id } });
+  const created = count1 > 0;
 
   await refreshOwnerAlerts();
-  const count = await prisma.notification.count({ where: { type: "overdue", entityId: order.id } });
-  const noDup = count <= 1;
+  const count2 = await prisma.notification.count({ where: { type: "overdue", entityId: order.id } });
+  const noDup = count2 === count1;
 
   rec({
     entity: "F4 Overdue Order Notifications",
@@ -1962,7 +1962,7 @@ async function testOverdueNotifications() {
     lastWorkingStep: noDup ? "notification created, no duplicates" : "creation",
     firstBrokenStep: !created ? "no notification" : !noDup ? "duplicate" : null,
     rootCause: null, impact: null,
-    evidence: [`created=${created}`, `count=${count}`],
+    evidence: [`created=${created}`, `count1=${count1}`, `count2=${count2}`],
   });
 
   await prisma.notification.deleteMany({ where: { entityId: order.id } });

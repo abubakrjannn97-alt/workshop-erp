@@ -49,7 +49,6 @@ export function AppShellMobileHeader({
             <Menu size={20} strokeWidth={ICON_STROKE} aria-hidden />
           )}
         </button>
-        </button>
         <div className={styles.brand} aria-hidden>
           <WorkshopMark size={24} className={styles.brandLogo} />
           <div className={styles.brandText}>
