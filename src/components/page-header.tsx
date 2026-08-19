@@ -10,7 +10,7 @@ export function PageHeader({
   backLabel,
 }: {
   title: string;
-  description?: string;
+  description?: ReactNode;
   actions?: ReactNode;
   meta?: ReactNode;
   backHref?: string;

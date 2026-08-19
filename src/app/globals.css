@@ -1591,7 +1591,7 @@ main .ui-card > .section-title {
   }
 
   .page-header {
-    margin-bottom: var(--space-4);
+    margin-bottom: var(--space-1);
     padding: 0;
     background: transparent;
     border: 0;

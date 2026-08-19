@@ -121,10 +121,99 @@
   color: var(--ink-3);
 }
 
-.statusActions {
+.statusPanelHead {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
+}
+
+.statusOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.statusOptionBtn {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-2);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.statusOptionBtn:hover {
+  border-color: var(--line-strong);
+  background: var(--surface);
+}
+
+.statusOptionLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.statusOptionHint {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ink-3);
+}
+
+.actionsPanel {
+  composes: sectionPanel;
+  gap: 10px;
+}
+
+.primaryAction {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cancelAction {
+  margin: 0;
+  padding-top: 4px;
+  border-top: 1px solid var(--line);
+  text-align: center;
+}
+
+.cancelLink {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--bad);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.orderDetailPage :global(.page-header) {
+  margin-bottom: 0;
+  gap: 8px;
+}
+
+.orderDetailPage :global(.page-subtitle) {
+  margin-top: 2px;
+  line-height: 18px;
+}
+
+.orderDateInline {
+  color: var(--ink-3);
+  font-weight: 400;
 }
 
 .sectionPanel {

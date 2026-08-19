@@ -10,6 +10,7 @@ import { available } from "@core/inventory/stock";
 import { findRawWarehouse } from "@/core/config/resolve-warehouse";
 import { STATUS_FLOW } from "@core/orders/orders";
 import { PageHeader } from "@/components/page-header";
+import { StatusBadge, orderTone } from "@/components/status-badge";
 import { OrderDetailMetrics } from "../order-detail-metrics";
 import { OrderPaymentPanel } from "../order-payment-panel";
 import detailStyles from "../order-detail.module.css";
@@ -130,6 +131,14 @@ export default async function OrderPage({
     });
   }
 
+  const currentStatusName = n("ostatus", order.status.code, order.status.name);
+
+  function statusHint(code: string) {
+    const key = `orders.statusHint.${code}` as const;
+    const text = t(key);
+    return text === key ? t("orders.statusHintDefault") : text;
+  }
+
   async function confirmAction(formData: FormData) {
     "use server";
     await confirmOrder(formData);
@@ -167,10 +176,18 @@ export default async function OrderPage({
   }
 
   return (
-    <div className="page-stack" style={{ gap: "12px" }}>
+    <div className={`page-stack ${detailStyles.orderDetailPage}`} style={{ gap: "8px" }}>
       <PageHeader
         title={`${t("common.order")} № ${order.number}`}
-        description={order.customer.name}
+        description={
+          <>
+            {order.customer.name}
+            <span className={detailStyles.orderDateInline}>
+              {" "}
+              · {orderDateLabel} {shortDate}
+            </span>
+          </>
+        }
         backHref="/orders"
         backLabel={t("common.back")}
         actions={
@@ -180,36 +197,33 @@ export default async function OrderPage({
         }
       />
 
-      <p className={detailStyles.orderDate}>
-        {orderDateLabel} · {shortDate}
-      </p>
-
-      <div className={detailStyles.metaRow}>
-        <span>
-          {t("common.customer")}: <strong>{order.customer.name}</strong>
-        </span>
-        <span>
-          {t("orders.sellerLabel")}: <strong>{order.seller.name}</strong>
-        </span>
-      </div>
-
       <OrderDetailMetrics items={metricItems} />
 
       {canCreate && nextStatuses.length > 0 ? (
         <section className={detailStyles.statusPanel}>
-          <h2 className={detailStyles.sectionTitle}>{t("orders.changeStatus")}</h2>
-          <p className={detailStyles.sectionHint}>{t("orders.changeStatusHint")}</p>
-          <div className={detailStyles.statusActions}>
-            {nextStatuses.map((s) => (
-              <form action={statusAction} key={s.id}>
-                <input type="hidden" name="id" value={order.id} />
-                <input type="hidden" name="statusCode" value={s.code} />
-                <button type="submit" className="ui-btn-secondary min-h-[44px]">
-                  {n("ostatus", s.code, s.name)}
-                </button>
-              </form>
-            ))}
+          <div className={detailStyles.statusPanelHead}>
+            <h2 className={detailStyles.sectionTitle}>{t("orders.changeStatus")}</h2>
+            <StatusBadge label={currentStatusName} tone={orderTone(order.status.code)} />
           </div>
+          <p className={detailStyles.sectionHint}>
+            {t("orders.changeStatusHint", { status: currentStatusName })}
+          </p>
+          <ul className={detailStyles.statusOptions}>
+            {nextStatuses.map((s) => (
+              <li key={s.id}>
+                <form action={statusAction}>
+                  <input type="hidden" name="id" value={order.id} />
+                  <input type="hidden" name="statusCode" value={s.code} />
+                  <button type="submit" className={detailStyles.statusOptionBtn}>
+                    <span className={detailStyles.statusOptionLabel}>
+                      {n("ostatus", s.code, s.name)}
+                    </span>
+                    <span className={detailStyles.statusOptionHint}>{statusHint(s.code)}</span>
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
         </section>
       ) : null}
 
@@ -309,43 +323,38 @@ export default async function OrderPage({
       {(canCreate && (order.status.code === "NEW" || order.status.code === "AWAITING_PAYMENT")) ||
       (canIssue && (order.status.code === "IN_FG" || order.status.code === "READY")) ||
       (canCancel && order.status.code !== "CANCELLED") ? (
-        <section className={detailStyles.sectionPanel}>
+        <section className={detailStyles.actionsPanel}>
           <h2 className={detailStyles.sectionTitle}>{t("orders.whatToDo")}</h2>
-          <ul className={detailStyles.actionList}>
-            {canCreate && (order.status.code === "NEW" || order.status.code === "AWAITING_PAYMENT") ? (
-              <li className={detailStyles.actionItem}>
-                <form action={confirmAction}>
-                  <input type="hidden" name="id" value={order.id} />
-                  <PendingButton className="ui-btn-primary min-h-[44px] w-full" pendingLabel={t("common.sending")}>
-                    {t("common.confirm")}
-                  </PendingButton>
-                </form>
-                <p className={detailStyles.actionHint}>{t("orders.confirmOrderHint")}</p>
-              </li>
-            ) : null}
-            {canIssue && (order.status.code === "IN_FG" || order.status.code === "READY") ? (
-              <li className={detailStyles.actionItem}>
-                <form action={issueAction}>
-                  <input type="hidden" name="id" value={order.id} />
-                  <PendingButton className="ui-btn-primary min-h-[44px] w-full" pendingLabel={t("common.sending")}>
-                    {t("orders.issueToCustomer")}
-                  </PendingButton>
-                </form>
-                <p className={detailStyles.actionHint}>{t("orders.issueOrderHint")}</p>
-              </li>
-            ) : null}
-            {canCancel && order.status.code !== "CANCELLED" ? (
-              <li className={detailStyles.actionItem}>
-                <form action={cancelAction}>
-                  <input type="hidden" name="id" value={order.id} />
-                  <PendingButton className="ui-btn-danger min-h-[44px] w-full" pendingLabel={t("common.sending")}>
-                    {t("common.cancel")}
-                  </PendingButton>
-                </form>
-                <p className={detailStyles.actionHint}>{t("orders.cancelOrderHint")}</p>
-              </li>
-            ) : null}
-          </ul>
+          {canCreate && (order.status.code === "NEW" || order.status.code === "AWAITING_PAYMENT") ? (
+            <div className={detailStyles.primaryAction}>
+              <form action={confirmAction}>
+                <input type="hidden" name="id" value={order.id} />
+                <PendingButton className="ui-btn-primary min-h-[44px] w-full" pendingLabel={t("common.sending")}>
+                  {t("orders.confirmOrderBtn")}
+                </PendingButton>
+              </form>
+              <p className={detailStyles.actionHint}>{t("orders.confirmOrderHint")}</p>
+            </div>
+          ) : null}
+          {canIssue && (order.status.code === "IN_FG" || order.status.code === "READY") ? (
+            <div className={detailStyles.primaryAction}>
+              <form action={issueAction}>
+                <input type="hidden" name="id" value={order.id} />
+                <PendingButton className="ui-btn-primary min-h-[44px] w-full" pendingLabel={t("common.sending")}>
+                  {t("orders.issueToCustomer")}
+                </PendingButton>
+              </form>
+              <p className={detailStyles.actionHint}>{t("orders.issueOrderHint")}</p>
+            </div>
+          ) : null}
+          {canCancel && order.status.code !== "CANCELLED" ? (
+            <form action={cancelAction} className={detailStyles.cancelAction}>
+              <input type="hidden" name="id" value={order.id} />
+              <PendingButton type="submit" className={detailStyles.cancelLink} pendingLabel={t("common.sending")}>
+                {t("orders.cancelOrderLink")}
+              </PendingButton>
+            </form>
+          ) : null}
         </section>
       ) : null}
 
