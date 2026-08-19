@@ -50,7 +50,7 @@ export function DashMetricStrip({
               <>
                 <div className={styles.kpiHeadCompact}>
                   <span className={styles.kpiIconCompact} aria-hidden>
-                    <Icon size={18} strokeWidth={1.75} />
+                    <Icon size={20} strokeWidth={1.75} />
                   </span>
                   <p className={styles.kpiLabelCompact}>{metric.label}</p>
                 </div>

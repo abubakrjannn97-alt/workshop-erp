@@ -1,6 +1,6 @@
 {
-  "run": "E2E-mszz9ur2",
-  "generatedAt": "2026-08-19T10:58:02.540Z",
+  "run": "E2E-mt00kybr",
+  "generatedAt": "2026-08-19T11:34:39.053Z",
   "entities": [
     {
       "entity": "Role",
@@ -35,9 +35,9 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "created employee cmszz9wtg0001ubsglbhxv7p3, extra perms=production.report",
-        "update name=E2E-mszz9ur2 Employee edited",
-        "worker=cmszz9wuy0003ubsg2s0fiate sales=cmszz9wv30005ubsgsecfvx2v"
+        "created employee cmt00l05c0001ubmk9p1spmsh, extra perms=production.report",
+        "update name=E2E-mt00kybr Employee edited",
+        "worker=cmt00l05z0003ubmkv4665xqg sales=cmt00l0650005ubmka0fe6ek0"
       ]
     },
     {
@@ -48,7 +48,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "id=cmszz9wvo0007ubsghktc5fxl",
+        "id=cmt00l06k0007ubmk2d77nyf0",
         "history rows=2"
       ]
     },
@@ -60,7 +60,7 @@
       "rootCause": null,
       "impact": "Later issue-to-customer uses sale-unit FG qty; outputQty is conversion only",
       "evidence": [
-        "product=cmszz9www000dubsgnvu3u2vq",
+        "product=cmt00l07f000dubmkd8hanctg",
         "outputPerBase=10 sale=M2 output=PCS"
       ]
     },
@@ -96,7 +96,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "recipe=cmszz9www000eubsgcypyfy0e"
+        "recipe=cmt00l07f000eubmkjtzack20"
       ]
     },
     {
@@ -107,8 +107,8 @@
       "rootCause": null,
       "impact": "Old orders must keep snapshot of v used at create time",
       "evidence": [
-        "v1=cmszz9wyl000kubsgx8b83r42 qty=7",
-        "v2=cmszz9wz8000oubsglfiu6015 qty=8"
+        "v1=cmt00l08g000kubmk5x8nxbok qty=7",
+        "v2=cmt00l08u000oubmkpsnjpuqa qty=8"
       ]
     },
     {
@@ -119,7 +119,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "supplier=cmszz9wzf000rubsgyvm38kvm"
+        "supplier=cmt00l090000rubmkp4ogrn91"
       ]
     },
     {
@@ -130,7 +130,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "po=cmszz9wzx000tubsgyvstnm78",
+        "po=cmt00l09c000tubmkv10g76jd",
         "stock delta=500",
         "wac=4.4"
       ]
@@ -168,7 +168,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "customer=cmszz9x5c001aubsgco9pcg15"
+        "customer=cmt00l0cw001aubmko7n161a5"
       ]
     },
     {
@@ -179,7 +179,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "lead=cmszz9x6d001cubsgqw9hikes",
+        "lead=cmt00l0dh001cubmkoz1m7epe",
         "paidStage=PAYMENT",
         "calc=CALC-1001",
         "offer=OFF-1001"
@@ -193,9 +193,9 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "order=cmszz9x99001iubsgjloa3kty",
-        "recipeVersion on item=cmszz9wz8000oubsglfiu6015",
-        "current product version=cmszz9wz8000oubsglfiu6015",
+        "order=cmt00l0fh001iubmklk2rq0u4",
+        "recipeVersion on item=cmt00l08u000oubmkpsnjpuqa",
+        "current product version=cmt00l08u000oubmkpsnjpuqa",
         "matches current=true"
       ]
     },
@@ -219,7 +219,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "production=cmszz9xbp001subsgzi7aryse"
+        "production=cmt00l0h4001submkapedofor"
       ]
     },
     {
@@ -230,8 +230,8 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "stage=cmszz9xc5001tubsg222payjl",
-        "job.stageId=cmszz9xc5001tubsg222payjl"
+        "stage=cmt00l0he001tubmkos9q068n",
+        "job.stageId=cmt00l0he001tubmkos9q068n"
       ]
     },
     {
@@ -254,7 +254,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "batch=cmszz9xda001vubsgseyi0vac"
+        "batch=cmt00l0i5001vubmkxazaor63"
       ]
     },
     {
@@ -265,7 +265,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "assigned=cmszz9wuy0003ubsg2s0fiate",
+        "assigned=cmt00l05z0003ubmkv4665xqg",
         "otherWorkerClose=false",
         "ownClose=true"
       ]
@@ -290,7 +290,7 @@
       "rootCause": "ScrapRecord has photoUrl nullable; no shift field in schema",
       "impact": "TZ scrap analytics by shift cannot be filled",
       "evidence": [
-        "scrap=cmszz9xfn0027ubsgurgz9vf4",
+        "scrap=cmt00l0jn0027ubmkpp9gbwjr",
         "photo=null"
       ]
     },
@@ -326,7 +326,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "payment=cmszz9xhv002bubsglmyxvbbq",
+        "payment=cmt00l0l3002bubmk5b1m7dki",
         "amount=1600"
       ]
     },
@@ -390,7 +390,7 @@
       "impact": null,
       "evidence": [
         "category=RENT",
-        "ledger ids=cmszz9xoo002rubsgzalz48ru,cmszz9xoy002tubsgefayp20v"
+        "ledger ids=cmt00l0pe002rubmko11oft20,cmt00l0pn002tubmkq1b6i0zi"
       ]
     },
     {
@@ -401,7 +401,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "obligation=cmszz9xp4002uubsgaskiofql",
+        "obligation=cmt00l0pq002uubmk37nmbjde",
         "posted=1"
       ]
     },
@@ -413,7 +413,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "approval=cmszz9xqr002zubsg97z501p6",
+        "approval=cmt00l0qx002zubmk4d7aqqog",
         "status=APPROVED",
         "discountPercent=15",
         "totalBefore=1600",
@@ -428,7 +428,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "id=cmszz9xst0035ubsgm71rtfqu ip=127.0.0.1",
+        "id=cmt00l0s90035ubmkaab7wo06 ip=127.0.0.1",
         "immutable=true"
       ]
     },
@@ -458,7 +458,7 @@
       "evidence": [
         "payments 1→2",
         "duplicateBlocked=true",
-        "existing=cmszz9xtm0037ubsgepf8xcgu"
+        "existing=cmt00l0sx0037ubmkaa471uwo"
       ]
     },
     {
@@ -525,8 +525,8 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "cmszz9xyx003jubsgj3bzwxlc=4.000000",
-        "cmszz9y1x0040ubsg4cqx2foe=6.000000"
+        "cmt00l0wn003jubmk6v3aztu3=4.000000",
+        "cmt00l0yp0040ubmk6mx9vkv6=6.000000"
       ]
     }
   ],
@@ -539,32 +539,32 @@
     {
       "step": "Employee",
       "ok": true,
-      "detail": "sales=cmszz9wv30005ubsgsecfvx2v worker=cmszz9wuy0003ubsg2s0fiate"
+      "detail": "sales=cmt00l0650005ubmka0fe6ek0 worker=cmt00l05z0003ubmkv4665xqg"
     },
     {
       "step": "Material",
       "ok": true,
-      "detail": "cmszz9wvo0007ubsghktc5fxl"
+      "detail": "cmt00l06k0007ubmk2d77nyf0"
     },
     {
       "step": "Product",
       "ok": true,
-      "detail": "cmszz9www000dubsgnvu3u2vq"
+      "detail": "cmt00l07f000dubmkd8hanctg"
     },
     {
       "step": "Recipe",
       "ok": true,
-      "detail": "current version cmszz9wz8000oubsglfiu6015"
+      "detail": "current version cmt00l08u000oubmkpsnjpuqa"
     },
     {
       "step": "Supplier",
       "ok": true,
-      "detail": "cmszz9wzf000rubsgyvm38kvm"
+      "detail": "cmt00l090000rubmkp4ogrn91"
     },
     {
       "step": "Purchase",
       "ok": true,
-      "detail": "cmszz9wzx000tubsgyvstnm78"
+      "detail": "cmt00l09c000tubmkv10g76jd"
     },
     {
       "step": "Warehouse",
@@ -574,22 +574,22 @@
     {
       "step": "Customer",
       "ok": true,
-      "detail": "cmszz9x5c001aubsgco9pcg15"
+      "detail": "cmt00l0cw001aubmko7n161a5"
     },
     {
       "step": "Lead",
       "ok": true,
-      "detail": "cmszz9x6d001cubsgqw9hikes"
+      "detail": "cmt00l0dh001cubmkoz1m7epe"
     },
     {
       "step": "Quote",
       "ok": true,
-      "detail": "amount=1600.0000 materialCost=352.0000 recipeVersion=cmszz9wz8000oubsglfiu6015"
+      "detail": "amount=1600.0000 materialCost=352.0000 recipeVersion=cmt00l08u000oubmkpsnjpuqa"
     },
     {
       "step": "Order",
       "ok": true,
-      "detail": "#1037 total=1600 snapshotVersion=cmszz9wz8000oubsglfiu6015"
+      "detail": "#1037 total=1600 snapshotVersion=cmt00l08u000oubmkpsnjpuqa"
     },
     {
       "step": "Reservation",
@@ -599,7 +599,7 @@
     {
       "step": "Batch",
       "ok": true,
-      "detail": "batch cmszz9xda001vubsgseyi0vac planned=10 worker=cmszz9wuy0003ubsg2s0fiate"
+      "detail": "batch cmt00l0i5001vubmkxazaor63 planned=10 worker=cmt00l05z0003ubmkv4665xqg"
     },
     {
       "step": "Material Usage",

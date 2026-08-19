@@ -44,7 +44,7 @@ export async function MobileOwnerHome() {
 
   return (
     <div className={`${styles.home} ${styles.homeMobile}`}>
-      <DashGreeting t={t} />
+      <DashGreeting t={t} mobile />
 
       <DashMetricStrip
         variant="compact"

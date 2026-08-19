@@ -12,15 +12,15 @@
   display: flex;
   align-items: stretch;
   justify-content: space-around;
-  border-top: 1px solid var(--line);
-  background: var(--surface);
+  height: 76px;
+  border-top: 1px solid #E8E7E3;
+  background: rgba(255, 255, 255, 0.96);
 }
 
 .tab {
   position: relative;
   display: flex;
   min-width: 0;
-  min-height: 56px;
   flex: 1;
   flex-direction: column;
   align-items: center;
@@ -28,11 +28,11 @@
   gap: 2px;
   padding: 6px 4px 8px;
   text-decoration: none;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   line-height: 16px;
   color: var(--ink-3);
-  transition: color var(--transition), background var(--transition);
+  transition: color 0.15s ease-out;
 }
 
 .tab:focus-visible {
@@ -45,16 +45,15 @@
 }
 
 .tabActive {
-  color: #9a7b3c;
+  color: #9A7338;
 }
 
 .tabActive .iconWrap {
   width: 44px;
   height: 32px;
   border-radius: 10px;
-  background: linear-gradient(145deg, #f6edd8 0%, #ead9b0 100%);
-  color: #8b6914;
-  box-shadow: 0 2px 8px rgba(184, 149, 74, 0.18);
+  background: #F4EDE0;
+  color: #9A7338;
 }
 
 .iconWrap {
@@ -64,7 +63,7 @@
   align-items: center;
   justify-content: center;
   color: inherit;
-  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+  transition: background 0.15s ease-out, color 0.15s ease-out;
 }
 
 .label {

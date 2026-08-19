@@ -69,14 +69,14 @@ export function DashRecentOrders({
               <Link href={`/orders/${order.id}`} className={styles.orderCard}>
                 <div className={styles.orderCardTop}>
                   <span className={styles.orderCardNo}>{orderNo(String(order.number))}</span>
+                  <span className={styles.orderCardAmount}>{moneyDisplay(String(order.total))} с</span>
+                </div>
+                <div className={styles.orderCardMid}>
                   <span className={styles.orderCardClient}>{order.customer.name}</span>
-                  <span className={`${styles.statusPill} ${statusTone(order.status.code)}`}>{statusLabel}</span>
                 </div>
                 <div className={styles.orderCardBottom}>
                   <span className={styles.orderCardProduct}>{productSummary(order)}</span>
-                  <span className={styles.orderCardDate}>
-                    {order.dueAt ? formatDate(order.dueAt, locale) : formatDate(order.createdAt, locale)}
-                  </span>
+                  <span className={`${styles.statusPill} ${statusTone(order.status.code)}`}>{statusLabel}</span>
                   <span className={styles.orderCardGo}>
                     <ChevronRight size={16} strokeWidth={ICON_STROKE} aria-hidden />
                   </span>
