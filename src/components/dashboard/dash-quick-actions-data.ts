@@ -1,56 +1,45 @@
-import type { LucideIcon } from "lucide-react";
-import {
-  ClipboardList,
-  Users,
-  Factory,
-  Package,
-  Truck,
-  ChartColumn,
-  Play,
-  Plus,
-  Box,
-} from "lucide-react";
+import type { DashQuickActionIconId } from "./dash-quick-action-icons";
 
 export type DashActionTone = "orange" | "green" | "blue" | "purple" | "gold";
 
 export type DashQuickAction = {
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon: DashQuickActionIconId;
   tone?: DashActionTone;
 };
 
 export function ownerQuickActions(t: (key: string) => string): DashQuickAction[] {
   return [
-    { href: "/orders/new", label: t("sales.newOrder"), icon: ClipboardList, tone: "orange" },
-    { href: "/crm", label: t("nav.crm"), icon: Users, tone: "blue" },
-    { href: "/production", label: t("nav.production"), icon: Factory, tone: "green" },
-    { href: "/warehouse", label: t("nav.warehouse"), icon: Package, tone: "purple" },
+    { href: "/orders/new", label: t("sales.newOrder"), icon: "clipboard-list", tone: "orange" },
+    { href: "/crm", label: t("nav.crm"), icon: "users", tone: "blue" },
+    { href: "/production", label: t("nav.production"), icon: "factory", tone: "green" },
+    { href: "/warehouse", label: t("nav.warehouse"), icon: "package", tone: "purple" },
   ];
 }
 
 export function ownerDesktopQuickActions(t: (key: string) => string): DashQuickAction[] {
   return [
-    { href: "/orders/new", label: t("sales.newOrder"), icon: Plus, tone: "orange" },
-    { href: "/production", label: t("home.actionStartProduction"), icon: Play, tone: "green" },
-    { href: "/products/new", label: t("home.actionAddProduct"), icon: Box, tone: "blue" },
-    { href: "/warehouse", label: t("home.actionToWarehouse"), icon: Truck, tone: "purple" },
-    { href: "/analytics", label: t("home.actionDailyReport"), icon: ChartColumn, tone: "gold" },
+    { href: "/orders/new", label: t("sales.newOrder"), icon: "plus", tone: "orange" },
+    { href: "/production", label: t("home.actionStartProduction"), icon: "play", tone: "green" },
+    { href: "/products/new", label: t("home.actionAddProduct"), icon: "box", tone: "blue" },
+    { href: "/warehouse", label: t("home.actionToWarehouse"), icon: "truck", tone: "purple" },
+    { href: "/analytics", label: t("home.actionDailyReport"), icon: "chart-column", tone: "gold" },
   ];
 }
 
 export function ownerSecondaryActions(t: (key: string) => string): DashQuickAction[] {
   return [
-    { href: "/purchasing", label: t("nav.purchasing"), icon: Truck, tone: "purple" },
-    { href: "/analytics", label: t("nav.analytics"), icon: ChartColumn, tone: "gold" },
+    { href: "/purchasing", label: t("nav.purchasing"), icon: "truck", tone: "purple" },
+    { href: "/analytics", label: t("nav.analytics"), icon: "chart-column", tone: "gold" },
   ];
 }
 
 export function ownerMobileQuickActions(t: (key: string) => string): DashQuickAction[] {
   return [
-    { href: "/orders/new", label: t("sales.newOrder"), icon: Plus, tone: "orange" },
-    { href: "/production", label: t("home.actionStartProduction"), icon: Play, tone: "green" },
-    { href: "/warehouse", label: t("home.actionToWarehouse"), icon: Truck, tone: "purple" },
-    { href: "/analytics", label: t("home.actionDailyReport"), icon: ChartColumn, tone: "gold" },
+    { href: "/orders/new", label: t("sales.newOrder"), icon: "plus", tone: "orange" },
+    { href: "/production", label: t("home.actionStartProduction"), icon: "play", tone: "green" },
+    { href: "/warehouse", label: t("home.actionToWarehouse"), icon: "truck", tone: "purple" },
+    { href: "/analytics", label: t("home.actionDailyReport"), icon: "chart-column", tone: "gold" },
   ];
 }

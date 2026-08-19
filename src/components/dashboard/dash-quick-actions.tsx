@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ICON_STROKE } from "@/components/nav-icons";
+import { QUICK_ACTION_ICONS } from "./dash-quick-action-icons";
 import type { DashActionTone, DashQuickAction } from "./dash-quick-actions-data";
 import { MobileQuickActionsStrip } from "./mobile-quick-actions-strip";
 import styles from "./dash-home.module.css";
@@ -40,7 +41,7 @@ export function DashQuickActions({
     <div className={styles.actionsWrap}>
       <ul className={gridClass}>
         {actions.map((action) => {
-          const Icon = action.icon;
+          const Icon = QUICK_ACTION_ICONS[action.icon];
           const toneClass = action.tone ? ACTION_TONE[action.tone] : "";
           return (
             <li key={action.href}>
