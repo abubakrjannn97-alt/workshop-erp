@@ -51,6 +51,7 @@
   gap: 14px;
   max-width: none;
   position: relative;
+  width: 100%;
 }
 
 .homeMobile .hero {

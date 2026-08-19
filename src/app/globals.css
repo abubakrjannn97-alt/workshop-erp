@@ -228,27 +228,31 @@ body {
   font-weight: 400;
 }
 
+.mobile-stone-shell {
+  background: transparent !important;
+}
+
+.mobile-stone-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: url("/stone-hero.png") no-repeat top right / cover;
+  opacity: 0.34;
+  pointer-events: none;
+}
+
+.mobile-stone-shell > .relative {
+  background: transparent !important;
+}
+
+.app-shell-main {
+  background: transparent !important;
+}
+
 @media (max-width: 1023px) {
-  .mobile-stone-shell {
-    background: transparent !important;
-  }
-
   .mobile-stone-shell::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: 0;
     background: url("/stone-hero.png") no-repeat top right / 100% auto;
-    opacity: 0.34;
-    pointer-events: none;
-  }
-
-  .mobile-stone-shell > .relative {
-    background: transparent !important;
-  }
-
-  .app-shell-main {
-    background: transparent !important;
   }
 }
 

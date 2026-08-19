@@ -1,6 +1,5 @@
 import { hasPermission, usesWorkerMobileExperience } from "@core/rbac/permissions";
 import { requireSession } from "@core/auth/authz";
-import { DesktopHome } from "@/components/dashboards/desktop-home";
 import { OwnerHome } from "@/components/dashboards/owner-home";
 import { MobileOwnerHome } from "@/components/dashboards/mobile-owner-home";
 import { SalesHome } from "@/components/dashboards/sales-home";
@@ -9,14 +8,12 @@ import { AccountantHome } from "@/components/dashboards/accountant-home";
 import { ProductionHome } from "@/components/dashboards/production-home";
 import { MobileWorkerGate } from "@/components/mobile-worker-gate";
 
-function MobileRoleHome({
+function RoleHome({
   role,
   perms,
-  financePeriod,
 }: {
   role: string;
   perms: string[];
-  financePeriod?: string;
 }) {
   if (role === "sales_manager") return <SalesHome />;
   if (role === "warehouse_manager") return <WarehouseHome />;
@@ -42,28 +39,16 @@ function MobileRoleHome({
   return <OwnerHome />;
 }
 
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ fp?: string }>;
-}) {
+export default async function HomePage() {
   const session = await requireSession();
   const role = session.user.roleCode;
   const perms = session.user.permissions;
-  const { fp } = await searchParams;
   const workerMobile = usesWorkerMobileExperience(role, perms);
 
   return (
     <>
       {workerMobile ? <MobileWorkerGate /> : null}
-      <div className="hidden lg:block">
-        <DesktopHome />
-      </div>
-      <div className="lg:hidden">
-        {workerMobile ? null : (
-          <MobileRoleHome role={role} perms={perms} financePeriod={fp} />
-        )}
-      </div>
+      {workerMobile ? null : <RoleHome role={role} perms={perms} />}
     </>
   );
 }
