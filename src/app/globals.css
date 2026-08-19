@@ -250,10 +250,41 @@ body {
   background: transparent !important;
 }
 
-@media (max-width: 1023px) {
-  .mobile-stone-shell::before {
-    background: url("/stone-hero.png") no-repeat top right / 100% auto;
-  }
+/* PC = mobile: card lists, glass surfaces, compact headers */
+.mobile-stone-shell [class*="tableWrap"],
+.mobile-stone-shell [class*="tableHead"],
+.mobile-stone-shell [class*="tableBody"] {
+  display: none !important;
+}
+
+.mobile-stone-shell [class*="mobileList"] {
+  display: block !important;
+}
+
+.mobile-stone-shell [class*="mobileCard"],
+.mobile-stone-shell [class*="summaryBox"],
+.mobile-stone-shell [class*="kpiBox"],
+.mobile-stone-shell [class*="orderCard"] {
+  border: 1px solid var(--mobile-glass-border);
+  background: var(--mobile-glass);
+  box-shadow: var(--mobile-glass-shadow);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+}
+
+.mobile-stone-shell [class*="section"]:not([class*="sectionHead"]):not([class*="sectionTitle"]):not([class*="sectionBody"]):not([class*="sectionAction"]) {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.mobile-stone-shell [class*="toolbar"] {
+  border: 1px solid var(--mobile-glass-border);
+  background: var(--mobile-glass);
+  box-shadow: var(--mobile-glass-shadow);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
 }
 
 a:focus-visible,
@@ -1421,14 +1452,17 @@ main .ui-card > .section-title {
   text-shadow: none;
 }
 
-@media (max-width: 1023px) {
+
+.mobile-stone-shell {
   .ui-card,
   .ui-card-solid,
   .ui-card-panel {
     border-radius: var(--radius-card);
-    border: 1px solid var(--line);
-    background: var(--surface);
-    box-shadow: var(--shadow);
+    border: 1px solid var(--mobile-glass-border);
+    background: var(--mobile-glass);
+    box-shadow: var(--mobile-glass-shadow);
+    backdrop-filter: blur(var(--mobile-glass-blur));
+    -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
   }
 
   .page-header {
@@ -1471,7 +1505,7 @@ main .ui-card > .section-title {
   .ui-card-head,
   .ui-card > .section-title,
   .ui-card > h2.section-title {
-    background: var(--surface);
+    background: transparent;
   }
 
   main .ui-card h2,
@@ -1507,9 +1541,11 @@ main .ui-card > .section-title {
     display: block;
     padding: var(--space-3);
     border-radius: var(--radius-card);
-    border: 1px solid var(--line);
-    background: var(--surface);
-    box-shadow: none;
+    border: 1px solid var(--mobile-glass-border);
+    background: var(--mobile-glass);
+    box-shadow: var(--mobile-glass-shadow);
+    backdrop-filter: blur(var(--mobile-glass-blur));
+    -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
   }
 
   .ui-table-wrap tbody tr:has(> td[colspan]) {

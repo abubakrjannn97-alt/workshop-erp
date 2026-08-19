@@ -1,4 +1,4 @@
-/* ─── Finance module — mobile-first (PC = phone) ─── */
+/* ─── Employees module — mobile-first (PC = phone) ─── */
 
 .page { display: flex; flex-direction: column; gap: 16px; min-width: 0; max-width: none; }
 .header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
@@ -9,71 +9,26 @@
 .ghostLink { display: none; }
 
 /* ─── KPI strip ─── */
-.kpiStrip { display: grid; gap: 12px; grid-template-columns: 1fr; }
+.kpiStrip { display: grid; gap: 12px; grid-template-columns: repeat(2, 1fr); }
 .kpiBox {
-  padding: 16px 18px;
+  padding: 14px 16px;
   border: 1px solid var(--mobile-glass-border);
   border-radius: 14px;
   background: var(--mobile-glass);
   box-shadow: var(--mobile-glass-shadow);
   backdrop-filter: blur(var(--mobile-glass-blur));
   -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
-  position: relative;
-  overflow: hidden;
 }
-.kpiBox::before { content: ""; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--accent, #A68649); border-radius: 2px 0 0 2px; }
-.kpiLabel { margin: 0 0 6px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); }
-.kpiValue { margin: 0; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
-.kpiValueGood { composes: kpiValue; color: var(--ok, #1B7A4A); }
+.kpiLabel { margin: 0 0 4px; font-size: 12px; font-weight: 500; color: var(--ink-3); }
+.kpiValue { margin: 0; font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
+.kpiValueAccent { composes: kpiValue; color: var(--accent, #A68649); }
 .kpiValueBad { composes: kpiValue; color: var(--bad, #B42318); }
-.kpiHint { margin: 4px 0 0; font-size: 12px; color: var(--ink-3); }
-
-/* ─── Grid layouts ─── */
-.twoCol { display: grid; gap: 16px; grid-template-columns: 1fr; }
 
 /* ─── Section card ─── */
 .section { overflow: visible; border: none; border-radius: 0; background: transparent; box-shadow: none; }
 .sectionHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 0 12px; border-bottom: none; }
 .sectionTitle { margin: 0; font-size: 16px; font-weight: 600; line-height: 22px; color: var(--ink); }
-.sectionTitleAccent { composes: sectionTitle; color: var(--accent, #A68649); }
 .sectionBody { padding: 0; }
-
-/* ─── Account / Fund rows ─── */
-.balanceList { margin: 0; padding: 0; list-style: none; }
-.balanceRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px;
-  margin-bottom: 10px;
-  border: 1px solid var(--mobile-glass-border);
-  border-radius: 14px;
-  background: var(--mobile-glass);
-  box-shadow: var(--mobile-glass-shadow);
-  backdrop-filter: blur(var(--mobile-glass-blur));
-  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
-}
-.balanceRow:last-child { margin-bottom: 0; }
-.balanceName { font-size: 14px; font-weight: 500; color: var(--ink); }
-.balanceValue { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
-.balanceValueAccent { composes: balanceValue; color: var(--accent, #A68649); }
-.balanceValueBad { composes: balanceValue; color: var(--bad, #B42318); }
-
-/* ─── Shift card ─── */
-.shiftCard {
-  padding: 14px 16px;
-  border: 1px solid var(--mobile-glass-border);
-  border-radius: 14px;
-  margin-bottom: 10px;
-  background: var(--mobile-glass);
-  box-shadow: var(--mobile-glass-shadow);
-  backdrop-filter: blur(var(--mobile-glass-blur));
-  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
-}
-.shiftCard:last-child { margin-bottom: 0; }
-.shiftMeta { font-size: 14px; color: var(--ink); margin: 0 0 4px; }
-.shiftHint { font-size: 12px; color: var(--ink-3); margin: 0 0 10px; }
 
 /* ─── Desktop table (hidden) ─── */
 .tableWrap { display: none; overflow-x: auto; }
@@ -85,6 +40,8 @@
 .thRight { text-align: right; }
 .tdRight { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--font-mono, monospace); font-size: 13px; }
 .tdBold { font-weight: 600; color: var(--ink); }
+.tdLink { font-weight: 600; color: var(--accent, #A68649); text-decoration: none; transition: color .12s; }
+.tdLink:hover { color: var(--ink); text-decoration: underline; }
 .tdMuted { font-size: 12px; color: var(--ink-3); }
 .tdBad { color: var(--bad, #B42318); font-weight: 600; }
 
@@ -97,15 +54,22 @@
   border: 1px solid var(--mobile-glass-border);
   border-radius: 14px;
   background: var(--mobile-glass);
+  color: inherit;
+  text-decoration: none;
   box-shadow: var(--mobile-glass-shadow);
   backdrop-filter: blur(var(--mobile-glass-blur));
   -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+  transition: border-color .15s;
 }
+.mobileCard:hover { border-color: var(--line-strong); }
 .mobileCard:last-child { margin-bottom: 0; }
 .mobileName { font-size: 15px; font-weight: 600; line-height: 22px; color: var(--ink); }
 .mobileMeta { margin: 4px 0 0; font-size: 13px; line-height: 18px; color: var(--ink-2); }
-.mobileValue { margin: 8px 0 0; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
-.mobileValueBad { composes: mobileValue; color: var(--bad, #B42318); }
+.mobileRow { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.mobileRowLabel { color: var(--ink-3); }
+.mobileRowValue { font-weight: 600; color: var(--ink); }
 
-/* ─── Empty state ─── */
-.empty { padding: 24px 0; text-align: center; font-size: 14px; color: var(--ink-3); }
+/* ─── Footer actions ─── */
+.footerActions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.dangerBtn { border: none; background: none; cursor: pointer; min-height: 44px; font-size: 13px; font-weight: 600; color: var(--bad, #B42318); padding: 0 8px; border-radius: 8px; transition: background .12s; }
+.dangerBtn:hover { background: rgba(180,35,24,.06); }

@@ -1106,9 +1106,3 @@ a.row:hover .rowTitle {
     min-height: 100px;
   }
 }
-
-@media (min-width: 1024px) {
-  .mobileList {
-    display: none;
-  }
-}

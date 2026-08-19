@@ -3,9 +3,9 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
   min-width: 0;
-  max-width: 1280px;
+  max-width: none;
 }
 
 .header {
@@ -22,18 +22,15 @@
 
 .title {
   margin: 0;
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 700;
-  line-height: 32px;
-  letter-spacing: -0.03em;
+  line-height: 28px;
+  letter-spacing: -0.02em;
   color: var(--ink);
 }
 
 .subtitle {
-  margin: 6px 0 0;
-  font-size: 14px;
-  line-height: 22px;
-  color: var(--ink-2);
+  display: none;
 }
 
 .headerActions {
@@ -44,43 +41,11 @@
 }
 
 .ghostLink {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  padding: 0 12px;
-  border-radius: var(--radius-control);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--ink-2);
-  text-decoration: none;
-  transition: color 0.15s, background 0.15s;
-}
-
-.ghostLink:hover {
-  color: var(--ink);
-  background: var(--surface-2);
+  display: none;
 }
 
 .primaryBtn {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  gap: 8px;
-  padding: 0 16px;
-  border-radius: var(--radius-control);
-  border: 0;
-  background: var(--navy);
-  color: var(--on-navy);
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-  box-shadow: 0 2px 8px rgba(28, 35, 43, 0.08);
-  transition: background 0.15s, transform 0.15s;
-}
-
-.primaryBtn:hover {
-  background: var(--navy-2);
-  transform: translateY(-1px);
+  display: none;
 }
 
 .primaryBtnIcon {
@@ -93,51 +58,35 @@
 }
 
 .iconBtn {
-  display: none;
+  display: inline-flex;
   width: 44px;
   height: 44px;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-control);
-  border: 1px solid var(--line);
-  background: var(--surface);
+  border: 1px solid var(--mobile-glass-border);
+  background: var(--mobile-glass);
   color: var(--ink);
   text-decoration: none;
-  box-shadow: 0 1px 4px rgba(28, 35, 43, 0.04);
+  box-shadow: var(--mobile-glass-shadow);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
 }
 
 .filterRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
+  display: none;
+  width: 100%;
+  flex-direction: column;
+  align-items: stretch;
   gap: 12px;
 }
 
-@media (max-width: 1023px) {
-  .primaryBtn {
-    display: none;
-  }
-
-  .iconBtn {
-    display: inline-flex;
-  }
-
-  .filterRow {
-    display: none;
-    width: 100%;
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .toolbar:has(.mobileFilters[open]) .filterRow {
-    display: flex;
-  }
+.toolbar:has(.mobileFilters[open]) .filterRow {
+  display: flex;
 }
 
-@media (min-width: 1024px) {
-  .mobileFilters {
-    display: none;
-  }
+.header {
+  align-items: center;
 }
 
 .navRow {
@@ -158,20 +107,22 @@
 
 .toolbar {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
+  flex-direction: column;
+  align-items: stretch;
   gap: 12px;
-  padding: 16px 18px;
-  border: 1px solid var(--line);
+  padding: 14px 16px;
+  border: 1px solid var(--mobile-glass-border);
   border-radius: 14px;
-  background: var(--surface);
-  box-shadow: 0 2px 12px rgba(28, 35, 43, 0.03);
+  background: var(--mobile-glass);
+  box-shadow: var(--mobile-glass-shadow);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
 }
 
 .searchField {
   display: flex;
-  min-width: min(100%, 280px);
-  flex: 1 1 240px;
+  min-width: 0;
+  flex: initial;
   flex-direction: column;
   gap: 6px;
 }
@@ -227,7 +178,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-left: auto;
+  margin-left: 0;
+  justify-content: space-between;
 }
 
 .secondaryBtn {
@@ -261,7 +213,8 @@
 }
 
 .mobileFilters {
-  display: none;
+  display: block;
+  width: 100%;
 }
 
 .mobileFiltersSummary {
@@ -294,25 +247,15 @@
 }
 
 .listPanel {
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--surface);
-  box-shadow: 0 2px 12px rgba(28, 35, 43, 0.03);
+  overflow: visible;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .tableHead {
-  display: grid;
-  grid-template-columns: 7rem minmax(0, 1.1fr) minmax(0, 1.2fr) 8.5rem 7rem 2rem;
-  gap: 12px;
-  align-items: center;
-  padding: 0 18px;
-  height: 44px;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface-2);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink-3);
+  display: none;
 }
 
 .tableHeadRight {
@@ -320,6 +263,7 @@
 }
 
 .tableBody {
+  display: none;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -414,9 +358,9 @@
 }
 
 .mobileList {
-  display: none;
+  display: block;
   margin: 0;
-  padding: 12px;
+  padding: 0;
   list-style: none;
 }
 
@@ -424,12 +368,14 @@
   display: block;
   margin-bottom: 10px;
   padding: 14px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--mobile-glass-border);
   border-radius: 14px;
-  background: var(--surface);
+  background: var(--mobile-glass);
   color: inherit;
   text-decoration: none;
-  box-shadow: 0 2px 10px rgba(28, 35, 43, 0.03);
+  box-shadow: var(--mobile-glass-shadow);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
@@ -536,64 +482,4 @@
 
 .paginationBtnDisabled {
   visibility: hidden;
-}
-
-@media (max-width: 1023px) {
-  .page {
-    gap: 16px;
-    max-width: none;
-  }
-
-  .header {
-    align-items: center;
-  }
-
-  .title {
-    font-size: 22px;
-    line-height: 28px;
-  }
-
-  .subtitle {
-    display: none;
-  }
-
-  .ghostLink {
-    display: none;
-  }
-
-  .mobileFilters {
-    display: block;
-    width: 100%;
-  }
-
-  .toolbar {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 14px 16px;
-  }
-
-  .searchField {
-    min-width: 0;
-    flex: initial;
-  }
-
-  .toolbarActions {
-    margin-left: 0;
-    justify-content: space-between;
-  }
-
-  .tableHead,
-  .tableBody {
-    display: none;
-  }
-
-  .mobileList {
-    display: block;
-  }
-}
-
-@media (min-width: 1024px) {
-  .mobileList {
-    display: none !important;
-  }
 }
