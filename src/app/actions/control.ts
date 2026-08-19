@@ -6,114 +6,24 @@ import { requirePermission, requireSession } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money } from "@core/shared/decimal";
 import { canSelfApprove, notifyRoles, queueApproval } from "@core/control/control";
+import { executeApprovalDecision } from "@core/control/approval-decision";
 import { cashDelta } from "@core/finance/finance";
-import { writeOffMaterial } from "@core/inventory/stock";
-import { confirmInventoryCount } from "@/app/actions/inventory";
-import { transferCash } from "@/app/actions/finance";
-import { publishRecipeVersion } from "@/app/actions/recipes";
-import { cancelOrder, reversePayment } from "@/app/actions/orders";
 
 export async function decideApproval(formData: FormData) {
   const session = await requirePermission("approvals.decide");
   const id = String(formData.get("id") ?? "");
   const decision = String(formData.get("decision") ?? "");
-  const row = await prisma.approvalRequest.findUnique({ where: { id } });
-  if (!row || row.status !== "PENDING") return { error: "Заявка не найдена." };
   if (decision !== "APPROVED" && decision !== "REJECTED") return { error: "Решение." };
 
-  if (decision === "REJECTED") {
-    await prisma.approvalRequest.update({
-      where: { id },
-      data: { status: "REJECTED", decidedById: session.user.id, decidedAt: new Date() },
-    });
-    await writeAudit({
-      userId: session.user.id,
-      action: "approval.reject",
-      entityType: "approval",
-      entityId: id,
-    });
-    revalidatePath("/settings/approvals");
-    return { ok: true };
-  }
-
-  const payload = row.payload as Record<string, string>;
-  const inner = new FormData();
-  for (const [k, v] of Object.entries(payload)) {
-    if (Array.isArray(v)) {
-      for (const item of v) inner.append(k, String(item));
-    } else if (v != null) {
-      inner.set(k, String(v));
-    }
-  }
-  inner.set("_approved", "1");
-
-  let result: { error?: string; ok?: boolean } = { ok: true };
-  if (row.type === "WRITE_OFF") result = await writeOffStockApproved(inner);
-  else if (row.type === "TRANSFER") result = await transferCash(inner);
-  else if (row.type === "INVENTORY") result = await confirmInventoryCount(inner);
-  else if (row.type === "RECIPE") result = await publishRecipeVersion(inner);
-  else if (row.type === "CANCEL_PAID") result = await cancelOrder(inner);
-  else if (row.type === "REFUND") result = await reversePayment(inner);
-  else if (row.type === "DISCOUNT") result = await applyApprovedDiscount(inner);
-  else if (row.type === "CASH_SHORTAGE") result = { ok: true };
-  else return { error: "Неизвестный тип заявки." };
-
+  const result = await executeApprovalDecision({
+    approvalId: id,
+    decision,
+    decidedById: session.user.id,
+  });
   if (result.error) return result;
 
-  await prisma.approvalRequest.update({
-    where: { id },
-    data: { status: "APPROVED", decidedById: session.user.id, decidedAt: new Date() },
-  });
-  await writeAudit({
-    userId: session.user.id,
-    action: "approval.approve",
-    entityType: "approval",
-    entityId: id,
-    newValue: { type: row.type },
-  });
   revalidatePath("/settings/approvals");
   revalidatePath("/");
-  return { ok: true };
-}
-
-async function writeOffStockApproved(formData: FormData) {
-  const warehouseId = String(formData.get("warehouseId") ?? "");
-  const materialId = String(formData.get("materialId") ?? "");
-  const quantity = String(formData.get("quantity") ?? "");
-  const reason = String(formData.get("reason") ?? "");
-  const comment = String(formData.get("comment") ?? "") || undefined;
-  try {
-    await writeOffMaterial({
-      warehouseId,
-      materialId,
-      quantity,
-      reason,
-      comment,
-      userId: String(formData.get("userId") ?? ""),
-      idempotencyKey: String(formData.get("idempotencyKey") ?? `appr-wo-${materialId}-${quantity}`),
-    });
-  } catch (e) {
-    return { error: e instanceof Error ? e.message : "Списание не выполнено." };
-  }
-  return { ok: true };
-}
-
-async function applyApprovedDiscount(formData: FormData) {
-  const orderId = String(formData.get("orderId") ?? "");
-  const discountPercent = String(formData.get("discountPercent") ?? "0");
-  const order = await prisma.order.findUnique({ where: { id: orderId } });
-  if (!order) return { error: "Заказ не найден." };
-  const discountAmount = D(String(order.subtotal)).mul(discountPercent).div(100);
-  const total = D(String(order.subtotal)).sub(discountAmount);
-  await prisma.order.update({
-    where: { id: orderId },
-    data: {
-      discountPercent: money(discountPercent),
-      discountAmount: money(discountAmount),
-      total: money(total),
-    },
-  });
-  revalidatePath(`/orders/${orderId}`);
   return { ok: true };
 }
 
@@ -224,4 +134,3 @@ export async function markNotificationsRead() {
   revalidatePath("/");
   return { ok: true };
 }
-

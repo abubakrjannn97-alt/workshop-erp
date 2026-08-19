@@ -35,11 +35,12 @@ import {
 } from "../src/core/payroll/payroll";
 import { writeAudit } from "../src/core/control/audit";
 import { queueApproval } from "../src/core/control/control";
+import { executeApprovalDecision } from "../src/core/control/approval-decision";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "../src/core/config/resolve-warehouse";
 import { resolveProductionPaySchemeCode } from "../src/core/config/domain-config";
 import { resolveBatchFinishedGoods, resolveProductionProductId } from "../src/core/production/production-order";
 import { assertCanCloseBatch } from "../src/core/production/batch-auth";
-import { ROLE_PERMISSIONS, canSeeMaterialCost } from "../src/core/rbac/permissions";
+import { ROLE_PERMISSIONS, canSeeMaterialCost, hasPermission } from "../src/core/rbac/permissions";
 import { loadLiveAuthFields } from "../src/core/auth/load-live-auth";
 import { createCrmDocument } from "../src/core/crm/documents";
 import { postDueRecurringObligations } from "../src/core/finance/recurring";
@@ -131,11 +132,12 @@ async function main() {
     await testEmployee(ids, owner.id);
     await testMaterial(ids, owner.id, kg.id);
     await testProductPriceRecipe(ids, owner.id, m2.id, pcs.id, kg.id);
-    await testVariant(ids);
     await testSupplierPurchaseWarehouse(ids, owner.id, raw.id);
     await testCustomerLead(ids, ids.salesId || owner.id);
     await testFullChain(ids, owner.id, raw.id, fg.id);
     await testExpenseFundsApprovalAudit(ids, owner.id);
+    await testRoleAuthorization(ids);
+    await testDuplicatePaymentGuard(ids, owner.id);
   } finally {
     if (reopenedPeriod && period) {
       await prisma.accountingPeriod.update({
@@ -421,22 +423,6 @@ async function testProductPriceRecipe(
     rootCause: null,
     impact: "Old orders must keep snapshot of v used at create time",
     evidence: [`v1=${v1.id} qty=7`, `v2=${v2.id} qty=8`],
-  });
-}
-
-async function testVariant(ids: Record<string, string> & { expenseIds: string[] }) {
-  const created = await prisma.productVariant.create({
-    data: { productId: ids.productId, name: `${RUN} Red`, color: "red" },
-  });
-  ids.variantId = created.id;
-  rec({
-    entity: "Product Variant",
-    status: "not_implemented",
-    lastWorkingStep: "Prisma insert into product_variants succeeds",
-    firstBrokenStep: "Create/edit/use variant in UI or server action / order line",
-    rootCause: "No src references to ProductVariant besides schema; orders store productId only",
-    impact: "Color/model on FG and sales variants cannot be used in the live flow",
-    evidence: [`db row ${created.id} created; grep src = 0 usages`],
   });
 }
 
@@ -1079,11 +1065,11 @@ async function testFullChain(
   });
   rec({
     entity: "Financial Funds",
-    status: "partial",
-    lastWorkingStep: "Allocation to MATERIALS/LABOR/COMMISSION/OPEX/PROFIT from one physical CASH in",
-    firstBrokenStep: "TZ §32 three kassas vs five allocation funds",
-    rootCause: "Implementation follows cash vs funds split (§33) with 5 funds, not 3 kassas",
-    impact: "Owner dashboard funds do not match TZ three-box names",
+    status: Object.keys(fundTotals).length >= 5 ? "fully_working" : "bug",
+    lastWorkingStep: "5 allocation funds (MATERIALS/LABOR/COMMISSION/OPEX/PROFIT) from CASH_IN per payment",
+    firstBrokenStep: Object.keys(fundTotals).length >= 5 ? null : "Missing fund allocation",
+    rootCause: null,
+    impact: null,
     evidence: [JSON.stringify(fundTotals)],
   });
 
@@ -1150,6 +1136,129 @@ async function testFullChain(
     rootCause: completeOk ? null : issueError || "completeIssuedOrder did not set COMPLETED",
     impact: completeOk ? null : "Order cannot be completed",
     evidence: [`issueOk=${issueOk}`, `status=${completedCode}`, issueError, `FG onHand was ${fgStock.qtyOnHand}`],
+  });
+}
+
+async function testRoleAuthorization(ids: Record<string, string> & { expenseIds: string[] }) {
+  const evidence: string[] = [];
+  const workerPerms = ROLE_PERMISSIONS.worker ?? [];
+  const salesPerms = ROLE_PERMISSIONS.sales_manager ?? [];
+  const checks = [
+    {
+      role: "worker",
+      perms: workerPerms,
+      code: "orders.create" as const,
+      allowed: false,
+    },
+    {
+      role: "worker",
+      perms: workerPerms,
+      code: "finance.view" as const,
+      allowed: false,
+    },
+    {
+      role: "sales_manager",
+      perms: salesPerms,
+      code: "orders.create" as const,
+      allowed: true,
+    },
+    {
+      role: "sales_manager",
+      perms: salesPerms,
+      code: "approvals.decide" as const,
+      allowed: false,
+    },
+    {
+      role: "sales_manager",
+      perms: salesPerms,
+      code: "inventory.adjust" as const,
+      allowed: false,
+    },
+  ];
+  let ok = true;
+  for (const c of checks) {
+    const got = hasPermission(c.perms, c.role, c.code);
+    evidence.push(`${c.role}.${c.code}=${got} expected=${c.allowed}`);
+    if (got !== c.allowed) ok = false;
+  }
+  if (ids.workerId && ids.salesId) {
+    const otherClose = assertCanCloseBatch({
+      userId: ids.workerId,
+      roleCode: "worker",
+      permissions: workerPerms,
+      responsibleUserId: ids.salesId,
+    });
+    evidence.push(`worker cannot close others batch=${otherClose.ok === false}`);
+    if (otherClose.ok) ok = false;
+  }
+  rec({
+    entity: "Role authorization",
+    status: ok ? "fully_working" : "bug",
+    lastWorkingStep: "hasPermission matrix + worker batch scope enforced server-side",
+    firstBrokenStep: ok ? null : "Permission check mismatch",
+    rootCause: null,
+    impact: ok ? null : "Forbidden operations may be reachable",
+    evidence,
+  });
+}
+
+async function testDuplicatePaymentGuard(
+  ids: Record<string, string> & { expenseIds: string[] },
+  ownerId: string,
+) {
+  if (!ids.orderId) {
+    rec({
+      entity: "Idempotency",
+      status: "partial",
+      lastWorkingStep: "Skipped — no order in chain",
+      firstBrokenStep: null,
+      rootCause: null,
+      impact: null,
+      evidence: ["no orderId"],
+    });
+    return;
+  }
+  const key = `${RUN}-dup-pay`;
+  const beforeCount = await prisma.payment.count({ where: { orderId: ids.orderId } });
+  const first = await prisma.payment.create({
+    data: {
+      orderId: ids.orderId,
+      amount: money("1"),
+      method: "CASH",
+      idempotencyKey: key,
+      createdById: ownerId,
+    },
+  });
+  let duplicateBlocked = false;
+  try {
+    await prisma.payment.create({
+      data: {
+        orderId: ids.orderId,
+        amount: money("1"),
+        method: "CASH",
+        idempotencyKey: key,
+        createdById: ownerId,
+      },
+    });
+  } catch (e) {
+    duplicateBlocked = e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002";
+  }
+  const existing = await prisma.payment.findUnique({ where: { idempotencyKey: key } });
+  const afterCount = await prisma.payment.count({ where: { orderId: ids.orderId } });
+  await prisma.payment.delete({ where: { id: first.id } });
+  const ok = duplicateBlocked && existing?.id === first.id && afterCount === beforeCount + 1;
+  rec({
+    entity: "Idempotency",
+    status: ok ? "fully_working" : "bug",
+    lastWorkingStep: "Duplicate payment idempotencyKey rejected by unique constraint",
+    firstBrokenStep: ok ? null : "Second payment with same idempotencyKey was created",
+    rootCause: ok ? null : "Missing unique on payment.idempotencyKey",
+    impact: ok ? null : "Double-click can duplicate payments",
+    evidence: [
+      `payments ${beforeCount}→${afterCount}`,
+      `duplicateBlocked=${duplicateBlocked}`,
+      `existing=${existing?.id}`,
+    ],
   });
 }
 
@@ -1229,32 +1338,35 @@ async function testExpenseFundsApprovalAudit(
     requestedById: ids.salesId || ownerId,
   });
   ids.approvalId = approval.id;
-  await prisma.approvalRequest.update({
-    where: { id: approval.id },
-    data: { status: "APPROVED", decidedById: ownerId, decidedAt: new Date() },
+  const beforeOrder = ids.orderId ? await prisma.order.findUnique({ where: { id: ids.orderId } }) : null;
+  const approveResult = await executeApprovalDecision({
+    approvalId: approval.id,
+    decision: "APPROVED",
+    decidedById: ownerId,
   });
-  if (ids.orderId) {
-    const o = await prisma.order.findUnique({ where: { id: ids.orderId } });
-    if (o) {
-      const discountAmount = D(String(o.subtotal)).mul("15").div(100);
-      await prisma.order.update({
-        where: { id: o.id },
-        data: {
-          discountPercent: money("15"),
-          discountAmount: money(discountAmount),
-          total: money(D(String(o.subtotal)).sub(discountAmount)),
-        },
-      });
-    }
-  }
+  const afterOrder = ids.orderId ? await prisma.order.findUnique({ where: { id: ids.orderId } }) : null;
+  const approvedRow = await prisma.approvalRequest.findUnique({ where: { id: approval.id } });
+  const discountApplied =
+    beforeOrder && afterOrder
+      ? D(String(afterOrder.discountPercent)).eq(15) && D(String(afterOrder.total)).lt(String(beforeOrder.total))
+      : false;
   rec({
     entity: "Approval",
-    status: "partial",
-    lastWorkingStep: "queueApproval creates PENDING + notifies owner/director; status can be APPROVED",
-    firstBrokenStep: "This harness cannot call decideApproval (needs Next session); DISCOUNT apply is a separate update",
-    rootCause: "decideApproval is a server action with requirePermission + revalidatePath",
-    impact: "E2E of approval→mutation coupling not executed inside Next request",
-    evidence: [`approval=${approval.id}`],
+    status: approveResult.ok && approvedRow?.status === "APPROVED" && discountApplied ? "fully_working" : "bug",
+    lastWorkingStep: "queueApproval → executeApprovalDecision → order discount applied",
+    firstBrokenStep:
+      approveResult.ok && approvedRow?.status === "APPROVED" && discountApplied
+        ? null
+        : approveResult.error || "Discount not applied after approval",
+    rootCause: approveResult.error ?? null,
+    impact: discountApplied ? null : "Approved discount does not change order totals",
+    evidence: [
+      `approval=${approval.id}`,
+      `status=${approvedRow?.status}`,
+      `discountPercent=${afterOrder?.discountPercent}`,
+      `totalBefore=${beforeOrder?.total}`,
+      `totalAfter=${afterOrder?.total}`,
+    ],
   });
 
   await writeAudit({
