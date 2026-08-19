@@ -49,7 +49,7 @@ export function BottomNav({
   if (tabs.length === 0) return null;
 
   return (
-    <div className={`${styles.shell} print:hidden`}>
+    <div className={`${styles.shell} print:hidden lg:hidden`}>
       <nav className={styles.bar} aria-label={t("nav.menu")}>
         {tabs.map((tab) => {
           const active = isTabActive(activePath, tab, tabs);

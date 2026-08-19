@@ -2,15 +2,22 @@
   width: 100%;
 }
 
-.head {
-  display: none;
-}
-
 .head,
 .row {
   display: grid;
   align-items: center;
   column-gap: 12px;
+}
+
+.head {
+  padding: 0 12px;
+  height: 40px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink-2);
 }
 
 .rows {
@@ -20,25 +27,15 @@
 }
 
 .row {
-  grid-template-columns: 1fr;
-  row-gap: 6px;
-  align-items: start;
-  min-height: 0;
-  padding: 14px;
-  border-radius: 14px;
-  margin-bottom: 10px;
-  border: 1px solid var(--mobile-glass-border);
-  background: var(--mobile-glass);
-  box-shadow: var(--mobile-glass-shadow);
-  backdrop-filter: blur(var(--mobile-glass-blur));
-  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+  min-height: 48px;
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
   font-size: 13px;
   line-height: 20px;
 }
 
 .row:last-child {
-  margin-bottom: 0;
-  border-bottom: 1px solid var(--mobile-glass-border);
+  border-bottom: none;
 }
 
 .rowLink {
@@ -50,13 +47,30 @@
   text-decoration: underline;
 }
 
-/* Column layouts (unused in card mode) */
-.cols2 { grid-template-columns: minmax(0, 1fr) 6.5rem; }
-.cols3 { grid-template-columns: minmax(0, 1fr) 6.5rem 6.5rem; }
-.cols4 { grid-template-columns: minmax(0, 1fr) 7rem 5.75rem 5.75rem; }
-.cols5 { grid-template-columns: minmax(0, 1fr) 7rem 5.75rem 5.75rem 4.5rem; }
-.colsOrders { grid-template-columns: 6.5rem minmax(0, 1fr) 6.5rem 6rem; }
-.colsOrder { grid-template-columns: minmax(0, 1fr) 5.5rem 6.5rem; }
+/* Column layouts */
+.cols2 {
+  grid-template-columns: minmax(0, 1fr) 6.5rem;
+}
+
+.cols3 {
+  grid-template-columns: minmax(0, 1fr) 6.5rem 6.5rem;
+}
+
+.cols4 {
+  grid-template-columns: minmax(0, 1fr) 7rem 5.75rem 5.75rem;
+}
+
+.cols5 {
+  grid-template-columns: minmax(0, 1fr) 7rem 5.75rem 5.75rem 4.5rem;
+}
+
+.colsOrders {
+  grid-template-columns: 6.5rem minmax(0, 1fr) 6.5rem 6rem;
+}
+
+.colsOrder {
+  grid-template-columns: minmax(0, 1fr) 5.5rem 6.5rem;
+}
 
 .headCellRight,
 .metric,
@@ -75,12 +89,12 @@
 .primaryTitle {
   display: block;
   font-weight: 600;
-  font-size: 15px;
-  line-height: 22px;
+  font-size: 14px;
+  line-height: 20px;
   color: var(--ink);
-  white-space: normal;
-  overflow: visible;
-  text-overflow: unset;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .primarySub {
@@ -88,23 +102,17 @@
   font-size: 13px;
   line-height: 20px;
   color: var(--ink-3);
-  white-space: normal;
-  overflow: visible;
-  text-overflow: unset;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .metric {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
   min-width: 0;
-  text-align: left;
 }
 
 .metricLabel {
-  display: block;
-  flex-shrink: 0;
+  display: none;
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0;
@@ -117,18 +125,26 @@
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
-  text-align: right;
 }
 
-.metricValueGood { color: var(--ok); }
-.metricValueBad { color: var(--bad); }
-.metricValueMuted { color: var(--ink-3); font-weight: 500; }
-.metricValueGold { color: var(--ink); }
+.metricValueGood {
+  color: var(--ok);
+}
+
+.metricValueBad {
+  color: var(--bad);
+}
+
+.metricValueMuted {
+  color: var(--ink-3);
+  font-weight: 500;
+}
+
+.metricValueGold {
+  color: var(--ink);
+}
 
 .cellMuted {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
   font-size: 13px;
   color: var(--ink-2);
   overflow: hidden;
@@ -136,22 +152,88 @@
   white-space: nowrap;
 }
 
-.cellMuted::before {
-  content: attr(data-label);
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--ink-3);
-  flex-shrink: 0;
-}
-
 .footer {
-  padding: 8px 0 4px;
+  padding: 8px 12px 4px;
 }
 
 .empty {
   padding: 0;
   font-size: 13px;
   color: var(--ink-2);
+}
+
+@media (max-width: 1023px) {
+  .head {
+    display: none;
+  }
+
+  .row {
+    grid-template-columns: 1fr;
+    row-gap: 6px;
+    align-items: start;
+    min-height: 0;
+    padding: 12px;
+    border-radius: var(--radius-card);
+    margin-bottom: 8px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .rows {
+    padding: 8px;
+  }
+
+  .row:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .metric {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    text-align: left;
+  }
+
+  .metricLabel {
+    display: block;
+    flex-shrink: 0;
+  }
+
+  .metricValue {
+    text-align: right;
+  }
+
+  .cellMuted {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .cellMuted::before {
+    content: attr(data-label);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--ink-3);
+    flex-shrink: 0;
+  }
+
+  .primaryTitle {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 22px;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
+
+  .primarySub {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    line-height: 20px;
+  }
 }

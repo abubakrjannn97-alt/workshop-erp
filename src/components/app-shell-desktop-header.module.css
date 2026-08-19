@@ -5,8 +5,10 @@
   align-items: center;
   gap: 12px;
   padding: 0 20px;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface);
+  border-bottom: 1px solid var(--mobile-glass-border);
+  background: var(--mobile-glass);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
 }
 
 .context {
@@ -61,8 +63,8 @@
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: var(--navy);
-  color: var(--on-navy);
+  background: #f4ede0;
+  color: #9a7338;
   font-size: 11px;
   font-weight: 600;
 }

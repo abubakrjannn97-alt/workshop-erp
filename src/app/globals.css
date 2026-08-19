@@ -228,63 +228,155 @@ body {
   font-weight: 400;
 }
 
-.mobile-stone-shell {
-  background: transparent !important;
+@media (max-width: 1023px) {
+  .mobile-stone-shell {
+    background: transparent !important;
+  }
+
+  .mobile-stone-shell::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: url("/stone-hero.png") no-repeat top right / 100% auto;
+    opacity: 0.34;
+    pointer-events: none;
+  }
+
+  .mobile-stone-shell > .relative {
+    background: transparent !important;
+  }
+
+  .app-shell-main {
+    background: transparent !important;
+  }
 }
 
-.mobile-stone-shell::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  background: url("/stone-hero.png") no-repeat top right / cover;
-  opacity: 0.34;
-  pointer-events: none;
-}
+@media (min-width: 1024px) {
+  .desktop-stone-shell {
+    background: #fafaf8 !important;
+  }
 
-.mobile-stone-shell > .relative {
-  background: transparent !important;
-}
+  .desktop-stone-shell::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: url("/stone-desktop-bg.png") no-repeat top right / 52% auto;
+    opacity: 0.3;
+    pointer-events: none;
+  }
 
-.app-shell-main {
-  background: transparent !important;
-}
+  .desktop-stone-shell > aside,
+  .desktop-stone-shell > .relative {
+    position: relative;
+    z-index: 1;
+  }
 
-/* PC = mobile: card lists, glass surfaces, compact headers */
-.mobile-stone-shell [class*="tableWrap"],
-.mobile-stone-shell [class*="tableHead"],
-.mobile-stone-shell [class*="tableBody"] {
-  display: none !important;
-}
+  .desktop-stone-shell .app-shell-main {
+    background: transparent !important;
+  }
 
-.mobile-stone-shell [class*="mobileList"] {
-  display: block !important;
-}
+  /* Shared glass language for all desktop pages */
+  .desktop-stone-shell {
+    --surface: rgba(255, 255, 255, 0.55);
+    --surface-2: rgba(255, 255, 255, 0.38);
+    --line: var(--mobile-glass-border);
+    --line-strong: #ddd9d2;
+    --shadow: var(--mobile-glass-shadow);
+    --card: rgba(255, 255, 255, 0.55);
+    --header: rgba(255, 255, 255, 0.78);
+  }
 
-.mobile-stone-shell [class*="mobileCard"],
-.mobile-stone-shell [class*="summaryBox"],
-.mobile-stone-shell [class*="kpiBox"],
-.mobile-stone-shell [class*="orderCard"] {
-  border: 1px solid var(--mobile-glass-border);
-  background: var(--mobile-glass);
-  box-shadow: var(--mobile-glass-shadow);
-  backdrop-filter: blur(var(--mobile-glass-blur));
-  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
-}
+  .desktop-stone-shell main,
+  .desktop-stone-shell .ui-scroll {
+    scrollbar-color: #c8c2b8 transparent;
+  }
 
-.mobile-stone-shell [class*="section"]:not([class*="sectionHead"]):not([class*="sectionTitle"]):not([class*="sectionBody"]):not([class*="sectionAction"]) {
-  border: none;
-  background: transparent;
-  box-shadow: none;
-  overflow: visible;
-}
+  .desktop-stone-shell .ui-card,
+  .desktop-stone-shell .ui-card-solid,
+  .desktop-stone-shell .ui-card-panel {
+    border-color: var(--mobile-glass-border);
+    border-radius: 18px;
+    background: var(--mobile-glass);
+    box-shadow: var(--mobile-glass-shadow);
+    backdrop-filter: blur(var(--mobile-glass-blur));
+    -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+  }
 
-.mobile-stone-shell [class*="toolbar"] {
-  border: 1px solid var(--mobile-glass-border);
-  background: var(--mobile-glass);
-  box-shadow: var(--mobile-glass-shadow);
-  backdrop-filter: blur(var(--mobile-glass-blur));
-  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+  .desktop-stone-shell .ui-card-head,
+  .desktop-stone-shell .ui-card > .section-title,
+  .desktop-stone-shell .ui-card > h2.section-title {
+    background: rgba(255, 255, 255, 0.35);
+    border-bottom-color: #ececec;
+  }
+
+  .desktop-stone-shell .ui-card-body,
+  .desktop-stone-shell .ui-card > .section-title + *,
+  .desktop-stone-shell .ui-card > h2.section-title + * {
+    background: transparent;
+  }
+
+  .desktop-stone-shell .ui-list-row,
+  .desktop-stone-shell .ui-card-body .ui-list > li,
+  .desktop-stone-shell .ui-card > .section-title + * .ui-list > li,
+  .desktop-stone-shell .ui-card > .section-title + ul > li {
+    background: transparent;
+    border-bottom-color: #ececec;
+  }
+
+  .desktop-stone-shell .ui-list-row:hover,
+  .desktop-stone-shell .ui-card-body .ui-list > li:hover,
+  .desktop-stone-shell .ui-card > .section-title + * .ui-list > li:hover,
+  .desktop-stone-shell .ui-card > .section-title + ul > li:hover {
+    background: rgba(255, 255, 255, 0.28);
+  }
+
+  .desktop-stone-shell .ui-table-wrap {
+    border-radius: 18px;
+    border: 1px solid var(--mobile-glass-border);
+    background: var(--mobile-glass);
+    box-shadow: var(--mobile-glass-shadow);
+    backdrop-filter: blur(var(--mobile-glass-blur));
+    -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+    overflow: hidden;
+  }
+
+  .desktop-stone-shell .ui-table-wrap thead th {
+    background: rgba(255, 255, 255, 0.35);
+    border-bottom-color: #ececec;
+  }
+
+  .desktop-stone-shell .ui-table-wrap tbody tr {
+    border-bottom-color: #ececec;
+  }
+
+  .desktop-stone-shell .ui-table-wrap tbody tr:hover {
+    background: rgba(255, 255, 255, 0.28);
+  }
+
+  .desktop-stone-shell .app-shell-main [class*="__section__"],
+  .desktop-stone-shell .app-shell-main [class*="summaryBox"],
+  .desktop-stone-shell .app-shell-main [class*="kpiBox"],
+  .desktop-stone-shell .app-shell-main [class*="batchCard"],
+  .desktop-stone-shell .app-shell-main [class*="filterBar"],
+  .desktop-stone-shell .app-shell-main [class*="statCard"] {
+    border-color: var(--mobile-glass-border) !important;
+    border-radius: 18px !important;
+    background: var(--mobile-glass) !important;
+    box-shadow: var(--mobile-glass-shadow) !important;
+    backdrop-filter: blur(var(--mobile-glass-blur));
+    -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+  }
+
+  .desktop-stone-shell .app-shell-main [class*="tableHead"] {
+    background: rgba(255, 255, 255, 0.35) !important;
+    border-bottom-color: #ececec !important;
+  }
+
+  .desktop-stone-shell .app-shell-main [class*="tableRow"]:hover {
+    background: rgba(255, 255, 255, 0.28) !important;
+  }
 }
 
 a:focus-visible,
@@ -1452,17 +1544,14 @@ main .ui-card > .section-title {
   text-shadow: none;
 }
 
-
-.mobile-stone-shell {
+@media (max-width: 1023px) {
   .ui-card,
   .ui-card-solid,
   .ui-card-panel {
     border-radius: var(--radius-card);
-    border: 1px solid var(--mobile-glass-border);
-    background: var(--mobile-glass);
-    box-shadow: var(--mobile-glass-shadow);
-    backdrop-filter: blur(var(--mobile-glass-blur));
-    -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+    border: 1px solid var(--line);
+    background: var(--surface);
+    box-shadow: var(--shadow);
   }
 
   .page-header {
@@ -1505,7 +1594,7 @@ main .ui-card > .section-title {
   .ui-card-head,
   .ui-card > .section-title,
   .ui-card > h2.section-title {
-    background: transparent;
+    background: var(--surface);
   }
 
   main .ui-card h2,
@@ -1541,11 +1630,9 @@ main .ui-card > .section-title {
     display: block;
     padding: var(--space-3);
     border-radius: var(--radius-card);
-    border: 1px solid var(--mobile-glass-border);
-    background: var(--mobile-glass);
-    box-shadow: var(--mobile-glass-shadow);
-    backdrop-filter: blur(var(--mobile-glass-blur));
-    -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+    border: 1px solid var(--line);
+    background: var(--surface);
+    box-shadow: none;
   }
 
   .ui-table-wrap tbody tr:has(> td[colspan]) {

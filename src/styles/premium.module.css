@@ -1,26 +1,31 @@
-/* ─── Employees module — Premium visual language ─── */
+/* ─── Shared Premium module — reusable across all secondary pages ─── */
 
 .page { display: flex; flex-direction: column; gap: 20px; min-width: 0; max-width: 1280px; }
-.header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .headerText { min-width: 0; flex: 1; }
 .title { margin: 0; font-size: 26px; font-weight: 700; line-height: 32px; letter-spacing: -0.03em; color: var(--ink); }
 .subtitle { margin: 6px 0 0; font-size: 14px; line-height: 22px; color: var(--ink-2); }
-.headerActions { display: flex; flex-shrink: 0; align-items: center; gap: 8px; }
+.headerActions { display: flex; flex-shrink: 0; align-items: center; gap: 8px; flex-wrap: wrap; }
 .ghostLink { display: inline-flex; min-height: 44px; align-items: center; padding: 0 12px; border-radius: 8px; font-size: 14px; font-weight: 500; color: var(--accent, #A68649); text-decoration: none; transition: color .15s, background .15s; }
 .ghostLink:hover { color: var(--ink); background: var(--surface-2); }
+.primaryBtn { display: inline-flex; min-height: 44px; align-items: center; gap: 6px; padding: 0 16px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #fff; background: var(--navy); text-decoration: none; transition: opacity .15s; }
+.primaryBtn:hover { opacity: .9; }
 
 /* ─── KPI strip ─── */
 .kpiStrip { display: grid; gap: 12px; grid-template-columns: repeat(4, 1fr); }
-.kpiBox { padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.kpiStripThree { display: grid; gap: 12px; grid-template-columns: repeat(3, 1fr); }
+.kpiBox { padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); position: relative; overflow: hidden; }
+.kpiBox::before { content: ""; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--accent, #A68649); border-radius: 2px 0 0 2px; }
 .kpiLabel { margin: 0 0 4px; font-size: 12px; font-weight: 500; color: var(--ink-3); }
 .kpiValue { margin: 0; font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
-.kpiValueAccent { composes: kpiValue; color: var(--accent, #A68649); }
+.kpiValueGood { composes: kpiValue; color: var(--ok, #1B7A4A); }
 .kpiValueBad { composes: kpiValue; color: var(--bad, #B42318); }
 
 /* ─── Section card ─── */
 .section { overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: 0 2px 12px rgba(28,35,43,.03); }
 .sectionHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px 12px; border-bottom: 1px solid var(--line); }
 .sectionTitle { margin: 0; font-size: 15px; font-weight: 600; line-height: 22px; color: var(--ink); }
+.sectionTitleAccent { composes: sectionTitle; color: var(--accent, #A68649); }
 .sectionBody { padding: 16px 18px; }
 
 /* ─── Desktop table ─── */
@@ -36,6 +41,7 @@
 .tdLink { font-weight: 600; color: var(--accent, #A68649); text-decoration: none; transition: color .12s; }
 .tdLink:hover { color: var(--ink); text-decoration: underline; }
 .tdMuted { font-size: 12px; color: var(--ink-3); }
+.tdWarn { font-size: 12px; color: var(--warn); }
 .tdBad { color: var(--bad, #B42318); font-weight: 600; }
 
 /* ─── Mobile cards ─── */
@@ -46,13 +52,34 @@
 .mobileName { font-size: 15px; font-weight: 600; line-height: 22px; color: var(--ink); }
 .mobileMeta { margin: 4px 0 0; font-size: 13px; line-height: 18px; color: var(--ink-2); }
 .mobileRow { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; font-size: 13px; font-variant-numeric: tabular-nums; }
-.mobileRowLabel { color: var(--ink-3); }
-.mobileRowValue { font-weight: 600; color: var(--ink); }
 
-/* ─── Footer actions ─── */
-.footerActions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+/* ─── Export links ─── */
+.exportLinks { display: flex; flex-wrap: wrap; gap: 10px; }
+.exportLink { font-size: 13px; font-weight: 500; color: var(--accent, #A68649); text-decoration: none; transition: color .12s; }
+.exportLink:hover { color: var(--ink); text-decoration: underline; }
+
+/* ─── Nav tabs ─── */
+.nav { display: flex; gap: 2px; padding: 4px; border-radius: 10px; background: var(--surface-2); width: fit-content; flex-wrap: wrap; }
+.navItem { display: inline-flex; align-items: center; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--ink-2); text-decoration: none; transition: color .12s, background .12s; }
+.navItem:hover { color: var(--ink); }
+.navItemActive { composes: navItem; background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: 0 1px 3px rgba(28,35,43,.06); }
+
+/* ─── Two column grid ─── */
+.twoCol { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+
+/* ─── Empty state ─── */
+.empty { padding: 24px 18px; text-align: center; font-size: 14px; color: var(--ink-3); }
+
+/* ─── Danger / action buttons ─── */
 .dangerBtn { border: none; background: none; cursor: pointer; min-height: 44px; font-size: 13px; font-weight: 600; color: var(--bad, #B42318); padding: 0 8px; border-radius: 8px; transition: background .12s; }
 .dangerBtn:hover { background: rgba(180,35,24,.06); }
+
+/* ─── Audit log card ─── */
+.logCard { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 14px 16px; margin-bottom: 10px; }
+.logCard:last-child { margin-bottom: 0; }
+.logAction { font-size: 14px; font-weight: 600; color: var(--ink); }
+.logMeta { font-size: 12px; color: var(--ink-3); margin: 4px 0 0; }
+.logPre { overflow-x: auto; border-radius: 8px; background: var(--surface-2); padding: 10px 12px; font-size: 11px; font-family: var(--font-mono, monospace); color: var(--ink-2); margin-top: 10px; white-space: pre-wrap; word-break: break-all; }
 
 /* ─── Responsive ─── */
 @media (max-width: 1023px) {
@@ -60,6 +87,8 @@
   .title { font-size: 22px; line-height: 28px; }
   .subtitle { display: none; }
   .kpiStrip { grid-template-columns: repeat(2, 1fr); }
+  .kpiStripThree { grid-template-columns: 1fr; }
+  .twoCol { grid-template-columns: 1fr; }
   .tableWrap { display: none; }
   .mobileList { display: block; }
 }

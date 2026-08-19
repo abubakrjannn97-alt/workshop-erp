@@ -67,3 +67,18 @@
     display: inline;
   }
 }
+
+@media (min-width: 1024px) {
+  .wrap .form {
+    border-color: var(--mobile-glass-border);
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(var(--mobile-glass-blur));
+    -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+  }
+
+  .wrap .form:focus-within {
+    border-color: var(--mobile-glass-border);
+    background: rgba(255, 255, 255, 0.72);
+    outline-color: rgba(154, 115, 56, 0.35);
+  }
+}

@@ -45,7 +45,7 @@ export async function DesktopHome() {
   }
 
   return (
-    <div className={styles.home}>
+    <div className={`${styles.home} ${styles.homeDesktop}`}>
       <DashGreeting t={t} />
 
       <DashMetricStrip

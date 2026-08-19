@@ -1,26 +1,17 @@
-/* ─── Finance module — mobile-first (PC = phone) ─── */
+/* ─── Finance module — Premium visual language with brass accents ─── */
 
-.page { display: flex; flex-direction: column; gap: 16px; min-width: 0; max-width: none; }
-.header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.page { display: flex; flex-direction: column; gap: 20px; min-width: 0; max-width: 1280px; }
+.header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
 .headerText { min-width: 0; flex: 1; }
-.title { margin: 0; font-size: 22px; font-weight: 700; line-height: 28px; letter-spacing: -0.02em; color: var(--ink); }
-.subtitle { display: none; }
+.title { margin: 0; font-size: 26px; font-weight: 700; line-height: 32px; letter-spacing: -0.03em; color: var(--ink); }
+.subtitle { margin: 6px 0 0; font-size: 14px; line-height: 22px; color: var(--ink-2); }
 .headerActions { display: flex; flex-shrink: 0; align-items: center; gap: 8px; }
-.ghostLink { display: none; }
+.ghostLink { display: inline-flex; min-height: 44px; align-items: center; padding: 0 12px; border-radius: 8px; font-size: 14px; font-weight: 500; color: var(--accent, #A68649); text-decoration: none; transition: color .15s, background .15s; }
+.ghostLink:hover { color: var(--ink); background: var(--surface-2); }
 
 /* ─── KPI strip ─── */
-.kpiStrip { display: grid; gap: 12px; grid-template-columns: 1fr; }
-.kpiBox {
-  padding: 16px 18px;
-  border: 1px solid var(--mobile-glass-border);
-  border-radius: 14px;
-  background: var(--mobile-glass);
-  box-shadow: var(--mobile-glass-shadow);
-  backdrop-filter: blur(var(--mobile-glass-blur));
-  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
-  position: relative;
-  overflow: hidden;
-}
+.kpiStrip { display: grid; gap: 12px; grid-template-columns: repeat(3, 1fr); }
+.kpiBox { padding: 16px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); position: relative; overflow: hidden; }
 .kpiBox::before { content: ""; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--accent, #A68649); border-radius: 2px 0 0 2px; }
 .kpiLabel { margin: 0 0 6px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); }
 .kpiValue { margin: 0; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
@@ -29,54 +20,32 @@
 .kpiHint { margin: 4px 0 0; font-size: 12px; color: var(--ink-3); }
 
 /* ─── Grid layouts ─── */
-.twoCol { display: grid; gap: 16px; grid-template-columns: 1fr; }
+.twoCol { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
 
 /* ─── Section card ─── */
-.section { overflow: visible; border: none; border-radius: 0; background: transparent; box-shadow: none; }
-.sectionHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 0 12px; border-bottom: none; }
-.sectionTitle { margin: 0; font-size: 16px; font-weight: 600; line-height: 22px; color: var(--ink); }
+.section { overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: 0 2px 12px rgba(28,35,43,.03); }
+.sectionHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px 12px; border-bottom: 1px solid var(--line); }
+.sectionTitle { margin: 0; font-size: 15px; font-weight: 600; line-height: 22px; color: var(--ink); }
 .sectionTitleAccent { composes: sectionTitle; color: var(--accent, #A68649); }
-.sectionBody { padding: 0; }
+.sectionBody { padding: 16px 18px; }
 
 /* ─── Account / Fund rows ─── */
 .balanceList { margin: 0; padding: 0; list-style: none; }
-.balanceRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px;
-  margin-bottom: 10px;
-  border: 1px solid var(--mobile-glass-border);
-  border-radius: 14px;
-  background: var(--mobile-glass);
-  box-shadow: var(--mobile-glass-shadow);
-  backdrop-filter: blur(var(--mobile-glass-blur));
-  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
-}
-.balanceRow:last-child { margin-bottom: 0; }
+.balanceRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.balanceRow:last-child { border-bottom: 0; }
 .balanceName { font-size: 14px; font-weight: 500; color: var(--ink); }
 .balanceValue { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
 .balanceValueAccent { composes: balanceValue; color: var(--accent, #A68649); }
 .balanceValueBad { composes: balanceValue; color: var(--bad, #B42318); }
 
 /* ─── Shift card ─── */
-.shiftCard {
-  padding: 14px 16px;
-  border: 1px solid var(--mobile-glass-border);
-  border-radius: 14px;
-  margin-bottom: 10px;
-  background: var(--mobile-glass);
-  box-shadow: var(--mobile-glass-shadow);
-  backdrop-filter: blur(var(--mobile-glass-blur));
-  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
-}
+.shiftCard { padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 10px; }
 .shiftCard:last-child { margin-bottom: 0; }
 .shiftMeta { font-size: 14px; color: var(--ink); margin: 0 0 4px; }
 .shiftHint { font-size: 12px; color: var(--ink-3); margin: 0 0 10px; }
 
-/* ─── Desktop table (hidden) ─── */
-.tableWrap { display: none; overflow-x: auto; }
+/* ─── Desktop table ─── */
+.tableWrap { overflow-x: auto; }
 .table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
 .table thead { background: var(--surface-2); }
 .table th { padding: 10px 16px; font-size: 12px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; letter-spacing: .03em; white-space: nowrap; }
@@ -89,18 +58,8 @@
 .tdBad { color: var(--bad, #B42318); font-weight: 600; }
 
 /* ─── Mobile cards ─── */
-.mobileList { display: block; margin: 0; padding: 0; list-style: none; }
-.mobileCard {
-  display: block;
-  margin-bottom: 10px;
-  padding: 14px;
-  border: 1px solid var(--mobile-glass-border);
-  border-radius: 14px;
-  background: var(--mobile-glass);
-  box-shadow: var(--mobile-glass-shadow);
-  backdrop-filter: blur(var(--mobile-glass-blur));
-  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
-}
+.mobileList { display: none; margin: 0; padding: 12px; list-style: none; }
+.mobileCard { display: block; margin-bottom: 10px; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
 .mobileCard:last-child { margin-bottom: 0; }
 .mobileName { font-size: 15px; font-weight: 600; line-height: 22px; color: var(--ink); }
 .mobileMeta { margin: 4px 0 0; font-size: 13px; line-height: 18px; color: var(--ink-2); }
@@ -108,4 +67,19 @@
 .mobileValueBad { composes: mobileValue; color: var(--bad, #B42318); }
 
 /* ─── Empty state ─── */
-.empty { padding: 24px 0; text-align: center; font-size: 14px; color: var(--ink-3); }
+.empty { padding: 24px 18px; text-align: center; font-size: 14px; color: var(--ink-3); }
+
+/* ─── Responsive ─── */
+@media (max-width: 1023px) {
+  .page { gap: 16px; max-width: none; }
+  .title { font-size: 22px; line-height: 28px; }
+  .subtitle { display: none; }
+  .kpiStrip { grid-template-columns: 1fr; }
+  .twoCol { grid-template-columns: 1fr; }
+  .tableWrap { display: none; }
+  .mobileList { display: block; }
+}
+
+@media (min-width: 1024px) {
+  .mobileList { display: none !important; }
+}

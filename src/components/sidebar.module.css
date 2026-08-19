@@ -3,8 +3,10 @@
   isolation: isolate;
   overflow: hidden;
   width: var(--sidebar-w);
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-  background: var(--navy);
+  border-right: 1px solid var(--mobile-glass-border);
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .sidebarCollapsed {
@@ -18,7 +20,7 @@
   align-items: center;
   gap: 10px;
   padding: 0 10px 0 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--mobile-glass-border);
 }
 
 .brandCollapsed {
@@ -37,13 +39,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: var(--font-brand);
-  font-size: 13px;
+  font-family: var(--font-sans);
+  font-size: 11px;
   font-weight: 700;
-  line-height: 18px;
-  letter-spacing: 0.06em;
+  line-height: 16px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--on-navy);
+  color: var(--ink);
 }
 
 .nav {
@@ -72,7 +74,7 @@
   border-radius: 12px;
   border: 0;
   background: transparent;
-  color: rgba(248, 250, 252, 0.62);
+  color: var(--ink-2);
   font-size: 14px;
   font-weight: 500;
   line-height: 20px;
@@ -81,8 +83,8 @@
 }
 
 .link:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--on-navy);
+  background: rgba(255, 255, 255, 0.65);
+  color: var(--ink);
 }
 
 .link:focus-visible {
@@ -91,8 +93,8 @@
 }
 
 .linkActive {
-  background: rgba(184, 149, 74, 0.16);
-  color: #faf6ee;
+  background: #f4ede0;
+  color: #9a7338;
   box-shadow: none;
 }
 
@@ -108,11 +110,11 @@
 .icon {
   flex-shrink: 0;
   color: inherit;
-  opacity: 0.88;
+  opacity: 0.92;
 }
 
 .linkActive .icon {
-  color: #fff;
+  color: #9a7338;
   opacity: 1;
 }
 
@@ -126,7 +128,7 @@
 .secondary {
   margin-top: auto;
   padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--mobile-glass-border);
 }
 
 .account {
@@ -135,7 +137,7 @@
   align-items: center;
   gap: 10px;
   padding: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--mobile-glass-border);
 }
 
 .accountCollapsed {
@@ -150,8 +152,8 @@
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--on-navy);
+  background: #f4ede0;
+  color: #9a7338;
   font-size: 12px;
   font-weight: 600;
 }
@@ -168,7 +170,7 @@
   white-space: nowrap;
   font-size: 13px;
   font-weight: 600;
-  color: var(--on-navy);
+  color: var(--ink);
 }
 
 .userRole,
@@ -177,7 +179,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 12px;
-  color: rgba(248, 250, 252, 0.52);
+  color: var(--ink-3);
 }
 
 .userStatus {
@@ -185,7 +187,7 @@
   align-items: center;
   gap: 6px;
   margin-top: 2px;
-  color: #86efac;
+  color: #18804b;
 }
 
 .onlineDot {
@@ -208,13 +210,13 @@
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: rgba(248, 250, 252, 0.55);
+  color: var(--ink-3);
   cursor: pointer;
 }
 
 .footerBtn:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--on-navy);
+  background: rgba(255, 255, 255, 0.65);
+  color: var(--ink);
 }
 
 .footerBtn:focus-visible {

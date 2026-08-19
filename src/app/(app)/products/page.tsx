@@ -1,4 +1,3 @@
-import { PageHeader } from "@/components/page-header";
 import { getTranslator } from "@core/shared/i18n/locale";
 import Link from "next/link";
 import { prisma } from "@core/infrastructure/prisma";
@@ -8,122 +7,101 @@ import { materialCostForRecipe } from "@core/costing/costing";
 import { moneyDisplay } from "@core/shared/decimal";
 import { archiveProduct } from "@/app/actions/products";
 import { RevealList } from "@/components/reveal-list";
-import { DataTableSection, UiTable } from "@/components/data-table";
+import { ChevronRight } from "lucide-react";
+import { ICON_STROKE } from "@/components/nav-icons";
+import styles from "@/styles/premium.module.css";
 
 export default async function ProductsPage() {
   const { t, locale } = await getTranslator();
   const session = await requirePermission("products.view");
-  const canManage =
-    session.user.roleCode === "owner" || session.user.permissions.includes("products.manage");
+  const canManage = session.user.roleCode === "owner" || session.user.permissions.includes("products.manage");
   const canSeeCost = canSeeMaterialCost(session.user.permissions, session.user.roleCode);
 
   const products = await prisma.product.findMany({
     where: { archivedAt: null },
     include: {
-      saleUnit: true,
-      outputUnit: true,
+      saleUnit: true, outputUnit: true,
       prices: { where: { validTo: null }, take: 1 },
-      recipe: canSeeCost
-        ? {
-            include: {
-              versions: {
-                where: { validTo: null },
-                include: {
-                  items: { include: { material: { include: { storageUnit: true } }, unit: true } },
-                },
-                take: 1,
-                orderBy: { versionNumber: "desc" as const },
-              },
-            },
-          }
-        : false,
+      recipe: canSeeCost ? { include: { versions: { where: { validTo: null }, include: { items: { include: { material: { include: { storageUnit: true } }, unit: true } } }, take: 1, orderBy: { versionNumber: "desc" as const } } } } : false,
     },
     orderBy: { name: "asc" },
   });
 
   return (
-    <div className="page-stack">
-      <PageHeader
-        title={t("page.products")}
-        description={t("products.hint")}
-        actions={
-          canManage ? (
-            <Link href="/products/new" className="ui-btn-primary inline-flex min-h-[44px] items-center" data-tour="products-new">
-              {t("products.newTitle")}
-            </Link>
-          ) : null
-        }
-      />
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <div className={styles.headerText}>
+          <h1 className={styles.title}>{t("page.products")}</h1>
+          <p className={styles.subtitle}>{t("products.hint")}</p>
+        </div>
+        {canManage ? (
+          <div className={styles.headerActions}>
+            <Link href="/products/new" className={styles.primaryBtn} data-tour="products-new">{t("products.newTitle")}</Link>
+          </div>
+        ) : null}
+      </header>
       <CatalogNav current="products" locale={locale} />
 
-      <DataTableSection tour="products-list">
-        <UiTable>
-          <table className="w-full text-left text-sm">
-            <thead className="bg-[var(--surface-muted)] text-xs uppercase tracking-wide text-[var(--muted)]">
-              <tr>
-                <th className="px-4 py-3">{t("common.product")}</th>
-                <th className="px-4 py-3">{t("common.unit")}</th>
-                <th className="px-4 py-3">{t("common.price")}</th>
-                {canSeeCost ? <th className="px-4 py-3">{t("products.matCost")}</th> : null}
-                <th className="px-4 py-3">{t("products.output")}</th>
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            {products.length === 0 ? (
-              <tbody>
-                <tr>
-                  <td className="px-3 py-6 text-[var(--muted)]" colSpan={canSeeCost ? 6 : 5}>
-                    {t("products.empty")}
-                  </td>
-                </tr>
-              </tbody>
-            ) : (
-              <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={5}>
-                {products.map((product) => {
-                  const version = product.recipe?.versions[0];
-                  const cost = version
-                    ? materialCostForRecipe(version.items)
-                    : { total: null, missingPrices: true };
-                  const price = product.prices[0]?.price;
-                  return (
-                    <tr key={product.id} className="border-t border-[var(--line)]">
-                      <td className="px-4 py-3" data-label={t("common.product")}>
-                        <Link href={`/products/${product.id}`} className="font-medium text-[var(--titan-dark)] hover:underline">
-                          {product.name}
-                        </Link>
-                        <p className="text-xs text-[var(--muted)]">{product.category}</p>
-                      </td>
-                      <td className="px-4 py-3" data-label={t("common.unit")}>
-                        {product.saleUnit.symbol}
-                      </td>
-                      <td className="px-4 py-3 font-mono text-xs" data-label={t("common.price")}>
-                        {price ? `${moneyDisplay(price)} с` : "—"}
-                      </td>
-                      {canSeeCost ? (
-                        <td className="px-4 py-3 font-mono text-xs" data-label={t("products.matCost")}>
-                          {cost.total ? `${moneyDisplay(cost.total)} с` : t("products.incomplete")}
+      <section className={styles.section} data-tour="products-list">
+        <div className={styles.sectionHead}><h2 className={styles.sectionTitle}>{t("page.products")}</h2></div>
+        {products.length === 0 ? (
+          <div className={styles.empty}>{t("products.empty")}</div>
+        ) : (
+          <>
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead><tr>
+                  <th>{t("common.product")}</th>
+                  <th>{t("common.unit")}</th>
+                  <th className={styles.thRight}>{t("common.price")}</th>
+                  {canSeeCost ? <th className={styles.thRight}>{t("products.matCost")}</th> : null}
+                  <th>{t("products.output")}</th>
+                  {canManage ? <th /> : null}
+                </tr></thead>
+                <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={10}>
+                  {products.map((product) => {
+                    const version = product.recipe?.versions[0];
+                    const cost = version ? materialCostForRecipe(version.items) : { total: null, missingPrices: true };
+                    const price = product.prices[0]?.price;
+                    return (
+                      <tr key={product.id}>
+                        <td>
+                          <Link href={`/products/${product.id}`} className={styles.tdLink}>{product.name}</Link>
+                          <p className={styles.tdMuted}>{product.category}</p>
                         </td>
-                      ) : null}
-                      <td className="px-4 py-3 text-xs text-[var(--text-muted)]" data-label={t("products.output")}>
-                        {product.outputPerBase.toString()} {product.outputUnit.symbol} / {product.recipeBaseQty.toString()}{" "}
-                        {product.saleUnit.symbol}
-                      </td>
-                      <td className="px-4 py-3 text-right">
+                        <td>{product.saleUnit.symbol}</td>
+                        <td className={styles.tdRight}>{price ? `${moneyDisplay(price)} с` : "—"}</td>
+                        {canSeeCost ? <td className={styles.tdRight}>{cost.total ? `${moneyDisplay(cost.total)} с` : t("products.incomplete")}</td> : null}
+                        <td className={styles.tdMuted}>{product.outputPerBase.toString()} {product.outputUnit.symbol} / {product.recipeBaseQty.toString()} {product.saleUnit.symbol}</td>
                         {canManage ? (
-                          <form action={archiveProduct}>
-                            <input type="hidden" name="id" value={product.id} />
-                            <button className="text-xs text-[var(--danger)]">{t("common.archive")}</button>
-                          </form>
+                          <td><form action={archiveProduct}><input type="hidden" name="id" value={product.id} /><button className={styles.dangerBtn}>{t("common.archive")}</button></form></td>
                         ) : null}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </RevealList>
-            )}
-          </table>
-        </UiTable>
-      </DataTableSection>
+                      </tr>
+                    );
+                  })}
+                </RevealList>
+              </table>
+            </div>
+            <ul className={styles.mobileList}>
+              {products.map((product) => {
+                const price = product.prices[0]?.price;
+                return (
+                  <li key={product.id}>
+                    <Link href={`/products/${product.id}`} className={styles.mobileCard}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span className={styles.mobileName}>{product.name}</span>
+                        <ChevronRight size={16} strokeWidth={ICON_STROKE} style={{ color: "var(--ink-3)" }} />
+                      </div>
+                      <p className={styles.mobileMeta}>{product.category} · {product.saleUnit.symbol}</p>
+                      <p className={styles.mobileRow}>{price ? `${moneyDisplay(price)} с` : "—"}</p>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
+      </section>
     </div>
   );
 }

@@ -51,7 +51,6 @@
   gap: 14px;
   max-width: none;
   position: relative;
-  width: 100%;
 }
 
 .homeMobile .hero {
@@ -79,6 +78,127 @@
   font-size: 12px;
   line-height: 16px;
   color: #64748B;
+}
+
+/* ─── Desktop premium (same style language as mobile, wide layout) ─── */
+
+.homeDesktop {
+  gap: 24px;
+}
+
+.homeDesktop .greetingTitle {
+  font-family: var(--font-sans);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 30px;
+  letter-spacing: -0.02em;
+}
+
+.homeDesktop .greetingSub {
+  font-size: 14px;
+  line-height: 21px;
+  color: #64748b;
+}
+
+.homeDesktop .kpiCard {
+  min-height: 156px;
+  border-radius: 18px;
+  border: 1px solid var(--mobile-glass-border);
+  background: var(--mobile-glass);
+  box-shadow: var(--mobile-glass-shadow);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+}
+
+.homeDesktop .kpiCard:hover {
+  box-shadow: var(--mobile-glass-shadow);
+  transform: translateY(-1px);
+}
+
+.homeDesktop .kpiScenery {
+  display: none;
+}
+
+.homeDesktop .kpiOrange .kpiIcon {
+  background: #fff0e4;
+  color: #d88942;
+}
+
+.homeDesktop .kpiGreen .kpiIcon {
+  background: #eaf7f0;
+  color: #249565;
+}
+
+.homeDesktop .kpiBlue .kpiIcon {
+  background: #eef3ff;
+  color: #4a70d0;
+}
+
+.homeDesktop .kpiPurple .kpiIcon {
+  background: #f2eeff;
+  color: #8067c5;
+}
+
+.homeDesktop .kpiLabel {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+}
+
+.homeDesktop .kpiValue {
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 34px;
+  letter-spacing: -0.02em;
+}
+
+.homeDesktop .kpiHint {
+  font-size: 12px;
+  font-weight: 400;
+  color: #64748b;
+}
+
+.homeDesktop .panel {
+  border: 1px solid var(--mobile-glass-border);
+  border-radius: 18px;
+  background: var(--mobile-glass);
+  box-shadow: var(--mobile-glass-shadow);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+}
+
+.homeDesktop .actionsDesktop .action {
+  min-height: 116px;
+  border-radius: 16px;
+  border: 1px solid var(--mobile-glass-border);
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: var(--mobile-glass-shadow);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+}
+
+.homeDesktop .actionsDesktop .action:hover {
+  transform: translateY(-1px);
+  border-color: var(--mobile-glass-border);
+  box-shadow: var(--mobile-glass-shadow);
+}
+
+.homeDesktop .table th {
+  border-bottom: 1px solid #ececec;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.homeDesktop .table td {
+  border-bottom: 1px solid #ececec;
+}
+
+.homeDesktop .table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.homeDesktop .sectionTitle {
+  font-size: 18px;
+  font-weight: 600;
 }
 
 /* ─── KPI Cards (desktop) ─── */
@@ -1104,5 +1224,11 @@ a.row:hover .rowTitle {
   .actionsDesktop .action {
     flex: initial;
     min-height: 100px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mobileList {
+    display: none;
   }
 }
