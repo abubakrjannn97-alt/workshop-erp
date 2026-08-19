@@ -24,31 +24,65 @@ const TONE_CLASS: Record<DashMetricTone, string> = {
 export function DashMetricStrip({
   metrics,
   tour,
+  variant = "default",
 }: {
   metrics: DashMetric[];
   tour?: string;
+  variant?: "default" | "compact";
 }) {
+  const compact = variant === "compact";
+
   return (
-    <section className={styles.kpiStrip} data-tour={tour} aria-label="Statistics">
+    <section
+      className={compact ? styles.kpiStripCompact : styles.kpiStrip}
+      data-tour={tour}
+      aria-label="Statistics"
+    >
       {metrics.map((metric) => {
         const Icon = metric.icon;
         return (
-          <article key={metric.id} className={`${styles.kpiCard} ${TONE_CLASS[metric.tone]}`}>
-            <span className={styles.kpiScenery} aria-hidden />
-            <div className={styles.kpiTop}>
-              <span className={styles.kpiIcon} aria-hidden>
-                <Icon size={22} strokeWidth={1.75} />
-              </span>
-            </div>
-            <div className={styles.kpiContent}>
-              <p className={styles.kpiLabel}>{metric.label}</p>
-              <p className={styles.kpiValue}>{metric.value}</p>
-              {metric.hint ? (
-                <p className={`${styles.kpiHint} ${metric.hintTone === "positive" ? styles.kpiHintPositive : ""}`.trim()}>
-                  {metric.hint}
-                </p>
-              ) : null}
-            </div>
+          <article
+            key={metric.id}
+            className={`${compact ? styles.kpiCardCompact : styles.kpiCard} ${TONE_CLASS[metric.tone]}`}
+          >
+            {!compact ? <span className={styles.kpiScenery} aria-hidden /> : null}
+            {compact ? (
+              <>
+                <div className={styles.kpiHeadCompact}>
+                  <span className={styles.kpiIconCompact} aria-hidden>
+                    <Icon size={18} strokeWidth={1.75} />
+                  </span>
+                  <p className={styles.kpiLabelCompact}>{metric.label}</p>
+                </div>
+                <p className={styles.kpiValueCompact}>{metric.value}</p>
+                {metric.hint ? (
+                  <p
+                    className={`${styles.kpiHintCompact} ${metric.hintTone === "positive" ? styles.kpiHintPositive : ""}`.trim()}
+                  >
+                    {metric.hint}
+                  </p>
+                ) : null}
+              </>
+            ) : (
+              <>
+                <div className={styles.kpiTop}>
+                  <span className={styles.kpiIcon} aria-hidden>
+                    <Icon size={22} strokeWidth={1.75} />
+                  </span>
+                </div>
+                <div className={styles.kpiContent}>
+                  <p className={styles.kpiLabel}>{metric.label}</p>
+                  <p className={styles.kpiValue}>{metric.value}</p>
+                  {metric.hint ? (
+                    <p
+                      className={`${styles.kpiHint} ${metric.hintTone === "positive" ? styles.kpiHintPositive : ""}`.trim()}
+                    >
+                      {metric.hint}
+                    </p>
+                  ) : null}
+                </div>
+              </>
+            )}
           </article>
         );
       })}

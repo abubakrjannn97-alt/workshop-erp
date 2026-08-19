@@ -22,10 +22,10 @@ function MobileRoleHome({
   if (role === "warehouse_manager") return <WarehouseHome />;
   if (role === "accountant") return <AccountantHome />;
   if (role === "production_manager") return <ProductionHome />;
-  if (role === "owner" || role === "director") return <MobileOwnerHome financePeriod={financePeriod} />;
+  if (role === "owner" || role === "director") return <MobileOwnerHome />;
   if (role === "employee") {
     if (hasPermission(perms, role, "finance.view")) {
-      return <MobileOwnerHome financePeriod={financePeriod} />;
+      return <MobileOwnerHome />;
     }
     if (hasPermission(perms, role, "crm.view") || hasPermission(perms, role, "orders.view")) {
       return <SalesHome />;
@@ -35,7 +35,7 @@ function MobileRoleHome({
       return <ProductionHome />;
     }
   }
-  if (hasPermission(perms, role, "finance.view")) return <MobileOwnerHome financePeriod={financePeriod} />;
+  if (hasPermission(perms, role, "finance.view")) return <MobileOwnerHome />;
   if (hasPermission(perms, role, "crm.view")) return <SalesHome />;
   if (hasPermission(perms, role, "inventory.view")) return <WarehouseHome />;
   if (hasPermission(perms, role, "production.view")) return <ProductionHome />;

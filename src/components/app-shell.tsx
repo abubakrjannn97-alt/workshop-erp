@@ -17,7 +17,6 @@ type Props = {
   unread?: number;
   locale: Locale;
   shiftBar?: React.ReactNode;
-  mobileShiftBar?: React.ReactNode;
   children: React.ReactNode;
 };
 
@@ -30,7 +29,6 @@ export function AppShell({
   unread = 0,
   locale,
   shiftBar,
-  mobileShiftBar,
   children,
 }: Props) {
   return (
@@ -45,12 +43,7 @@ export function AppShell({
       />
       <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden bg-[var(--color-background)]">
         <div className="sticky top-0 z-40 shrink-0 print:hidden lg:hidden">
-          <AppShellMobileHeader
-            companyName={companyName}
-            unread={unread}
-            locale={locale}
-            mobileShiftBar={mobileShiftBar}
-          />
+          <AppShellMobileHeader unread={unread} locale={locale} />
         </div>
 
         <div className="sticky top-0 z-30 hidden shrink-0 print:hidden lg:block">

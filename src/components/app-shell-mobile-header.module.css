@@ -9,54 +9,15 @@
   background: var(--surface);
 }
 
-.left {
-  display: flex;
+.title {
   min-width: 0;
   flex: 1;
-  align-items: center;
-  gap: 8px;
-}
-
-.spacer {
-  width: 36px;
-  flex-shrink: 0;
-}
-
-.brandCenter {
-  display: flex;
-  min-width: 0;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.brandName {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: var(--font-brand);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--ink);
-}
-
-.title {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   font-size: 17px;
   font-weight: 600;
   line-height: 24px;
   color: var(--ink);
-}
-
-.actions {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: 2px;
 }

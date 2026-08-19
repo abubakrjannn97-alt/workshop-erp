@@ -34,13 +34,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           locale={locale}
         />
       }
-      mobileShiftBar={
-        <CashShiftBar
-          permissions={session.user.permissions as string[]}
-          roleCode={session.user.roleCode}
-          locale={locale}
-        />
-      }
     >
       {children}
     </AppShell>

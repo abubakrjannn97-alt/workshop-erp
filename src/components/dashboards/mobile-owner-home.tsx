@@ -1,164 +1,127 @@
-import { ClipboardList, Wallet, AlertTriangle, TrendingUp } from "lucide-react";
+import { ClipboardList, Factory, Box, Warehouse } from "lucide-react";
 import { prisma } from "@core/infrastructure/prisma";
 import { requireSession } from "@core/auth/authz";
-import { D, moneyDisplay } from "@core/shared/decimal";
-import { FUND, fundDelta } from "@core/finance/finance";
-import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@core/inventory/alerts";
-import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
-import {
-  countOwnerAttention,
-  DashAttentionCounts,
-  DashGreeting,
-  DashMetricStrip,
-  DashQuickActions,
-  DashRecentOrders,
-  DashRecentOrdersAction,
-  DashSection,
-  ownerDesktopQuickActions,
-} from "@/components/dashboard/dashboard-system";
-import { resolveFinanceDateRange } from "@core/shared/order-period";
+import { D, qtyDisplay } from "@core/shared/decimal";
+import { findFinishedGoodsWarehouse } from "@core/config/resolve-warehouse";
+import { getTranslator } from "@core/shared/i18n/locale";
+import { ORDER_STATUS } from "@core/orders/orders";
+import { DashGreeting, DashMetricStrip } from "@/components/dashboard/dashboard-system";
 import styles from "@/components/dashboard/dash-home.module.css";
 
-export async function MobileOwnerHome({ financePeriod }: { financePeriod?: string }) {
+function startOfDay(d = new Date()) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+
+function endOfDay(d = new Date()) {
+  const x = new Date(d);
+  x.setHours(23, 59, 59, 999);
+  return x;
+}
+
+function pctChange(today: ReturnType<typeof D>, yesterday: ReturnType<typeof D>) {
+  if (yesterday.lte(0)) {
+    if (today.lte(0)) return null;
+    return 100;
+  }
+  return today.sub(yesterday).div(yesterday).mul(100).toDecimalPlaces(0).toNumber();
+}
+
+export async function MobileOwnerHome() {
   await requireSession();
-  const { t, n, locale } = await getTranslator();
-  const range = resolveFinanceDateRange(financePeriod);
-  const loc = intlLocale(locale);
+  const { t } = await getTranslator();
 
-  const periodWhere =
-    range.from && range.to
-      ? { createdAt: { gte: range.from, lte: range.to } }
-      : range.from
-        ? { createdAt: { gte: range.from } }
-        : {};
+  const todayStart = startOfDay();
+  const todayEnd = endOfDay();
+  const yesterdayStart = startOfDay(new Date(Date.now() - 86_400_000));
+  const yesterdayEnd = endOfDay(new Date(Date.now() - 86_400_000));
 
-  const [periodOrders, unpaid, overdue, lowMaterials, funds, entries, cover, recentOrders] = await Promise.all([
-    prisma.order.findMany({
-      where: { ...periodWhere, status: { code: { not: "CANCELLED" } } },
-      include: { payments: true },
-    }),
-    prisma.order.findMany({
-      where: { paymentStatus: { in: ["unpaid", "partial"] }, status: { code: { not: "CANCELLED" } } },
-      include: { customer: true },
-      take: 20,
-    }),
-    prisma.order.findMany({
-      where: {
-        dueAt: { lt: new Date() },
-        status: { code: { notIn: ["COMPLETED", "CANCELLED", "ISSUED"] } },
-      },
-      include: { customer: true, status: true },
-      take: 8,
-    }),
-    prisma.material.findMany({
-      where: { archivedAt: null, isActive: true },
-      include: { storageUnit: true, stockItems: true },
-    }),
-    prisma.financialFund.findMany({ orderBy: { sortOrder: "asc" } }),
-    prisma.ledgerEntry.findMany({ where: { status: "POSTED" }, orderBy: { createdAt: "desc" } }),
-    coverageAndPurchaseNeed(),
-    prisma.order.findMany({
-      include: { customer: true, status: true },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    }),
-  ]);
-  await refreshOwnerAlerts();
+  const activeOrderWhere = {
+    status: { code: { notIn: [ORDER_STATUS.COMPLETED, ORDER_STATUS.CANCELLED, ORDER_STATUS.ISSUED] } },
+  };
 
-  const sold = periodOrders.reduce((s, o) => s.add(String(o.total)), D(0));
-  const received = periodOrders.reduce(
-    (s, o) => s.add(o.payments.reduce((p, pay) => p.add(String(pay.amount)), D(0))),
-    D(0),
-  );
-  const unpaidDue = unpaid.filter((row) => D(String(row.total)).sub(String(row.paidAmount)).gt(0));
-  const critical = lowMaterials.filter((m) => {
-    const onHand = m.stockItems.reduce((s, i) => s.add(i.qtyOnHand), D(0));
-    return onHand.lte(m.minStock);
-  });
-  const fundBalances = funds.map((f) => ({
-    ...f,
-    balance: entries.reduce((s, e) => s.add(fundDelta(e, f.id)), D(0)),
-  }));
-  const attentionCount = countOwnerAttention({
-    overdueCount: overdue.length,
-    unpaidCount: unpaidDue.length,
-    criticalCount: critical.length,
-    purchaseNeedCount: cover.purchaseNeed.length,
-  });
-  const profitFund = fundBalances.find((f) => f.code === FUND.PROFIT);
+  const [ordersInWork, ordersToday, inProduction, fgStock, producedToday, producedYesterday] =
+    await Promise.all([
+      prisma.order.count({ where: activeOrderWhere }),
+      prisma.order.count({
+        where: { ...activeOrderWhere, createdAt: { gte: todayStart, lte: todayEnd } },
+      }),
+      prisma.productionOrder.count({ where: { status: { in: ["OPEN", "IN_PROGRESS"] } } }),
+      findFinishedGoodsWarehouse().then(async (wh) => {
+        if (!wh) return [];
+        return prisma.stockItem.findMany({
+          where: { warehouseId: wh.id, productId: { not: null }, materialId: null },
+        });
+      }),
+      prisma.productionBatch.aggregate({
+        where: { status: "CLOSED", producedAt: { gte: todayStart, lte: todayEnd } },
+        _sum: { actualQty: true },
+      }),
+      prisma.productionBatch.aggregate({
+        where: { status: "CLOSED", producedAt: { gte: yesterdayStart, lte: yesterdayEnd } },
+        _sum: { actualQty: true },
+      }),
+    ]);
 
-  const attn = [
-    overdue.length > 0
-      ? { href: "/orders", count: overdue.length, label: t("home.attnOrdersLabel"), kind: "orders" as const }
-      : null,
-    unpaidDue.length > 0
-      ? { href: "/orders", count: unpaidDue.length, label: t("home.attnPayLabel"), kind: "pay" as const }
-      : null,
-    critical.length > 0
-      ? { href: "/warehouse", count: critical.length, label: t("home.attnStockLabel"), kind: "stock" as const }
-      : null,
-    cover.purchaseNeed.length > 0
-      ? { href: "/purchasing", count: cover.purchaseNeed.length, label: t("home.attnBuyLabel"), kind: "buy" as const }
-      : null,
-  ].filter((row): row is NonNullable<typeof row> => row !== null);
+  const fgTotal = fgStock.reduce((s, row) => s.add(String(row.qtyOnHand)), D(0));
+  const todayQty = D(String(producedToday._sum.actualQty ?? 0));
+  const yesterdayQty = D(String(producedYesterday._sum.actualQty ?? 0));
+  const changePct = pctChange(todayQty, yesterdayQty);
+
+  let producedHint = t("home.kpi.noChangeToday");
+  let producedHintTone: "positive" | "neutral" = "neutral";
+  if (changePct !== null && changePct > 0) {
+    producedHint = t("home.kpi.vsYesterdayUp").replace("{pct}", String(changePct));
+    producedHintTone = "positive";
+  } else if (changePct !== null && changePct < 0) {
+    producedHint = t("home.kpi.vsYesterdayDown").replace("{pct}", String(Math.abs(changePct)));
+  }
 
   return (
-    <div className={styles.home}>
+    <div className={`${styles.home} ${styles.homeMobile}`}>
       <DashGreeting t={t} />
 
       <DashMetricStrip
+        variant="compact"
         tour="home-income"
         metrics={[
           {
-            id: "sales",
+            id: "orders",
             tone: "orange",
             icon: ClipboardList,
-            label: t("home.sold"),
-            value: `${moneyDisplay(sold)} с`,
-            hint: t("home.period"),
+            label: t("home.kpi.ordersInWork"),
+            value: String(ordersInWork),
+            hint: ordersToday > 0 ? t("home.kpi.ordersTodayDelta").replace("{n}", String(ordersToday)) : undefined,
+            hintTone: ordersToday > 0 ? "positive" : "neutral",
           },
           {
-            id: "inflow",
+            id: "production",
             tone: "green",
-            icon: Wallet,
-            label: t("home.inflow"),
-            value: `${moneyDisplay(received)} с`,
-            hint: t("home.heroReceived"),
+            icon: Factory,
+            label: t("home.inProduction"),
+            value: String(inProduction),
+            hint: t("home.kpi.inProcess"),
           },
           {
-            id: "attention",
+            id: "fg",
             tone: "blue",
-            icon: AlertTriangle,
-            label: t("home.attention"),
-            value: String(attentionCount),
+            icon: Box,
+            label: t("home.kpi.finishedGoods"),
+            value: qtyDisplay(fgTotal),
+            hint: t("home.kpi.onStock"),
           },
           {
-            id: "profit",
+            id: "today",
             tone: "purple",
-            icon: TrendingUp,
-            label: n("fund", FUND.PROFIT, "Прибыль"),
-            value: `${moneyDisplay(profitFund?.balance ?? D(0))} с`,
+            icon: Warehouse,
+            label: t("home.kpi.producedToday"),
+            value: `${qtyDisplay(todayQty)} м²`,
+            hint: producedHint,
+            hintTone: producedHintTone,
           },
         ]}
       />
-
-      {attn.length > 0 ? (
-        <DashSection title={t("home.attention")} tour="home-attention">
-          <DashAttentionCounts rows={attn} empty={t("home.noAlerts")} />
-        </DashSection>
-      ) : null}
-
-      <DashSection title={t("home.quickActions")} tour="home-shortcuts" flush>
-        <DashQuickActions actions={ownerDesktopQuickActions(t)} layout="mobile" />
-      </DashSection>
-
-      <DashSection
-        title={t("home.ordersToday")}
-        tour="home-orders"
-        action={<DashRecentOrdersAction href="/orders?period=month">{t("home.allOrders")}</DashRecentOrdersAction>}
-      >
-        <DashRecentOrders orders={recentOrders} empty={t("crm.noOrders")} n={n} locale={loc} layout="list" />
-      </DashSection>
     </div>
   );
 }

@@ -9,6 +9,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "../src/core/infrastructure/prisma";
 import { D, money, qty } from "../src/core/shared/decimal";
 import {
+  discountLimitPercent,
   mergeMaterialNeeds,
   nextOrderNumber,
   ORDER_STATUS,
@@ -138,6 +139,7 @@ async function main() {
     await testExpenseFundsApprovalAudit(ids, owner.id);
     await testRoleAuthorization(ids);
     await testDuplicatePaymentGuard(ids, owner.id);
+    await testGuardrailScenarios(owner.id, raw.id, fg.id, ids.salesId, ids.workerId);
   } finally {
     if (reopenedPeriod && period) {
       await prisma.accountingPeriod.update({
@@ -1400,6 +1402,280 @@ async function testExpenseFundsApprovalAudit(
     impact: immutable ? null : "Anti-theft log can be erased",
     evidence: audit ? [`id=${audit.id} ip=${audit.ip}`, `immutable=${immutable}`] : ["write failed"],
   });
+}
+
+/** Scenarios B–H: negative paths and approval flow (no UI). */
+async function testGuardrailScenarios(
+  ownerId: string,
+  rawId: string,
+  fgId: string,
+  salesId: string,
+  workerId: string,
+) {
+  const kg = await prisma.unit.findUniqueOrThrow({ where: { code: "KG" } });
+  const m2 = await prisma.unit.findUniqueOrThrow({ where: { code: "M2" } });
+  const pcs = await prisma.unit.findUniqueOrThrow({ where: { code: "PCS" } });
+  const draftStatus = await prisma.orderStatus.findUniqueOrThrow({ where: { code: ORDER_STATUS.NEW } });
+  const guardMaterial = await prisma.material.create({
+    data: {
+      name: `${RUN} guard-mat`,
+      category: "test",
+      storageUnitId: kg.id,
+      purchaseUnitId: kg.id,
+      packageWeight: "1",
+      packagePrice: "10",
+      minStock: "0",
+      isActive: true,
+    },
+  });
+  await receiveMaterial({
+    warehouseId: rawId,
+    materialId: guardMaterial.id,
+    quantity: "5",
+    unitCost: "10",
+    userId: ownerId,
+    idempotencyKey: `${RUN}-guard-receipt`,
+  });
+
+  // Scenario B — insufficient raw material
+  const stockBeforeB = await prisma.stockItem.findFirstOrThrow({
+    where: { warehouseId: rawId, materialId: guardMaterial.id },
+  });
+  let rejectedB = false;
+  let errorB = "";
+  try {
+    await reserveMaterial({
+      warehouseId: rawId,
+      materialId: guardMaterial.id,
+      quantity: "100",
+      userId: ownerId,
+      idempotencyKey: `${RUN}-guard-over-reserve`,
+      partial: false,
+    });
+  } catch (e) {
+    rejectedB = true;
+    errorB = e instanceof Error ? e.message : String(e);
+  }
+  const stockAfterB = await prisma.stockItem.findFirstOrThrow({
+    where: { warehouseId: rawId, materialId: guardMaterial.id },
+  });
+  const stockUnchangedB =
+    D(String(stockAfterB.qtyOnHand)).eq(String(stockBeforeB.qtyOnHand)) &&
+    D(String(stockAfterB.qtyReserved)).eq(String(stockBeforeB.qtyReserved));
+  rec({
+    entity: "Guard B: insufficient raw material",
+    status: rejectedB && stockUnchangedB ? "fully_working" : "bug",
+    lastWorkingStep: "reserveMaterial(partial:false) rejects when available < need; stock unchanged",
+    firstBrokenStep: rejectedB && stockUnchangedB ? null : "Over-reserve was not blocked",
+    rootCause: rejectedB ? null : errorB || "no throw",
+    impact: rejectedB && stockUnchangedB ? null : "Stock can be over-reserved",
+    evidence: [`rejected=${rejectedB}`, `onHand=${stockAfterB.qtyOnHand}`, `reserved=${stockAfterB.qtyReserved}`, errorB],
+  });
+
+  // Scenario C — insufficient finished goods for issue
+  const guardProduct = await prisma.product.create({
+    data: {
+      name: `${RUN} guard-product`,
+      category: "test",
+      saleUnitId: m2.id,
+      outputUnitId: pcs.id,
+      outputPerBase: "10",
+      minPrice: "1",
+      isActive: true,
+    },
+  });
+  const guardOrder = await prisma.order.create({
+    data: {
+      number: await nextOrderNumber(),
+      customerId: (await prisma.customer.findFirstOrThrow({ select: { id: true } })).id,
+      sellerId: ownerId,
+      statusId: draftStatus.id,
+      paymentStatus: "unpaid",
+      subtotal: "100",
+      total: "100",
+      paidAmount: "0",
+      discountPercent: "0",
+      discountAmount: "0",
+      createdById: ownerId,
+      items: {
+        create: {
+          productId: guardProduct.id,
+          quantity: "2",
+          unitPrice: "50",
+          amount: "100",
+          outputQty: "20",
+        },
+      },
+    },
+    include: { items: true, status: true },
+  });
+  let rejectedC = false;
+  let errorC = "";
+  try {
+    await prisma.$transaction(async (tx) => {
+      await issueOrderStockAndMarkIssued(tx, {
+        orderId: guardOrder.id,
+        orderNumber: guardOrder.number,
+        items: guardOrder.items,
+        warehouseId: fgId,
+        userId: ownerId,
+      });
+    });
+  } catch (e) {
+    rejectedC = true;
+    errorC = e instanceof Error ? e.message : String(e);
+  }
+  const fgStockC = await prisma.stockItem.findFirst({
+    where: { warehouseId: fgId, productId: guardProduct.id },
+  });
+  const orderAfterC = await prisma.order.findUniqueOrThrow({
+    where: { id: guardOrder.id },
+    include: { status: true },
+  });
+  const fgUnchanged = !fgStockC || D(String(fgStockC.qtyOnHand)).eq(0);
+  const orderNotIssued = orderAfterC.status.code !== ORDER_STATUS.ISSUED;
+  rec({
+    entity: "Guard C: insufficient FG issue",
+    status: rejectedC && fgUnchanged && orderNotIssued ? "fully_working" : "bug",
+    lastWorkingStep: "issueOrderStockAndMarkIssued rejects; FG unchanged; order not ISSUED",
+    firstBrokenStep: rejectedC && fgUnchanged && orderNotIssued ? null : "Issue succeeded without FG",
+    rootCause: rejectedC ? null : errorC || "no throw",
+    impact: rejectedC && fgUnchanged && orderNotIssued ? null : "FG can be issued below zero",
+    evidence: [`rejected=${rejectedC}`, `fgOnHand=${fgStockC?.qtyOnHand ?? "0"}`, `status=${orderAfterC.status.code}`, errorC],
+  });
+
+  // Scenario D — worker cannot close another worker's batch (runtime auth)
+  const otherClose = assertCanCloseBatch({
+    userId: workerId,
+    roleCode: "worker",
+    permissions: ROLE_PERMISSIONS.worker,
+    responsibleUserId: salesId,
+  });
+  const ownClose = assertCanCloseBatch({
+    userId: workerId,
+    roleCode: "worker",
+    permissions: ROLE_PERMISSIONS.worker,
+    responsibleUserId: workerId,
+  });
+  rec({
+    entity: "Guard D: worker batch scope",
+    status: otherClose.ok === false && ownClose.ok === true ? "fully_working" : "bug",
+    lastWorkingStep: "assertCanCloseBatch blocks cross-worker close; allows own batch",
+    firstBrokenStep: otherClose.ok === false && ownClose.ok === true ? null : "Batch auth mismatch",
+    rootCause: null,
+    impact: otherClose.ok === false && ownClose.ok === true ? null : "Workers can close others' batches",
+    evidence: [`otherClose=${otherClose.ok}`, `ownClose=${ownClose.ok}`],
+  });
+
+  // Scenario E — sales discount over limit → approval → executeApprovalDecision
+  const limit = await discountLimitPercent();
+  const overLimit = limit.add(10).toString();
+  const quote = await quoteProduct(guardProduct.id, "2", "50");
+  const subtotal = D(quote.amount);
+  const discountOrder = await prisma.order.create({
+    data: {
+      number: await nextOrderNumber(),
+      customerId: guardOrder.customerId,
+      sellerId: salesId || ownerId,
+      statusId: draftStatus.id,
+      paymentStatus: "unpaid",
+      subtotal: money(subtotal),
+      total: money(subtotal),
+      paidAmount: "0",
+      discountPercent: "0",
+      discountAmount: "0",
+      createdById: salesId || ownerId,
+      items: {
+        create: {
+          productId: guardProduct.id,
+          quantity: quote.quantity,
+          unitPrice: quote.unitPrice,
+          amount: quote.amount,
+          outputQty: quote.outputQty,
+        },
+      },
+    },
+  });
+  const discountApproval = await queueApproval({
+    type: "DISCOUNT",
+    title: `${RUN} sales discount ${overLimit}%`,
+    entityType: "order",
+    entityId: discountOrder.id,
+    payload: { orderId: discountOrder.id, discountPercent: overLimit },
+    requestedById: salesId || ownerId,
+  });
+  const beforeDiscount = await prisma.order.findUniqueOrThrow({ where: { id: discountOrder.id } });
+  const approveDiscount = await executeApprovalDecision({
+    approvalId: discountApproval.id,
+    decision: "APPROVED",
+    decidedById: ownerId,
+  });
+  const afterDiscount = await prisma.order.findUniqueOrThrow({ where: { id: discountOrder.id } });
+  const expectedTotal = subtotal.sub(subtotal.mul(overLimit).div(100));
+  const discountFlowOk =
+    approveDiscount.ok &&
+    D(String(afterDiscount.discountPercent)).eq(overLimit) &&
+    D(String(afterDiscount.total)).eq(expectedTotal) &&
+    D(String(beforeDiscount.discountPercent)).eq(0);
+  rec({
+    entity: "Guard E: discount approval flow",
+    status: discountFlowOk ? "fully_working" : "bug",
+    lastWorkingStep: "queueApproval(DISCOUNT) → executeApprovalDecision (core of decideApproval) → order total updated",
+    firstBrokenStep: discountFlowOk ? null : approveDiscount.error || "Discount not applied after approval",
+    rootCause: approveDiscount.error ?? null,
+    impact: discountFlowOk ? null : "Sales over-limit discount bypasses approval",
+    evidence: [
+      `limit=${limit.toString()}`,
+      `requested=${overLimit}`,
+      `beforeDiscount=${beforeDiscount.discountPercent}`,
+      `afterDiscount=${afterDiscount.discountPercent}`,
+      `totalAfter=${afterDiscount.total}`,
+      `expected=${money(expectedTotal)}`,
+    ],
+  });
+
+  // Scenario H — multi-product proportional FG output
+  const guardProduct2 = await prisma.product.create({
+    data: {
+      name: `${RUN} guard-product-2`,
+      category: "test",
+      saleUnitId: m2.id,
+      outputUnitId: pcs.id,
+      outputPerBase: "10",
+      minPrice: "1",
+      isActive: true,
+    },
+  });
+  const multiItems = [
+    { productId: guardProduct.id, quantity: "4" },
+    { productId: guardProduct2.id, quantity: "6" },
+  ];
+  const multiFg = resolveBatchFinishedGoods(multiItems, "10", "10");
+  const multiOk =
+    multiFg.length === 2 &&
+    multiFg.some((l) => l.productId === guardProduct.id && D(l.quantity).eq(4)) &&
+    multiFg.some((l) => l.productId === guardProduct2.id && D(l.quantity).eq(6));
+  rec({
+    entity: "Guard H: multi-product FG split",
+    status: multiOk ? "fully_working" : "bug",
+    lastWorkingStep: "resolveBatchFinishedGoods splits batch output 4+6 m² by sale-qty share",
+    firstBrokenStep: multiOk ? null : "Proportional FG split incorrect",
+    rootCause: null,
+    impact: multiOk ? null : "Mixed orders receive wrong FG quantities",
+    evidence: multiFg.map((l) => `${l.productId}=${l.quantity}`),
+  });
+
+  // Guard cleanup (isolated entities only)
+  await prisma.approvalRequest.deleteMany({ where: { id: discountApproval.id } });
+  await prisma.orderItem.deleteMany({ where: { orderId: { in: [guardOrder.id, discountOrder.id] } } });
+  await prisma.order.deleteMany({ where: { id: { in: [guardOrder.id, discountOrder.id] } } });
+  await prisma.stockMovement.deleteMany({
+    where: { stockItem: { materialId: guardMaterial.id } },
+  });
+  await prisma.stockItem.deleteMany({ where: { materialId: guardMaterial.id } });
+  await prisma.material.deleteMany({ where: { id: guardMaterial.id } });
+  await prisma.stockItem.deleteMany({ where: { productId: { in: [guardProduct.id, guardProduct2.id] } } });
+  await prisma.product.deleteMany({ where: { id: { in: [guardProduct.id, guardProduct2.id] } } });
 }
 
 async function cleanup(ids: Record<string, string> & { expenseIds: string[] }) {
