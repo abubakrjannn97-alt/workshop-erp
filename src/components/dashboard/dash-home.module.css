@@ -214,99 +214,39 @@
 .kpiCardCompact {
   position: relative;
   display: flex;
-  min-height: 132px;
+  min-height: 128px;
   flex-direction: column;
   gap: 6px;
   padding: 14px 14px 12px;
   overflow: hidden;
   border-radius: 16px;
   border: 1px solid transparent;
-  background: var(--surface);
-  box-shadow: 0 2px 12px rgba(28, 35, 43, 0.04);
-  transition: transform 0.16s ease, box-shadow 0.16s ease;
-}
-
-.kpiCardCompact::before {
-  content: "";
-  position: absolute;
-  top: -24px;
-  right: -24px;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 0;
+  box-shadow: 0 2px 10px rgba(28, 35, 43, 0.05);
+  transition: transform 0.16s ease;
 }
 
 .kpiOrange .kpiCardCompact {
-  background: linear-gradient(152deg, #fffbf5 0%, #fff3e4 100%);
-  border-color: rgba(194, 120, 3, 0.14);
-  box-shadow: 0 4px 18px rgba(194, 120, 3, 0.1);
-}
-
-.kpiOrange .kpiCardCompact::before {
-  background: radial-gradient(circle, rgba(251, 191, 120, 0.42) 0%, transparent 68%);
+  background: #fff4e6;
+  border-color: rgba(194, 120, 3, 0.16);
 }
 
 .kpiGreen .kpiCardCompact {
-  background: linear-gradient(152deg, #f6fdf9 0%, #e9f8f1 100%);
-  border-color: rgba(15, 118, 110, 0.14);
-  box-shadow: 0 4px 18px rgba(15, 118, 110, 0.09);
-}
-
-.kpiGreen .kpiCardCompact::before {
-  background: radial-gradient(circle, rgba(134, 239, 172, 0.38) 0%, transparent 68%);
+  background: #e8f8f2;
+  border-color: rgba(15, 118, 110, 0.16);
 }
 
 .kpiBlue .kpiCardCompact {
-  background: linear-gradient(152deg, #f8faff 0%, #eef4ff 100%);
-  border-color: rgba(37, 99, 235, 0.14);
-  box-shadow: 0 4px 18px rgba(37, 99, 235, 0.09);
-}
-
-.kpiBlue .kpiCardCompact::before {
-  background: radial-gradient(circle, rgba(147, 197, 253, 0.4) 0%, transparent 68%);
+  background: #eef4ff;
+  border-color: rgba(37, 99, 235, 0.16);
 }
 
 .kpiPurple .kpiCardCompact {
-  background: linear-gradient(152deg, #faf8ff 0%, #f3efff 100%);
-  border-color: rgba(124, 58, 237, 0.14);
-  box-shadow: 0 4px 18px rgba(124, 58, 237, 0.09);
-}
-
-.kpiPurple .kpiCardCompact::before {
-  background: radial-gradient(circle, rgba(196, 181, 253, 0.4) 0%, transparent 68%);
+  background: #f3efff;
+  border-color: rgba(124, 58, 237, 0.16);
 }
 
 .kpiCardCompact:active {
   transform: scale(0.985);
-}
-
-.kpiMountain {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 0;
-  width: 100%;
-  height: 46px;
-  pointer-events: none;
-}
-
-.kpiOrange .kpiMountain {
-  color: #e8a84a;
-}
-
-.kpiGreen .kpiMountain {
-  color: #34d399;
-}
-
-.kpiBlue .kpiMountain {
-  color: #60a5fa;
-}
-
-.kpiPurple .kpiMountain {
-  color: #a78bfa;
 }
 
 .kpiHeadCompact {
@@ -329,27 +269,23 @@
 }
 
 .kpiOrange .kpiIconCompact {
-  background: linear-gradient(145deg, #fff4df 0%, #fde8c4 100%);
+  background: rgba(255, 255, 255, 0.72);
   color: #b45309;
-  box-shadow: 0 3px 10px rgba(194, 120, 3, 0.16);
 }
 
 .kpiGreen .kpiIconCompact {
-  background: linear-gradient(145deg, #e6faf1 0%, #ccf5e0 100%);
+  background: rgba(255, 255, 255, 0.72);
   color: #0d9488;
-  box-shadow: 0 3px 10px rgba(15, 118, 110, 0.14);
 }
 
 .kpiBlue .kpiIconCompact {
-  background: linear-gradient(145deg, #eef5ff 0%, #dce9ff 100%);
+  background: rgba(255, 255, 255, 0.72);
   color: #1d4ed8;
-  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.14);
 }
 
 .kpiPurple .kpiIconCompact {
-  background: linear-gradient(145deg, #f5f0ff 0%, #ebe2ff 100%);
+  background: rgba(255, 255, 255, 0.72);
   color: #6d28d9;
-  box-shadow: 0 3px 10px rgba(124, 58, 237, 0.14);
 }
 
 .kpiLabelCompact {
@@ -383,8 +319,24 @@
   margin: auto 0 0;
   font-size: 11px;
   line-height: 16px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--ink-3);
+}
+
+.kpiOrange .kpiHintCompact:not(.kpiHintPositive):not(.kpiHintNegative) {
+  color: #c27803;
+}
+
+.kpiGreen .kpiHintCompact:not(.kpiHintPositive):not(.kpiHintNegative) {
+  color: #0f766e;
+}
+
+.kpiBlue .kpiHintCompact:not(.kpiHintPositive):not(.kpiHintNegative) {
+  color: #2563eb;
+}
+
+.kpiPurple .kpiHintCompact:not(.kpiHintPositive):not(.kpiHintNegative) {
+  color: #7c3aed;
 }
 
 .kpiHintCompact.kpiHintPositive,

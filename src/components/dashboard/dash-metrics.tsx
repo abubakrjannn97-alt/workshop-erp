@@ -1,6 +1,5 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { KpiMountain } from "@/components/dashboard/kpi-mountain";
 import styles from "./dash-home.module.css";
 
 export type DashMetricTone = "orange" | "green" | "blue" | "purple";
@@ -49,7 +48,6 @@ export function DashMetricStrip({
             {!compact ? <span className={styles.kpiScenery} aria-hidden /> : null}
             {compact ? (
               <>
-                <KpiMountain />
                 <div className={styles.kpiHeadCompact}>
                   <span className={styles.kpiIconCompact} aria-hidden>
                     <Icon size={18} strokeWidth={1.75} />
