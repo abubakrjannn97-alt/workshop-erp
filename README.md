@@ -37,6 +37,23 @@ PostgreSQL: `127.0.0.1:5433`. Скопируйте `.env.example` → `.env`.
 
 Для теста без логина: `AUTH_BYPASS=1` в `.env` (только локально, всегда owner).
 
+## Production (Vercel)
+
+**Ссылка:** https://workshop-erp-zeta.vercel.app/login
+
+> Не используйте `workshop-erp.vercel.app` — это чужой шаблон, не наш проект.
+
+Вход:
+
+- Email: `owner@workshop.local`
+- Пароль: `ChangeMeNow!`
+
+Повторный seed production БД:
+
+```powershell
+npx dotenv-cli -e .env.vercel -- node scripts/prod-db-setup.mjs
+```
+
 ## Тесты
 
 ```powershell
