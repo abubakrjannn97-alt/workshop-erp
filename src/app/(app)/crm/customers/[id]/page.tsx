@@ -11,7 +11,7 @@ import { formatPhone } from "@core/shared/format";
 import { FormField } from "@/components/form-field";
 import { PendingButton } from "@/components/pending-button";
 import { StatusBadge, orderTone, payTone } from "@/components/status-badge";
-import { ChevronRight, Plus } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import { EmptyState } from "@/components/empty-state";
 import { ClipboardList } from "lucide-react";
@@ -34,11 +34,8 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
   }
 
   const canManage = hasPermission(session.user.permissions, session.user.roleCode, "crm.manage");
-  const canCreateOrder = hasPermission(session.user.permissions, session.user.roleCode, "orders.create");
   const turnover = customer.orders.reduce((s, o) => s.add(String(o.total)), D(0));
   const debt = customer.orders.reduce((s, o) => s.add(D(String(o.total)).sub(String(o.paidAmount))), D(0));
-  const avg = customer.orders.length ? turnover.div(customer.orders.length) : D(0);
-  const last = customer.orders[0];
   const loc = locale;
 
   async function save(formData: FormData) {
@@ -68,19 +65,6 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
           <Link href={`/crm/history?customerId=${customer.id}`} className={styles.ghostLink}>
             {t("crm.purchaseHistory")}
           </Link>
-          {canCreateOrder ? (
-            <Link href={`/orders/new?customerId=${customer.id}`} className={styles.primaryBtn}>
-              <span className={styles.primaryBtnIcon} aria-hidden>
-                <Plus size={16} strokeWidth={ICON_STROKE} />
-              </span>
-              {t("sales.newOrder")}
-            </Link>
-          ) : null}
-          {canCreateOrder ? (
-            <Link href={`/orders/new?customerId=${customer.id}`} className={styles.iconBtn} aria-label={t("sales.newOrder")}>
-              <Plus size={20} strokeWidth={ICON_STROKE} />
-            </Link>
-          ) : null}
         </div>
       </header>
 
@@ -89,18 +73,14 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
         <div className={styles.kpiBox}>
           <p className={styles.kpiLabel}>{t("crm.purchases")}</p>
           <p className={styles.kpiValue}>{moneyDisplay(turnover)} с</p>
+          {customer.orders.length > 0 ? (
+            <p className={styles.kpiHint}>{t("crm.ordersCount", { n: String(customer.orders.length) })}</p>
+          ) : null}
         </div>
         <div className={styles.kpiBox}>
           <p className={styles.kpiLabel}>{t("common.debt")}</p>
           <p className={debt.gt(0) ? styles.kpiValueDanger : styles.kpiValue}>{moneyDisplay(debt)} с</p>
-        </div>
-        <div className={styles.kpiBox}>
-          <p className={styles.kpiLabel}>{t("crm.avgCheck")}</p>
-          <p className={styles.kpiValue}>{moneyDisplay(avg)} с</p>
-        </div>
-        <div className={styles.kpiBox}>
-          <p className={styles.kpiLabel}>{t("crm.lastPurchase")}</p>
-          <p className={styles.kpiValue}>{last ? last.createdAt.toLocaleDateString(loc) : "—"}</p>
+          {debt.gt(0) ? <p className={styles.kpiHintWarn}>{t("orders.attention")}</p> : null}
         </div>
       </div>
 
@@ -111,27 +91,23 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
             <h2 className={styles.sectionTitle}>{t("crm.editCustomer")}</h2>
           </div>
           <div className={styles.sectionBody}>
-            <form action={save} className="grid max-w-xl gap-3 sm:grid-cols-2">
+            <form action={save} className={styles.customerForm}>
               <input type="hidden" name="id" value={customer.id} />
-              <FormField label={t("crm.fioCompany")} className="sm:col-span-2">
+              <FormField label={t("crm.fioCompany")} className={styles.fieldFull}>
                 <input name="name" defaultValue={customer.name} className="ui-input" required />
               </FormField>
-              <FormField label={t("common.phone")}>
-                <input name="phone" defaultValue={customer.phone ?? ""} className="ui-input" />
-              </FormField>
-              <FormField label={t("common.whatsapp")}>
-                <input name="whatsapp" defaultValue={customer.whatsapp ?? ""} className="ui-input" />
-              </FormField>
-              <FormField label={t("common.address")} className="sm:col-span-2">
-                <input name="address" defaultValue={customer.address ?? ""} className="ui-input" />
-              </FormField>
-              <FormField label={t("common.source")}>
+              <div className={styles.contactRow}>
+                <FormField label={t("common.phone")}>
+                  <input name="phone" defaultValue={customer.phone ?? ""} className="ui-input" />
+                </FormField>
+                <FormField label={t("common.whatsapp")}>
+                  <input name="whatsapp" defaultValue={customer.whatsapp ?? ""} className="ui-input" />
+                </FormField>
+              </div>
+              <FormField label={t("common.source")} className={styles.fieldFull}>
                 <input name="source" defaultValue={customer.source ?? ""} className="ui-input" />
               </FormField>
-              <FormField label={t("common.comment")} className="sm:col-span-2">
-                <textarea name="comment" defaultValue={customer.comment ?? ""} className="ui-input min-h-[5rem]" />
-              </FormField>
-              <PendingButton className="ui-btn-primary min-h-[44px] sm:col-span-2" pendingLabel={t("common.sending")}>
+              <PendingButton className="ui-btn-primary min-h-[44px] w-full" pendingLabel={t("common.sending")}>
                 {t("common.save")}
               </PendingButton>
             </form>

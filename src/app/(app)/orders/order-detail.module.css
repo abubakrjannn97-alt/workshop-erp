@@ -1,17 +1,17 @@
 .metricGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .metricCard {
   display: flex;
-  min-height: 118px;
+  min-height: 96px;
   flex-direction: column;
-  gap: 6px;
-  padding: 14px;
+  gap: 4px;
+  padding: 12px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--surface);
   box-shadow: var(--shadow-soft);
 }
@@ -73,8 +73,27 @@
 
 .metricHint {
   margin: auto 0 0;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 16px;
+  color: var(--ink-3);
+}
+
+.metricHintSuccess {
+  composes: metricHint;
+  font-weight: 600;
+  color: #249565;
+}
+
+.metricHintWarn {
+  composes: metricHint;
+  font-weight: 600;
+  color: #c2410c;
+}
+
+.orderDate {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
   color: var(--ink-3);
 }
 
@@ -85,8 +104,8 @@
 .statusPanel {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 14px;
+  gap: 8px;
+  padding: 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
   background: var(--surface);
@@ -111,8 +130,8 @@
 .sectionPanel {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px;
+  gap: 8px;
+  padding: 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
   background: var(--surface);
@@ -230,16 +249,16 @@
 
 @media (min-width: 1024px) {
   .metricGrid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 12px;
+    max-width: 560px;
+    gap: 10px;
   }
 
   .metricCard {
-    min-height: 132px;
+    min-height: 104px;
   }
 
   .metricValue {
-    font-size: 26px;
-    line-height: 30px;
+    font-size: 24px;
+    line-height: 28px;
   }
 }

@@ -3,7 +3,7 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
   min-width: 0;
   max-width: 1280px;
 }
@@ -129,7 +129,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 16px 18px 12px;
+  padding: 12px 14px 8px;
 }
 
 .sectionTitle {
@@ -141,7 +141,7 @@
 }
 
 .sectionBody {
-  padding: 0 18px 18px;
+  padding: 0 14px 14px;
 }
 
 /* ─── Customer Table ─── */
@@ -394,12 +394,12 @@
 
 .detailKpi {
   display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .kpiBox {
-  padding: 14px 16px;
+  padding: 12px 14px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface);
@@ -409,15 +409,45 @@
   font-size: 12px;
   font-weight: 500;
   color: var(--ink-3);
-  margin: 0 0 4px;
+  margin: 0 0 2px;
 }
 
 .kpiValue {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
   margin: 0;
+}
+
+.kpiHint {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ink-3);
+}
+
+.kpiHintWarn {
+  composes: kpiHint;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.customerForm {
+  display: flex;
+  max-width: 28rem;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fieldFull {
+  width: 100%;
+}
+
+.contactRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .kpiValueDanger {
@@ -429,7 +459,7 @@
 
 @media (max-width: 1023px) {
   .page {
-    gap: 16px;
+    gap: 12px;
     max-width: none;
   }
 
@@ -477,9 +507,9 @@
 }
 
 @media (max-width: 639px) {
-  .detailKpi {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+  .contactRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 }
 

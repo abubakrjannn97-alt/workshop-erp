@@ -18,6 +18,12 @@ const ICONS = {
   blue: TrendingUp,
 } as const;
 
+const HINT_TONE_CLASS = {
+  muted: styles.metricHint,
+  success: styles.metricHintSuccess,
+  warn: styles.metricHintWarn,
+} as const;
+
 export function OrderDetailMetrics({
   items,
 }: {
@@ -26,6 +32,7 @@ export function OrderDetailMetrics({
     label: string;
     value: string;
     hint?: string;
+    hintTone?: keyof typeof HINT_TONE_CLASS;
     tone: MetricTone;
     icon: keyof typeof ICONS;
   }[];
@@ -34,6 +41,7 @@ export function OrderDetailMetrics({
     <div className={styles.metricGrid}>
       {items.map((item) => {
         const Icon = ICONS[item.icon];
+        const hintClass = HINT_TONE_CLASS[item.hintTone ?? "muted"];
         return (
           <article key={item.id} className={`${styles.metricCard} ${TONE_CLASS[item.tone]}`}>
             <div className={styles.metricHead}>
@@ -43,7 +51,7 @@ export function OrderDetailMetrics({
               <p className={styles.metricLabel}>{item.label}</p>
             </div>
             <p className={styles.metricValue}>{item.value}</p>
-            {item.hint ? <p className={styles.metricHint}>{item.hint}</p> : null}
+            {item.hint ? <p className={hintClass}>{item.hint}</p> : null}
           </article>
         );
       })}

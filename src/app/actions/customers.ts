@@ -77,9 +77,9 @@ export async function updateCustomer(formData: FormData) {
       name: parsed.data.name,
       phone: parsed.data.phone || null,
       whatsapp: parsed.data.whatsapp || null,
-      address: parsed.data.address || null,
+      address: formData.has("address") ? parsed.data.address || null : existing.address,
       source: parsed.data.source || null,
-      comment: parsed.data.comment || null,
+      comment: formData.has("comment") ? parsed.data.comment || null : existing.comment,
       managerId: parsed.data.managerId || existing.managerId,
     },
   });

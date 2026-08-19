@@ -10,7 +10,6 @@ import { available } from "@core/inventory/stock";
 import { findRawWarehouse } from "@/core/config/resolve-warehouse";
 import { STATUS_FLOW } from "@core/orders/orders";
 import { PageHeader } from "@/components/page-header";
-import { StatusBadge, orderTone, payTone } from "@/components/status-badge";
 import { OrderDetailMetrics } from "../order-detail-metrics";
 import { OrderPaymentPanel } from "../order-payment-panel";
 import detailStyles from "../order-detail.module.css";
@@ -87,33 +86,38 @@ export default async function OrderPage({
     .filter((row) => row.short.gt(0));
 
   const debt = D(String(order.total)).sub(String(order.paidAmount));
+  const paid = D(String(order.paidAmount));
   const margin =
     canSeeCost && order.materialCost ? D(String(order.total)).sub(String(order.materialCost)) : null;
   const loc = intlLocale(locale);
   const paymentBlocked = Boolean(payError?.includes("закрыт") || payError?.includes("пӯшида"));
   const hasDiscount = D(String(order.discountPercent)).gt(0);
+  const orderDate = order.confirmedAt ?? order.createdAt;
+  const orderDateLabel = order.confirmedAt ? t("orders.orderConfirmed") : t("orders.orderReceived");
+  const shortDate = orderDate.toLocaleDateString(loc, { day: "2-digit", month: "2-digit" });
+
+  const paymentHint =
+    debt.lte(0) && paid.gt(0)
+      ? t("orders.fullyPaid")
+      : debt.gt(0) && paid.gt(0)
+        ? `${t("common.paid")}: ${moneyDisplay(order.paidAmount)} с · ${t("common.debt")}: ${moneyDisplay(debt)} с`
+        : debt.gt(0)
+          ? `${t("common.debt")}: ${moneyDisplay(debt)} с`
+          : t("pay.unpaid");
+
+  const paymentHintTone = debt.lte(0) && paid.gt(0) ? ("success" as const) : debt.gt(0) ? ("warn" as const) : ("muted" as const);
+  const sumTone = debt.gt(0) ? ("warn" as const) : paid.gt(0) && debt.lte(0) ? ("green" as const) : ("gold" as const);
+  const sumIcon = debt.gt(0) ? ("warn" as const) : ("gold" as const);
+
   const metricItems = [
     {
       id: "total",
       label: t("common.amount"),
       value: `${moneyDisplay(order.total)} с`,
-      tone: "gold" as const,
-      icon: "gold" as const,
-    },
-    {
-      id: "paid",
-      label: t("common.paid"),
-      value: `${moneyDisplay(order.paidAmount)} с`,
-      tone: "green" as const,
-      icon: "green" as const,
-    },
-    {
-      id: "debt",
-      label: t("common.debt"),
-      value: `${moneyDisplay(debt)} с`,
-      hint: debt.gt(0) ? t("orders.attention") : undefined,
-      tone: "warn" as const,
-      icon: "warn" as const,
+      hint: paymentHint,
+      hintTone: paymentHintTone,
+      tone: sumTone,
+      icon: sumIcon,
     },
   ];
   if (canSeeCost) {
@@ -163,7 +167,7 @@ export default async function OrderPage({
   }
 
   return (
-    <div className="page-stack">
+    <div className="page-stack" style={{ gap: "12px" }}>
       <PageHeader
         title={`${t("common.order")} № ${order.number}`}
         description={order.customer.name}
@@ -176,13 +180,9 @@ export default async function OrderPage({
         }
       />
 
-      <div className="flex flex-wrap items-center gap-2">
-        <StatusBadge label={n("ostatus", order.status.code, order.status.name)} tone={orderTone(order.status.code)} />
-        <StatusBadge label={t(`pay.${order.paymentStatus}`)} tone={payTone(order.paymentStatus)} />
-        <span className="text-xs text-[var(--color-text-muted)]">
-          {order.createdAt.toLocaleDateString(loc)}
-        </span>
-      </div>
+      <p className={detailStyles.orderDate}>
+        {orderDateLabel} · {shortDate}
+      </p>
 
       <div className={detailStyles.metaRow}>
         <span>
