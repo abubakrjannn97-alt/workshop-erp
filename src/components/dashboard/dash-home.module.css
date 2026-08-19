@@ -244,47 +244,47 @@
 }
 
 .kpiOrange .kpiCardCompact {
-  background: linear-gradient(180deg, #ffffff 0%, #fff7eb 52%, #ffefd6 100%);
-  border-color: rgba(255, 255, 255, 0.98);
+  background: linear-gradient(180deg, #fff8ee 0%, #ffeccc 100%);
+  border-color: rgba(255, 252, 247, 0.98);
   box-shadow:
     0 1px 2px rgba(28, 35, 43, 0.05),
-    0 6px 16px rgba(28, 35, 43, 0.07),
-    0 14px 34px rgba(28, 35, 43, 0.09),
-    0 0 0 1px rgba(234, 179, 98, 0.34),
-    0 0 22px rgba(251, 146, 60, 0.13);
+    0 6px 16px rgba(28, 35, 43, 0.08),
+    0 14px 34px rgba(28, 35, 43, 0.1),
+    0 0 0 1px rgba(234, 179, 98, 0.38),
+    0 0 22px rgba(251, 146, 60, 0.14);
 }
 
 .kpiGreen .kpiCardCompact {
-  background: linear-gradient(180deg, #ffffff 0%, #eefbf4 52%, #dff7ec 100%);
-  border-color: rgba(255, 255, 255, 0.98);
+  background: linear-gradient(180deg, #f0fdf6 0%, #d4f5e4 100%);
+  border-color: rgba(247, 254, 250, 0.98);
   box-shadow:
     0 1px 2px rgba(28, 35, 43, 0.05),
-    0 6px 16px rgba(28, 35, 43, 0.07),
-    0 14px 34px rgba(28, 35, 43, 0.09),
-    0 0 0 1px rgba(45, 212, 191, 0.32),
-    0 0 22px rgba(45, 212, 191, 0.12);
+    0 6px 16px rgba(28, 35, 43, 0.08),
+    0 14px 34px rgba(28, 35, 43, 0.1),
+    0 0 0 1px rgba(45, 212, 191, 0.36),
+    0 0 22px rgba(45, 212, 191, 0.13);
 }
 
 .kpiBlue .kpiCardCompact {
-  background: linear-gradient(180deg, #ffffff 0%, #f0f5ff 52%, #e3edff 100%);
-  border-color: rgba(255, 255, 255, 0.98);
+  background: linear-gradient(180deg, #f2f7ff 0%, #dce8ff 100%);
+  border-color: rgba(247, 250, 255, 0.98);
   box-shadow:
     0 1px 2px rgba(28, 35, 43, 0.05),
-    0 6px 16px rgba(28, 35, 43, 0.07),
-    0 14px 34px rgba(28, 35, 43, 0.09),
-    0 0 0 1px rgba(96, 165, 250, 0.34),
-    0 0 22px rgba(96, 165, 250, 0.12);
+    0 6px 16px rgba(28, 35, 43, 0.08),
+    0 14px 34px rgba(28, 35, 43, 0.1),
+    0 0 0 1px rgba(96, 165, 250, 0.38),
+    0 0 22px rgba(96, 165, 250, 0.13);
 }
 
 .kpiPurple .kpiCardCompact {
-  background: linear-gradient(180deg, #ffffff 0%, #f5f0ff 52%, #ece4ff 100%);
-  border-color: rgba(255, 255, 255, 0.98);
+  background: linear-gradient(180deg, #f7f2ff 0%, #e6dcff 100%);
+  border-color: rgba(250, 247, 255, 0.98);
   box-shadow:
     0 1px 2px rgba(28, 35, 43, 0.05),
-    0 6px 16px rgba(28, 35, 43, 0.07),
-    0 14px 34px rgba(28, 35, 43, 0.09),
-    0 0 0 1px rgba(167, 139, 250, 0.34),
-    0 0 22px rgba(167, 139, 250, 0.12);
+    0 6px 16px rgba(28, 35, 43, 0.08),
+    0 14px 34px rgba(28, 35, 43, 0.1),
+    0 0 0 1px rgba(167, 139, 250, 0.38),
+    0 0 22px rgba(167, 139, 250, 0.13);
 }
 
 .kpiCardCompact:active {
