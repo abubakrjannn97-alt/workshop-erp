@@ -54,7 +54,7 @@ export default async function NewOrderPage({
 
   return (
     <div className="page-stack">
-      <PageHeader title={t("sales.newOrder")} />
+      <PageHeader title={t("sales.newOrder")} backHref="/orders" backLabel={t("common.back")} />
       {customers.length === 0 ? (
         <p className="text-sm text-[var(--text-muted)]">{t("orders.needCustomer")}</p>
       ) : products.length === 0 ? (

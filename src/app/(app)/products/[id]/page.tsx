@@ -9,6 +9,7 @@ import { moneyDisplay } from "@core/shared/decimal";
 import { RecipeEditor } from "./recipe-editor";
 import { NeedPreview } from "./need-preview";
 import { FormField } from "@/components/form-field";
+import { HeaderBackButton } from "@/components/header-back-button";
 import Link from "next/link";
 import styles from "@/styles/premium.module.css";
 
@@ -41,9 +42,12 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <div className={styles.headerText}>
+        <div className={styles.headerLead}>
+          <HeaderBackButton locale={locale} />
+          <div className={styles.headerText}>
           <p style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--accent)" }}>{t("common.product")}</p>
           <h1 className={styles.title}>{product.name}</h1>
+        </div>
         </div>
         <div className={styles.headerActions}>
           <Link href="/products" className={styles.ghostLink}>{t("page.products")}</Link>

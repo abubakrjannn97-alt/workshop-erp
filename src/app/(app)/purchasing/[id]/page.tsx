@@ -1,4 +1,5 @@
 import { getTranslator } from "@core/shared/i18n/locale";
+import { HeaderBackButton } from "@/components/header-back-button";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@core/infrastructure/prisma";
@@ -19,7 +20,7 @@ function poTone(status: string): BadgeTone {
 }
 
 export default async function PurchaseOrderPage({ params }: { params: Promise<{ id: string }> }) {
-  const { t } = await getTranslator();
+  const { t, locale } = await getTranslator();
   const { id } = await params;
   const session = await requirePermission("purchasing.view");
   const canManage = session.user.roleCode === "owner" || session.user.permissions.includes("purchasing.manage");
@@ -31,9 +32,12 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <div className={styles.headerText}>
+        <div className={styles.headerLead}>
+          <HeaderBackButton locale={locale} />
+          <div className={styles.headerText}>
           <h1 className={styles.title}>{order.number}</h1>
           <p className={styles.subtitle}>{order.supplier.name}</p>
+        </div>
         </div>
         <div className={styles.headerActions}>
           <StatusBadge label={poStatus(t, order.status)} tone={poTone(order.status)} />

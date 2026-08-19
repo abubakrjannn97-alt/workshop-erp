@@ -1,3 +1,4 @@
+import { HeaderBackButton } from "@/components/header-back-button";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@core/infrastructure/prisma";
@@ -82,9 +83,12 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <div className={styles.headerText}>
+        <div className={styles.headerLead}>
+          <HeaderBackButton locale={locale} />
+          <div className={styles.headerText}>
           <h1 className={styles.title}>{user.name}</h1>
           <p className={styles.subtitle}>{metaLine}</p>
+        </div>
         </div>
         <div className={styles.headerActions}>
           <Link href="/employees" className={styles.ghostLink}>{t("emp.allEmployees")}</Link>

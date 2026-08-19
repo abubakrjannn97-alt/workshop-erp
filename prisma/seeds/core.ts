@@ -17,6 +17,14 @@ const ROLE_DEFS = [
   { code: "accountant", name: "Accountant", description: "Финансы" },
 ];
 
+export function resolveSeedOwnerPassword() {
+  const password = process.env.OWNER_PASSWORD ?? DEMO_PASSWORD;
+  if (process.env.NODE_ENV === "production" && (!process.env.OWNER_PASSWORD || password === DEMO_PASSWORD)) {
+    throw new Error("OWNER_PASSWORD must be explicitly set in production and must not use the demo default.");
+  }
+  return password;
+}
+
 /** Universal CORE seed — no facade catalog, products, recipes, or demo history. */
 export async function seedCore(prisma: PrismaClient) {
   for (const [code, meta] of Object.entries(PERMISSIONS)) {
@@ -160,7 +168,7 @@ export async function seedCore(prisma: PrismaClient) {
 
   const ownerRole = await prisma.role.findUniqueOrThrow({ where: { code: "owner" } });
   const email = process.env.OWNER_EMAIL ?? "owner@workshop.local";
-  const password = process.env.OWNER_PASSWORD ?? DEMO_PASSWORD;
+  const password = resolveSeedOwnerPassword();
   const passwordHash = await bcrypt.hash(password, 12);
 
   await prisma.user.upsert({

@@ -12,6 +12,7 @@ import { FormField } from "@/components/form-field";
 import { StatusBadge, jobTone } from "@/components/status-badge";
 import { Plus } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
+import { HeaderBackButton } from "@/components/header-back-button";
 import styles from "../production.module.css";
 
 function jobStatus(t: (k: string) => string, s: string) {
@@ -62,7 +63,9 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <div className={styles.headerText}>
+        <div className={styles.headerLead}>
+          <HeaderBackButton locale={locale} />
+          <div className={styles.headerText}>
           <h1 className={styles.title}>{t("common.order")} #{job.order.number}</h1>
           <p className={styles.subtitle}>
             {[
@@ -71,6 +74,7 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
               job.dueAt ? `${t("prod.due")} ${job.dueAt.toLocaleDateString(intlLocale(locale))}` : null,
             ].filter(Boolean).join(" · ")}
           </p>
+        </div>
         </div>
         <div className={styles.headerActions}>
           <Link href={`/production/${job.id}/print`} className={styles.ghostLink}>{t("prod.printJob")}</Link>

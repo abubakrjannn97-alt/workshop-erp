@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "postinstall": "prisma generate",
-    "build": "prisma generate && prisma migrate deploy && next build",
+    "build": "prisma migrate deploy && next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "db:up": "powershell -File scripts/start-postgres.ps1",
@@ -20,7 +20,7 @@
     "db:backup": "powershell -File scripts/backup-postgres.ps1",
     "db:restore": "powershell -File scripts/restore-postgres.ps1",
     "domain:scaffold": "tsx scripts/scaffold-domain.ts",
-    "test": "tsx --test tests/costing.test.ts tests/tz-rules.test.ts tests/nav.test.ts tests/env-guard.test.ts tests/login-guard.test.ts tests/domain-config.test.ts tests/domain-registry.test.ts tests/seed-orchestrator.test.ts tests/production-order.test.ts tests/i18n-domain.test.ts tests/scaffold-domain.test.ts tests/finished-goods.test.ts tests/batch-auth.test.ts tests/role-matrix.test.ts",
+    "test": "tsx --test tests/costing.test.ts tests/tz-rules.test.ts tests/nav.test.ts tests/back-nav.test.ts tests/env-guard.test.ts tests/login-guard.test.ts tests/domain-config.test.ts tests/domain-registry.test.ts tests/seed-orchestrator.test.ts tests/production-order.test.ts tests/i18n-domain.test.ts tests/scaffold-domain.test.ts tests/finished-goods.test.ts tests/batch-auth.test.ts tests/role-matrix.test.ts",
     "e2e": "tsx scripts/e2e-full-chain.ts",
     "test:integration": "tsx --test tests/integration/*.integration.test.ts",
     "smoke:tz76": "tsx scripts/smoke-tz76.ts",

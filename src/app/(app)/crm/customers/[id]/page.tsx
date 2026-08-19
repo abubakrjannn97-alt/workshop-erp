@@ -1,4 +1,5 @@
 import { getTranslator } from "@core/shared/i18n/locale";
+import { HeaderBackButton } from "@/components/header-back-button";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@core/infrastructure/prisma";
@@ -54,11 +55,14 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
     <div className={styles.page}>
       {/* ─── Header ─── */}
       <header className={styles.header}>
-        <div className={styles.headerText}>
+        <div className={styles.headerLead}>
+          <HeaderBackButton locale={locale} href="/crm" />
+          <div className={styles.headerText}>
           <h1 className={styles.title}>{customer.name}</h1>
           {customer.phone ? (
             <p className={styles.subtitle}>{t("common.tel")} {formatPhone(customer.phone)}</p>
           ) : null}
+        </div>
         </div>
         <div className={styles.headerActions}>
           <Link href={`/crm/history?customerId=${customer.id}`} className={styles.ghostLink}>

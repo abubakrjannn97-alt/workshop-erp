@@ -8,6 +8,7 @@ import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { unitCost } from "@core/costing/costing";
 import { PendingButton } from "@/components/pending-button";
 import { FormField } from "@/components/form-field";
+import { HeaderBackButton } from "@/components/header-back-button";
 import Link from "next/link";
 import styles from "@/styles/premium.module.css";
 
@@ -28,9 +29,12 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <div className={styles.headerText}>
+        <div className={styles.headerLead}>
+          <HeaderBackButton locale={locale} />
+          <div className={styles.headerText}>
           <h1 className={styles.title}>{material.name}</h1>
           <p className={styles.subtitle}>{cost ? `${t("materials.calcCost")}: ${moneyDisplay(cost)} с / ${material.storageUnit.symbol}` : t("materials.notSet")}</p>
+        </div>
         </div>
         <div className={styles.headerActions}>
           <Link href="/materials" className={styles.ghostLink}>{t("materials.title")}</Link>

@@ -1,13 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { ChevronLeft, Menu, X } from "lucide-react";
 import { NotificationBell } from "@/components/notification-bell";
 import { MobileHeaderMenu } from "@/components/mobile-header-menu";
 import { WorkshopMark } from "@/components/workshop-mark";
 import { ICON_STROKE } from "@/components/nav-icons";
+import { resolveBackHref } from "@core/shared/back-nav";
 import type { Locale } from "@core/shared/i18n/i18n";
+import { createT } from "@core/shared/i18n/i18n";
 import styles from "./app-shell-mobile-header.module.css";
 
 export function AppShellMobileHeader({
@@ -27,6 +30,8 @@ export function AppShellMobileHeader({
 }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const backHref = resolveBackHref(pathname);
+  const t = createT(locale);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -35,20 +40,31 @@ export function AppShellMobileHeader({
   return (
     <>
       <header className={styles.bar}>
-        <button
-          type="button"
-          className={styles.menuBtn}
-          aria-label="Menu"
-          aria-expanded={menuOpen}
-          aria-controls="mobile-header-menu"
-          onClick={() => setMenuOpen((open) => !open)}
-        >
-          {menuOpen ? (
-            <X size={20} strokeWidth={ICON_STROKE} aria-hidden />
-          ) : (
-            <Menu size={20} strokeWidth={ICON_STROKE} aria-hidden />
-          )}
-        </button>
+        {backHref ? (
+          <Link
+            href={backHref}
+            className={styles.menuBtn}
+            aria-label={t("common.back")}
+            scroll={false}
+          >
+            <ChevronLeft size={22} strokeWidth={ICON_STROKE} aria-hidden />
+          </Link>
+        ) : (
+          <button
+            type="button"
+            className={styles.menuBtn}
+            aria-label="Menu"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-header-menu"
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            {menuOpen ? (
+              <X size={20} strokeWidth={ICON_STROKE} aria-hidden />
+            ) : (
+              <Menu size={20} strokeWidth={ICON_STROKE} aria-hidden />
+            )}
+          </button>
+        )}
         <div className={styles.brand} aria-hidden>
           <WorkshopMark size={24} className={styles.brandLogo} />
           <div className={styles.brandText}>

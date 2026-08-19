@@ -85,6 +85,8 @@ export default async function CrmHistoryPage({
       <PageHeader
         title={t("crm.purchaseHistory")}
         description={t("crm.purchaseHistoryHint")}
+        backHref="/crm"
+        backLabel={t("common.back")}
         actions={
           <Link href="/orders" className="ui-btn-secondary">
             {t("page.orders")}

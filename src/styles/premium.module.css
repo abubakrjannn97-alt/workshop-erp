@@ -2,6 +2,7 @@
 
 .page { display: flex; flex-direction: column; gap: 20px; min-width: 0; max-width: 1280px; }
 .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.headerLead { display: flex; min-width: 0; flex: 1; align-items: flex-start; gap: 8px; }
 .headerText { min-width: 0; flex: 1; }
 .title { margin: 0; font-size: 26px; font-weight: 700; line-height: 32px; letter-spacing: -0.03em; color: var(--ink); }
 .subtitle { margin: 6px 0 0; font-size: 14px; line-height: 22px; color: var(--ink-2); }

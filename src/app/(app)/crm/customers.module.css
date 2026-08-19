@@ -15,6 +15,14 @@
   gap: 16px;
 }
 
+.headerLead {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: flex-start;
+  gap: 8px;
+}
+
 .headerText {
   min-width: 0;
   flex: 1;

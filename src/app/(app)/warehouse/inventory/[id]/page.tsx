@@ -8,6 +8,7 @@ import { D } from "@core/shared/decimal";
 import { FormField } from "@/components/form-field";
 import { PendingButton } from "@/components/pending-button";
 import { StatusBadge, type BadgeTone } from "@/components/status-badge";
+import { HeaderBackButton } from "@/components/header-back-button";
 import styles from "../../warehouse.module.css";
 
 function countTone(status: string): BadgeTone {
@@ -16,7 +17,7 @@ function countTone(status: string): BadgeTone {
 }
 
 export default async function InventoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { t, n } = await getTranslator();
+  const { t, n, locale } = await getTranslator();
   const { id } = await params;
   await requirePermission("inventory.count");
   const session = await requirePermission("inventory.view");
@@ -33,8 +34,11 @@ export default async function InventoryDetailPage({ params }: { params: Promise<
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <div className={styles.headerText}>
+        <div className={styles.headerLead}>
+          <HeaderBackButton locale={locale} />
+          <div className={styles.headerText}>
           <h1 className={styles.title}>{t("wh.countTitle")} · {n("wh", count.warehouse.code, count.warehouse.name)}</h1>
+        </div>
         </div>
         <div className={styles.headerActions}>
           <StatusBadge label={count.status === "DRAFT" ? t("wh.Draft") : t("wh.Posted")} tone={countTone(count.status)} />

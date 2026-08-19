@@ -146,6 +146,8 @@ export default async function OrderPage({
       <PageHeader
         title={`${t("common.order")} № ${order.number}`}
         description={order.customer.name}
+        backHref="/orders"
+        backLabel={t("common.back")}
         actions={
           <div className="flex flex-wrap gap-2">
             <Link href={`/crm/customers/${order.customer.id}`} className="ui-btn-secondary">
