@@ -64,37 +64,51 @@
   min-height: 152px;
   flex-direction: column;
   justify-content: space-between;
-  padding: 18px 18px 14px;
+  padding: 18px 18px 16px;
   overflow: hidden;
   border-radius: var(--radius-card);
   border: 1px solid var(--line);
-  background: var(--surface);
-  box-shadow: var(--shadow-soft);
+  background: #ffffff;
+  box-shadow: 0 2px 10px rgba(28, 35, 43, 0.04);
 }
 
-.kpiCard::before {
-  content: "";
-  position: absolute;
-  left: -15%;
-  right: -15%;
-  bottom: -28px;
-  height: 72px;
-  border-radius: 50%;
-  filter: blur(18px);
-  opacity: 0.45;
-  pointer-events: none;
-}
-
-.kpiCard::after {
-  content: "";
+/* Decorative hills — bottom only, card stays white */
+.kpiScenery {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 44px;
-  opacity: 0.5;
+  height: 58px;
   pointer-events: none;
-  clip-path: ellipse(85% 100% at 50% 100%);
+  z-index: 0;
+}
+
+.kpiOrange .kpiScenery {
+  background:
+    radial-gradient(ellipse 90% 70% at 15% 110%, rgba(251, 146, 60, 0.22) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 55% 115%, rgba(253, 186, 116, 0.16) 0%, transparent 50%),
+    radial-gradient(ellipse 55% 50% at 88% 112%, rgba(251, 146, 60, 0.12) 0%, transparent 45%);
+}
+
+.kpiGreen .kpiScenery {
+  background:
+    radial-gradient(ellipse 90% 70% at 20% 110%, rgba(16, 185, 129, 0.2) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 60% 115%, rgba(52, 211, 153, 0.14) 0%, transparent 50%),
+    radial-gradient(ellipse 55% 50% at 90% 112%, rgba(16, 185, 129, 0.1) 0%, transparent 45%);
+}
+
+.kpiBlue .kpiScenery {
+  background:
+    radial-gradient(ellipse 90% 70% at 18% 110%, rgba(59, 130, 246, 0.2) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 58% 115%, rgba(96, 165, 250, 0.14) 0%, transparent 50%),
+    radial-gradient(ellipse 55% 50% at 88% 112%, rgba(59, 130, 246, 0.1) 0%, transparent 45%);
+}
+
+.kpiPurple .kpiScenery {
+  background:
+    radial-gradient(ellipse 90% 70% at 15% 110%, rgba(139, 92, 246, 0.2) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 55% 115%, rgba(167, 139, 250, 0.14) 0%, transparent 50%),
+    radial-gradient(ellipse 55% 50% at 88% 112%, rgba(139, 92, 246, 0.1) 0%, transparent 45%);
 }
 
 .kpiTop {
@@ -147,55 +161,23 @@
   color: var(--ok);
 }
 
-.kpiOrange::before {
-  background: var(--kpi-orange);
-}
-
-.kpiOrange::after {
-  background: linear-gradient(180deg, transparent, rgba(255, 237, 213, 0.95));
-}
-
 .kpiOrange .kpiIcon {
-  background: #fff1e6;
+  background: #fff4eb;
   color: #ea580c;
 }
 
-.kpiGreen::before {
-  background: var(--kpi-green);
-}
-
-.kpiGreen::after {
-  background: linear-gradient(180deg, transparent, rgba(209, 250, 229, 0.95));
-}
-
 .kpiGreen .kpiIcon {
-  background: #e7faf1;
+  background: #ecfdf5;
   color: #059669;
 }
 
-.kpiBlue::before {
-  background: var(--kpi-blue);
-}
-
-.kpiBlue::after {
-  background: linear-gradient(180deg, transparent, rgba(219, 234, 254, 0.95));
-}
-
 .kpiBlue .kpiIcon {
-  background: #ebf3ff;
+  background: #eff6ff;
   color: #2563eb;
 }
 
-.kpiPurple::before {
-  background: var(--kpi-purple);
-}
-
-.kpiPurple::after {
-  background: linear-gradient(180deg, transparent, rgba(237, 233, 254, 0.95));
-}
-
 .kpiPurple .kpiIcon {
-  background: #f3efff;
+  background: #f5f3ff;
   color: #7c3aed;
 }
 
@@ -303,10 +285,10 @@
   padding: 14px 8px;
   border-radius: 14px;
   border: 1px solid var(--line);
-  background: var(--surface);
+  background: #ffffff;
   color: var(--ink);
   text-decoration: none;
-  box-shadow: var(--shadow-soft);
+  box-shadow: 0 2px 8px rgba(28, 35, 43, 0.04);
   transition: transform 0.15s, box-shadow 0.15s;
 }
 
@@ -325,7 +307,6 @@
   height: 46px;
   place-items: center;
   border-radius: 14px;
-  color: var(--surface);
 }
 
 .actionLabel {
@@ -337,24 +318,28 @@
 }
 
 .actionOrange .actionIcon {
-  background: linear-gradient(145deg, #fb923c, #ea580c);
+  background: #fff4eb;
+  color: #ea580c;
 }
 
 .actionGreen .actionIcon {
-  background: linear-gradient(145deg, #34d399, #059669);
+  background: #ecfdf5;
+  color: #059669;
 }
 
 .actionBlue .actionIcon {
-  background: linear-gradient(145deg, #60a5fa, #2563eb);
+  background: #eff6ff;
+  color: #2563eb;
 }
 
 .actionPurple .actionIcon {
-  background: linear-gradient(145deg, #a78bfa, #7c3aed);
+  background: #f5f3ff;
+  color: #7c3aed;
 }
 
 .actionGold .actionIcon {
-  background: var(--accent-gradient);
-  color: var(--surface);
+  background: #faf6ee;
+  color: #b8954a;
 }
 
 .actionDots {

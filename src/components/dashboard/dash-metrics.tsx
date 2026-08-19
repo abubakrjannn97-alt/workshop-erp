@@ -34,6 +34,7 @@ export function DashMetricStrip({
         const Icon = metric.icon;
         return (
           <article key={metric.id} className={`${styles.kpiCard} ${TONE_CLASS[metric.tone]}`}>
+            <span className={styles.kpiScenery} aria-hidden />
             <div className={styles.kpiTop}>
               <div>
                 <p className={styles.kpiLabel}>{metric.label}</p>
