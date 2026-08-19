@@ -12,7 +12,7 @@
  *   BACKUP_OFFSITE_CMD — optional command to copy backup off-site
  */
 import { execSync } from "node:child_process";
-import { mkdirSync, statSync, readdirSync, unlinkSync, appendFileSync } from "node:fs";
+import { mkdirSync, statSync, readdirSync, unlinkSync, appendFileSync, existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 function env(key: string, fallback?: string): string {
@@ -41,6 +41,11 @@ const conn = parseConnectionUrl(dbUrl);
 const backupDir = resolve(env("BACKUP_DIR", join(process.cwd(), ".data", "backups")));
 const retentionDays = parseInt(env("BACKUP_RETENTION_DAYS", "14"), 10);
 const offsiteCmd = process.env.BACKUP_OFFSITE_CMD?.trim() || null;
+const pgDumpBin =
+  process.env.BACKUP_PG_DUMP_PATH?.trim() ||
+  (existsSync("C:\\Program Files\\PostgreSQL\\16\\bin\\pg_dump.exe")
+    ? "\"C:\\Program Files\\PostgreSQL\\16\\bin\\pg_dump.exe\""
+    : "pg_dump");
 
 mkdirSync(backupDir, { recursive: true });
 
@@ -56,7 +61,7 @@ let fileSize = 0;
 try {
   const pgEnv = { ...process.env, PGPASSWORD: conn.password };
   execSync(
-    `pg_dump -h ${conn.host} -p ${conn.port} -U ${conn.user} -Fc -f "${filepath}" ${conn.database}`,
+    `${pgDumpBin} -h ${conn.host} -p ${conn.port} -U ${conn.user} -Fc -f "${filepath}" ${conn.database}`,
     { env: pgEnv, stdio: "pipe" },
   );
 

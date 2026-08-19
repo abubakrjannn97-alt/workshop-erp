@@ -11,10 +11,13 @@ Required env variables:
 - `BACKUP_OFFSITE_CMD` — off-site copy command (optional), supports:
   - `{FILE}` full path
   - `{FILENAME}` dump filename
+- `BACKUP_PG_DUMP_PATH` — optional explicit `pg_dump` path
 
 Optional restore verification env:
 
 - `RESTORE_DATABASE_URL` — non-production clone DB for restore checks
+- `RESTORE_PSQL_PATH` — optional explicit `psql` path
+- `RESTORE_PG_RESTORE_PATH` — optional explicit `pg_restore` path
 
 ## 2) Daily backup
 

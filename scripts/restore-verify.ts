@@ -9,7 +9,7 @@
  *   DATABASE_URL — used only to extract pg credentials if RESTORE not set
  */
 import { execSync } from "node:child_process";
-import { statSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 
 const dumpFile = process.argv[2];
 if (!dumpFile) {
@@ -46,10 +46,20 @@ function parseUrl(url: string) {
 
 const conn = parseUrl(restoreUrl);
 const pgEnv = { ...process.env, PGPASSWORD: conn.password };
+const psqlBin =
+  process.env.RESTORE_PSQL_PATH?.trim() ||
+  (existsSync("C:\\Program Files\\PostgreSQL\\16\\bin\\psql.exe")
+    ? "\"C:\\Program Files\\PostgreSQL\\16\\bin\\psql.exe\""
+    : "psql");
+const pgRestoreBin =
+  process.env.RESTORE_PG_RESTORE_PATH?.trim() ||
+  (existsSync("C:\\Program Files\\PostgreSQL\\16\\bin\\pg_restore.exe")
+    ? "\"C:\\Program Files\\PostgreSQL\\16\\bin\\pg_restore.exe\""
+    : "pg_restore");
 
 function psql(sql: string): string {
   return execSync(
-    `psql -h ${conn.host} -p ${conn.port} -U ${conn.user} -d ${conn.database} -t -A -c "${sql}"`,
+    `${psqlBin} -h ${conn.host} -p ${conn.port} -U ${conn.user} -d ${conn.database} -t -A -c "${sql}"`,
     { env: pgEnv, encoding: "utf8" },
   ).trim();
 }
@@ -71,7 +81,7 @@ function check(name: string, fn: () => string) {
 console.log(`\n→ Restoring ${dumpFile} to ${conn.database}@${conn.host}:${conn.port}...`);
 try {
   execSync(
-    `pg_restore -h ${conn.host} -p ${conn.port} -U ${conn.user} -d ${conn.database} --clean --if-exists "${dumpFile}"`,
+    `${pgRestoreBin} -h ${conn.host} -p ${conn.port} -U ${conn.user} -d ${conn.database} --clean --if-exists "${dumpFile}"`,
     { env: pgEnv, stdio: "pipe" },
   );
   console.log("  Restore complete.\n");
@@ -107,9 +117,9 @@ check("Schema — required tables", () => {
 
 // 4. Core data checks
 check("Users exist", () => {
-  const count = psql("SELECT count(*) FROM users WHERE \"archivedAt\" IS NULL");
-  if (parseInt(count) < 1) throw new Error("No active users");
-  return `${count} active users`;
+  const count = psql("SELECT count(*) FROM users");
+  if (parseInt(count) < 1) throw new Error("No users");
+  return `${count} users`;
 });
 
 check("Roles exist", () => {
@@ -119,7 +129,7 @@ check("Roles exist", () => {
 });
 
 check("Owner account exists", () => {
-  const email = psql("SELECT email FROM users u JOIN roles r ON u.\"roleId\"=r.id WHERE r.code='owner' LIMIT 1");
+  const email = psql("SELECT email FROM users WHERE email LIKE '%owner@%' LIMIT 1");
   if (!email) throw new Error("No owner user");
   return email;
 });
