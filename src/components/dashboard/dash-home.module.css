@@ -51,19 +51,6 @@
   gap: 20px;
   max-width: none;
   position: relative;
-  --mobile-glass: rgba(255, 255, 255, 0.68);
-  --mobile-glass-border: rgba(255, 255, 255, 0.92);
-  --mobile-glass-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
-}
-
-.homeMobile::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background: url("/stone-hero.png") no-repeat top right / 100% auto;
-  opacity: 0.32;
-  pointer-events: none;
 }
 
 .homeMobile .greeting {
@@ -252,8 +239,8 @@
   border: 1px solid var(--mobile-glass-border);
   background: var(--mobile-glass);
   box-shadow: var(--mobile-glass-shadow);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
   transition: transform 0.16s ease;
 }
 
@@ -371,8 +358,8 @@
   border-radius: 18px;
   background: var(--mobile-glass);
   box-shadow: var(--mobile-glass-shadow);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
 }
 
 .panelMobile .panelHead {
@@ -501,8 +488,8 @@
   border: 1px solid var(--mobile-glass-border);
   background: var(--mobile-glass);
   box-shadow: var(--mobile-glass-shadow);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
   scroll-snap-align: unset;
 }
 
@@ -726,13 +713,16 @@
   padding: 14px 12px;
   min-height: 70px;
   border-radius: 12px;
+  border: 1px solid var(--mobile-glass-border);
   color: var(--ink);
   text-decoration: none;
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
 }
 
 .orderCard:active {
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.42);
 }
 
 .orderCardTop {

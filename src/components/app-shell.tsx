@@ -32,7 +32,7 @@ export function AppShell({
   children,
 }: Props) {
   return (
-    <div className="flex h-[100dvh] overflow-hidden bg-[var(--color-background)] text-[var(--color-text-primary)]">
+    <div className="mobile-stone-shell flex h-[100dvh] overflow-hidden text-[var(--color-text-primary)] lg:bg-[var(--color-background)]">
       <Sidebar
         companyName={companyName}
         userName={userName}
@@ -41,7 +41,7 @@ export function AppShell({
         roleCode={roleCode}
         locale={locale}
       />
-      <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden bg-[var(--color-background)]">
+      <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden lg:bg-[var(--color-background)]">
         <div className="sticky top-0 z-40 shrink-0 print:hidden lg:hidden">
           <AppShellMobileHeader unread={unread} locale={locale} />
         </div>

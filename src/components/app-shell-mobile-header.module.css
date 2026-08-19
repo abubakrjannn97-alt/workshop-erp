@@ -6,10 +6,10 @@
   padding-top: env(safe-area-inset-top);
   padding-left: 12px;
   padding-right: 12px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(236, 235, 231, 0.7);
+  background: var(--mobile-glass);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+  border-bottom: 1px solid var(--mobile-glass-border);
 }
 
 .menuBtn {

@@ -205,6 +205,12 @@
   --text-dark-muted: var(--ink-3);
   --bg-page: var(--surface);
   --bg-card-border: var(--line);
+
+  /* Mobile glass surfaces (Phase 7) */
+  --mobile-glass: rgba(255, 255, 255, 0.38);
+  --mobile-glass-border: #E8E7E3;
+  --mobile-glass-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+  --mobile-glass-blur: 8px;
 }
 
 html {
@@ -220,6 +226,30 @@ body {
   font-size: var(--font-size-body);
   line-height: var(--line-height-body);
   font-weight: 400;
+}
+
+@media (max-width: 1023px) {
+  .mobile-stone-shell {
+    background: transparent !important;
+  }
+
+  .mobile-stone-shell::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: url("/stone-hero.png") no-repeat top right / 100% auto;
+    opacity: 0.34;
+    pointer-events: none;
+  }
+
+  .mobile-stone-shell > .relative {
+    background: transparent !important;
+  }
+
+  .app-shell-main {
+    background: transparent !important;
+  }
 }
 
 a:focus-visible,

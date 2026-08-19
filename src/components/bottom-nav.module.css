@@ -13,10 +13,10 @@
   align-items: stretch;
   justify-content: space-around;
   height: 76px;
-  border-top: 1px solid rgba(232, 231, 227, 0.7);
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--mobile-glass-border);
+  background: var(--mobile-glass);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
 }
 
 .tab {
@@ -54,7 +54,8 @@
   width: 44px;
   height: 32px;
   border-radius: 10px;
-  background: #F4EDE0;
+  border: 1px solid var(--mobile-glass-border);
+  background: rgba(244, 237, 224, 0.72);
   color: #9A7338;
 }
 
