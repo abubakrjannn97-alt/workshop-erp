@@ -9,6 +9,13 @@ import {
   buildOrdersQuery,
   resolveOrderDateRange,
 } from "@core/shared/order-period";
+import {
+  ORDER_LIST_BUCKETS,
+  completedOrdersStatusWhere,
+  newOrdersStatusWhere,
+  orderListStatusWhere,
+  resolveOrderListBucket,
+} from "@core/shared/orders-list-filter";
 import { Segmented } from "@/components/segmented";
 import { OrdersMobileHeaderTools } from "./orders-mobile-header-tools";
 import { OrdersPeriodPicker } from "./orders-period-picker";
@@ -21,14 +28,6 @@ import {
   type OrderListItem,
 } from "./orders-ui";
 import styles from "./orders.module.css";
-
-const STATUS_BUCKETS = [
-  { code: undefined, labelKey: "orders.bucketAll" },
-  { code: "CONFIRMED", labelKey: "orders.bucketInWork" },
-  { code: "IN_PRODUCTION", labelKey: "orders.bucketProduction" },
-  { code: "IN_FG", labelKey: "orders.bucketReady" },
-  { code: "COMPLETED", labelKey: "orders.bucketDone" },
-] as const;
 
 export default async function OrdersPage({
   searchParams,
@@ -47,6 +46,7 @@ export default async function OrdersPage({
   const params = await searchParams;
   const { q, status, from: fromRaw, to: toRaw, page: pageRaw } = params;
   const period = params.period ?? "month";
+  const activeBucket = resolveOrderListBucket(status);
   const canCreate = hasPermission(session.user.permissions, session.user.roleCode, "orders.create");
   const ownOnly = session.user.roleCode === "sales_manager";
   const page = Math.max(1, Number(pageRaw) || 1);
@@ -76,10 +76,10 @@ export default async function OrdersPage({
 
   const where = {
     ...periodWhere,
-    ...(status ? { status: { code: status } } : {}),
+    ...orderListStatusWhere(status),
   };
 
-  const [orders, total, statuses, aggregate, inProduction] = await Promise.all([
+  const [orders, total, statuses, newStats, completedStats] = await Promise.all([
     prisma.order.findMany({
       where,
       include: {
@@ -95,27 +95,22 @@ export default async function OrdersPage({
     prisma.order.count({ where }),
     prisma.orderStatus.findMany({ orderBy: { sortOrder: "asc" } }),
     prisma.order.aggregate({
-      where: periodWhere,
+      where: { ...periodWhere, ...newOrdersStatusWhere() },
       _count: true,
-      _sum: { total: true, paidAmount: true },
+      _sum: { total: true },
     }),
-    prisma.order.count({
-      where: {
-        ...periodWhere,
-        status: { code: "IN_PRODUCTION" },
-      },
+    prisma.order.aggregate({
+      where: { ...periodWhere, ...completedOrdersStatusWhere() },
+      _count: true,
+      _sum: { total: true },
     }),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / ORDERS_PAGE_SIZE));
-  const revenue = D(String(aggregate._sum.total ?? 0));
-  const paid = D(String(aggregate._sum.paidAmount ?? 0));
-  const debtRaw = revenue.sub(paid);
-  const debt = debtRaw.lt(0) ? D(0) : debtRaw;
 
   const baseQuery = {
     q: q?.trim() || undefined,
-    status: status || undefined,
+    status: activeBucket,
     period: resolvedPeriod === "custom" ? "custom" : resolvedPeriod,
     from: fromRaw || undefined,
     to: toRaw || undefined,
@@ -149,16 +144,14 @@ export default async function OrdersPage({
 
       <OrdersSummaryStrip
         summary={{
-          count: aggregate._count,
-          revenue: moneyDisplay(revenue),
-          debt: moneyDisplay(debt),
-          inProduction,
+          newCount: newStats._count,
+          newRevenue: moneyDisplay(D(String(newStats._sum.total ?? 0))),
+          completedCount: completedStats._count,
+          completedRevenue: moneyDisplay(D(String(completedStats._sum.total ?? 0))),
         }}
         labels={{
-          count: t("orders.kpiCount"),
-          revenue: t("orders.kpiRevenue"),
-          debt: t("orders.kpiDebt"),
-          production: t("orders.kpiProduction"),
+          new: t("orders.kpiNew"),
+          completed: t("orders.kpiCompleted"),
         }}
       />
 
@@ -167,10 +160,10 @@ export default async function OrdersPage({
           <Segmented
             scroll
             aria-label={t("common.status")}
-            items={STATUS_BUCKETS.map((bucket) => ({
+            items={ORDER_LIST_BUCKETS.map((bucket) => ({
               href: buildOrdersQuery({ ...baseQuery, status: bucket.code, page: undefined }),
               label: t(bucket.labelKey),
-              active: (bucket.code ?? "") === (status ?? ""),
+              active: bucket.code === activeBucket,
             }))}
           />
         </div>
@@ -179,7 +172,7 @@ export default async function OrdersPage({
             current={resolvedPeriod}
             fromRaw={fromRaw}
             toRaw={toRaw}
-            status={status}
+            status={activeBucket}
             q={q?.trim()}
             presetLabels={{
               month: t("orders.periodMonth"),

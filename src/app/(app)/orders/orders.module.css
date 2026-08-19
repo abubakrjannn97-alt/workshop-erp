@@ -238,6 +238,14 @@
   color: var(--ink);
 }
 
+.summaryHint {
+  margin: auto 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+
 .periodMobile {
   display: none;
 }

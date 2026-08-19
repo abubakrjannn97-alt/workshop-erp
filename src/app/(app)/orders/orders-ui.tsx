@@ -1,14 +1,12 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import {
-  Banknote,
+  CheckCircle2,
   ChevronRight,
   ClipboardList,
-  Factory,
   Plus,
   Search,
-  ShoppingBag,
-  Wallet,
+  Sparkles,
 } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import { EmptyState } from "@/components/empty-state";
@@ -27,10 +25,10 @@ export type OrderListItem = {
 };
 
 export type OrdersSummary = {
-  count: number;
-  revenue: string;
-  debt: string;
-  inProduction: number;
+  newCount: number;
+  newRevenue: string;
+  completedCount: number;
+  completedRevenue: string;
 };
 
 export function productSummary(order: OrderListItem, moreLabel: (n: number) => string): string {
@@ -98,27 +96,31 @@ export function OrdersSummaryStrip({
 }: {
   summary: OrdersSummary;
   labels: {
-    count: string;
-    revenue: string;
-    debt: string;
-    production: string;
+    new: string;
+    completed: string;
   };
 }) {
   const cards = [
-    { id: "count", label: labels.count, value: String(summary.count), icon: ShoppingBag, tone: styles.summaryOrange },
-    { id: "revenue", label: labels.revenue, value: `${summary.revenue} с`, icon: Banknote, tone: styles.summaryGreen },
-    { id: "debt", label: labels.debt, value: `${summary.debt} с`, icon: Wallet, tone: styles.summaryGold },
     {
-      id: "production",
-      label: labels.production,
-      value: String(summary.inProduction),
-      icon: Factory,
-      tone: styles.summaryBlue,
+      id: "new",
+      label: labels.new,
+      value: String(summary.newCount),
+      hint: `${summary.newRevenue} с`,
+      icon: Sparkles,
+      tone: styles.summaryOrange,
+    },
+    {
+      id: "completed",
+      label: labels.completed,
+      value: String(summary.completedCount),
+      hint: `${summary.completedRevenue} с`,
+      icon: CheckCircle2,
+      tone: styles.summaryGreen,
     },
   ];
 
   return (
-    <section className={styles.summaryGrid} aria-label={labels.count}>
+    <section className={styles.summaryGrid} aria-label={labels.new}>
       {cards.map((card) => {
         const Icon = card.icon;
         return (
@@ -128,6 +130,7 @@ export function OrdersSummaryStrip({
             </span>
             <p className={styles.summaryLabel}>{card.label}</p>
             <p className={styles.summaryValue}>{card.value}</p>
+            <p className={styles.summaryHint}>{card.hint}</p>
           </article>
         );
       })}
