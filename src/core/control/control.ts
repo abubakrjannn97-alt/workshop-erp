@@ -7,6 +7,22 @@ export function canSelfApprove(roleCode: string | undefined) {
   return roleCode === "owner" || roleCode === "director";
 }
 
+export class PeriodClosedError extends Error {
+  readonly month: number;
+  readonly year: number;
+
+  constructor(month: number, year: number) {
+    super(`Период ${month}.${year} закрыт.`);
+    this.name = "PeriodClosedError";
+    this.month = month;
+    this.year = year;
+  }
+}
+
+export function isPeriodClosedError(error: unknown): error is PeriodClosedError {
+  return error instanceof PeriodClosedError;
+}
+
 export async function assertPeriodOpen(at = new Date(), tx?: Prisma.TransactionClient) {
   const db: Db = tx ?? prisma;
   const year = at.getFullYear();
@@ -15,7 +31,7 @@ export async function assertPeriodOpen(at = new Date(), tx?: Prisma.TransactionC
     where: { year_month: { year, month } },
   });
   if (period?.status === "CLOSED") {
-    throw new Error(`Период ${month}.${year} закрыт.`);
+    throw new PeriodClosedError(month, year);
   }
 }
 

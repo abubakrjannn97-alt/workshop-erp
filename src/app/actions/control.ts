@@ -121,7 +121,31 @@ export async function closePeriod(formData: FormData) {
     entityType: "accounting_period",
     newValue: { year, month },
   });
-  revalidatePath("/settings");
+  revalidatePath("/settings/approvals");
+  revalidatePath("/orders");
+  revalidatePath("/finance");
+  return { ok: true };
+}
+
+export async function openPeriod(formData: FormData) {
+  const session = await requirePermission("approvals.decide");
+  const year = Number(formData.get("year"));
+  const month = Number(formData.get("month"));
+  if (!year || !month) return { error: "Укажите период." };
+  await prisma.accountingPeriod.upsert({
+    where: { year_month: { year, month } },
+    update: { status: "OPEN", closedById: null, closedAt: null },
+    create: { year, month, status: "OPEN" },
+  });
+  await writeAudit({
+    userId: session.user.id,
+    action: "period.open",
+    entityType: "accounting_period",
+    newValue: { year, month },
+  });
+  revalidatePath("/settings/approvals");
+  revalidatePath("/orders");
+  revalidatePath("/finance");
   return { ok: true };
 }
 

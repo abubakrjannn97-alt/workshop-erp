@@ -1,7 +1,7 @@
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
-import { decideApproval, closePeriod } from "@/app/actions/control";
+import { decideApproval, closePeriod, openPeriod } from "@/app/actions/control";
 import { SettingsNav } from "@/components/settings-nav";
 import { FormField } from "@/components/form-field";
 import { StatusBadge } from "@/components/status-badge";
@@ -27,6 +27,7 @@ export default async function ApprovalsPage() {
 
   async function decide(formData: FormData) { "use server"; await decideApproval(formData); }
   async function close(formData: FormData) { "use server"; await closePeriod(formData); }
+  async function open(formData: FormData) { "use server"; await openPeriod(formData); }
 
   return (
     <div className={styles.page}>
@@ -71,7 +72,22 @@ export default async function ApprovalsPage() {
               <button type="submit" className="ui-btn-primary min-h-[44px]">{t("set.closeMonth")}</button>
             </form>
             <ul style={{ marginTop: 12, fontSize: 12, color: "var(--ink-3)", listStyle: "none", padding: 0 }}>
-              {periods.map((p) => <li key={p.id}>{p.month}.{p.year}: {p.status}</li>)}
+              {periods.map((p) => (
+                <li key={p.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
+                  <span>
+                    {p.month}.{p.year}: {p.status === "CLOSED" ? t("set.periodClosed") : t("set.periodOpen")}
+                  </span>
+                  {p.status === "CLOSED" ? (
+                    <form action={open}>
+                      <input type="hidden" name="year" value={p.year} />
+                      <input type="hidden" name="month" value={p.month} />
+                      <button type="submit" className="ui-btn-secondary min-h-[36px] text-xs">
+                        {t("set.openMonth")}
+                      </button>
+                    </form>
+                  ) : null}
+                </li>
+              ))}
             </ul>
           </div>
         </section>

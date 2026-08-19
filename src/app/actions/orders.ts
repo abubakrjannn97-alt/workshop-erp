@@ -9,6 +9,7 @@ import { requirePermission } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money, qty } from "@core/shared/decimal";
 import { available, releaseMaterial, reserveMaterial } from "@core/inventory/stock";
+import { isPeriodClosedError } from "@core/control/control";
 import { postClientPayment } from "@core/finance/finance";
 import {
   accrueSellerCommission,
@@ -401,7 +402,8 @@ export async function addPayment(formData: FormData) {
   const productionSchemeCode = await resolveProductionPaySchemeCode();
   let paymentId: string | null = null;
   let created = false;
-  await prisma.$transaction(async (tx) => {
+  try {
+    await prisma.$transaction(async (tx) => {
     const dup = await tx.payment.findUnique({ where: { idempotencyKey: key } });
     if (dup) {
       paymentId = dup.id;
@@ -472,7 +474,13 @@ export async function addPayment(formData: FormData) {
       commissionAmount,
       userId: session.user.id,
     });
-  });
+    });
+  } catch (error) {
+    if (isPeriodClosedError(error)) {
+      return { error: error.message, periodClosed: true, month: error.month, year: error.year };
+    }
+    throw error;
+  }
 
   if (!created) {
     return { ok: true, id: paymentId ?? undefined };
@@ -516,8 +524,9 @@ export async function reversePayment(formData: FormData) {
   }
 
   const productionSchemeCode = await resolveProductionPaySchemeCode();
-  await prisma.$transaction(async (tx) => {
-    const reversal = await tx.payment.create({
+  try {
+    await prisma.$transaction(async (tx) => {
+      const reversal = await tx.payment.create({
       data: {
         orderId: payment.orderId,
         amount: money(D(String(payment.amount)).neg()),
@@ -555,7 +564,13 @@ export async function reversePayment(formData: FormData) {
       userId: session.user.id,
       reverseOf: payment.id,
     });
-  });
+    });
+  } catch (error) {
+    if (isPeriodClosedError(error)) {
+      return { error: error.message, periodClosed: true, month: error.month, year: error.year };
+    }
+    throw error;
+  }
 
   await writeAudit({
     userId: session.user.id,

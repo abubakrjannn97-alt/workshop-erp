@@ -72,10 +72,11 @@ export function OrdersPeriodPicker({
           type="button"
           className={`${styles.calendarToggle} ${current === "custom" || calendarOpen ? styles.calendarToggleActive : ""}`.trim()}
           aria-expanded={calendarOpen}
+          aria-label={calendarLabel}
+          title={calendarLabel}
           onClick={() => setCalendarOpen((v) => !v)}
         >
-          <Calendar size={16} strokeWidth={ICON_STROKE} aria-hidden />
-          {calendarLabel}
+          <Calendar size={18} strokeWidth={ICON_STROKE} aria-hidden />
         </button>
       </div>
 

@@ -37,10 +37,17 @@ import {
   updateOrderStatus,
 } from "@/app/actions/orders";
 
-export default async function OrderPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function OrderPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ payError?: string }>;
+}) {
   const { t, locale, n } = await getTranslator();
   const session = await requirePermission("orders.view");
   const { id } = await params;
+  const { payError } = await searchParams;
   const order = await prisma.order.findUnique({
     where: { id },
     include: {
@@ -96,6 +103,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const margin =
     canSeeCost && order.materialCost ? D(String(order.total)).sub(String(order.materialCost)) : null;
   const loc = intlLocale(locale);
+  const paymentBlocked = Boolean(payError?.includes("закрыт") || payError?.includes("пӯшида"));
 
   async function confirmAction(formData: FormData) {
     "use server";
@@ -111,11 +119,17 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   }
   async function payAction(formData: FormData) {
     "use server";
-    await addPayment(formData);
+    const result = await addPayment(formData);
+    if (result?.error) {
+      redirect(`/orders/${id}?payError=${encodeURIComponent(result.error)}`);
+    }
   }
   async function reverseAction(formData: FormData) {
     "use server";
-    await reversePayment(formData);
+    const result = await reversePayment(formData);
+    if (result?.error) {
+      redirect(`/orders/${id}?payError=${encodeURIComponent(result.error)}`);
+    }
   }
   async function deficitAction(formData: FormData) {
     "use server";
@@ -307,6 +321,19 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         </DashPanel>
 
         <DashPanel title={t("orders.payments")}>
+          {payError ? (
+            <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900">
+              <p>{decodeURIComponent(payError)}</p>
+              {paymentBlocked ? (
+                <p className="mt-1 text-xs">
+                  {t("orders.periodClosedHint")}{" "}
+                  <Link href="/settings/approvals" className="font-medium underline">
+                    {t("set.approvalsTitle")}
+                  </Link>
+                </p>
+              ) : null}
+            </div>
+          ) : null}
           {canPay ? (
             <form action={payAction} className="grid gap-3 sm:grid-cols-2">
               <input type="hidden" name="orderId" value={order.id} />
