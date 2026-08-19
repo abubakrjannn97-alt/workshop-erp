@@ -36,23 +36,19 @@ export function DashMetricStrip({
           <article key={metric.id} className={`${styles.kpiCard} ${TONE_CLASS[metric.tone]}`}>
             <span className={styles.kpiScenery} aria-hidden />
             <div className={styles.kpiTop}>
-              <div>
-                <p className={styles.kpiLabel}>{metric.label}</p>
-                <p className={styles.kpiValue}>{metric.value}</p>
-              </div>
               <span className={styles.kpiIcon} aria-hidden>
-                <Icon size={20} strokeWidth={1.75} />
+                <Icon size={22} strokeWidth={1.75} />
               </span>
             </div>
-            {metric.hint ? (
-              <p
-                className={`${styles.kpiHint} ${metric.hintTone === "positive" ? styles.kpiHintPositive : ""}`.trim()}
-              >
-                {metric.hint}
-              </p>
-            ) : (
-              <span />
-            )}
+            <div className={styles.kpiContent}>
+              <p className={styles.kpiLabel}>{metric.label}</p>
+              <p className={styles.kpiValue}>{metric.value}</p>
+              {metric.hint ? (
+                <p className={`${styles.kpiHint} ${metric.hintTone === "positive" ? styles.kpiHintPositive : ""}`.trim()}>
+                  {metric.hint}
+                </p>
+              ) : null}
+            </div>
           </article>
         );
       })}

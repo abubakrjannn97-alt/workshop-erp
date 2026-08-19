@@ -1,30 +1,16 @@
-/* ─── Dashboard: STONE FACTORY reference ─── */
+/* ─── Dashboard: Premium Stone Factory Reference ─── */
 
 .home {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 28px;
   min-width: 0;
-}
-
-.home::before {
-  content: "";
-  position: absolute;
-  top: -12px;
-  right: -20px;
-  width: 220px;
-  height: 140px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, rgba(184, 149, 74, 0.08), transparent 70%);
-  pointer-events: none;
 }
 
 /* ─── Greeting ─── */
 
 .greeting {
-  position: relative;
-  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -35,7 +21,7 @@
   margin: 0;
   font-size: 32px;
   font-weight: 700;
-  line-height: 38px;
+  line-height: 1.15;
   letter-spacing: -0.03em;
   color: var(--ink);
 }
@@ -48,67 +34,74 @@
   color: var(--ink-2);
 }
 
-/* ─── KPI cards ─── */
+/* ─── KPI Cards ─── */
 
 .kpiStrip {
-  position: relative;
-  z-index: 1;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 
 .kpiCard {
   position: relative;
   display: flex;
-  min-height: 152px;
+  min-height: 190px;
   flex-direction: column;
   justify-content: space-between;
-  padding: 18px 18px 16px;
+  padding: 22px 20px 18px;
   overflow: hidden;
-  border-radius: var(--radius-card);
-  border: 1px solid var(--line);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
   background: #ffffff;
-  box-shadow: 0 2px 10px rgba(28, 35, 43, 0.04);
+  box-shadow:
+    0 1px 2px rgba(20, 30, 40, 0.03),
+    0 4px 16px rgba(20, 30, 40, 0.04);
+  transition: box-shadow 0.2s, transform 0.2s;
 }
 
-/* Decorative hills — bottom only, card stays white */
+.kpiCard:hover {
+  box-shadow:
+    0 2px 4px rgba(20, 30, 40, 0.04),
+    0 8px 24px rgba(20, 30, 40, 0.06);
+  transform: translateY(-1px);
+}
+
 .kpiScenery {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 58px;
+  height: 80px;
   pointer-events: none;
   z-index: 0;
 }
 
 .kpiOrange .kpiScenery {
   background:
-    radial-gradient(ellipse 90% 70% at 15% 110%, rgba(251, 146, 60, 0.22) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 60% at 55% 115%, rgba(253, 186, 116, 0.16) 0%, transparent 50%),
-    radial-gradient(ellipse 55% 50% at 88% 112%, rgba(251, 146, 60, 0.12) 0%, transparent 45%);
+    radial-gradient(ellipse 120% 90% at 10% 130%, rgba(242, 201, 141, 0.4) 0%, transparent 60%),
+    radial-gradient(ellipse 90% 70% at 50% 140%, rgba(251, 191, 120, 0.3) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 55% at 85% 125%, rgba(242, 201, 141, 0.25) 0%, transparent 48%);
 }
 
 .kpiGreen .kpiScenery {
   background:
-    radial-gradient(ellipse 90% 70% at 20% 110%, rgba(16, 185, 129, 0.2) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 60% at 60% 115%, rgba(52, 211, 153, 0.14) 0%, transparent 50%),
-    radial-gradient(ellipse 55% 50% at 90% 112%, rgba(16, 185, 129, 0.1) 0%, transparent 45%);
+    radial-gradient(ellipse 120% 90% at 12% 130%, rgba(168, 217, 194, 0.4) 0%, transparent 60%),
+    radial-gradient(ellipse 90% 70% at 55% 140%, rgba(134, 239, 172, 0.25) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 55% at 88% 125%, rgba(168, 217, 194, 0.2) 0%, transparent 48%);
 }
 
 .kpiBlue .kpiScenery {
   background:
-    radial-gradient(ellipse 90% 70% at 18% 110%, rgba(59, 130, 246, 0.2) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 60% at 58% 115%, rgba(96, 165, 250, 0.14) 0%, transparent 50%),
-    radial-gradient(ellipse 55% 50% at 88% 112%, rgba(59, 130, 246, 0.1) 0%, transparent 45%);
+    radial-gradient(ellipse 120% 90% at 10% 130%, rgba(184, 202, 232, 0.4) 0%, transparent 60%),
+    radial-gradient(ellipse 90% 70% at 52% 140%, rgba(147, 197, 253, 0.28) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 55% at 86% 125%, rgba(184, 202, 232, 0.22) 0%, transparent 48%);
 }
 
 .kpiPurple .kpiScenery {
   background:
-    radial-gradient(ellipse 90% 70% at 15% 110%, rgba(139, 92, 246, 0.2) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 60% at 55% 115%, rgba(167, 139, 250, 0.14) 0%, transparent 50%),
-    radial-gradient(ellipse 55% 50% at 88% 112%, rgba(139, 92, 246, 0.1) 0%, transparent 45%);
+    radial-gradient(ellipse 120% 90% at 10% 130%, rgba(200, 190, 229, 0.4) 0%, transparent 60%),
+    radial-gradient(ellipse 90% 70% at 52% 140%, rgba(196, 181, 253, 0.28) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 55% at 86% 125%, rgba(200, 190, 229, 0.22) 0%, transparent 48%);
 }
 
 .kpiTop {
@@ -117,31 +110,59 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
 }
 
 .kpiIcon {
   display: grid;
-  width: 42px;
-  height: 42px;
+  width: 46px;
+  height: 46px;
   flex-shrink: 0;
   place-items: center;
-  border-radius: 12px;
+  border-radius: 14px;
+}
+
+.kpiOrange .kpiIcon {
+  background: #fef3e2;
+  color: #d97706;
+}
+
+.kpiGreen .kpiIcon {
+  background: #e6f9f0;
+  color: #059669;
+}
+
+.kpiBlue .kpiIcon {
+  background: #edf4ff;
+  color: #2563eb;
+}
+
+.kpiPurple .kpiIcon {
+  background: #f1edff;
+  color: #7c3aed;
+}
+
+.kpiContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .kpiLabel {
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   line-height: 20px;
   color: var(--ink-2);
 }
 
 .kpiValue {
-  margin: 8px 0 0;
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 38px;
+  margin: 4px 0 0;
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 40px;
   letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
@@ -150,47 +171,25 @@
 .kpiHint {
   position: relative;
   z-index: 1;
-  margin: 0;
-  font-size: 12px;
+  margin: 4px 0 0;
+  font-size: 13px;
   line-height: 18px;
   font-weight: 500;
   color: var(--ink-3);
 }
 
 .kpiHintPositive {
-  color: var(--ok);
-}
-
-.kpiOrange .kpiIcon {
-  background: #fff4eb;
-  color: #ea580c;
-}
-
-.kpiGreen .kpiIcon {
-  background: #ecfdf5;
-  color: #059669;
-}
-
-.kpiBlue .kpiIcon {
-  background: #eff6ff;
-  color: #2563eb;
-}
-
-.kpiPurple .kpiIcon {
-  background: #f5f3ff;
-  color: #7c3aed;
+  color: #16a34a;
 }
 
 /* ─── Panels ─── */
 
 .panel {
-  position: relative;
-  z-index: 1;
   min-width: 0;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-card);
-  background: var(--surface);
-  box-shadow: var(--shadow-soft);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 2px 12px rgba(20, 30, 40, 0.03);
 }
 
 .panelHead {
@@ -198,15 +197,15 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 18px 20px 0;
+  padding: 20px 22px 0;
 }
 
 .panelBody {
-  padding: 12px 20px 18px;
+  padding: 14px 22px 22px;
 }
 
 .panelBodyFlush {
-  padding: 4px 16px 18px;
+  padding: 6px 18px 20px;
 }
 
 .sectionTitle {
@@ -223,6 +222,7 @@
   font-weight: 600;
   color: var(--accent);
   text-decoration: none;
+  transition: color 0.15s;
 }
 
 .sectionAction:hover {
@@ -232,7 +232,7 @@
 .panelFooter {
   display: flex;
   justify-content: center;
-  padding: 0 20px 18px;
+  padding: 0 22px 20px;
 }
 
 .panelFooterLink {
@@ -240,13 +240,14 @@
   font-weight: 600;
   color: var(--ink-2);
   text-decoration: none;
+  transition: color 0.15s;
 }
 
 .panelFooterLink:hover {
   color: var(--navy);
 }
 
-/* ─── Quick actions ─── */
+/* ─── Quick Actions ─── */
 
 .actionsWrap {
   position: relative;
@@ -254,9 +255,9 @@
 
 .actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   overflow-x: auto;
-  padding: 2px 4px 6px;
+  padding: 2px 2px 6px;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -275,21 +276,21 @@
 
 .action {
   display: flex;
-  flex: 0 0 104px;
+  flex: 0 0 112px;
   scroll-snap-align: start;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  min-height: 108px;
-  padding: 14px 8px;
-  border-radius: 14px;
-  border: 1px solid var(--line);
+  gap: 12px;
+  min-height: 116px;
+  padding: 18px 10px;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
   background: #ffffff;
   color: var(--ink);
   text-decoration: none;
-  box-shadow: 0 2px 8px rgba(28, 35, 43, 0.04);
-  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 2px 10px rgba(20, 30, 40, 0.04);
+  transition: transform 0.18s, box-shadow 0.18s;
 }
 
 .actionsDesktop .action {
@@ -297,14 +298,14 @@
 }
 
 .action:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 18px rgba(20, 30, 40, 0.07);
 }
 
 .actionIcon {
   display: grid;
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
   place-items: center;
   border-radius: 14px;
 }
@@ -318,35 +319,35 @@
 }
 
 .actionOrange .actionIcon {
-  background: #fff4eb;
-  color: #ea580c;
+  background: #fef3e2;
+  color: #d97706;
 }
 
 .actionGreen .actionIcon {
-  background: #ecfdf5;
+  background: #e6f9f0;
   color: #059669;
 }
 
 .actionBlue .actionIcon {
-  background: #eff6ff;
+  background: #edf4ff;
   color: #2563eb;
 }
 
 .actionPurple .actionIcon {
-  background: #f5f3ff;
+  background: #f1edff;
   color: #7c3aed;
 }
 
 .actionGold .actionIcon {
-  background: #faf6ee;
-  color: #b8954a;
+  background: #faf5eb;
+  color: #a88955;
 }
 
 .actionDots {
   display: none;
   justify-content: center;
   gap: 6px;
-  padding-top: 4px;
+  padding-top: 6px;
 }
 
 .actionDot,
@@ -375,14 +376,16 @@
 }
 
 .table th {
-  padding: 10px 14px;
+  padding: 12px 16px;
   font-size: 12px;
   font-weight: 600;
   line-height: 18px;
   text-align: left;
   color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   border-bottom: 1px solid var(--line);
-  background: var(--surface-2);
+  background: #fafaf9;
 }
 
 .table th:first-child {
@@ -394,12 +397,16 @@
 }
 
 .table td {
-  padding: 14px;
+  padding: 14px 16px;
   font-size: 14px;
   line-height: 22px;
   color: var(--ink);
   border-bottom: 1px solid var(--line);
   vertical-align: middle;
+}
+
+.table tbody tr {
+  transition: background 0.12s;
 }
 
 .table tbody tr:hover {
@@ -414,6 +421,7 @@
   font-weight: 600;
   color: var(--ink);
   text-decoration: none;
+  transition: color 0.12s;
 }
 
 .tableRowLink:hover {
@@ -428,7 +436,7 @@
 .statusPill {
   display: inline-flex;
   align-items: center;
-  padding: 5px 10px;
+  padding: 5px 12px;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
@@ -437,7 +445,7 @@
 }
 
 .statusBlue {
-  background: #dbeafe;
+  background: #e0efff;
   color: #1d4ed8;
 }
 
@@ -447,7 +455,7 @@
 }
 
 .statusOrange {
-  background: #ffedd5;
+  background: #fff1e0;
   color: #c2410c;
 }
 
@@ -456,7 +464,7 @@
   color: var(--ink-2);
 }
 
-/* ─── Lists ─── */
+/* ─── Lists (mobile) ─── */
 
 .list {
   margin: 0;
@@ -466,10 +474,10 @@
 
 .row {
   display: flex;
-  min-height: 52px;
+  min-height: 54px;
   align-items: center;
   gap: 12px;
-  padding: 10px 0;
+  padding: 12px 0;
   border-bottom: 1px solid var(--line);
   color: var(--ink);
   text-decoration: none;
@@ -502,9 +510,6 @@ a.row:hover .rowTitle {
 .rowWhy {
   display: block;
   margin-top: 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   font-size: 12px;
   line-height: 18px;
   color: var(--ink-3);
@@ -520,8 +525,8 @@ a.row:hover .rowTitle {
 
 .rowGo {
   display: grid;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
   place-items: center;
   color: var(--ink-3);
@@ -539,7 +544,7 @@ a.row:hover .rowTitle {
 
 .empty {
   margin: 0;
-  padding: 14px 0 6px;
+  padding: 16px 0 8px;
   font-size: 14px;
   line-height: 22px;
   color: var(--ink-2);
@@ -581,6 +586,8 @@ a.row:hover .rowTitle {
   color: var(--accent);
 }
 
+/* ─── Responsive ─── */
+
 @media (max-width: 1279px) {
   .kpiStrip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -593,45 +600,46 @@ a.row:hover .rowTitle {
 
 @media (max-width: 1023px) {
   .home {
-    gap: 16px;
-  }
-
-  .home::before {
-    width: 140px;
-    height: 90px;
+    gap: 20px;
   }
 
   .greetingTitle {
     font-size: 24px;
-    line-height: 30px;
+    line-height: 1.2;
   }
 
   .greetingSub {
     font-size: 14px;
-    line-height: 22px;
   }
 
   .kpiStrip {
-    gap: 10px;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
   }
 
   .kpiCard {
-    min-height: 132px;
-    padding: 14px 14px 12px;
+    min-height: 152px;
+    padding: 16px 16px 14px;
+    border-radius: 14px;
   }
 
   .kpiValue {
-    font-size: 26px;
-    line-height: 32px;
+    font-size: 28px;
+    line-height: 34px;
   }
 
   .kpiIcon {
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .kpiScenery {
+    height: 60px;
   }
 
   .panelHead {
-    padding: 14px 16px 0;
+    padding: 16px 16px 0;
   }
 
   .panelBody,
@@ -651,9 +659,15 @@ a.row:hover .rowTitle {
   }
 
   .action {
-    flex: 0 0 92px;
-    min-height: 100px;
+    flex: 0 0 96px;
+    min-height: 104px;
     min-width: 44px;
+    padding: 14px 8px;
+  }
+
+  .actionIcon {
+    width: 42px;
+    height: 42px;
   }
 
   .actionDots {
@@ -662,6 +676,18 @@ a.row:hover .rowTitle {
 
   .tableWrap {
     display: none;
+  }
+
+  .actionsDesktop {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+    padding: 0;
+  }
+
+  .actionsDesktop .action {
+    flex: initial;
+    min-height: 104px;
   }
 }
 
