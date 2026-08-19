@@ -399,7 +399,12 @@ summary:focus-visible {
 
 * {
   box-sizing: border-box;
-  caret-color: transparent;
+}
+
+input,
+textarea,
+[contenteditable] {
+  caret-color: var(--navy);
 }
 
 .no-scrollbar {
@@ -1702,4 +1707,9 @@ main .ui-card > .section-title {
   html {
     overscroll-behavior-y: none;
   }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
