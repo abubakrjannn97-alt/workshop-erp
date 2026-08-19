@@ -108,6 +108,126 @@
   gap: 8px;
 }
 
+.sectionPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.subsectionTitle {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.sectionHint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--ink-2);
+}
+
+.sectionNote {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.metaRow strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.payForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.compactField :global(.ui-label) {
+  margin-bottom: 4px;
+}
+
+.payHistory {
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.actionList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.actionItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.actionHint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--ink-3);
+}
+
+.linkDanger {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bad);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.materialRow {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.materialName {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.materialQty {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
 @media (min-width: 1024px) {
   .metricGrid {
     grid-template-columns: repeat(4, minmax(0, 1fr));

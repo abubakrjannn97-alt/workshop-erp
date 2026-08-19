@@ -1,32 +1,19 @@
 import Link from "next/link";
-import { ClipboardList } from "lucide-react";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { hasPermission } from "@core/auth/authz";
 import { PendingButton } from "@/components/pending-button";
-import { IdempotencyField } from "@/components/idempotency-field";
-import { FormField } from "@/components/form-field";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { available } from "@core/inventory/stock";
 import { findRawWarehouse } from "@/core/config/resolve-warehouse";
-import { PAYMENT_METHODS, STATUS_FLOW } from "@core/orders/orders";
+import { STATUS_FLOW } from "@core/orders/orders";
 import { PageHeader } from "@/components/page-header";
-import { DashPanel } from "@/components/dash-panel";
 import { StatusBadge, orderTone, payTone } from "@/components/status-badge";
 import { OrderDetailMetrics } from "../order-detail-metrics";
+import { OrderPaymentPanel } from "../order-payment-panel";
 import detailStyles from "../order-detail.module.css";
-import {
-  DataList,
-  DataListHead,
-  DataListHeadCell,
-  DataListMetric,
-  DataListPrimary,
-  DataListRow,
-  DataTableSection,
-  dataListStyles,
-} from "@/components/data-table";
 import {
   addPayment,
   cancelOrder,
@@ -104,6 +91,40 @@ export default async function OrderPage({
     canSeeCost && order.materialCost ? D(String(order.total)).sub(String(order.materialCost)) : null;
   const loc = intlLocale(locale);
   const paymentBlocked = Boolean(payError?.includes("закрыт") || payError?.includes("пӯшида"));
+  const hasDiscount = D(String(order.discountPercent)).gt(0);
+  const metricItems = [
+    {
+      id: "total",
+      label: t("common.amount"),
+      value: `${moneyDisplay(order.total)} с`,
+      tone: "gold" as const,
+      icon: "gold" as const,
+    },
+    {
+      id: "paid",
+      label: t("common.paid"),
+      value: `${moneyDisplay(order.paidAmount)} с`,
+      tone: "green" as const,
+      icon: "green" as const,
+    },
+    {
+      id: "debt",
+      label: t("common.debt"),
+      value: `${moneyDisplay(debt)} с`,
+      hint: debt.gt(0) ? t("orders.attention") : undefined,
+      tone: "warn" as const,
+      icon: "warn" as const,
+    },
+  ];
+  if (canSeeCost) {
+    metricItems.push({
+      id: "margin",
+      label: t("orders.profitEstimate"),
+      value: margin ? `${moneyDisplay(margin)} с` : t("orders.noCost"),
+      tone: "blue" as const,
+      icon: "blue" as const,
+    });
+  }
 
   async function confirmAction(formData: FormData) {
     "use server";
@@ -149,14 +170,9 @@ export default async function OrderPage({
         backHref="/orders"
         backLabel={t("common.back")}
         actions={
-          <div className="flex flex-wrap gap-2">
-            <Link href={`/crm/customers/${order.customer.id}`} className="ui-btn-secondary">
-              {t("orders.customerCard")}
-            </Link>
-            <Link href={`/orders/${order.id}/print?doc=order`} className="ui-btn-secondary">
-              {t("common.print")}
-            </Link>
-          </div>
+          <Link href={`/crm/customers/${order.customer.id}`} className="ui-btn-secondary">
+            {t("orders.openCustomer")}
+          </Link>
         }
       />
 
@@ -168,43 +184,21 @@ export default async function OrderPage({
         </span>
       </div>
 
-      <OrderDetailMetrics
-        items={[
-          {
-            id: "total",
-            label: t("common.amount"),
-            value: `${moneyDisplay(order.total)} с`,
-            tone: "gold",
-            icon: "gold",
-          },
-          {
-            id: "paid",
-            label: t("common.paid"),
-            value: `${moneyDisplay(order.paidAmount)} с`,
-            tone: "green",
-            icon: "green",
-          },
-          {
-            id: "debt",
-            label: t("common.debt"),
-            value: `${moneyDisplay(debt)} с`,
-            hint: debt.gt(0) ? t("orders.attention") : undefined,
-            tone: "warn",
-            icon: "warn",
-          },
-          {
-            id: "margin",
-            label: t("orders.marginMaterials"),
-            value: margin ? `${moneyDisplay(margin)} с` : canSeeCost ? t("orders.noCost") : t("orders.hidden"),
-            tone: "blue",
-            icon: "blue",
-          },
-        ]}
-      />
+      <div className={detailStyles.metaRow}>
+        <span>
+          {t("common.customer")}: <strong>{order.customer.name}</strong>
+        </span>
+        <span>
+          {t("orders.sellerLabel")}: <strong>{order.seller.name}</strong>
+        </span>
+      </div>
+
+      <OrderDetailMetrics items={metricItems} />
 
       {canCreate && nextStatuses.length > 0 ? (
         <section className={detailStyles.statusPanel}>
-          <h2 className={detailStyles.statusPanelTitle}>{t("common.status")}</h2>
+          <h2 className={detailStyles.sectionTitle}>{t("orders.changeStatus")}</h2>
+          <p className={detailStyles.sectionHint}>{t("orders.changeStatusHint")}</p>
           <div className={detailStyles.statusActions}>
             {nextStatuses.map((s) => (
               <form action={statusAction} key={s.id}>
@@ -219,54 +213,49 @@ export default async function OrderPage({
         </section>
       ) : null}
 
-      <DataTableSection>
-        <h2 className="border-b border-[var(--border-soft)] px-3 py-2 text-sm font-semibold">{t("orders.lines")}</h2>
-        <DataList layout="cols3">
-          <DataListHead layout="cols3">
-            <DataListHeadCell>{t("common.product")}</DataListHeadCell>
-            <DataListHeadCell align="right">{t("common.qty")}</DataListHeadCell>
-            <DataListHeadCell align="right">{t("common.amount")}</DataListHeadCell>
-          </DataListHead>
-          <ul className={dataListStyles.rows}>
-            {order.items.map((item) => (
-              <DataListRow key={item.id} layout="cols3">
-                <DataListPrimary
-                  title={item.product.name}
-                  subtitle={`${qtyDisplay(item.quantity)} ${item.product.saleUnit.symbol} → ${qtyDisplay(item.outputQty)} ${item.product.outputUnit.symbol}`}
-                />
-                <DataListMetric
-                  label={t("common.qty")}
-                  value={`${moneyDisplay(item.unitPrice)} × ${qtyDisplay(item.quantity)}`}
-                />
-                <DataListMetric label={t("common.amount")} value={`${moneyDisplay(item.amount)} с`} />
-              </DataListRow>
-            ))}
-          </ul>
-        </DataList>
-        <p className="border-t border-[var(--border-soft)] px-3 py-2 text-xs text-[var(--muted)]">
-          {t("orders.discountNote", { pct: qtyDisplay(order.discountPercent), amt: moneyDisplay(order.discountAmount) })}
-        </p>
-      </DataTableSection>
+      <section className={detailStyles.sectionPanel}>
+        <h2 className={detailStyles.sectionTitle}>{t("orders.lines")}</h2>
+        <ul className="ui-list">
+          {order.items.map((item) => (
+            <li key={item.id} className={detailStyles.materialRow}>
+              <div>
+                <p className={detailStyles.materialName}>{item.product.name}</p>
+                <p className={detailStyles.materialQty}>
+                  {qtyDisplay(item.quantity)} {item.product.saleUnit.symbol} × {moneyDisplay(item.unitPrice)} с
+                </p>
+              </div>
+              <strong className="ui-num">{moneyDisplay(item.amount)} с</strong>
+            </li>
+          ))}
+        </ul>
+        {hasDiscount ? (
+          <p className={detailStyles.sectionNote}>
+            {t("orders.discountNote", { pct: qtyDisplay(order.discountPercent), amt: moneyDisplay(order.discountAmount) })}
+          </p>
+        ) : null}
+      </section>
 
-      <DashPanel title={t("orders.materialsSnap")} icon={ClipboardList}>
+      <section className={detailStyles.sectionPanel}>
+        <h2 className={detailStyles.sectionTitle}>{t("orders.materialsForOrder")}</h2>
         <ul className="ui-list">
           {order.materials.map((need) => (
-            <li key={need.id} className="ui-list-row flex min-h-[44px] items-center justify-between gap-4 text-sm">
-              <span>
-                {need.material.name}: {t("orders.plan")} {qtyDisplay(need.plannedQty)} {need.material.storageUnit.symbol},{" "}
-                {t("orders.reserved")} {qtyDisplay(need.reservedQty)}
-              </span>
-              <span className="shrink-0 font-mono text-xs tabular-nums">
-                {canSeeCost && need.lineCost ? `${moneyDisplay(need.lineCost)} с` : "—"}
-              </span>
+            <li key={need.id} className={detailStyles.materialRow}>
+              <div>
+                <p className={detailStyles.materialName}>{need.material.name}</p>
+                <p className={detailStyles.materialQty}>
+                  {t("orders.materialsNeed")}: {qtyDisplay(need.plannedQty)} {need.material.storageUnit.symbol}
+                  {" · "}
+                  {t("orders.materialsReserved")}: {qtyDisplay(need.reservedQty)} {need.material.storageUnit.symbol}
+                </p>
+              </div>
             </li>
           ))}
         </ul>
         {!order.canProduceFully && order.confirmedAt ? (
-          <p className="mt-3 text-sm text-amber-800">{t("orders.cannotProduce", { n: String(order.number) })}</p>
+          <p className={detailStyles.sectionNote}>{t("orders.cannotProduce", { n: String(order.number) })}</p>
         ) : null}
         {deficits.length > 0 ? (
-          <div className="mt-3 rounded-lg bg-[var(--warning)]/10 p-3 text-sm">
+          <div className="mt-2 rounded-lg bg-[var(--warning)]/10 p-3 text-sm">
             <p className="font-medium">{t("orders.shortage")}</p>
             <ul className="mt-1 list-disc pl-5">
               {deficits.map((row) => (
@@ -289,114 +278,81 @@ export default async function OrderPage({
             )}
           </div>
         ) : null}
-      </DashPanel>
+      </section>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <DashPanel title={t("common.actions")}>
-          <div className="flex flex-wrap gap-2">
+      {payError ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900">
+          <p>{decodeURIComponent(payError)}</p>
+          {paymentBlocked ? (
+            <p className="mt-1 text-xs">
+              {t("orders.periodClosedHint")}{" "}
+              <Link href="/settings/approvals" className="font-medium underline">
+                {t("set.approvalsTitle")}
+              </Link>
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      <OrderPaymentPanel
+        locale={locale}
+        orderId={order.id}
+        customerName={order.customer.name}
+        debtDefault={debt.gt(0) ? moneyDisplay(debt) : ""}
+        payAction={payAction}
+        reverseAction={reverseAction}
+        canPay={canPay}
+        payments={order.payments}
+        loc={loc}
+      />
+
+      {(canCreate && (order.status.code === "NEW" || order.status.code === "AWAITING_PAYMENT")) ||
+      (canIssue && (order.status.code === "IN_FG" || order.status.code === "READY")) ||
+      (canCancel && order.status.code !== "CANCELLED") ? (
+        <section className={detailStyles.sectionPanel}>
+          <h2 className={detailStyles.sectionTitle}>{t("orders.whatToDo")}</h2>
+          <ul className={detailStyles.actionList}>
             {canCreate && (order.status.code === "NEW" || order.status.code === "AWAITING_PAYMENT") ? (
-              <form action={confirmAction}>
-                <input type="hidden" name="id" value={order.id} />
-                <button type="submit" className="ui-btn-primary min-h-[44px]">
-                  {t("common.confirm")}
-                </button>
-              </form>
+              <li className={detailStyles.actionItem}>
+                <form action={confirmAction}>
+                  <input type="hidden" name="id" value={order.id} />
+                  <PendingButton className="ui-btn-primary min-h-[44px] w-full" pendingLabel={t("common.sending")}>
+                    {t("common.confirm")}
+                  </PendingButton>
+                </form>
+                <p className={detailStyles.actionHint}>{t("orders.confirmOrderHint")}</p>
+              </li>
             ) : null}
             {canIssue && (order.status.code === "IN_FG" || order.status.code === "READY") ? (
-              <form action={issueAction}>
-                <input type="hidden" name="id" value={order.id} />
-                <button type="submit" className="ui-btn-primary min-h-[44px]">
-                  {t("orders.issueToCustomer")}
-                </button>
-              </form>
+              <li className={detailStyles.actionItem}>
+                <form action={issueAction}>
+                  <input type="hidden" name="id" value={order.id} />
+                  <PendingButton className="ui-btn-primary min-h-[44px] w-full" pendingLabel={t("common.sending")}>
+                    {t("orders.issueToCustomer")}
+                  </PendingButton>
+                </form>
+                <p className={detailStyles.actionHint}>{t("orders.issueOrderHint")}</p>
+              </li>
             ) : null}
             {canCancel && order.status.code !== "CANCELLED" ? (
-              <form action={cancelAction}>
-                <input type="hidden" name="id" value={order.id} />
-                <button type="submit" className="ui-btn-danger min-h-[44px]">
-                  {t("common.cancel")}
-                </button>
-              </form>
+              <li className={detailStyles.actionItem}>
+                <form action={cancelAction}>
+                  <input type="hidden" name="id" value={order.id} />
+                  <PendingButton className="ui-btn-danger min-h-[44px] w-full" pendingLabel={t("common.sending")}>
+                    {t("common.cancel")}
+                  </PendingButton>
+                </form>
+                <p className={detailStyles.actionHint}>{t("orders.cancelOrderHint")}</p>
+              </li>
             ) : null}
-          </div>
-          <p className="mt-2 text-xs text-[var(--muted)]">{t("orders.payrollNote")}</p>
-        </DashPanel>
-
-        <DashPanel title={t("orders.payments")}>
-          {payError ? (
-            <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900">
-              <p>{decodeURIComponent(payError)}</p>
-              {paymentBlocked ? (
-                <p className="mt-1 text-xs">
-                  {t("orders.periodClosedHint")}{" "}
-                  <Link href="/settings/approvals" className="font-medium underline">
-                    {t("set.approvalsTitle")}
-                  </Link>
-                </p>
-              ) : null}
-            </div>
-          ) : null}
-          {canPay ? (
-            <form action={payAction} className="grid gap-3 sm:grid-cols-2">
-              <input type="hidden" name="orderId" value={order.id} />
-              <IdempotencyField prefix={`pay-${order.id}`} />
-              <FormField label={t("common.amount")} className="sm:col-span-2">
-                <input
-                  name="amount"
-                  defaultValue={debt.gt(0) ? moneyDisplay(debt) : ""}
-                  className="ui-input"
-                  inputMode="decimal"
-                />
-              </FormField>
-              <FormField label={t("common.method")}>
-                <select name="method" className="ui-input">
-                  {PAYMENT_METHODS.map((m) => (
-                    <option key={m.code} value={m.code}>
-                      {t(`pay.method.${m.code}`)}
-                    </option>
-                  ))}
-                </select>
-              </FormField>
-              <FormField label={t("common.comment")} className="sm:col-span-2">
-                <input name="comment" className="ui-input" />
-              </FormField>
-              <PendingButton className="ui-btn-primary min-h-[44px] sm:col-span-2" pendingLabel={t("common.sending")}>
-                {t("orders.acceptPayment")}
-              </PendingButton>
-            </form>
-          ) : null}
-          <ul className="ui-list mt-3">
-            {order.payments.length === 0 ? (
-              <li className="py-2 text-sm text-[var(--muted)]">{t("orders.noPayments")}</li>
-            ) : (
-              order.payments.map((p) => (
-                <li key={p.id} className="ui-list-row flex min-h-[44px] items-center justify-between gap-3 text-sm">
-                  <span>
-                    {moneyDisplay(p.amount)} с · {p.method ? t(`pay.method.${p.method}`) : "—"} ·{" "}
-                    {p.createdAt.toLocaleString(loc)}
-                    {p.reversesId ? ` · ${t("common.reversal")}` : ""}
-                  </span>
-                  {canPay && !p.reversesId && !order.payments.some((x) => x.reversesId === p.id) ? (
-                    <form action={reverseAction}>
-                      <input type="hidden" name="paymentId" value={p.id} />
-                      <button type="submit" className="min-h-[44px] text-xs text-[var(--danger)] hover:underline">
-                        {t("wh.revBtn")}
-                      </button>
-                    </form>
-                  ) : null}
-                </li>
-              ))
-            )}
           </ul>
-        </DashPanel>
-      </div>
+        </section>
+      ) : null}
 
       {order.production ? (
-        <p className="text-sm">
-          <Link href={`/production/${order.production.id}`} className="text-[var(--titan-dark)] hover:underline">
-            {t("page.production")} →
-          </Link>
-        </p>
+        <Link href={`/production/${order.production.id}`} className="ui-btn-secondary min-h-[44px] inline-flex items-center">
+          {t("orders.openProduction")}
+        </Link>
       ) : null}
     </div>
   );
