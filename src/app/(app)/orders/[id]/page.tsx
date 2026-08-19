@@ -15,8 +15,8 @@ import { PAYMENT_METHODS, STATUS_FLOW } from "@core/orders/orders";
 import { PageHeader } from "@/components/page-header";
 import { DashPanel } from "@/components/dash-panel";
 import { StatusBadge, orderTone, payTone } from "@/components/status-badge";
-import { OrderDetailMetrics } from "./order-detail-metrics";
-import detailStyles from "./order-detail.module.css";
+import { OrderDetailMetrics } from "../order-detail-metrics";
+import detailStyles from "../order-detail.module.css";
 import {
   DataList,
   DataListHead,
