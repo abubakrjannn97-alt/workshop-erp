@@ -14,6 +14,7 @@
 .greeting {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 8px;
   padding-top: 2px;
 }
@@ -37,24 +38,28 @@
 }
 
 .homeMobile {
-  gap: 20px;
+  gap: 12px;
   max-width: none;
 }
 
 .homeMobile .greeting {
-  gap: 4px;
+  align-items: center;
+  gap: 2px;
   padding-top: 0;
+  text-align: center;
 }
 
 .homeMobile .greetingTitle {
-  font-size: 26px;
-  line-height: 1.12;
-  letter-spacing: 0.015em;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
 }
 
 .homeMobile .greetingSub {
-  font-size: 14px;
-  line-height: 22px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ink-3);
 }
 
 /* ─── KPI Cards (desktop) ─── */
@@ -209,7 +214,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
-  padding: 2px;
+  padding: 4px 2px 6px;
 }
 
 .kpiCardCompact {
@@ -219,56 +224,50 @@
   flex-direction: column;
   gap: 6px;
   padding: 14px 14px 12px;
-  overflow: hidden;
+  overflow: visible;
   border-radius: 16px;
   border: 1px solid transparent;
-  box-shadow: 0 2px 8px rgba(28, 35, 43, 0.06);
   transition: transform 0.16s ease;
-  isolation: isolate;
 }
 
 .kpiOrange .kpiCardCompact {
-  background: linear-gradient(165deg, #ffffff 20%, #fff4e6 100%);
-  border-color: rgba(234, 179, 98, 0.32);
+  background: #ffefd6;
+  border-color: rgba(234, 179, 98, 0.42);
   box-shadow:
-    0 2px 8px rgba(28, 35, 43, 0.05),
-    0 6px 20px rgba(28, 35, 43, 0.04),
-    0 0 0 1px rgba(255, 255, 255, 0.65) inset,
-    0 0 16px rgba(251, 146, 60, 0.11),
-    0 0 32px rgba(251, 146, 60, 0.05);
+    0 4px 14px rgba(28, 35, 43, 0.07),
+    0 0 0 1px rgba(255, 255, 255, 0.55) inset,
+    0 0 18px rgba(251, 146, 60, 0.16),
+    0 0 36px rgba(251, 146, 60, 0.07);
 }
 
 .kpiGreen .kpiCardCompact {
-  background: linear-gradient(165deg, #ffffff 20%, #e8f8f2 100%);
-  border-color: rgba(45, 212, 191, 0.28);
+  background: #dff7ec;
+  border-color: rgba(45, 212, 191, 0.38);
   box-shadow:
-    0 2px 8px rgba(28, 35, 43, 0.05),
-    0 6px 20px rgba(28, 35, 43, 0.04),
-    0 0 0 1px rgba(255, 255, 255, 0.65) inset,
-    0 0 16px rgba(45, 212, 191, 0.1),
-    0 0 32px rgba(45, 212, 191, 0.05);
+    0 4px 14px rgba(28, 35, 43, 0.07),
+    0 0 0 1px rgba(255, 255, 255, 0.55) inset,
+    0 0 18px rgba(45, 212, 191, 0.15),
+    0 0 36px rgba(45, 212, 191, 0.07);
 }
 
 .kpiBlue .kpiCardCompact {
-  background: linear-gradient(165deg, #ffffff 20%, #eef4ff 100%);
-  border-color: rgba(96, 165, 250, 0.3);
+  background: #e3edff;
+  border-color: rgba(96, 165, 250, 0.4);
   box-shadow:
-    0 2px 8px rgba(28, 35, 43, 0.05),
-    0 6px 20px rgba(28, 35, 43, 0.04),
-    0 0 0 1px rgba(255, 255, 255, 0.65) inset,
-    0 0 16px rgba(96, 165, 250, 0.1),
-    0 0 32px rgba(96, 165, 250, 0.05);
+    0 4px 14px rgba(28, 35, 43, 0.07),
+    0 0 0 1px rgba(255, 255, 255, 0.55) inset,
+    0 0 18px rgba(96, 165, 250, 0.15),
+    0 0 36px rgba(96, 165, 250, 0.07);
 }
 
 .kpiPurple .kpiCardCompact {
-  background: linear-gradient(165deg, #ffffff 20%, #f3efff 100%);
-  border-color: rgba(167, 139, 250, 0.3);
+  background: #ece4ff;
+  border-color: rgba(167, 139, 250, 0.4);
   box-shadow:
-    0 2px 8px rgba(28, 35, 43, 0.05),
-    0 6px 20px rgba(28, 35, 43, 0.04),
-    0 0 0 1px rgba(255, 255, 255, 0.65) inset,
-    0 0 16px rgba(167, 139, 250, 0.1),
-    0 0 32px rgba(167, 139, 250, 0.05);
+    0 4px 14px rgba(28, 35, 43, 0.07),
+    0 0 0 1px rgba(255, 255, 255, 0.55) inset,
+    0 0 18px rgba(167, 139, 250, 0.15),
+    0 0 36px rgba(167, 139, 250, 0.07);
 }
 
 .kpiCardCompact:active {

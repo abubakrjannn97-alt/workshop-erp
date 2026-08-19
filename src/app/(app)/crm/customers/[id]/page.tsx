@@ -14,7 +14,7 @@ import { ChevronRight, Plus } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import { EmptyState } from "@/components/empty-state";
 import { ClipboardList } from "lucide-react";
-import styles from "../customers.module.css";
+import styles from "../../customers.module.css";
 
 export default async function CustomerPage({ params }: { params: Promise<{ id: string }> }) {
   const { t, n, locale } = await getTranslator();
