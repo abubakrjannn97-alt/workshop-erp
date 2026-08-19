@@ -127,7 +127,7 @@ export function DashSection({
 }) {
   return (
     <section
-      className={`${styles.panel} ${mobile ? styles.panelMobile : ""} ${mobileList ? styles.panelMobileList : ""}`.trim()}
+      className={`${styles.panel} ${mobile && !mobileList ? styles.panelMobile : ""} ${mobileList ? styles.panelMobileList : ""}`.trim()}
       data-tour={tour}
     >
       <div className={styles.panelHead}>

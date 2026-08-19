@@ -398,6 +398,22 @@
   box-shadow: 0 2px 12px rgba(28, 35, 43, 0.03);
 }
 
+.panel.panelMobileList {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.panel.panelMobileList .panelHead {
+  padding: 0 0 12px;
+}
+
+.panel.panelMobileList .panelBody {
+  padding: 0;
+}
+
 .panelHead {
   display: flex;
   align-items: center;
@@ -488,44 +504,83 @@
   padding: 0;
 }
 
+.actionsStripWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .actionsMobileStrip {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  padding: 2px 0 4px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.actionsMobileStrip::-webkit-scrollbar {
+  display: none;
+}
+
+.actionsMobileStrip > li {
+  flex: 0 0 25%;
+  min-width: 72px;
+  scroll-snap-align: start;
+}
+
+.actionStrip {
+  min-height: 0;
+  padding: 0 4px;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   gap: 10px;
-  overflow: visible;
-  padding: 0;
 }
 
-.actionsMobileStrip .action {
-  flex: initial;
-  min-height: 104px;
-  padding: 16px 12px;
-  border-radius: 16px;
-  border: 1px solid var(--mobile-glass-border);
-  background: var(--mobile-glass);
-  box-shadow: var(--mobile-glass-shadow);
-  backdrop-filter: blur(var(--mobile-glass-blur));
-  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
-  scroll-snap-align: unset;
-}
-
-.actionsMobileStrip .action:hover {
-  transform: translateY(-1px);
-  border-color: var(--line-strong);
-  box-shadow: 0 4px 16px rgba(28, 35, 43, 0.06);
+.actionStrip:hover {
+  transform: none;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .actionsMobileStrip .actionIcon {
-  width: 42px;
-  height: 42px;
-  border-radius: 13px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
 }
 
 .actionsMobileStrip .actionLabel {
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 16px;
-  color: var(--ink);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 14px;
+  text-align: center;
+  color: var(--ink-2);
+}
+
+.actionsDots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding-bottom: 2px;
+}
+
+.actionsDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #D5D9E0;
+}
+
+.actionsDotActive {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink);
 }
 
 .actionsMobileGrid .action {
@@ -720,18 +775,24 @@
   gap: 10px;
 }
 
+/* Shared mobile glass card — KPI, orders */
+.mobileGlassCard,
+.kpiCardCompact,
+.homeMobile .orderCard {
+  border: 1px solid var(--mobile-glass-border);
+  background: var(--mobile-glass);
+  box-shadow: var(--mobile-glass-shadow);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+}
+
 .orderCard {
   display: block;
   padding: 14px 14px 12px;
   min-height: 78px;
   border-radius: 18px;
-  border: 1px solid var(--mobile-glass-border);
   color: var(--ink);
   text-decoration: none;
-  background: var(--mobile-glass);
-  box-shadow: var(--mobile-glass-shadow);
-  backdrop-filter: blur(var(--mobile-glass-blur));
-  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
   transition: transform 0.16s ease;
 }
 

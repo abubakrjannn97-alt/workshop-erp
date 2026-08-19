@@ -66,7 +66,7 @@ export function DashRecentOrders({
           const statusLabel = n("ostatus", order.status.code, order.status.name);
           return (
             <li key={order.id}>
-              <Link href={`/orders/${order.id}`} className={styles.orderCard}>
+              <Link href={`/orders/${order.id}`} className={`${styles.orderCard} ${styles.mobileGlassCard}`}>
                 <div className={styles.orderCardTop}>
                   <span className={styles.orderCardNo}>{orderNo(String(order.number))}</span>
                   <span className={styles.orderCardAmount}>{moneyDisplay(String(order.total))} с</span>
