@@ -9,6 +9,7 @@ export type DashMetric = {
   label: string;
   value: string;
   hint?: string;
+  hintTone?: "positive" | "neutral";
   tone: DashMetricTone;
   icon: LucideIcon;
 };
@@ -42,7 +43,15 @@ export function DashMetricStrip({
                 <Icon size={20} strokeWidth={1.75} />
               </span>
             </div>
-            {metric.hint ? <p className={styles.kpiHint}>{metric.hint}</p> : <span />}
+            {metric.hint ? (
+              <p
+                className={`${styles.kpiHint} ${metric.hintTone === "positive" ? styles.kpiHintPositive : ""}`.trim()}
+              >
+                {metric.hint}
+              </p>
+            ) : (
+              <span />
+            )}
           </article>
         );
       })}

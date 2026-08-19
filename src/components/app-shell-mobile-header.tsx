@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { BackButton } from "@/components/back-button";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { NotificationBell } from "@/components/notification-bell";
+import { StoneStackMark } from "@/components/stone-stack-mark";
 import { isNestedShellPath, shellPageContext } from "@/components/shell-page-context";
 import type { Locale } from "@core/shared/i18n/i18n";
 import { createT } from "@core/shared/i18n/i18n";
@@ -24,13 +25,21 @@ export function AppShellMobileHeader({
   const t = createT(locale);
   const ctx = shellPageContext(path);
   const nested = isNestedShellPath(path);
+  const isHome = path === "/";
   const title = ctx ? t(ctx.labelKey) : companyName;
 
   return (
     <header className={styles.bar}>
       <div className={styles.left}>
-        {nested ? <BackButton locale={locale} iconOnly /> : null}
-        <h1 className={styles.title}>{title}</h1>
+        {nested ? <BackButton locale={locale} iconOnly /> : isHome ? <span className={styles.spacer} aria-hidden /> : null}
+        {isHome ? (
+          <div className={styles.brandCenter}>
+            <StoneStackMark size={24} />
+            <span className={styles.brandName}>{companyName}</span>
+          </div>
+        ) : (
+          <h1 className={styles.title}>{title}</h1>
+        )}
       </div>
       <div className={styles.actions}>
         {mobileShiftBar}

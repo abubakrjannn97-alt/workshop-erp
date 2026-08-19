@@ -58,6 +58,7 @@ export function DashRecentOrders({
             <tr>
               <th>№</th>
               <th>Клиент</th>
+              <th>Сумма</th>
               <th>Статус</th>
               <th>Срок</th>
               <th aria-hidden />
@@ -74,6 +75,7 @@ export function DashRecentOrders({
                     </Link>
                   </td>
                   <td>{order.customer.name}</td>
+                  <td>{moneyDisplay(String(order.total))} с</td>
                   <td>
                     <span className={`${styles.statusPill} ${statusTone(order.status.code)}`}>{statusLabel}</span>
                   </td>

@@ -7,27 +7,34 @@
 /* ─── Design tokens (Phase 2 canonical + legacy aliases) ─── */
 :root {
   /* Canonical — Premium simplicity. Do not duplicate hex elsewhere. */
-  --bg: #f8f9fa;
+  /* STONE FACTORY reference palette */
+  --bg: #f5f6f8;
   --surface: #ffffff;
-  --surface-2: #f7f6f2;
-  --ink: #1a1d23;
-  --ink-2: #5c6470;
-  --ink-3: #8b929c;
-  --line: #e4e1d8;
-  --line-strong: #c9c5ba;
-  --navy: #0e1522;
-  --navy-2: #171f2e;
-  --accent: #a68649;
-  --accent-soft: #f0ebe0;
-  --ok: #1b7a4a;
-  --ok-soft: #e8f4ee;
-  --warn: #b45309;
-  --warn-soft: #f8f0e6;
-  --bad: #b42318;
-  --bad-soft: #f7ebea;
-  --on-navy: #f8f7f4;
-  --on-accent: #1a1d23;
+  --surface-2: #f0f2f5;
+  --ink: #1c232b;
+  --ink-2: #647086;
+  --ink-3: #94a0b2;
+  --line: #e8ecf1;
+  --line-strong: #d5dbe4;
+  --navy: #1c232b;
+  --navy-2: #252d38;
+  --accent: #b8954a;
+  --accent-soft: #f3ead8;
+  --accent-gradient: linear-gradient(135deg, #d4bc7a 0%, #a68440 100%);
+  --ok: #16a34a;
+  --ok-soft: #e8f6ee;
+  --warn: #ea580c;
+  --warn-soft: #fff3eb;
+  --bad: #dc2626;
+  --bad-soft: #fef2f2;
+  --kpi-orange: #f97316;
+  --kpi-green: #10b981;
+  --kpi-blue: #3b82f6;
+  --kpi-purple: #8b5cf6;
+  --on-navy: #f8fafc;
+  --on-accent: #1c232b;
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-brand: Georgia, "Times New Roman", serif;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -37,14 +44,17 @@
   --space-6: 32px;
   --space-7: 48px;
 
-  --radius-control: 8px;
-  --radius-card: 12px;
-  --radius-sheet: 16px;
+  --radius-control: 10px;
+  --radius-card: 16px;
+  --radius-sheet: 20px;
 
-  --shadow: 0 1px 2px rgba(26, 29, 35, 0.06);
+  --shadow: 0 4px 20px rgba(28, 35, 43, 0.05);
+  --shadow-soft: 0 2px 8px rgba(28, 35, 43, 0.04);
 
-  --control-h: 40px;
+  --control-h: 44px;
   --control-h-mobile: 44px;
+  --header-h: 64px;
+  --sidebar-w: 240px;
 
   --font-size-display: 28px;
   --line-height-display: 36px;
@@ -141,11 +151,11 @@
   --shadow-lg: var(--shadow);
   --shadow-card: var(--shadow);
 
-  --sidebar-w: 220px;
+  --sidebar-w: 240px;
   --sidebar-collapsed: 56px;
   --sidebar-inset: 0px;
   --sidebar-inset-bottom: 0px;
-  --header-h: 56px;
+  --header-h: 64px;
   --transition: 160ms cubic-bezier(0.2, 0.7, 0.2, 1);
   --tour: var(--accent);
   --tour-ink: var(--ink);

@@ -1,70 +1,105 @@
-/* ─── Dashboard: STONE FACTORY reference style ─── */
+/* ─── Dashboard: STONE FACTORY reference ─── */
 
 .home {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 22px;
   min-width: 0;
+}
+
+.home::before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  right: -20px;
+  width: 220px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(184, 149, 74, 0.08), transparent 70%);
+  pointer-events: none;
 }
 
 /* ─── Greeting ─── */
 
 .greeting {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  padding-top: 4px;
 }
 
 .greetingTitle {
   margin: 0;
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 700;
-  line-height: 34px;
-  letter-spacing: -0.02em;
+  line-height: 38px;
+  letter-spacing: -0.03em;
   color: var(--ink);
 }
 
 .greetingSub {
   margin: 0;
-  font-size: 14px;
-  line-height: 22px;
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 400;
   color: var(--ink-2);
 }
 
-/* ─── Pastel KPI cards (4-col desktop / 2×2 mobile) ─── */
+/* ─── KPI cards ─── */
 
 .kpiStrip {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+  gap: 14px;
 }
 
 .kpiCard {
   position: relative;
   display: flex;
-  min-height: 148px;
+  min-height: 152px;
   flex-direction: column;
   justify-content: space-between;
-  padding: 18px 20px 16px;
+  padding: 18px 18px 14px;
   overflow: hidden;
-  border-radius: 16px;
-  border: 1px solid transparent;
-  box-shadow: 0 2px 8px rgba(26, 29, 35, 0.06);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.kpiCard::before {
+  content: "";
+  position: absolute;
+  left: -15%;
+  right: -15%;
+  bottom: -28px;
+  height: 72px;
+  border-radius: 50%;
+  filter: blur(18px);
+  opacity: 0.45;
+  pointer-events: none;
 }
 
 .kpiCard::after {
   content: "";
   position: absolute;
-  right: -20px;
-  bottom: -8px;
-  width: 120px;
-  height: 56px;
-  border-radius: 50% 50% 0 0;
-  opacity: 0.35;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 44px;
+  opacity: 0.5;
   pointer-events: none;
+  clip-path: ellipse(85% 100% at 50% 100%);
 }
 
 .kpiTop {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -73,8 +108,8 @@
 
 .kpiIcon {
   display: grid;
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   flex-shrink: 0;
   place-items: center;
   border-radius: 12px;
@@ -89,16 +124,18 @@
 }
 
 .kpiValue {
-  margin: 6px 0 0;
-  font-size: 30px;
+  margin: 8px 0 0;
+  font-size: 32px;
   font-weight: 700;
-  line-height: 36px;
-  letter-spacing: -0.03em;
+  line-height: 38px;
+  letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
 }
 
 .kpiHint {
+  position: relative;
+  z-index: 1;
   margin: 0;
   font-size: 12px;
   line-height: 18px;
@@ -106,71 +143,72 @@
   color: var(--ink-3);
 }
 
-/* Card variants */
-.kpiOrange {
-  background: linear-gradient(145deg, #fff8f3 0%, #fff 55%);
-  border-color: #fde8d8;
+.kpiHintPositive {
+  color: var(--ok);
+}
+
+.kpiOrange::before {
+  background: var(--kpi-orange);
 }
 
 .kpiOrange::after {
-  background: radial-gradient(ellipse at center, #f97316 0%, transparent 70%);
+  background: linear-gradient(180deg, transparent, rgba(255, 237, 213, 0.95));
 }
 
 .kpiOrange .kpiIcon {
-  background: #ffedd5;
+  background: #fff1e6;
   color: #ea580c;
 }
 
-.kpiGreen {
-  background: linear-gradient(145deg, #f3fbf6 0%, #fff 55%);
-  border-color: #d1fae5;
+.kpiGreen::before {
+  background: var(--kpi-green);
 }
 
 .kpiGreen::after {
-  background: radial-gradient(ellipse at center, #22c55e 0%, transparent 70%);
+  background: linear-gradient(180deg, transparent, rgba(209, 250, 229, 0.95));
 }
 
 .kpiGreen .kpiIcon {
-  background: #dcfce7;
-  color: #16a34a;
+  background: #e7faf1;
+  color: #059669;
 }
 
-.kpiBlue {
-  background: linear-gradient(145deg, #f3f8ff 0%, #fff 55%);
-  border-color: #dbeafe;
+.kpiBlue::before {
+  background: var(--kpi-blue);
 }
 
 .kpiBlue::after {
-  background: radial-gradient(ellipse at center, #3b82f6 0%, transparent 70%);
+  background: linear-gradient(180deg, transparent, rgba(219, 234, 254, 0.95));
 }
 
 .kpiBlue .kpiIcon {
-  background: #dbeafe;
+  background: #ebf3ff;
   color: #2563eb;
 }
 
-.kpiPurple {
-  background: linear-gradient(145deg, #f8f5ff 0%, #fff 55%);
-  border-color: #ede9fe;
+.kpiPurple::before {
+  background: var(--kpi-purple);
 }
 
 .kpiPurple::after {
-  background: radial-gradient(ellipse at center, #8b5cf6 0%, transparent 70%);
+  background: linear-gradient(180deg, transparent, rgba(237, 233, 254, 0.95));
 }
 
 .kpiPurple .kpiIcon {
-  background: #ede9fe;
+  background: #f3efff;
   color: #7c3aed;
 }
 
 /* ─── Panels ─── */
 
 .panel {
+  position: relative;
+  z-index: 1;
   min-width: 0;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--radius-card);
   background: var(--surface);
-  box-shadow: 0 2px 8px rgba(26, 29, 35, 0.04);
+  box-shadow: var(--shadow-soft);
 }
 
 .panelHead {
@@ -182,32 +220,31 @@
 }
 
 .panelBody {
-  padding: 12px 20px 20px;
+  padding: 12px 20px 18px;
 }
 
 .panelBodyFlush {
-  padding: 0 20px 20px;
+  padding: 4px 16px 18px;
 }
 
 .sectionTitle {
   margin: 0;
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 600;
-  line-height: 24px;
-  letter-spacing: -0.01em;
+  line-height: 26px;
+  letter-spacing: -0.02em;
   color: var(--ink);
 }
 
 .sectionAction {
   font-size: 13px;
   font-weight: 600;
-  color: var(--ink-2);
+  color: var(--accent);
   text-decoration: none;
-  transition: color 0.15s;
 }
 
 .sectionAction:hover {
-  color: var(--accent);
+  color: var(--navy);
 }
 
 .panelFooter {
@@ -221,7 +258,6 @@
   font-weight: 600;
   color: var(--ink-2);
   text-decoration: none;
-  transition: color 0.15s;
 }
 
 .panelFooterLink:hover {
@@ -230,37 +266,48 @@
 
 /* ─── Quick actions ─── */
 
+.actionsWrap {
+  position: relative;
+}
+
 .actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   overflow-x: auto;
-  padding: 4px 0 8px;
+  padding: 2px 4px 6px;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.actions::-webkit-scrollbar {
+  display: none;
 }
 
 .actionsDesktop {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   overflow: visible;
+  padding: 0;
 }
 
 .action {
   display: flex;
-  flex: 0 0 108px;
+  flex: 0 0 104px;
   scroll-snap-align: start;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  min-height: 104px;
-  padding: 14px 10px;
+  min-height: 108px;
+  padding: 14px 8px;
   border-radius: 14px;
   border: 1px solid var(--line);
-  background: var(--surface-2);
+  background: var(--surface);
   color: var(--ink);
   text-decoration: none;
-  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.15s, box-shadow 0.15s;
 }
 
 .actionsDesktop .action {
@@ -268,21 +315,17 @@
 }
 
 .action:hover {
-  border-color: var(--line-strong);
-  background: var(--surface);
-  box-shadow: 0 2px 6px rgba(26, 29, 35, 0.06);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
 }
 
 .actionIcon {
   display: grid;
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   place-items: center;
-  border-radius: 12px;
-  background: var(--surface);
-  color: var(--navy);
-  border: 1px solid var(--line);
-  box-shadow: 0 1px 2px rgba(26, 29, 35, 0.04);
+  border-radius: 14px;
+  color: var(--surface);
 }
 
 .actionLabel {
@@ -293,7 +336,49 @@
   color: var(--ink);
 }
 
-/* ─── Orders table (desktop) ─── */
+.actionOrange .actionIcon {
+  background: linear-gradient(145deg, #fb923c, #ea580c);
+}
+
+.actionGreen .actionIcon {
+  background: linear-gradient(145deg, #34d399, #059669);
+}
+
+.actionBlue .actionIcon {
+  background: linear-gradient(145deg, #60a5fa, #2563eb);
+}
+
+.actionPurple .actionIcon {
+  background: linear-gradient(145deg, #a78bfa, #7c3aed);
+}
+
+.actionGold .actionIcon {
+  background: var(--accent-gradient);
+  color: var(--surface);
+}
+
+.actionDots {
+  display: none;
+  justify-content: center;
+  gap: 6px;
+  padding-top: 4px;
+}
+
+.actionDot,
+.actionDotActive {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--line-strong);
+}
+
+.actionDotActive {
+  width: 18px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+/* ─── Orders table ─── */
 
 .tableWrap {
   overflow-x: auto;
@@ -305,17 +390,26 @@
 }
 
 .table th {
-  padding: 10px 12px;
+  padding: 10px 14px;
   font-size: 12px;
   font-weight: 600;
   line-height: 18px;
   text-align: left;
   color: var(--ink-3);
   border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.table th:first-child {
+  border-radius: 10px 0 0 0;
+}
+
+.table th:last-child {
+  border-radius: 0 10px 0 0;
 }
 
 .table td {
-  padding: 12px;
+  padding: 14px;
   font-size: 14px;
   line-height: 22px;
   color: var(--ink);
@@ -323,32 +417,37 @@
   vertical-align: middle;
 }
 
+.table tbody tr:hover {
+  background: #fafbfc;
+}
+
 .table tbody tr:last-child td {
   border-bottom: 0;
 }
 
 .tableRowLink {
-  color: inherit;
+  font-weight: 600;
+  color: var(--ink);
   text-decoration: none;
-  transition: color 0.12s;
 }
 
 .tableRowLink:hover {
-  color: var(--navy);
+  color: var(--accent);
 }
 
 .tableChevron {
   color: var(--ink-3);
+  text-align: right;
 }
 
 .statusPill {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
+  padding: 5px 10px;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
-  line-height: 18px;
+  line-height: 16px;
   white-space: nowrap;
 }
 
@@ -372,7 +471,7 @@
   color: var(--ink-2);
 }
 
-/* ─── Lists & rows (mobile) ─── */
+/* ─── Lists ─── */
 
 .list {
   margin: 0;
@@ -389,7 +488,6 @@
   border-bottom: 1px solid var(--line);
   color: var(--ink);
   text-decoration: none;
-  transition: background 0.12s;
 }
 
 .list > li:last-child .row,
@@ -397,12 +495,8 @@
   border-bottom: 0;
 }
 
-a.row:hover {
-  color: var(--ink);
-}
-
 a.row:hover .rowTitle {
-  color: var(--navy);
+  color: var(--accent);
 }
 
 .rowMain {
@@ -418,11 +512,11 @@ a.row:hover .rowTitle {
   font-size: 14px;
   font-weight: 500;
   line-height: 22px;
-  transition: color 0.12s;
 }
 
 .rowWhy {
   display: block;
+  margin-top: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -452,11 +546,10 @@ a.row:hover .rowTitle {
   flex-shrink: 0;
   min-width: 1.75rem;
   font-size: 20px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 26px;
-  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
-  color: var(--navy);
+  color: var(--ink);
 }
 
 .empty {
@@ -467,38 +560,32 @@ a.row:hover .rowTitle {
   color: var(--ink-2);
 }
 
-/* Icon wells (attention list) */
 .well {
   display: grid;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   flex-shrink: 0;
   place-items: center;
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--surface-2);
   color: var(--navy);
-  border: 1px solid var(--line);
 }
 
 .wellWarn {
   background: var(--warn-soft);
   color: var(--warn);
-  border-color: transparent;
 }
 
 .wellBad {
   background: var(--bad-soft);
   color: var(--bad);
-  border-color: transparent;
 }
 
 .wellNavy {
   background: var(--navy);
   color: var(--on-navy);
-  border-color: transparent;
 }
 
-/* Funds */
 .fundStrong .rowTitle,
 .fundStrong .rowMeta {
   font-weight: 600;
@@ -509,13 +596,6 @@ a.row:hover .rowTitle {
   color: var(--accent);
 }
 
-/* Collapsible secondary (attention/funds) */
-.secondaryGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-  gap: 16px;
-}
-
 @media (max-width: 1279px) {
   .kpiStrip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -524,10 +604,6 @@ a.row:hover .rowTitle {
   .actionsDesktop {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-
-  .secondaryGrid {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 1023px) {
@@ -535,30 +611,38 @@ a.row:hover .rowTitle {
     gap: 16px;
   }
 
+  .home::before {
+    width: 140px;
+    height: 90px;
+  }
+
   .greetingTitle {
-    font-size: 22px;
-    line-height: 28px;
-  }
-
-  .kpiStrip {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-
-  .kpiCard {
-    min-height: 128px;
-    padding: 14px 16px 12px;
-  }
-
-  .kpiValue {
     font-size: 24px;
     line-height: 30px;
   }
 
+  .greetingSub {
+    font-size: 14px;
+    line-height: 22px;
+  }
+
+  .kpiStrip {
+    gap: 10px;
+  }
+
+  .kpiCard {
+    min-height: 132px;
+    padding: 14px 14px 12px;
+  }
+
+  .kpiValue {
+    font-size: 26px;
+    line-height: 32px;
+  }
+
   .kpiIcon {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+    width: 38px;
+    height: 38px;
   }
 
   .panelHead {
@@ -577,18 +661,18 @@ a.row:hover .rowTitle {
   }
 
   .sectionTitle {
-    font-size: 16px;
-    line-height: 22px;
+    font-size: 17px;
+    line-height: 24px;
   }
 
   .action {
-    flex: 0 0 96px;
-    min-height: 96px;
+    flex: 0 0 92px;
+    min-height: 100px;
     min-width: 44px;
   }
 
-  .row {
-    min-height: 52px;
+  .actionDots {
+    display: flex;
   }
 
   .tableWrap {

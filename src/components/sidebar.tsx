@@ -7,7 +7,7 @@ import { ChevronsLeft, LogOut } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth";
 import type { Locale } from "@core/shared/i18n/i18n";
 import { createT } from "@core/shared/i18n/i18n";
-import { WorkshopMark } from "@/components/workshop-mark";
+import { StoneStackMark } from "@/components/stone-stack-mark";
 import { ICON_STROKE, NAV_ICONS } from "@/components/nav-icons";
 import { isNavItemActive, sidebarGroups, type NavLeaf } from "@core/shared/nav";
 import styles from "./sidebar.module.css";
@@ -141,7 +141,7 @@ export function Sidebar({
       aria-label={t("nav.menu")}
     >
       <div className={`${styles.brand} ${collapsed ? styles.brandCollapsed : ""}`}>
-        <WorkshopMark size={28} className="rounded-[22%]" />
+        <StoneStackMark size={28} />
         {!collapsed ? <p className={styles.brandName}>{companyName}</p> : null}
         <button
           type="button"
@@ -195,6 +195,10 @@ export function Sidebar({
           <div className={styles.userMeta}>
             <p className={styles.userName}>{userName}</p>
             {roleName ? <p className={styles.userRole}>{roleName}</p> : null}
+            <p className={styles.userStatus}>
+              <span className={styles.onlineDot} aria-hidden />
+              {t("nav.online")}
+            </p>
           </div>
         ) : null}
         <form action={logoutAction} className={collapsed ? undefined : "ml-auto"}>
