@@ -101,8 +101,8 @@ export async function OwnerHome() {
       <DashMetricStrip
         tour="home-income"
         metrics={[
-          { id: "sales", label: t("home.sold"), value: `${moneyDisplay(sold)} с`, hint: t("home.period") },
           { id: "inflow", label: t("home.inflow"), value: `${moneyDisplay(received)} с`, hint: t("home.heroReceived") },
+          { id: "sales", label: t("home.sold"), value: `${moneyDisplay(sold)} с`, hint: t("home.period") },
           { id: "attention", label: t("home.attention"), value: String(attentionCount) },
         ]}
       />
@@ -111,8 +111,8 @@ export async function OwnerHome() {
         <DashAttentionCounts rows={attn} empty={t("home.noAlerts")} />
       </DashSection>
 
-      <DashSection title={t("home.quickActions")} tour="home-shortcuts">
-        <DashQuickActions actions={ownerQuickActions(t)} />
+      <DashSection title={t("home.quickActions")} tour="home-shortcuts" flush>
+        <DashQuickActions actions={ownerQuickActions(t)} layout="mobile" />
       </DashSection>
 
       <DashSection title={t("home.recentOrders")} tour="home-orders">

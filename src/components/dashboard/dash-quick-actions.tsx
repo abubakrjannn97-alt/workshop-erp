@@ -35,17 +35,21 @@ export function ownerSecondaryActions(t: (key: string) => string): DashQuickActi
 
 export function DashQuickActions({
   actions,
+  layout = "mobile",
 }: {
   actions: DashQuickAction[];
+  layout?: "mobile" | "desktop";
 }) {
+  const gridClass = layout === "desktop" ? `${styles.actions} ${styles.actionsDesktop}` : styles.actions;
+
   return (
-    <ul className={styles.actions}>
+    <ul className={gridClass}>
       {actions.slice(0, 4).map((action) => {
         const Icon = action.icon;
         return (
           <li key={action.href}>
             <Link href={action.href} className={styles.action}>
-              <span className={styles.well}>
+              <span className={`${styles.well} ${styles.wellNavy}`}>
                 <Icon size={18} strokeWidth={ICON_STROKE} aria-hidden />
               </span>
               <span className={styles.actionLabel}>{action.label}</span>
@@ -63,9 +67,9 @@ export function DashQuickActionsDesktop({
   primary: DashQuickAction[];
   secondary?: DashQuickAction[];
 }) {
-  return <DashQuickActions actions={primary} />;
+  return <DashQuickActions actions={primary} layout="desktop" />;
 }
 
 export function DashQuickActionsMobile({ actions }: { actions: DashQuickAction[] }) {
-  return <DashQuickActions actions={actions} />;
+  return <DashQuickActions actions={actions} layout="mobile" />;
 }

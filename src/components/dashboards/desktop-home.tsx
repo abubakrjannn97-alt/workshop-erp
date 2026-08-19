@@ -102,36 +102,44 @@ export async function DesktopHome() {
         ]}
       />
 
-      <DashSection title={t("home.attention")} tour="home-attention">
-        <DashAlertList alerts={alerts} empty={t("home.noAlerts")} openLabel={t("home.open")} />
-      </DashSection>
+      <div className={styles.workGrid}>
+        <div className={styles.workWide}>
+          <DashSection title={t("home.attention")} tour="home-attention">
+            <DashAlertList alerts={alerts} empty={t("home.noAlerts")} openLabel={t("home.open")} />
+          </DashSection>
+        </div>
 
-      <DashSection title={t("home.quickActions")} tour="home-shortcuts">
-        <DashQuickActions actions={ownerQuickActions(t)} />
-      </DashSection>
+        <div className={styles.workSide}>
+          <DashSection title={t("home.funds")}>
+            <ul className={styles.list}>
+              {fundBalances.map((f) => (
+                <FundRow
+                  key={f.id}
+                  code={f.code}
+                  label={n("fund", f.code, f.name)}
+                  amount={`${moneyDisplay(f.balance)} с`}
+                  highlight={f.code === FUND.PROFIT}
+                />
+              ))}
+            </ul>
+          </DashSection>
+        </div>
 
-      <div className={styles.split}>
-        <DashSection
-          title={t("home.recentOrders")}
-          tour="home-orders"
-          action={<DashRecentOrdersAction href="/orders?period=month">{t("home.allOrders")}</DashRecentOrdersAction>}
-        >
-          <DashRecentOrders orders={recentOrders} empty={t("crm.noOrders")} n={n} locale={loc} showDate />
-        </DashSection>
+        <div className={styles.workWide}>
+          <DashSection
+            title={t("home.recentOrders")}
+            tour="home-orders"
+            action={<DashRecentOrdersAction href="/orders?period=month">{t("home.allOrders")}</DashRecentOrdersAction>}
+          >
+            <DashRecentOrders orders={recentOrders} empty={t("crm.noOrders")} n={n} locale={loc} showDate />
+          </DashSection>
+        </div>
 
-        <DashSection title={t("home.funds")}>
-          <ul className={styles.list}>
-            {fundBalances.map((f) => (
-              <FundRow
-                key={f.id}
-                code={f.code}
-                label={n("fund", f.code, f.name)}
-                amount={`${moneyDisplay(f.balance)} с`}
-                highlight={f.code === FUND.PROFIT}
-              />
-            ))}
-          </ul>
-        </DashSection>
+        <div className={styles.workSide}>
+          <DashSection title={t("home.quickActions")} tour="home-shortcuts" flush>
+            <DashQuickActions actions={ownerQuickActions(t)} layout="desktop" />
+          </DashSection>
+        </div>
       </div>
     </div>
   );

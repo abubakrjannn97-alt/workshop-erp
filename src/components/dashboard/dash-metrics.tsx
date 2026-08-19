@@ -8,10 +8,10 @@ export type DashMetric = {
   hint?: string;
 };
 
-const METRIC_AREA: Record<string, string> = {
-  sales: styles.metricSales,
-  inflow: styles.metricInflow,
-  attention: styles.metricAttention,
+const KPI_AREA: Record<string, string> = {
+  sales: styles.kpiSales,
+  inflow: styles.kpiInflow,
+  attention: styles.kpiAttention,
 };
 
 export function DashMetricStrip({
@@ -22,13 +22,19 @@ export function DashMetricStrip({
   tour?: string;
 }) {
   return (
-    <section className={`${styles.panel} ${styles.metrics}`} data-tour={tour} aria-label="Statistics">
+    <section className={styles.kpiStrip} data-tour={tour} aria-label="Statistics">
       {metrics.map((metric) => (
-        <div key={metric.id} className={`${styles.metric} ${METRIC_AREA[metric.id] ?? ""}`.trim()}>
-          <p className={styles.metricLabel}>{metric.label}</p>
-          <p className={styles.metricValue}>{metric.value}</p>
-          {metric.hint ? <p className={styles.metricHint}>{metric.hint}</p> : null}
-        </div>
+        <article
+          key={metric.id}
+          className={`${styles.kpiCard} ${KPI_AREA[metric.id] ?? ""}`.trim()}
+        >
+          <span className={styles.kpiAccent} aria-hidden />
+          <div>
+            <p className={styles.kpiLabel}>{metric.label}</p>
+            <p className={styles.kpiValue}>{metric.value}</p>
+          </div>
+          {metric.hint ? <p className={styles.kpiHint}>{metric.hint}</p> : <span />}
+        </article>
       ))}
     </section>
   );
@@ -39,11 +45,13 @@ export function DashSection({
   action,
   tour,
   children,
+  flush,
 }: {
   title: string;
   action?: ReactNode;
   tour?: string;
   children: ReactNode;
+  flush?: boolean;
 }) {
   return (
     <section className={styles.panel} data-tour={tour}>
@@ -51,7 +59,7 @@ export function DashSection({
         <h2 className={styles.sectionTitle}>{title}</h2>
         {action}
       </div>
-      <div className={styles.panelBody}>{children}</div>
+      <div className={flush ? styles.panelBodyFlush : styles.panelBody}>{children}</div>
     </section>
   );
 }

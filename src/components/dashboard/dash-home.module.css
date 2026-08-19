@@ -1,16 +1,126 @@
+/* ─── Dashboard: Premium Enterprise / Rich Minimalism ─── */
+
 .home {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 28px;
   min-width: 0;
 }
+
+.home :global(.page-header) {
+  margin-bottom: 0;
+}
+
+.home :global(.page-title) {
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 36px;
+  letter-spacing: -0.03em;
+}
+
+.home :global(.page-subtitle) {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--ink-2);
+}
+
+/* ─── Dark navy KPI zone ─── */
+
+.kpiStrip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.kpiCard {
+  position: relative;
+  display: flex;
+  min-height: 152px;
+  max-height: 165px;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px 22px;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--navy);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 3px rgba(14, 21, 34, 0.12);
+}
+
+.kpiCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+  opacity: 0.85;
+}
+
+.kpiCard::after {
+  content: "";
+  position: absolute;
+  right: -12px;
+  bottom: -12px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 1px solid rgba(166, 134, 73, 0.12);
+  pointer-events: none;
+}
+
+.kpiLabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: rgba(248, 247, 244, 0.62);
+}
+
+.kpiValue {
+  margin: 8px 0 0;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 34px;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--on-navy);
+}
+
+.kpiHint {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: rgba(248, 247, 244, 0.48);
+}
+
+.kpiAccent {
+  position: absolute;
+  top: 22px;
+  right: 20px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.7;
+}
+
+.kpiAttention .kpiValue {
+  color: var(--accent);
+}
+
+/* ─── White working panels ─── */
 
 .panel {
   min-width: 0;
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
   background: var(--surface);
-  box-shadow: var(--shadow);
+  box-shadow: 0 1px 2px rgba(26, 29, 35, 0.04);
 }
 
 .panelHead {
@@ -18,27 +128,24 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  padding: 16px 20px 0;
+  padding: 18px 20px 0;
 }
 
 .panelBody {
-  padding: 8px 20px 16px;
+  padding: 10px 20px 18px;
 }
 
-.panelBody .actions {
-  padding: 4px 0 8px;
-}
-
-.home :global(.page-header) {
-  margin-bottom: 0;
+.panelBodyFlush {
+  padding: 0 20px 18px;
 }
 
 .sectionTitle {
   margin: 0;
-  font-size: 13px;
+  font-size: 17px;
   font-weight: 600;
-  line-height: 20px;
-  color: var(--ink-2);
+  line-height: 24px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
 }
 
 .sectionAction {
@@ -46,123 +153,30 @@
   font-weight: 600;
   color: var(--ink-2);
   text-decoration: none;
+  transition: color 0.15s;
 }
 
 .sectionAction:hover {
-  color: var(--ink);
+  color: var(--accent);
 }
 
-.metrics {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-areas: "sales inflow attention";
-  gap: 0;
-  padding: 20px 24px;
-}
-
-.metricSales {
-  grid-area: sales;
-}
-
-.metricInflow {
-  grid-area: inflow;
-}
-
-.metricAttention {
-  grid-area: attention;
-}
-
-.metric {
-  min-width: 0;
-  padding: 0 24px 0 0;
-}
-
-.metric + .metric {
-  padding-left: 24px;
-  border-left: 1px solid var(--line);
-}
-
-.metricLabel {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 20px;
-  color: var(--ink-2);
-}
-
-.metricValue {
-  margin: 6px 0 0;
-  font-size: 22px;
-  font-weight: 600;
-  line-height: 28px;
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
-  color: var(--ink);
-}
-
-.metricHint {
-  margin: 4px 0 0;
-  font-size: 13px;
-  line-height: 20px;
-  color: var(--ink-3);
-}
-
-.split {
+/* Desktop multi-column rhythm */
+.workGrid {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-  gap: 24px;
+  gap: 20px;
   align-items: start;
 }
 
-.actions {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  padding: 8px 12px 16px;
+.workWide {
+  grid-column: 1;
 }
 
-.action {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  min-height: 88px;
-  padding: 12px;
-  border-radius: var(--radius-control);
-  color: var(--ink);
-  text-decoration: none;
+.workSide {
+  grid-column: 2;
 }
 
-.action:hover {
-  background: var(--surface-2);
-}
-
-.actionLabel {
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 20px;
-}
-
-.well {
-  display: grid;
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-  place-items: center;
-  border-radius: var(--radius-control);
-  background: var(--surface-2);
-  color: var(--ink);
-}
-
-.wellWarn {
-  background: var(--warn-soft);
-  color: var(--warn);
-}
-
-.wellBad {
-  background: var(--bad-soft);
-  color: var(--bad);
-}
+/* ─── Lists & rows ─── */
 
 .list {
   margin: 0;
@@ -172,13 +186,14 @@
 
 .row {
   display: flex;
-  min-height: 56px;
+  min-height: 48px;
   align-items: center;
   gap: 12px;
   padding: 10px 0;
   border-bottom: 1px solid var(--line);
   color: var(--ink);
   text-decoration: none;
+  transition: background 0.12s;
 }
 
 .list > li:last-child .row,
@@ -186,8 +201,12 @@
   border-bottom: 0;
 }
 
-.row:hover .rowTitle {
+a.row:hover {
   color: var(--ink);
+}
+
+a.row:hover .rowTitle {
+  color: var(--navy);
 }
 
 .rowMain {
@@ -200,9 +219,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
   line-height: 22px;
+  transition: color 0.12s;
 }
 
 .rowWhy {
@@ -210,9 +230,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 13px;
-  line-height: 20px;
-  color: var(--ink-2);
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--ink-3);
 }
 
 .rowMeta {
@@ -234,35 +254,122 @@
 
 .count {
   flex-shrink: 0;
-  width: 2.25rem;
-  font-size: 22px;
+  min-width: 1.75rem;
+  font-size: 20px;
   font-weight: 600;
-  line-height: 28px;
-  letter-spacing: -0.03em;
+  line-height: 26px;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
-  color: var(--ink);
+  color: var(--navy);
 }
 
 .empty {
   margin: 0;
-  padding: 12px 0 8px;
-  font-size: 15px;
-  line-height: 24px;
+  padding: 14px 0 6px;
+  font-size: 14px;
+  line-height: 22px;
   color: var(--ink-2);
 }
+
+/* Icon wells — restrained, navy/brass accent */
+.well {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+  color: var(--navy);
+  border: 1px solid var(--line);
+}
+
+.wellWarn {
+  background: var(--warn-soft);
+  color: var(--warn);
+  border-color: transparent;
+}
+
+.wellBad {
+  background: var(--bad-soft);
+  color: var(--bad);
+  border-color: transparent;
+}
+
+.wellNavy {
+  background: var(--navy);
+  color: var(--on-navy);
+  border-color: transparent;
+}
+
+/* ─── Quick actions ─── */
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 4px 0 6px;
+}
+
+.actionsDesktop {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 10px;
+  min-height: 88px;
+  padding: 14px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--ink);
+  text-decoration: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.action:hover {
+  border-color: var(--line-strong);
+  background: var(--surface);
+}
+
+.action:hover .wellNavy {
+  background: var(--navy-2);
+}
+
+.actionLabel {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+/* ─── Funds ─── */
 
 .fundStrong .rowTitle,
 .fundStrong .rowMeta {
   font-weight: 600;
+  color: var(--navy);
+}
+
+.fundStrong .rowMeta {
+  color: var(--accent);
 }
 
 @media (max-width: 1279px) {
-  .split {
+  .workGrid {
     grid-template-columns: 1fr;
   }
 
-  .actions {
-    grid-template-columns: 1fr 1fr;
+  .workWide,
+  .workSide {
+    grid-column: auto;
+  }
+
+  .actionsDesktop {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -271,55 +378,72 @@
     gap: 16px;
   }
 
-  .panelHead,
-  .panelBody {
-    padding-left: 16px;
-    padding-right: 16px;
+  .home :global(.page-title) {
+    font-size: 22px;
+    line-height: 28px;
   }
 
-  .panelHead {
-    padding-top: 14px;
-  }
-
-  .panelBody {
-    padding-bottom: 12px;
-  }
-
-  .metrics {
+  .kpiStrip {
     grid-template-columns: 1fr 1fr;
     grid-template-areas:
       "inflow inflow"
       "sales attention";
-    gap: 16px 20px;
-    padding: 16px;
+    gap: 10px;
   }
 
-  .metric,
-  .metric + .metric {
-    padding: 0;
-    border: 0;
+  .kpiSales {
+    grid-area: sales;
   }
 
-  .metricInflow {
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--line);
+  .kpiInflow {
+    grid-area: inflow;
   }
 
-  .metricInflow .metricValue {
-    margin-top: 8px;
-    font-size: 28px;
-    line-height: 36px;
+  .kpiAttention {
+    grid-area: attention;
   }
 
-  .actions {
-    grid-template-columns: 1fr 1fr;
-    gap: 4px;
-    padding: 4px 8px 12px;
+  .kpiCard {
+    min-height: 0;
+    max-height: none;
+    padding: 16px 18px;
+  }
+
+  .kpiInflow {
+    min-height: 118px;
+  }
+
+  .kpiInflow .kpiValue {
+    margin-top: 6px;
+    font-size: 32px;
+    line-height: 38px;
+  }
+
+  .kpiSales .kpiValue,
+  .kpiAttention .kpiValue {
+    font-size: 22px;
+    line-height: 28px;
+  }
+
+  .panelHead {
+    padding: 14px 16px 0;
+  }
+
+  .panelBody,
+  .panelBodyFlush {
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-bottom: 14px;
+  }
+
+  .sectionTitle {
+    font-size: 16px;
+    line-height: 22px;
   }
 
   .action {
     min-height: 96px;
-    padding: 12px;
+    min-width: 44px;
   }
 
   .row {
