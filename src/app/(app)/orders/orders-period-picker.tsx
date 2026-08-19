@@ -8,11 +8,7 @@ import { ICON_STROKE } from "@/components/nav-icons";
 import { buildOrdersQuery, type OrderPeriod } from "@core/shared/order-period";
 import styles from "./orders-period-picker.module.css";
 
-const PRESETS: { id: OrderPeriod; labelKey: string }[] = [
-  { id: "month", labelKey: "orders.periodMonth" },
-  { id: "prev", labelKey: "orders.periodPrev" },
-  { id: "all", labelKey: "orders.periodAll" },
-];
+const PRESETS: OrderPeriod[] = ["month", "prev", "all"];
 
 export function OrdersPeriodPicker({
   current,
@@ -20,7 +16,8 @@ export function OrdersPeriodPicker({
   toRaw,
   status,
   q,
-  t,
+  presetLabels,
+  customLabel,
   calendarLabel,
   fromLabel,
   toLabel,
@@ -31,7 +28,8 @@ export function OrdersPeriodPicker({
   toRaw?: string;
   status?: string;
   q?: string;
-  t: (key: string) => string;
+  presetLabels: Record<"month" | "prev" | "all", string>;
+  customLabel: string;
   calendarLabel: string;
   fromLabel: string;
   toLabel: string;
@@ -58,15 +56,15 @@ export function OrdersPeriodPicker({
     <div className={styles.wrap}>
       <div className={styles.pills}>
         {PRESETS.map((preset) => {
-          const active = current === preset.id;
+          const active = current === preset;
           return (
             <Link
-              key={preset.id}
-              href={`/orders${queryFor(preset.id)}`}
+              key={preset}
+              href={`/orders${queryFor(preset)}`}
               className={active ? styles.pillActive : styles.pill}
               scroll={false}
             >
-              {t(preset.labelKey)}
+              {presetLabels[preset]}
             </Link>
           );
         })}
@@ -92,7 +90,7 @@ export function OrdersPeriodPicker({
             setCalendarOpen(false);
           }}
         >
-          <p className={styles.calendarTitle}>{t("orders.periodCustom")}</p>
+          <p className={styles.calendarTitle}>{customLabel}</p>
           <div className={styles.dateGrid}>
             <label className={styles.dateField}>
               <span className={styles.dateLabel}>{fromLabel}</span>

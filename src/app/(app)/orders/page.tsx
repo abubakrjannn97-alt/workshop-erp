@@ -181,7 +181,12 @@ export default async function OrdersPage({
             toRaw={toRaw}
             status={status}
             q={q?.trim()}
-            t={t}
+            presetLabels={{
+              month: t("orders.periodMonth"),
+              prev: t("orders.periodPrev"),
+              all: t("orders.periodAll"),
+            }}
+            customLabel={t("orders.periodCustom")}
             calendarLabel={t("orders.periodCalendar")}
             fromLabel={t("orders.dateFrom")}
             toLabel={t("orders.dateTo")}
