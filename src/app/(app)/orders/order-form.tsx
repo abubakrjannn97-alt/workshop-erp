@@ -5,6 +5,7 @@ import { D, moneyDisplay } from "@core/shared/decimal";
 import { FormField } from "@/components/form-field";
 import { PendingButton } from "@/components/pending-button";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
+import styles from "./order-form.module.css";
 
 type Product = {
   id: string;
@@ -54,6 +55,7 @@ export function OrderForm({
     { key: 1, productId: products[0]?.id ?? "", quantity: "1", unitPrice: products[0]?.price ?? "0" },
   ]);
   const [discount, setDiscount] = useState("0");
+  const [discountOpen, setDiscountOpen] = useState(false);
   const [nextKey, setNextKey] = useState(2);
 
   const addLine = () => {
@@ -97,11 +99,11 @@ export function OrderForm({
   const isMulti = lines.length > 1;
 
   return (
-    <form action={action} className="ui-card max-w-xl space-y-4 p-4">
+    <form action={action} className={`ui-card ${styles.form}`}>
       {leadId ? <input type="hidden" name="leadId" value={leadId} /> : null}
       <input type="hidden" name="_multi" value={isMulti ? "1" : "0"} />
 
-      <FormField label={t("common.customer")} required={!leadId}>
+      <FormField label={t("common.customer")} required={!leadId} className={styles.compactField}>
         <select name="customerId" required={!leadId} defaultValue={defaultCustomerId ?? ""} className="ui-input">
           <option value="">{leadId ? t("orders.leadCard") : t("orders.select")}</option>
           {customers.map((c) => (
@@ -113,32 +115,34 @@ export function OrderForm({
       {lines.map((line, idx) => {
         const product = products.find((p) => p.id === line.productId);
         return (
-          <div key={line.key} style={{ padding: "12px 0", borderTop: idx > 0 ? "1px solid var(--line)" : undefined }}>
-            <div className="flex items-center justify-between gap-2">
-              <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-3)" }}>
+          <div key={line.key} className={styles.lineBlock}>
+            <div className={styles.lineHead}>
+              <p className={styles.lineTitle}>
                 {t("common.product")} {lines.length > 1 ? `#${idx + 1}` : ""}
-              </span>
+              </p>
               {lines.length > 1 ? (
-                <button type="button" onClick={() => removeLine(line.key)} style={{ fontSize: 12, color: "var(--bad)", cursor: "pointer", background: "none", border: "none" }}>
+                <button type="button" onClick={() => removeLine(line.key)} className={styles.removeBtn}>
                   {t("common.remove")}
                 </button>
               ) : null}
             </div>
-            <div className="mt-2 grid gap-3 sm:grid-cols-3">
-              <FormField label={t("common.product")} required>
-                <select
-                  name={isMulti ? "productId[]" : "productId"}
-                  value={line.productId}
-                  onChange={(e) => updateLine(line.key, "productId", e.target.value)}
-                  className="ui-input"
-                  required
-                >
-                  {products.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
-              </FormField>
-              <FormField label={`${t("common.qty")}, ${product?.saleSymbol ?? ""}`} required>
+
+            <FormField label={t("common.product")} required className={styles.compactField}>
+              <select
+                name={isMulti ? "productId[]" : "productId"}
+                value={line.productId}
+                onChange={(e) => updateLine(line.key, "productId", e.target.value)}
+                className="ui-input"
+                required
+              >
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </FormField>
+
+            <div className={styles.qtyPriceRow}>
+              <FormField label={`${t("common.qty")}, ${product?.saleSymbol ?? ""}`} required className={styles.compactField}>
                 <input
                   name={isMulti ? "quantity[]" : "quantity"}
                   value={line.quantity}
@@ -148,7 +152,7 @@ export function OrderForm({
                   inputMode="decimal"
                 />
               </FormField>
-              <FormField label={t("orders.unitPrice")} hint={product ? `min: ${moneyDisplay(product.minPrice)}` : undefined} required>
+              <FormField label={t("orders.unitPrice")} hint={product ? `min: ${moneyDisplay(product.minPrice)}` : undefined} required className={styles.compactField}>
                 <input
                   name={isMulti ? "unitPrice[]" : "unitPrice"}
                   value={line.unitPrice}
@@ -163,31 +167,40 @@ export function OrderForm({
         );
       })}
 
-      <button
-        type="button"
-        onClick={addLine}
-        className="ui-btn-ghost"
-        style={{ fontSize: 13 }}
-      >
+      <button type="button" onClick={addLine} className={styles.addItemBtn}>
         + {t("orders.addItem")}
       </button>
 
       {canDiscount ? (
-        <FormField label={t("orders.discountPct")} hint={`${t("orders.discountLimit")}: ${discountLimit}%`}>
-          <input
-            name="discountPercent"
-            value={discount}
-            onChange={(e) => setDiscount(e.target.value)}
-            className="ui-input"
-            inputMode="decimal"
-          />
-        </FormField>
+        <div>
+          {!discountOpen ? (
+            <>
+              <input type="hidden" name="discountPercent" value="0" />
+              <button type="button" className={styles.discountToggle} onClick={() => setDiscountOpen(true)}>
+                {t("orders.applyDiscount")}
+              </button>
+            </>
+          ) : (
+            <div className={styles.discountPanel}>
+              <FormField label={t("orders.discountPct")} hint={`${t("orders.discountLimit")}: ${discountLimit}%`} className={styles.compactField}>
+                <input
+                  name="discountPercent"
+                  value={discount}
+                  onChange={(e) => setDiscount(e.target.value)}
+                  className="ui-input"
+                  inputMode="decimal"
+                  autoFocus
+                />
+              </FormField>
+            </div>
+          )}
+        </div>
       ) : (
         <input type="hidden" name="discountPercent" value="0" />
       )}
 
       {canChooseSeller ? (
-        <FormField label={t("orders.seller")}>
+        <FormField label={t("orders.seller")} className={styles.compactField}>
           <select name="sellerId" defaultValue={defaultSellerId} className="ui-input">
             {sellers.map((s) => (
               <option key={s.id} value={s.id}>{s.name}</option>
@@ -198,7 +211,7 @@ export function OrderForm({
         <input type="hidden" name="sellerId" value={defaultSellerId} />
       )}
 
-      <FormField label={t("orders.payMethod")}>
+      <FormField label={t("orders.payMethod")} className={styles.compactField}>
         <select name="paymentMethod" className="ui-input" defaultValue="cash">
           <option value="cash">{t("orders.cash")}</option>
           <option value="bank">{t("orders.transfer")}</option>
@@ -206,17 +219,18 @@ export function OrderForm({
         </select>
       </FormField>
 
-      <FormField label={t("orders.dueReady")}>
+      <FormField label={t("orders.dueReady")} className={styles.compactField}>
         <input name="dueAt" type="date" className="ui-input" />
       </FormField>
 
-      <p className="text-body">
-        {t("orders.sum")}: <span className="ui-num font-semibold">{moneyDisplay(totals.total)} с</span>
-      </p>
-
-      <PendingButton className="ui-btn-primary min-h-[44px] w-full sm:w-auto" pendingLabel={t("common.saving")}>
-        {t("orders.create")}
-      </PendingButton>
+      <div className={styles.footerRow}>
+        <p className={styles.total}>
+          {t("orders.sum")}: <span className="ui-num font-semibold">{moneyDisplay(totals.total)} с</span>
+        </p>
+        <PendingButton className="ui-btn-primary min-h-[44px] w-full sm:w-auto" pendingLabel={t("common.saving")}>
+          {t("orders.create")}
+        </PendingButton>
+      </div>
     </form>
   );
 }

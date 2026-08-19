@@ -1,0 +1,113 @@
+.form {
+  display: flex;
+  max-width: 36rem;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+}
+
+.lineBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.lineBlock:first-of-type {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.lineHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.lineTitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
+.removeBtn {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bad);
+  cursor: pointer;
+}
+
+.qtyPriceRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.addItemBtn {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  gap: 4px;
+  padding: 0 14px;
+  border: 1px dashed rgba(154, 115, 56, 0.45);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fffaf2 0%, #fff7e8 100%);
+  font-size: 13px;
+  font-weight: 600;
+  color: #8b6e2f;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.addItemBtn:hover {
+  border-color: rgba(154, 115, 56, 0.65);
+  background: linear-gradient(180deg, #fff6e6 0%, #ffefcf 100%);
+}
+
+.discountToggle {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: #9a7338;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.discountToggle:hover {
+  color: #7a5a28;
+}
+
+.discountPanel {
+  margin-top: 2px;
+}
+
+.compactField :global(.ui-label) {
+  margin-bottom: 4px;
+}
+
+.footerRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.total {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-2);
+}
