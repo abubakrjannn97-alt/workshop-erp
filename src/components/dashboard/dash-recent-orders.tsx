@@ -1,7 +1,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ChevronRight } from "lucide-react";
 import { moneyDisplay } from "@core/shared/decimal";
 import { orderNo } from "@core/shared/format";
+import { ICON_STROKE } from "@/components/nav-icons";
 import styles from "./dash-home.module.css";
 
 type RecentOrder = {
@@ -35,7 +37,7 @@ export function DashRecentOrders({
   }
 
   return (
-    <ul>
+    <ul className={styles.list}>
       {orders.map((order) => (
         <li key={order.id}>
           <Link href={`/orders/${order.id}`} className={styles.row}>
@@ -56,6 +58,9 @@ export function DashRecentOrders({
               ) : null}
             </span>
             <span className={styles.rowMeta}>{moneyDisplay(String(order.total))} с</span>
+            <span className={styles.rowGo}>
+              <ChevronRight size={16} strokeWidth={ICON_STROKE} aria-hidden />
+            </span>
           </Link>
         </li>
       ))}

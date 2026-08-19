@@ -33,21 +33,22 @@ export function ownerSecondaryActions(t: (key: string) => string): DashQuickActi
   ];
 }
 
-export function DashQuickActionsDesktop({
-  primary,
+export function DashQuickActions({
+  actions,
 }: {
-  primary: DashQuickAction[];
-  secondary?: DashQuickAction[];
+  actions: DashQuickAction[];
 }) {
   return (
     <ul className={styles.actions}>
-      {primary.slice(0, 4).map((action) => {
+      {actions.slice(0, 4).map((action) => {
         const Icon = action.icon;
         return (
           <li key={action.href}>
             <Link href={action.href} className={styles.action}>
-              <Icon size={18} strokeWidth={ICON_STROKE} aria-hidden />
-              <span className={styles.rowTitle}>{action.label}</span>
+              <span className={styles.well}>
+                <Icon size={18} strokeWidth={ICON_STROKE} aria-hidden />
+              </span>
+              <span className={styles.actionLabel}>{action.label}</span>
             </Link>
           </li>
         );
@@ -56,21 +57,15 @@ export function DashQuickActionsDesktop({
   );
 }
 
+export function DashQuickActionsDesktop({
+  primary,
+}: {
+  primary: DashQuickAction[];
+  secondary?: DashQuickAction[];
+}) {
+  return <DashQuickActions actions={primary} />;
+}
+
 export function DashQuickActionsMobile({ actions }: { actions: DashQuickAction[] }) {
-  return (
-    <ul>
-      {actions.slice(0, 4).map((action) => {
-        const Icon = action.icon;
-        return (
-          <li key={action.href}>
-            <Link href={action.href} className={styles.row}>
-              <Icon size={20} strokeWidth={ICON_STROKE} aria-hidden />
-              <span className={styles.rowTitle}>{action.label}</span>
-              <span className={styles.rowGo}>→</span>
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
-  );
+  return <DashQuickActions actions={actions} />;
 }

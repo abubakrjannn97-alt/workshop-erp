@@ -11,7 +11,7 @@ import {
   countOwnerAttention,
   DashAlertList,
   DashMetricStrip,
-  DashQuickActionsDesktop,
+  DashQuickActions,
   DashRecentOrders,
   DashRecentOrdersAction,
   DashSection,
@@ -90,7 +90,7 @@ export async function DesktopHome() {
   });
 
   return (
-    <div className="page-stack">
+    <div className={styles.home}>
       <PageHeader title={t("home.title")} description={t("home.greetSub")} />
 
       <DashMetricStrip
@@ -103,34 +103,24 @@ export async function DesktopHome() {
       />
 
       <DashSection title={t("home.attention")} tour="home-attention">
-        <DashAlertList
-          alerts={alerts}
-          empty={t("home.noAlerts")}
-          moreLabel={t("home.seeAll")}
-          lessLabel={t("home.hide")}
-          openLabel={t("home.open")}
-        />
+        <DashAlertList alerts={alerts} empty={t("home.noAlerts")} openLabel={t("home.open")} />
+      </DashSection>
+
+      <DashSection title={t("home.quickActions")} tour="home-shortcuts">
+        <DashQuickActions actions={ownerQuickActions(t)} />
       </DashSection>
 
       <div className={styles.split}>
         <DashSection
           title={t("home.recentOrders")}
           tour="home-orders"
-          action={
-            <DashRecentOrdersAction href="/orders?period=month">{t("home.allOrders")} →</DashRecentOrdersAction>
-          }
+          action={<DashRecentOrdersAction href="/orders?period=month">{t("home.allOrders")}</DashRecentOrdersAction>}
         >
-          <DashRecentOrders
-            orders={recentOrders}
-            empty={t("crm.noOrders")}
-            n={n}
-            locale={loc}
-            showDate
-          />
+          <DashRecentOrders orders={recentOrders} empty={t("crm.noOrders")} n={n} locale={loc} showDate />
         </DashSection>
 
         <DashSection title={t("home.funds")}>
-          <ul>
+          <ul className={styles.list}>
             {fundBalances.map((f) => (
               <FundRow
                 key={f.id}
@@ -143,10 +133,6 @@ export async function DesktopHome() {
           </ul>
         </DashSection>
       </div>
-
-      <DashSection title={t("home.quickActions")} tour="home-shortcuts">
-        <DashQuickActionsDesktop primary={ownerQuickActions(t)} />
-      </DashSection>
     </div>
   );
 }

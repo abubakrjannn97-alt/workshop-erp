@@ -6,8 +6,9 @@ export {
 } from "./owner-alerts";
 export { DashAlertList, DashAttentionCounts } from "./dash-alert-list";
 export { DashKpiGrid } from "./dash-kpi-grid";
-export { DashMetricStrip, DashHero, DashSection } from "./dash-metrics";
+export { DashMetricStrip, DashSection } from "./dash-metrics";
 export {
+  DashQuickActions,
   DashQuickActionsDesktop,
   DashQuickActionsMobile,
   ownerQuickActions,

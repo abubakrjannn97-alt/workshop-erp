@@ -1,15 +1,19 @@
 import { prisma } from "@core/infrastructure/prisma";
 import { D, moneyDisplay } from "@core/shared/decimal";
+import { FUND, fundDelta } from "@core/finance/finance";
 import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@core/inventory/alerts";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
+import { FundRow } from "@/components/fund-row";
 import {
+  countOwnerAttention,
   DashAttentionCounts,
-  DashHero,
-  DashQuickActionsMobile,
+  DashMetricStrip,
+  DashQuickActions,
   DashRecentOrders,
   DashSection,
   ownerQuickActions,
 } from "@/components/dashboard/dashboard-system";
+import styles from "@/components/dashboard/dash-home.module.css";
 
 function monthStart() {
   const d = new Date();
@@ -22,7 +26,7 @@ export async function OwnerHome() {
   const { t, n, locale } = await getTranslator();
   const start = monthStart();
 
-  const [unpaid, overdue, lowMaterials, cover, recentOrders, monthOrders] = await Promise.all([
+  const [unpaid, overdue, lowMaterials, cover, recentOrders, monthOrders, funds, entries] = await Promise.all([
     prisma.order.findMany({
       where: { paymentStatus: { in: ["unpaid", "partial"] }, status: { code: { not: "CANCELLED" } } },
       include: { customer: true },
@@ -50,9 +54,12 @@ export async function OwnerHome() {
       where: { createdAt: { gte: start }, status: { code: { not: "CANCELLED" } } },
       include: { payments: true },
     }),
+    prisma.financialFund.findMany({ orderBy: { sortOrder: "asc" } }),
+    prisma.ledgerEntry.findMany({ where: { status: "POSTED" }, orderBy: { createdAt: "desc" } }),
   ]);
   await refreshOwnerAlerts();
 
+  const sold = monthOrders.reduce((s, o) => s.add(String(o.total)), D(0));
   const received = monthOrders.reduce(
     (s, o) => s.add(o.payments.reduce((p, pay) => p.add(String(pay.amount)), D(0))),
     D(0),
@@ -62,30 +69,42 @@ export async function OwnerHome() {
     const onHand = m.stockItems.reduce((s, i) => s.add(i.qtyOnHand), D(0));
     return onHand.lte(m.minStock);
   });
+  const fundBalances = funds.map((f) => ({
+    ...f,
+    balance: entries.reduce((s, e) => s.add(fundDelta(e, f.id)), D(0)),
+  }));
   const loc = intlLocale(locale);
+  const attentionCount = countOwnerAttention({
+    overdueCount: overdue.length,
+    unpaidCount: unpaidDue.length,
+    criticalCount: critical.length,
+    purchaseNeedCount: cover.purchaseNeed.length,
+  });
 
   const attn = [
     overdue.length > 0
-      ? { href: "/orders", label: t("home.attnOrders", { n: String(overdue.length) }) }
+      ? { href: "/orders", count: overdue.length, label: t("home.attnOrdersLabel"), kind: "orders" as const }
       : null,
     unpaidDue.length > 0
-      ? { href: "/orders", label: t("home.attnPay", { n: String(unpaidDue.length) }) }
+      ? { href: "/orders", count: unpaidDue.length, label: t("home.attnPayLabel"), kind: "pay" as const }
       : null,
     critical.length > 0
-      ? { href: "/warehouse", label: t("home.attnStock", { n: String(critical.length) }) }
+      ? { href: "/warehouse", count: critical.length, label: t("home.attnStockLabel"), kind: "stock" as const }
       : null,
     cover.purchaseNeed.length > 0
-      ? { href: "/purchasing", label: t("home.attnBuy", { n: String(cover.purchaseNeed.length) }) }
+      ? { href: "/purchasing", count: cover.purchaseNeed.length, label: t("home.attnBuyLabel"), kind: "buy" as const }
       : null,
-  ].filter((row): row is { href: string; label: string } => row !== null);
+  ].filter((row): row is NonNullable<typeof row> => row !== null);
 
   return (
-    <div className="page-stack">
-      <DashHero
+    <div className={styles.home}>
+      <DashMetricStrip
         tour="home-income"
-        label={t("home.today")}
-        value={`${moneyDisplay(received)} с`}
-        hint={t("home.heroReceived")}
+        metrics={[
+          { id: "sales", label: t("home.sold"), value: `${moneyDisplay(sold)} с`, hint: t("home.period") },
+          { id: "inflow", label: t("home.inflow"), value: `${moneyDisplay(received)} с`, hint: t("home.heroReceived") },
+          { id: "attention", label: t("home.attention"), value: String(attentionCount) },
+        ]}
       />
 
       <DashSection title={t("home.attention")} tour="home-attention">
@@ -93,11 +112,25 @@ export async function OwnerHome() {
       </DashSection>
 
       <DashSection title={t("home.quickActions")} tour="home-shortcuts">
-        <DashQuickActionsMobile actions={ownerQuickActions(t)} />
+        <DashQuickActions actions={ownerQuickActions(t)} />
       </DashSection>
 
       <DashSection title={t("home.recentOrders")} tour="home-orders">
         <DashRecentOrders orders={recentOrders} empty={t("crm.noOrders")} n={n} locale={loc} />
+      </DashSection>
+
+      <DashSection title={t("home.funds")}>
+        <ul className={styles.list}>
+          {fundBalances.map((f) => (
+            <FundRow
+              key={f.id}
+              code={f.code}
+              label={n("fund", f.code, f.name)}
+              amount={`${moneyDisplay(f.balance)} с`}
+              highlight={f.code === FUND.PROFIT}
+            />
+          ))}
+        </ul>
       </DashSection>
     </div>
   );

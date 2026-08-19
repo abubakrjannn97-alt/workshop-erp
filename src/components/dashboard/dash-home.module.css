@@ -1,13 +1,80 @@
+.home {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.panel {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.panelHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px 0;
+}
+
+.panelBody {
+  padding: 8px 20px 16px;
+}
+
+.panelBody .actions {
+  padding: 4px 0 8px;
+}
+
+.home :global(.page-header) {
+  margin-bottom: 0;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--ink-2);
+}
+
+.sectionAction {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  text-decoration: none;
+}
+
+.sectionAction:hover {
+  color: var(--ink);
+}
+
 .metrics {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-areas: "sales inflow attention";
   gap: 0;
-  padding: 4px 0 8px;
+  padding: 20px 24px;
+}
+
+.metricSales {
+  grid-area: sales;
+}
+
+.metricInflow {
+  grid-area: inflow;
+}
+
+.metricAttention {
+  grid-area: attention;
 }
 
 .metric {
   min-width: 0;
-  padding: 4px 24px 4px 0;
+  padding: 0 24px 0 0;
 }
 
 .metric + .metric {
@@ -24,120 +91,102 @@
 }
 
 .metricValue {
-  margin: 4px 0 0;
+  margin: 6px 0 0;
   font-size: 22px;
   font-weight: 600;
   line-height: 28px;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
 }
 
 .metricHint {
-  margin: 2px 0 0;
+  margin: 4px 0 0;
   font-size: 13px;
   line-height: 20px;
   color: var(--ink-3);
 }
 
-.hero {
-  padding: 4px 0 8px;
-}
-
-.heroLabel {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 20px;
-  color: var(--ink-2);
-}
-
-.heroValue {
-  margin: 8px 0 0;
-  font-size: 28px;
-  font-weight: 600;
-  line-height: 36px;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  color: var(--ink);
-}
-
-.heroHint {
-  margin: 4px 0 0;
-  font-size: 15px;
-  line-height: 24px;
-  color: var(--ink-2);
-}
-
-.section {
-  min-width: 0;
-}
-
-.sectionHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-.sectionTitle {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 24px;
-  color: var(--ink);
-}
-
-.sectionAction {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink-2);
-  text-decoration: none;
-}
-
-.sectionAction:hover {
-  color: var(--ink);
-}
-
 .split {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-  gap: 48px;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 24px;
   align-items: start;
 }
 
 .actions {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px 32px;
+  gap: 8px;
+  padding: 8px 12px 16px;
 }
 
 .action {
   display: flex;
-  min-height: 48px;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 10px;
+  min-height: 88px;
+  padding: 12px;
+  border-radius: var(--radius-control);
   color: var(--ink);
   text-decoration: none;
 }
 
+.action:hover {
+  background: var(--surface-2);
+}
+
+.actionLabel {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.well {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.wellWarn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.wellBad {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 .row {
   display: flex;
-  min-height: 48px;
+  min-height: 56px;
   align-items: center;
   gap: 12px;
-  padding: 8px 0;
+  padding: 10px 0;
   border-bottom: 1px solid var(--line);
   color: var(--ink);
   text-decoration: none;
 }
 
+.list > li:last-child .row,
 .row:last-child {
   border-bottom: 0;
 }
 
-.row:hover {
+.row:hover .rowTitle {
   color: var(--ink);
 }
 
@@ -153,7 +202,7 @@
   white-space: nowrap;
   font-size: 15px;
   font-weight: 500;
-  line-height: 24px;
+  line-height: 22px;
 }
 
 .rowWhy {
@@ -175,54 +224,41 @@
 }
 
 .rowGo {
+  display: grid;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink-2);
+  place-items: center;
+  color: var(--ink-3);
 }
 
-.quiet {
-  margin: 0;
-  padding: 12px 0;
-  font-size: 15px;
-  line-height: 24px;
-  color: var(--ink-2);
+.count {
+  flex-shrink: 0;
+  width: 2.25rem;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 28px;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
 }
 
 .empty {
   margin: 0;
-  padding: 8px 0;
+  padding: 12px 0 8px;
   font-size: 15px;
   line-height: 24px;
   color: var(--ink-2);
 }
 
-.fundLabel {
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 15px;
-  line-height: 24px;
-}
-
-.fundAmount {
-  flex-shrink: 0;
-  font-size: 15px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-.fundStrong .fundLabel,
-.fundStrong .fundAmount {
+.fundStrong .rowTitle,
+.fundStrong .rowMeta {
   font-weight: 600;
 }
 
 @media (max-width: 1279px) {
   .split {
     grid-template-columns: 1fr;
-    gap: 32px;
   }
 
   .actions {
@@ -231,14 +267,62 @@
 }
 
 @media (max-width: 1023px) {
-  .metrics {
-    grid-template-columns: 1fr;
+  .home {
     gap: 16px;
+  }
+
+  .panelHead,
+  .panelBody {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .panelHead {
+    padding-top: 14px;
+  }
+
+  .panelBody {
+    padding-bottom: 12px;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "inflow inflow"
+      "sales attention";
+    gap: 16px 20px;
+    padding: 16px;
   }
 
   .metric,
   .metric + .metric {
     padding: 0;
     border: 0;
+  }
+
+  .metricInflow {
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .metricInflow .metricValue {
+    margin-top: 8px;
+    font-size: 28px;
+    line-height: 36px;
+  }
+
+  .actions {
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 4px 8px 12px;
+  }
+
+  .action {
+    min-height: 96px;
+    padding: 12px;
+  }
+
+  .row {
+    min-height: 52px;
   }
 }
