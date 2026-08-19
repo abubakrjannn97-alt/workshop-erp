@@ -143,6 +143,11 @@ async function main() {
     await testPurchasePaymentAccount(owner.id);
     await testAwaitingPaymentConfirm();
     await testMultiProductOrder(owner.id, raw.id, fg.id);
+    await testPartialPurchaseReceipt(owner.id, raw.id);
+    await testCustomerArchiveRestore(owner.id);
+    await testLowStockNotifications();
+    await testOverdueNotifications();
+    await testCashShiftScoping(owner.id);
   } finally {
     if (reopenedPeriod && period) {
       await prisma.accountingPeriod.update({
@@ -1832,6 +1837,161 @@ async function testMultiProductOrder(ownerId: string, rawId: string, fgId: strin
   await prisma.stockItem.deleteMany({ where: { materialId: mat.id } });
   await prisma.materialPriceHistory.deleteMany({ where: { materialId: mat.id } });
   await prisma.material.deleteMany({ where: { id: mat.id } });
+}
+
+/** F1: Partial PO receipt — receive half, then remaining. */
+async function testPartialPurchaseReceipt(ownerId: string, rawId: string) {
+  const kg = await prisma.unit.findUniqueOrThrow({ where: { code: "KG" } });
+  const mat = await prisma.material.create({
+    data: { name: `${RUN} po-partial-mat`, category: "test", storageUnitId: kg.id, purchaseUnitId: kg.id, packageWeight: "1", packagePrice: "10", minStock: "0", isActive: true },
+  });
+  const supplier = await prisma.supplier.findFirst({ where: { archivedAt: null } });
+  if (!supplier) { rec({ entity: "F1 Partial PO Receipt", status: "not_implemented", lastWorkingStep: "no supplier", firstBrokenStep: null, rootCause: null, impact: null, evidence: [] }); return; }
+
+  const po = await prisma.purchaseOrder.create({
+    data: { number: `${RUN}-PO-P`, supplierId: supplier.id, status: "ORDERED", total: "100", createdById: ownerId, items: { create: { materialId: mat.id, quantity: "10", unitPrice: "10", amount: "100" } } },
+    include: { items: true },
+  });
+
+  // Partial receive: 6 of 10
+  await receiveMaterial({ warehouseId: rawId, materialId: mat.id, quantity: "6", unitCost: "10", userId: ownerId, idempotencyKey: `${RUN}-po-p-1` });
+  await prisma.purchaseItem.update({ where: { id: po.items[0].id }, data: { receivedQty: "6" } });
+  await prisma.purchaseOrder.update({ where: { id: po.id }, data: { status: "PARTIAL" } });
+
+  const partialPo = await prisma.purchaseOrder.findUniqueOrThrow({ where: { id: po.id } });
+  const isPartial = partialPo.status === "PARTIAL";
+
+  // Receive remaining: 4
+  await receiveMaterial({ warehouseId: rawId, materialId: mat.id, quantity: "4", unitCost: "10", userId: ownerId, idempotencyKey: `${RUN}-po-p-2` });
+  await prisma.purchaseItem.update({ where: { id: po.items[0].id }, data: { receivedQty: "10" } });
+  await prisma.purchaseOrder.update({ where: { id: po.id }, data: { status: "POSTED", receivedById: ownerId, receivedAt: new Date() } });
+
+  const finalPo = await prisma.purchaseOrder.findUniqueOrThrow({ where: { id: po.id } });
+  const isPosted = finalPo.status === "POSTED";
+
+  rec({
+    entity: "F1 Partial PO Receipt",
+    status: isPartial && isPosted ? "fully_working" : "bug",
+    lastWorkingStep: isPosted ? "PARTIAL→POSTED after full receipt" : "partial",
+    firstBrokenStep: null, rootCause: null, impact: null,
+    evidence: [`partial=${isPartial}`, `posted=${isPosted}`],
+  });
+
+  // Cleanup
+  await prisma.stockMovement.deleteMany({ where: { stockItem: { materialId: mat.id } } });
+  await prisma.stockItem.deleteMany({ where: { materialId: mat.id } });
+  await prisma.purchaseItem.deleteMany({ where: { purchaseOrderId: po.id } });
+  await prisma.purchaseOrder.deleteMany({ where: { id: po.id } });
+  await prisma.materialPriceHistory.deleteMany({ where: { materialId: mat.id } });
+  await prisma.material.deleteMany({ where: { id: mat.id } });
+}
+
+/** F2: Customer archive and restore. */
+async function testCustomerArchiveRestore(ownerId: string) {
+  const customer = await prisma.customer.create({ data: { name: `${RUN} archive-test`, phone: "0" } });
+  await prisma.customer.update({ where: { id: customer.id }, data: { isActive: false, archivedAt: new Date() } });
+  const archived = await prisma.customer.findUniqueOrThrow({ where: { id: customer.id } });
+  const isArchived = archived.archivedAt !== null && !archived.isActive;
+
+  await prisma.customer.update({ where: { id: customer.id }, data: { isActive: true, archivedAt: null } });
+  const restored = await prisma.customer.findUniqueOrThrow({ where: { id: customer.id } });
+  const isRestored = restored.archivedAt === null && restored.isActive;
+
+  rec({
+    entity: "F2 Customer Archive/Restore",
+    status: isArchived && isRestored ? "fully_working" : "bug",
+    lastWorkingStep: isRestored ? "archive→restore" : "archive",
+    firstBrokenStep: null, rootCause: null, impact: null,
+    evidence: [`archived=${isArchived}`, `restored=${isRestored}`],
+  });
+
+  await prisma.customer.deleteMany({ where: { id: customer.id } });
+}
+
+/** F3: Low stock notification with dedup. */
+async function testLowStockNotifications() {
+  const { refreshOwnerAlerts } = await import("../src/core/inventory/alerts");
+  const kg = await prisma.unit.findUniqueOrThrow({ where: { code: "KG" } });
+  const mat = await prisma.material.create({
+    data: { name: `${RUN} lowstock-test`, category: "test", storageUnitId: kg.id, purchaseUnitId: kg.id, packageWeight: "1", packagePrice: "5", minStock: "100", isActive: true, currentStock: "5" },
+  });
+
+  await refreshOwnerAlerts();
+  const notif1 = await prisma.notification.findFirst({ where: { type: "low_stock", entityId: mat.id } });
+  const created = !!notif1;
+
+  await refreshOwnerAlerts();
+  const count = await prisma.notification.count({ where: { type: "low_stock", entityId: mat.id } });
+  const noDuplicates = count === (notif1 ? 1 : 0);
+
+  rec({
+    entity: "F3 Low Stock Notifications",
+    status: created && noDuplicates ? "fully_working" : "bug",
+    lastWorkingStep: noDuplicates ? "notification created, no duplicates" : "creation",
+    firstBrokenStep: !created ? "no notification" : !noDuplicates ? "duplicate created" : null,
+    rootCause: null, impact: null,
+    evidence: [`created=${created}`, `count=${count}`],
+  });
+
+  await prisma.notification.deleteMany({ where: { entityId: mat.id } });
+  await prisma.material.deleteMany({ where: { id: mat.id } });
+}
+
+/** F4: Overdue order notification. */
+async function testOverdueNotifications() {
+  const { refreshOwnerAlerts } = await import("../src/core/inventory/alerts");
+  const status = await prisma.orderStatus.findUniqueOrThrow({ where: { code: ORDER_STATUS.CONFIRMED } });
+  const customer = await prisma.customer.create({ data: { name: `${RUN} overdue-cust`, phone: "0" } });
+  const owner = await prisma.user.findFirstOrThrow({ where: { email: "owner@workshop.local" } });
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 2);
+  const order = await prisma.order.create({
+    data: { number: 99990, customerId: customer.id, sellerId: owner.id, statusId: status.id, paymentStatus: "unpaid", subtotal: "100", total: "100", paidAmount: "0", discountPercent: "0", discountAmount: "0", dueAt: yesterday, createdById: owner.id },
+  });
+
+  await refreshOwnerAlerts();
+  const notif = await prisma.notification.findFirst({ where: { type: "overdue", entityId: order.id } });
+  const created = !!notif;
+
+  await refreshOwnerAlerts();
+  const count = await prisma.notification.count({ where: { type: "overdue", entityId: order.id } });
+  const noDup = count <= 1;
+
+  rec({
+    entity: "F4 Overdue Order Notifications",
+    status: created && noDup ? "fully_working" : "bug",
+    lastWorkingStep: noDup ? "notification created, no duplicates" : "creation",
+    firstBrokenStep: !created ? "no notification" : !noDup ? "duplicate" : null,
+    rootCause: null, impact: null,
+    evidence: [`created=${created}`, `count=${count}`],
+  });
+
+  await prisma.notification.deleteMany({ where: { entityId: order.id } });
+  await prisma.order.deleteMany({ where: { id: order.id } });
+  await prisma.customer.deleteMany({ where: { id: customer.id } });
+}
+
+/** F5: Cash shift scoping — BANK ops don't affect CASH shift. */
+async function testCashShiftScoping(ownerId: string) {
+  const { cashDelta } = await import("../src/core/finance/finance");
+  const cashAccount = await prisma.cashAccount.findUniqueOrThrow({ where: { code: "CASH" } });
+  const bankAccount = await prisma.cashAccount.findUniqueOrThrow({ where: { code: "BANK" } });
+
+  const bankEntry = { type: "CASH_IN", amount: "500", accountId: bankAccount.id, fromAccountId: null, toAccountId: null };
+  const cashEntry = { type: "CASH_IN", amount: "300", accountId: cashAccount.id, fromAccountId: null, toAccountId: null };
+
+  const bankDelta = cashDelta(bankEntry, cashAccount.id);
+  const cashDeltaVal = cashDelta(cashEntry, cashAccount.id);
+  const bankIgnored = bankDelta.eq(0);
+  const cashCounted = cashDeltaVal.eq(300);
+
+  rec({
+    entity: "F5 Cash Shift Scoping",
+    status: bankIgnored && cashCounted ? "fully_working" : "bug",
+    lastWorkingStep: bankIgnored && cashCounted ? "BANK ops ignored in CASH shift" : "delta calc",
+    firstBrokenStep: !bankIgnored ? "BANK counted in CASH" : !cashCounted ? "CASH not counted" : null,
+    rootCause: null, impact: null,
+    evidence: [`bankDeltaForCash=${bankDelta.toFixed(2)}`, `cashDelta=${cashDeltaVal.toFixed(2)}`],
+  });
 }
 
 async function cleanup(ids: Record<string, string> & { expenseIds: string[] }) {

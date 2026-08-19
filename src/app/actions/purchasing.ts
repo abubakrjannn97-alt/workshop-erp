@@ -99,33 +99,57 @@ export async function receivePurchaseOrder(formData: FormData) {
     where: { id },
     include: { items: { include: { material: true } } },
   });
-  if (!order || (order.status !== "ORDERED" && order.status !== "REQUEST")) {
+  if (!order || (order.status !== "ORDERED" && order.status !== "REQUEST" && order.status !== "PARTIAL")) {
     return { error: "Заказ нельзя принять." };
   }
 
   const raw = await findRawWarehouse();
   if (!raw) return { error: "Склад сырья не найден." };
 
+  const receiveQtys = formData.getAll("receiveQty").map(String);
+  const itemIds = formData.getAll("itemId").map(String);
+  const hasPartialInput = receiveQtys.length > 0 && itemIds.length > 0;
+
   try {
     await prisma.$transaction(async (tx) => {
-      for (const item of order.items) {
+      let allFullyReceived = true;
+      for (let idx = 0; idx < order.items.length; idx++) {
+        const item = order.items[idx];
+        const remaining = D(String(item.quantity)).sub(String(item.receivedQty));
+        if (remaining.lte(0)) continue;
+
+        let receiveNow = remaining;
+        if (hasPartialInput) {
+          const itemIdx = itemIds.indexOf(item.id);
+          if (itemIdx === -1) { allFullyReceived = false; continue; }
+          const raw = receiveQtys[itemIdx] ?? "";
+          if (!raw || D(raw).lte(0)) { allFullyReceived = false; continue; }
+          receiveNow = D(raw);
+          if (receiveNow.gt(remaining)) {
+            throw new Error(`Нельзя принять больше остатка (${qty(remaining)}) для ${item.material.name}.`);
+          }
+        }
+
+        const newReceived = D(String(item.receivedQty)).add(receiveNow);
+        if (newReceived.lt(item.quantity)) allFullyReceived = false;
+
         await receiveMaterial(
           {
             warehouseId: raw.id,
             materialId: item.materialId,
-            quantity: qty(item.quantity),
+            quantity: qty(receiveNow),
             unitCost: qty(item.unitPrice),
             userId: session.user.id,
             reason: "Приход от поставщика",
             relatedType: "purchase_order",
             relatedId: order.id,
-            idempotencyKey: `${order.id}:${item.id}:receive`,
+            idempotencyKey: `${order.id}:${item.id}:receive:${money(newReceived)}`,
           },
           tx,
         );
         await tx.purchaseItem.update({
           where: { id: item.id },
-          data: { receivedQty: item.quantity },
+          data: { receivedQty: qty(newReceived) },
         });
         await tx.materialPriceHistory.updateMany({
           where: { materialId: item.materialId, validTo: null },
@@ -146,9 +170,13 @@ export async function receivePurchaseOrder(formData: FormData) {
           data: { packagePrice: money(packagePrice) },
         });
       }
+      const nextStatus = allFullyReceived ? "POSTED" : "PARTIAL";
       await tx.purchaseOrder.update({
         where: { id },
-        data: { status: "POSTED", receivedById: session.user.id, receivedAt: new Date() },
+        data: {
+          status: nextStatus,
+          ...(allFullyReceived ? { receivedById: session.user.id, receivedAt: new Date() } : {}),
+        },
       });
     });
   } catch (error) {

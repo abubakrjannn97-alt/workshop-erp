@@ -110,3 +110,21 @@ export async function archiveCustomer(formData: FormData) {
   revalidatePath("/crm");
   return { ok: true };
 }
+
+export async function restoreCustomer(formData: FormData) {
+  const session = await requirePermission("crm.manage");
+  const id = String(formData.get("id") ?? "");
+  await prisma.customer.update({
+    where: { id },
+    data: { isActive: true, archivedAt: null },
+  });
+  await writeAudit({
+    userId: session.user.id,
+    action: "customer.restore",
+    entityType: "customer",
+    entityId: id,
+  });
+  revalidatePath("/crm");
+  revalidatePath(`/crm/customers/${id}`);
+  return { ok: true };
+}

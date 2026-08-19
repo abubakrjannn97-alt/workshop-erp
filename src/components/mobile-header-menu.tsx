@@ -89,12 +89,9 @@ export function MobileHeaderMenu({
           </button>
         </div>
 
-        <section className={styles.card}>
-          <h2 className={styles.sectionTitle}>{t("lang.switch")}</h2>
-          <div className={styles.langRow}>
-            <LanguageSwitcher locale={locale} />
-          </div>
-        </section>
+        <div className={styles.langPill}>
+          <LanguageSwitcher locale={locale} />
+        </div>
 
         {quickActions.length > 0 ? (
           <section className={styles.card}>

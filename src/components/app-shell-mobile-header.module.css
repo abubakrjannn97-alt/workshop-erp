@@ -1,4 +1,6 @@
 .bar {
+  position: relative;
+  z-index: 112;
   display: grid;
   grid-template-columns: var(--mobile-header-btn) 1fr var(--mobile-header-btn);
   align-items: center;
@@ -13,6 +15,8 @@
 }
 
 .menuBtn {
+  position: relative;
+  z-index: 1;
   display: flex;
   width: var(--mobile-header-btn);
   height: var(--mobile-header-btn);
@@ -23,6 +27,7 @@
   border: none;
   cursor: pointer;
   padding: 0;
+  touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
 
