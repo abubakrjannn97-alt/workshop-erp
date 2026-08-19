@@ -1,12 +1,12 @@
 import Link from "next/link";
+import { Factory, Layers, Trash2 } from "lucide-react";
 import { prisma } from "@core/infrastructure/prisma";
 import { qtyDisplay } from "@core/shared/decimal";
 import { getTranslator } from "@core/shared/i18n/locale";
 import { getDomainConfig } from "@core/config/domain-config";
 import { PageHeader } from "@/components/page-header";
-import { KpiCard } from "@/components/kpi-card";
 import { DashPanel } from "@/components/dash-panel";
-import { DashKpiGrid } from "@/components/dashboard/dashboard-system";
+import { DashMetricStrip } from "@/components/dashboard/dashboard-system";
 import { RevealList } from "@/components/reveal-list";
 
 export async function ProductionHome() {
@@ -36,11 +36,36 @@ export async function ProductionHome() {
   return (
     <div className="page-stack">
       <PageHeader title={t("nav.home")} />
-      <DashKpiGrid cols="3" tour="home-kpis">
-        <KpiCard href="/production" label={t("dash.openJobs")} value={String(openJobs.length)} tone="ink" />
-        <KpiCard href="/production/batches" label={t("nav.batches")} value={String(openBatches)} tone="ink" />
-        <KpiCard href="/production/scrap" label={t("nav.scrap")} value={`${qtyDisplay(scrap._sum.quantity ?? 0)} ${outputUnitSymbol}`} tone="out" />
-      </DashKpiGrid>
+      <DashMetricStrip
+        variant="compact"
+        tour="home-kpis"
+        metrics={[
+          {
+            id: "jobs",
+            tone: "blue",
+            icon: Factory,
+            label: t("dash.openJobs"),
+            value: String(openJobs.length),
+            href: "/production",
+          },
+          {
+            id: "batches",
+            tone: "purple",
+            icon: Layers,
+            label: t("nav.batches"),
+            value: String(openBatches),
+            href: "/production/batches",
+          },
+          {
+            id: "scrap",
+            tone: "orange",
+            icon: Trash2,
+            label: t("nav.scrap"),
+            value: `${qtyDisplay(scrap._sum.quantity ?? 0)} ${outputUnitSymbol}`,
+            href: "/production/scrap",
+          },
+        ]}
+      />
       {overdue.length > 0 ? (
         <DashPanel title={t("home.alert.overdue")}>
           <ul className="ui-list">

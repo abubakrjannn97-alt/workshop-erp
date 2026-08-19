@@ -361,6 +361,7 @@ export function moreGroupsForRole(roleCode: string, permissions: string[]): NavG
 
 function pathMatches(path: string, href: string) {
   if (href === "/") return path === "/";
+  if (href === "/me") return path === "/me";
   return path === href || path.startsWith(`${href}/`);
 }
 

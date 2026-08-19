@@ -1,11 +1,11 @@
+import { Receipt, Wallet } from "lucide-react";
 import { prisma } from "@core/infrastructure/prisma";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { FUND, fundDelta, LEDGER } from "@core/finance/finance";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import { PageHeader } from "@/components/page-header";
-import { KpiCard } from "@/components/kpi-card";
 import { DashPanel } from "@/components/dash-panel";
-import { DashKpiGrid } from "@/components/dashboard/dashboard-system";
+import { DashMetricStrip } from "@/components/dashboard/dashboard-system";
 import { RevealList } from "@/components/reveal-list";
 
 export async function AccountantHome() {
@@ -36,10 +36,28 @@ export async function AccountantHome() {
   return (
     <div className="page-stack">
       <PageHeader title={t("nav.home")} />
-      <DashKpiGrid cols="2" tour="home-kpis">
-        <KpiCard href="/finance/expenses" label={t("fin.monthExpenses")} value={`${moneyDisplay(monthExp)} с`} tone="out" />
-        <KpiCard href="/finance" label={t("fin.supplierDebt")} value={`${moneyDisplay(supplierDebt)} с`} tone="out" />
-      </DashKpiGrid>
+      <DashMetricStrip
+        variant="compact"
+        tour="home-kpis"
+        metrics={[
+          {
+            id: "expenses",
+            tone: "orange",
+            icon: Receipt,
+            label: t("fin.monthExpenses"),
+            value: `${moneyDisplay(monthExp)} с`,
+            href: "/finance/expenses",
+          },
+          {
+            id: "debt",
+            tone: "blue",
+            icon: Wallet,
+            label: t("fin.supplierDebt"),
+            value: `${moneyDisplay(supplierDebt)} с`,
+            href: "/finance",
+          },
+        ]}
+      />
       <DashPanel title={t("dash.threeFunds")} tour="home-work">
         <ul className="ui-list">
           {fundBalances.map((f) => (

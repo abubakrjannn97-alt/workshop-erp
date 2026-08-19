@@ -1,3 +1,5 @@
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { hasPermission, usesWorkerMobileExperience } from "@core/rbac/permissions";
 import { requireSession } from "@core/auth/authz";
 import { DesktopHome } from "@/components/dashboards/desktop-home";
@@ -7,7 +9,10 @@ import { SalesHome } from "@/components/dashboards/sales-home";
 import { WarehouseHome } from "@/components/dashboards/warehouse-home";
 import { AccountantHome } from "@/components/dashboards/accountant-home";
 import { ProductionHome } from "@/components/dashboards/production-home";
-import { MobileWorkerGate } from "@/components/mobile-worker-gate";
+
+function isMobileUserAgent(ua: string) {
+  return /Mobile|Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+}
 
 function MobileRoleHome({
   role,
@@ -51,18 +56,19 @@ export default async function HomePage({
   const role = session.user.roleCode;
   const perms = session.user.permissions;
   const { fp } = await searchParams;
-  const workerMobile = usesWorkerMobileExperience(role, perms);
+  const ua = (await headers()).get("user-agent") ?? "";
+
+  if (role === "worker" || (usesWorkerMobileExperience(role, perms) && isMobileUserAgent(ua))) {
+    redirect("/me");
+  }
 
   return (
     <>
-      {workerMobile ? <MobileWorkerGate /> : null}
       <div className="hidden lg:block">
         <DesktopHome />
       </div>
       <div className="lg:hidden">
-        {workerMobile ? null : (
-          <MobileRoleHome role={role} perms={perms} financePeriod={fp} />
-        )}
+        <MobileRoleHome role={role} perms={perms} financePeriod={fp} />
       </div>
     </>
   );

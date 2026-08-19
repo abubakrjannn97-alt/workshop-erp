@@ -1,13 +1,13 @@
 import Link from "next/link";
+import { TrendingUp, Wallet, Users, UserCircle } from "lucide-react";
 import { prisma } from "@core/infrastructure/prisma";
 import { requireSession } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { periodKey, periodRange } from "@core/payroll/payroll";
 import { getTranslator } from "@core/shared/i18n/locale";
-import { KpiCard } from "@/components/kpi-card";
 import { PageHeader } from "@/components/page-header";
 import { DashPanel } from "@/components/dash-panel";
-import { DashKpiGrid } from "@/components/dashboard/dashboard-system";
+import { DashMetricStrip } from "@/components/dashboard/dashboard-system";
 import { RevealList } from "@/components/reveal-list";
 import {
   DataList,
@@ -57,12 +57,45 @@ export async function SalesHome() {
   return (
     <div className="page-stack">
       <PageHeader title={t("nav.home")} description={t("me.commissionHint")} />
-      <DashKpiGrid cols="2" tour="home-kpis">
-        <KpiCard href="/orders" label={t("dash.planFact")} value={`${moneyDisplay(paid)} / ${moneyDisplay(fact)} с`} hint={t("home.period")} tone="in" />
-        <KpiCard href="/me/commission" label={t("me.earned")} value={`${moneyDisplay(earned)} с`} tone="in" />
-        <KpiCard href="/crm" label={t("dash.myLeads")} value={String(leads.length)} tone="ink" />
-        <KpiCard href="/crm" label={t("dash.myClients")} value={String(customers.length)} tone="ink" />
-      </DashKpiGrid>
+      <DashMetricStrip
+        variant="compact"
+        tour="home-kpis"
+        metrics={[
+          {
+            id: "plan-fact",
+            tone: "orange",
+            icon: TrendingUp,
+            label: t("dash.planFact"),
+            value: `${moneyDisplay(paid)} / ${moneyDisplay(fact)} с`,
+            hint: t("home.period"),
+            href: "/orders",
+          },
+          {
+            id: "earned",
+            tone: "green",
+            icon: Wallet,
+            label: t("me.earned"),
+            value: `${moneyDisplay(earned)} с`,
+            href: "/me/commission",
+          },
+          {
+            id: "leads",
+            tone: "blue",
+            icon: Users,
+            label: t("dash.myLeads"),
+            value: String(leads.length),
+            href: "/crm",
+          },
+          {
+            id: "clients",
+            tone: "purple",
+            icon: UserCircle,
+            label: t("dash.myClients"),
+            value: String(customers.length),
+            href: "/crm",
+          },
+        ]}
+      />
       <DashPanel title={t("dash.myLeads")} tour="home-work">
         {leads.length === 0 ? (
           <DataListEmpty>{t("common.empty")}</DataListEmpty>

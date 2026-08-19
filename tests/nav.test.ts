@@ -61,4 +61,12 @@ describe("mobile nav by role", () => {
     assert.equal(isTabActive("/settings", more, tabs), true);
     assert.equal(isTabActive("/orders/abc", more, tabs), false);
   });
+
+  it("jobs tab is not active on /me/history", () => {
+    const tabs = bottomTabsForRole("worker", ROLE_PERMISSIONS.worker);
+    const jobs = tabs.find((t) => t.id === "jobs")!;
+    const history = tabs.find((t) => t.id === "history")!;
+    assert.equal(isTabActive("/me/history", history, tabs), true);
+    assert.equal(isTabActive("/me/history", jobs, tabs), false);
+  });
 });

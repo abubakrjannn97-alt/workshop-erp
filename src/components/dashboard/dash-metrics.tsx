@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import styles from "./dash-home.module.css";
 
@@ -12,6 +13,7 @@ export type DashMetric = {
   hintTone?: "positive" | "negative" | "neutral";
   tone: DashMetricTone;
   icon: LucideIcon;
+  href?: string;
 };
 
 const TONE_CLASS: Record<DashMetricTone, string> = {
@@ -40,9 +42,8 @@ export function DashMetricStrip({
     >
       {metrics.map((metric) => {
         const Icon = metric.icon;
-        return (
+        const card = (
           <article
-            key={metric.id}
             className={`${compact ? styles.kpiCardCompact : styles.kpiCard} ${TONE_CLASS[metric.tone]}`}
           >
             {!compact ? <span className={styles.kpiScenery} aria-hidden /> : null}
@@ -100,6 +101,16 @@ export function DashMetricStrip({
               </>
             )}
           </article>
+        );
+
+        return metric.href ? (
+          <Link key={metric.id} href={metric.href} className="block min-w-0 no-underline">
+            {card}
+          </Link>
+        ) : (
+          <div key={metric.id} className="min-w-0">
+            {card}
+          </div>
         );
       })}
     </section>

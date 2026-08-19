@@ -1,12 +1,12 @@
 import Link from "next/link";
+import { AlertTriangle, ShoppingCart } from "lucide-react";
 import { prisma } from "@core/infrastructure/prisma";
 import { D, qtyDisplay } from "@core/shared/decimal";
 import { coverageAndPurchaseNeed } from "@core/inventory/alerts";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import { PageHeader } from "@/components/page-header";
-import { KpiCard } from "@/components/kpi-card";
 import { DashPanel } from "@/components/dash-panel";
-import { DashKpiGrid } from "@/components/dashboard/dashboard-system";
+import { DashMetricStrip } from "@/components/dashboard/dashboard-system";
 import { RevealList } from "@/components/reveal-list";
 
 export async function WarehouseHome() {
@@ -32,10 +32,28 @@ export async function WarehouseHome() {
   return (
     <div className="page-stack">
       <PageHeader title={t("nav.home")} />
-      <DashKpiGrid cols="2" tour="home-kpis">
-        <KpiCard href="/warehouse" label={t("home.alert.stock")} value={String(low.length)} tone="out" />
-        <KpiCard href="/purchasing" label={t("home.alert.purchase")} value={String(cover.purchaseNeed.length)} tone="out" />
-      </DashKpiGrid>
+      <DashMetricStrip
+        variant="compact"
+        tour="home-kpis"
+        metrics={[
+          {
+            id: "stock",
+            tone: "orange",
+            icon: AlertTriangle,
+            label: t("home.alert.stock"),
+            value: String(low.length),
+            href: "/warehouse",
+          },
+          {
+            id: "purchase",
+            tone: "blue",
+            icon: ShoppingCart,
+            label: t("home.alert.purchase"),
+            value: String(cover.purchaseNeed.length),
+            href: "/purchasing",
+          },
+        ]}
+      />
       <DashPanel title={t("home.alert.stock")} tour="home-work">
         {low.length === 0 && cover.purchaseNeed.length === 0 ? (
           <p className="text-sm text-[var(--color-text-muted)]">{t("home.noAlerts")}</p>

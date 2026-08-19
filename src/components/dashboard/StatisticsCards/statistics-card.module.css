@@ -157,21 +157,35 @@
 
 @media (max-width: 1023px) {
   .stat-card {
-    padding: 12px;
+    min-height: 145px;
+    padding: 16px 14px 14px;
+    border-radius: 18px;
+    border: 1px solid var(--mobile-glass-border);
+    background: var(--mobile-glass);
+    box-shadow: var(--mobile-glass-shadow);
+    backdrop-filter: blur(var(--mobile-glass-blur));
+    -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
   }
 
   .stat-card__title {
     white-space: normal;
     overflow: visible;
     text-overflow: unset;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 18px;
   }
 
   .stat-card__value {
-    font-size: 20px;
-    line-height: 26px;
+    font-size: 28px;
+    line-height: 34px;
+    font-weight: 600;
   }
 
   .stat-card__subtitle {
     white-space: normal;
+    font-size: 12px;
+    line-height: 18px;
+    color: #64748b;
   }
 }

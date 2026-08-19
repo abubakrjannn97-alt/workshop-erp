@@ -1,6 +1,6 @@
 "use client";
 
-import { LOST_REASONS } from "@core/orders/orders";
+import { LOST_REASONS } from "@core/orders/order-constants";
 import { createT, named, type Locale } from "@core/shared/i18n/i18n";
 
 type Stage = { id: string; code: string; name: string; isLost: boolean };
