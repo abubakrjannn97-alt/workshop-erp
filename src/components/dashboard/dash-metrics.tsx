@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import { KpiMountain } from "@/components/dashboard/kpi-mountain";
 import styles from "./dash-home.module.css";
 
 export type DashMetricTone = "orange" | "green" | "blue" | "purple";
@@ -48,6 +49,7 @@ export function DashMetricStrip({
             {!compact ? <span className={styles.kpiScenery} aria-hidden /> : null}
             {compact ? (
               <>
+                <KpiMountain />
                 <div className={styles.kpiHeadCompact}>
                   <span className={styles.kpiIconCompact} aria-hidden>
                     <Icon size={18} strokeWidth={1.75} />
@@ -113,6 +115,7 @@ export function DashSection({
   children,
   flush,
   footer,
+  mobile,
 }: {
   title: string;
   action?: ReactNode;
@@ -120,9 +123,13 @@ export function DashSection({
   children: ReactNode;
   flush?: boolean;
   footer?: ReactNode;
+  mobile?: boolean;
 }) {
   return (
-    <section className={styles.panel} data-tour={tour}>
+    <section
+      className={`${styles.panel} ${mobile ? styles.panelMobile : ""}`.trim()}
+      data-tour={tour}
+    >
       <div className={styles.panelHead}>
         <h2 className={styles.sectionTitle}>{title}</h2>
         {action}

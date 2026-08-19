@@ -45,12 +45,16 @@
 }
 
 .tabActive {
-  color: var(--accent);
-  background: transparent;
+  color: #9a7b3c;
 }
 
-.tabActive::before {
-  display: none;
+.tabActive .iconWrap {
+  width: 44px;
+  height: 32px;
+  border-radius: 10px;
+  background: linear-gradient(145deg, #f6edd8 0%, #ead9b0 100%);
+  color: #8b6914;
+  box-shadow: 0 2px 8px rgba(184, 149, 74, 0.18);
 }
 
 .iconWrap {
@@ -60,10 +64,7 @@
   align-items: center;
   justify-content: center;
   color: inherit;
-}
-
-.tabActive .iconWrap {
-  color: var(--accent);
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
 }
 
 .label {

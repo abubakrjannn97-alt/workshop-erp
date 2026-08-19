@@ -7,9 +7,9 @@ import {
   DashMetricStrip,
   DashQuickActions,
   DashRecentOrders,
-  DashRecentOrdersAction,
+  DashRecentOrdersFooterLink,
   DashSection,
-  ownerDesktopQuickActions,
+  ownerMobileQuickActions,
 } from "@/components/dashboard/dashboard-system";
 import { fetchOwnerOperationalKpis, formatFgQty } from "@/components/dashboard/owner-kpi-data";
 import styles from "@/components/dashboard/dash-home.module.css";
@@ -90,17 +90,25 @@ export async function MobileOwnerHome() {
         ]}
       />
 
-      <DashSection title={t("home.quickActions")} tour="home-shortcuts" flush>
-        <DashQuickActions actions={ownerDesktopQuickActions(t)} layout="mobile" />
+      <DashSection title={t("home.quickActions")} tour="home-shortcuts" flush mobile>
+        <DashQuickActions actions={ownerMobileQuickActions(t)} layout="mobileStrip" />
       </DashSection>
 
-      <DashSection
-        title={t("home.ordersToday")}
-        tour="home-orders"
-        action={<DashRecentOrdersAction href="/orders?period=month">{t("home.allOrders")}</DashRecentOrdersAction>}
-      >
-        <DashRecentOrders orders={recentOrders} empty={t("crm.noOrders")} n={n} locale={loc} layout="list" />
+      <DashSection title={t("home.recentOrders")} tour="home-orders" mobile>
+        <DashRecentOrders
+          orders={recentOrders}
+          empty={t("crm.noOrders")}
+          n={n}
+          locale={loc}
+          layout="mobileCards"
+        />
       </DashSection>
+
+      <div className={styles.mobileFooterLink}>
+        <DashRecentOrdersFooterLink href="/orders?period=month">
+          {t("home.viewAllOrders")}
+        </DashRecentOrdersFooterLink>
+      </div>
     </div>
   );
 }

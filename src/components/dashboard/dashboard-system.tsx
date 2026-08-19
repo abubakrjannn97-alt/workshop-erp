@@ -14,6 +14,7 @@ export {
   DashQuickActionsMobile,
   ownerQuickActions,
   ownerDesktopQuickActions,
+  ownerMobileQuickActions,
   ownerSecondaryActions,
   type DashQuickAction,
 } from "./dash-quick-actions";

@@ -1,33 +1,31 @@
-import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
-import Link from "next/link";
+import { getTranslator } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { hasPermission } from "@core/auth/authz";
-import { D, moneyDisplay } from "@core/shared/decimal";
+import { moneyDisplay } from "@core/shared/decimal";
 import { orderNo } from "@core/shared/format";
 import {
   ORDERS_PAGE_SIZE,
   buildOrdersQuery,
-  orderPeriodLabel,
   resolveOrderDateRange,
 } from "@core/shared/order-period";
-import { PageHeader } from "@/components/page-header";
-import { DashKpiGrid } from "@/components/dashboard/dashboard-system";
-import {
-  DataList,
-  DataListEmpty,
-  DataListHead,
-  DataListHeadCell,
-  DataListMetric,
-  DataListPrimary,
-  DataListRow,
-  DataListCell,
-  DataTableSection,
-  dataListStyles,
-} from "@/components/data-table";
-import { ModuleToolbar } from "@/components/module/module-ui";
 import { Segmented } from "@/components/segmented";
-import { StatusBadge, orderTone } from "@/components/status-badge";
+import {
+  OrdersEmpty,
+  OrdersFilterToolbar,
+  OrdersListPanel,
+  OrdersPageHeader,
+  type OrderListItem,
+} from "./orders-ui";
+import styles from "./orders.module.css";
+
+const STATUS_BUCKETS = [
+  { code: undefined, labelKey: "orders.bucketAll" },
+  { code: "CONFIRMED", labelKey: "orders.bucketInWork" },
+  { code: "IN_PRODUCTION", labelKey: "orders.bucketProduction" },
+  { code: "IN_FG", labelKey: "orders.bucketReady" },
+  { code: "COMPLETED", labelKey: "orders.bucketDone" },
+] as const;
 
 export default async function OrdersPage({
   searchParams,
@@ -41,7 +39,7 @@ export default async function OrdersPage({
     page?: string;
   }>;
 }) {
-  const { t, locale, n } = await getTranslator();
+  const { t, n } = await getTranslator();
   const session = await requirePermission("orders.view");
   const params = await searchParams;
   const { q, status, from: fromRaw, to: toRaw, page: pageRaw } = params;
@@ -74,23 +72,24 @@ export default async function OrdersPage({
         : {}),
   };
 
-  const [orders, total, statuses, agg] = await Promise.all([
+  const [orders, total, statuses] = await Promise.all([
     prisma.order.findMany({
       where,
-      include: { customer: true, seller: true, status: true },
+      include: {
+        customer: true,
+        seller: true,
+        status: true,
+        items: { include: { product: true }, orderBy: { id: "asc" }, take: 3 },
+      },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * ORDERS_PAGE_SIZE,
       take: ORDERS_PAGE_SIZE,
     }),
     prisma.order.count({ where }),
     prisma.orderStatus.findMany({ orderBy: { sortOrder: "asc" } }),
-    prisma.order.aggregate({ where, _sum: { total: true } }),
   ]);
 
-  const totalSum = D(String(agg._sum.total ?? 0));
   const totalPages = Math.max(1, Math.ceil(total / ORDERS_PAGE_SIZE));
-  const loc = intlLocale(locale);
-  const periodLabel = orderPeriodLabel(resolvedPeriod, t, from, to);
 
   const baseQuery = {
     q: q?.trim() || undefined,
@@ -100,165 +99,103 @@ export default async function OrdersPage({
     to: toRaw || undefined,
   };
 
+  const statusLabel = (code: string, name: string) => n("ostatus", code, name);
+  const productMoreLabel = (extra: number) => t("orders.productMore", { n: String(extra) });
+  const listOrders = orders as OrderListItem[];
+
   return (
-    <div className="page-stack">
-      <PageHeader
+    <div className={styles.page}>
+      <OrdersPageHeader
         title={t("page.orders")}
-        description={t("orders.registryHint")}
-        actions={
-          <>
-            <Link href="/crm/history" className="ui-btn-secondary">
-              {t("crm.purchaseHistory")}
-            </Link>
-            {canCreate ? (
-              <Link href="/orders/new" className="ui-btn-primary inline-flex min-h-[44px] items-center" data-tour="orders-new">
-                {t("sales.newOrder")}
-              </Link>
-            ) : null}
-          </>
-        }
+        subtitle={t("orders.manageHint")}
+        historyHref="/crm/history"
+        historyLabel={t("crm.purchaseHistory")}
+        canCreate={canCreate}
+        newOrderHref="/orders/new"
+        newOrderLabel={t("sales.newOrder")}
       />
 
-      <Segmented
-        aria-label={t("home.period")}
-        items={(
-          [
-            ["month", t("orders.periodMonth")],
-            ["prev", t("orders.periodPrev")],
-            ["all", t("orders.periodAll")],
-          ] as const
-        ).map(([p, label]) => ({
-          href: buildOrdersQuery({ ...baseQuery, period: p, page: undefined }),
-          label,
-          active: resolvedPeriod === p,
-        }))}
-      />
-
-      <ModuleToolbar tour="orders-search">
-        <input type="hidden" name="period" value={resolvedPeriod === "custom" ? "custom" : resolvedPeriod} />
-        <label className="min-w-[8rem] flex-1 text-sm">
-          <span className="ui-label">{t("orders.searchPh")}</span>
-          <input
-            name="q"
-            defaultValue={q ?? ""}
-            placeholder={t("orders.searchPh")}
-            className="ui-input mt-1 w-full"
+      <div className={styles.navRow}>
+        <div className={styles.segScroll}>
+          <Segmented
+            scroll
+            aria-label={t("common.status")}
+            items={STATUS_BUCKETS.map((bucket) => ({
+              href: buildOrdersQuery({ ...baseQuery, status: bucket.code, page: undefined }),
+              label: t(bucket.labelKey),
+              active: (bucket.code ?? "") === (status ?? ""),
+            }))}
           />
-        </label>
-        <label className="text-sm">
-          <span className="ui-label">{t("common.status")}</span>
-          <select name="status" defaultValue={status ?? ""} className="ui-input mt-1 min-w-[10rem]">
-            <option value="">{t("orders.allStatuses")}</option>
-            {statuses.map((s) => (
-              <option key={s.id} value={s.code}>
-                {n("ostatus", s.code, s.name)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm">
-          <span className="ui-label">{t("orders.dateFrom")}</span>
-          <input type="date" name="from" defaultValue={fromRaw ?? ""} className="ui-input mt-1" />
-        </label>
-        <label className="text-sm">
-          <span className="ui-label">{t("orders.dateTo")}</span>
-          <input type="date" name="to" defaultValue={toRaw ?? ""} className="ui-input mt-1" />
-        </label>
-        <button type="submit" name="period" value="custom" className="ui-btn-secondary">
-          {t("common.search")}
-        </button>
-      </ModuleToolbar>
-
-      <DashKpiGrid cols="3">
-        <div className="ui-card px-3 py-2">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-muted)]">{t("orders.found")}</p>
-          <p className="mt-1 text-lg font-semibold tabular-nums">{total}</p>
-          <p className="text-[11px] text-[var(--color-text-muted)]">{periodLabel}</p>
         </div>
-        <div className="ui-card px-3 py-2">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-muted)]">{t("orders.totalSum")}</p>
-          <p className="mt-1 text-lg font-semibold tabular-nums">{moneyDisplay(totalSum)} с</p>
-          <p className="text-[11px] text-[var(--color-text-muted)]">{periodLabel}</p>
+        <div className={styles.segScroll}>
+          <Segmented
+            scroll
+            aria-label={t("home.period")}
+            items={(
+              [
+                ["month", t("orders.periodMonth")],
+                ["prev", t("orders.periodPrev")],
+                ["all", t("orders.periodAll")],
+              ] as const
+            ).map(([p, label]) => ({
+              href: buildOrdersQuery({ ...baseQuery, period: p, page: undefined }),
+              label,
+              active: resolvedPeriod === p,
+            }))}
+          />
         </div>
-        <div className="ui-card px-3 py-2">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-muted)]">{t("orders.pageOf")}</p>
-          <p className="mt-1 text-lg font-semibold tabular-nums">{page} / {totalPages}</p>
-          <p className="text-[11px] text-[var(--color-text-muted)]">{t("orders.perPage", { n: String(ORDERS_PAGE_SIZE) })}</p>
-        </div>
-      </DashKpiGrid>
+      </div>
 
-      <DataTableSection tour="orders-list">
-        {orders.length === 0 ? (
-          <DataListEmpty>{t("orders.empty")}</DataListEmpty>
-        ) : (
-          <DataList layout="colsOrders">
-            <DataListHead layout="colsOrders">
-              <DataListHeadCell>{t("home.col.order")}</DataListHeadCell>
-              <DataListHeadCell>{t("home.col.customer")}</DataListHeadCell>
-              <DataListHeadCell align="right">{t("home.col.amount")}</DataListHeadCell>
-              <DataListHeadCell align="right">{t("home.col.status")}</DataListHeadCell>
-            </DataListHead>
-            <ul className={dataListStyles.rows}>
-              {orders.map((o) => {
-                const debt = D(String(o.total)).sub(o.paidAmount);
-                return (
-                  <DataListRow key={o.id} layout="colsOrders">
-                    <DataListPrimary
-                      title={orderNo(o.number)}
-                      subtitle={o.createdAt.toLocaleDateString(loc)}
-                      href={`/orders/${o.id}`}
-                    />
-                    <DataListPrimary
-                      title={o.customer.name}
-                      subtitle={
-                        debt.gt(0)
-                          ? `${t("common.debt")}: ${moneyDisplay(debt)} с · ${t(`pay.${o.paymentStatus}`)}`
-                          : t(`pay.${o.paymentStatus}`)
-                      }
-                      href={`/crm/customers/${o.customerId}`}
-                    />
-                    <DataListMetric label={t("home.col.amount")} value={`${moneyDisplay(o.total)} с`} />
-                    <DataListCell label={t("home.col.status")} align="right">
-                      <StatusBadge
-                        label={n("ostatus", o.status.code, o.status.name)}
-                        tone={orderTone(o.status.code)}
-                      />
-                    </DataListCell>
-                  </DataListRow>
-                );
-              })}
-            </ul>
-          </DataList>
-        )}
+      <OrdersFilterToolbar
+        searchLabel={t("orders.searchLabel")}
+        searchPlaceholder={t("orders.searchPh")}
+        statusLabel={t("common.status")}
+        allStatusesLabel={t("orders.allStatuses")}
+        statuses={statuses.map((s) => ({ code: s.code, name: n("ostatus", s.code, s.name) }))}
+        statusValue={status}
+        fromLabel={t("orders.dateFrom")}
+        toLabel={t("orders.dateTo")}
+        searchLabelBtn={t("common.search")}
+        resetLabel={t("orders.filterReset")}
+        filtersLabel={t("orders.filters")}
+        periodValue={resolvedPeriod === "custom" ? "custom" : resolvedPeriod}
+        fromValue={fromRaw}
+        toValue={toRaw}
+        qValue={q}
+        resetHref="/orders"
+      />
 
-        {totalPages > 1 ? (
-          <div className="flex items-center justify-between gap-2 border-t border-[var(--border-soft)] px-3 py-2">
-            {page > 1 ? (
-              <Link
-                href={buildOrdersQuery({ ...baseQuery, page: String(page - 1) })}
-                className="ui-btn-secondary"
-              >
-                ← {t("common.back")}
-              </Link>
-            ) : (
-              <span />
-            )}
-            <span className="text-[12px] text-[var(--muted)]">
-              {page} / {totalPages}
-            </span>
-            {page < totalPages ? (
-              <Link
-                href={buildOrdersQuery({ ...baseQuery, page: String(page + 1) })}
-                className="ui-btn-secondary"
-              >
-                {t("common.next")} →
-              </Link>
-            ) : (
-              <span />
-            )}
-          </div>
-        ) : null}
-      </DataTableSection>
+      {listOrders.length === 0 ? (
+        <OrdersEmpty
+          title={t("orders.emptyTitle")}
+          description={t("orders.emptyDesc")}
+          actionHref={canCreate ? "/orders/new" : undefined}
+          actionLabel={canCreate ? t("sales.newOrder") : undefined}
+        />
+      ) : (
+        <OrdersListPanel
+          orders={listOrders}
+          orderNo={orderNo}
+          moneyDisplay={moneyDisplay}
+          statusLabel={statusLabel}
+          attentionLabel={t("orders.attention")}
+          productMoreLabel={productMoreLabel}
+          colOrder={t("home.col.order")}
+          colCustomer={t("home.col.customer")}
+          colProduct={t("home.col.product")}
+          colStatus={t("home.col.status")}
+          colAmount={t("home.col.amount")}
+          pagination={{
+            page,
+            totalPages,
+            prevHref: page > 1 ? buildOrdersQuery({ ...baseQuery, page: String(page - 1) }) : undefined,
+            nextHref: page < totalPages ? buildOrdersQuery({ ...baseQuery, page: String(page + 1) }) : undefined,
+            prevLabel: t("common.back"),
+            nextLabel: t("common.next"),
+            meta: `${page} / ${totalPages}`,
+          }}
+        />
+      )}
     </div>
   );
 }

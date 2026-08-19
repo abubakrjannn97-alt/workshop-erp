@@ -20,10 +20,11 @@
 
 .greetingTitle {
   margin: 0;
+  font-family: var(--font-brand);
   font-size: 30px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.15;
-  letter-spacing: -0.03em;
+  letter-spacing: 0.01em;
   color: var(--ink);
 }
 
@@ -46,9 +47,9 @@
 }
 
 .homeMobile .greetingTitle {
-  font-size: 24px;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  font-size: 26px;
+  line-height: 1.12;
+  letter-spacing: 0.015em;
 }
 
 .homeMobile .greetingSub {
@@ -281,35 +282,31 @@
   transform: scale(0.985);
 }
 
-.kpiOrange .kpiCardCompact::after,
-.kpiGreen .kpiCardCompact::after,
-.kpiBlue .kpiCardCompact::after,
-.kpiPurple .kpiCardCompact::after {
-  content: "";
+.kpiMountain {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 3px;
-  pointer-events: none;
   z-index: 0;
-  opacity: 0.55;
+  width: 100%;
+  height: 46px;
+  pointer-events: none;
 }
 
-.kpiOrange .kpiCardCompact::after {
-  background: linear-gradient(90deg, transparent, #e8a84a 50%, transparent);
+.kpiOrange .kpiMountain {
+  color: #e8a84a;
 }
 
-.kpiGreen .kpiCardCompact::after {
-  background: linear-gradient(90deg, transparent, #2dd4a8 50%, transparent);
+.kpiGreen .kpiMountain {
+  color: #34d399;
 }
 
-.kpiBlue .kpiCardCompact::after {
-  background: linear-gradient(90deg, transparent, #60a5fa 50%, transparent);
+.kpiBlue .kpiMountain {
+  color: #60a5fa;
 }
 
-.kpiPurple .kpiCardCompact::after {
-  background: linear-gradient(90deg, transparent, #a78bfa 50%, transparent);
+.kpiPurple .kpiMountain {
+  color: #a78bfa;
 }
 
 .kpiHeadCompact {
@@ -418,7 +415,32 @@
   margin-top: auto;
 }
 
+.mobileFooterLink {
+  display: flex;
+  justify-content: center;
+  margin-top: -8px;
+  padding-bottom: 4px;
+}
+
 /* ─── Panels ─── */
+
+.panelMobile {
+  border-color: rgba(232, 236, 241, 0.85);
+  border-radius: 18px;
+  box-shadow: 0 2px 16px rgba(28, 35, 43, 0.04);
+}
+
+.panelMobile .panelHead {
+  padding: 16px 16px 0;
+}
+
+.panelMobile .panelBody {
+  padding: 10px 12px 14px;
+}
+
+.panelMobile .panelBodyFlush {
+  padding: 6px 12px 14px;
+}
 
 .panel {
   min-width: 0;
@@ -516,6 +538,49 @@
   gap: 10px;
   overflow: visible;
   padding: 0;
+}
+
+.actionsMobileStrip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px 4px 8px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.actionsMobileStrip::-webkit-scrollbar {
+  display: none;
+}
+
+.actionsMobileStrip .action {
+  flex: 0 0 76px;
+  min-height: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  scroll-snap-align: start;
+}
+
+.actionsMobileStrip .action:hover {
+  transform: none;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.actionsMobileStrip .actionIcon {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  box-shadow: 0 3px 12px rgba(28, 35, 43, 0.08);
+}
+
+.actionsMobileStrip .actionLabel {
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--ink-2);
 }
 
 .actionsMobileGrid .action {
@@ -697,6 +762,99 @@
 .statusGray {
   background: var(--surface-2);
   color: var(--ink-2);
+}
+
+/* ─── Order cards (mobile reference) ─── */
+
+.orderCards {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.orderCard {
+  display: block;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--ink);
+  text-decoration: none;
+  transition: background 0.12s, box-shadow 0.12s;
+}
+
+.orderCard:active {
+  background: #ebeef3;
+}
+
+.orderCardTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.orderCardNo {
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  color: var(--ink);
+}
+
+.orderCardClient {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--ink-2);
+}
+
+.orderCardTop .statusPill {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  font-size: 11px;
+}
+
+.orderCardBottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.orderCardProduct {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ink-3);
+}
+
+.orderCardDate {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+}
+
+.orderCardGo {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  place-items: center;
+  color: var(--ink-3);
 }
 
 /* ─── Lists (mobile) ─── */

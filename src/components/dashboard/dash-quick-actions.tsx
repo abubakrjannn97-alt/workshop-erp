@@ -57,17 +57,23 @@ export function ownerSecondaryActions(t: (key: string) => string): DashQuickActi
   ];
 }
 
+export function ownerMobileQuickActions(t: (key: string) => string): DashQuickAction[] {
+  return ownerDesktopQuickActions(t).slice(0, 4);
+}
+
 export function DashQuickActions({
   actions,
   layout = "mobile",
 }: {
   actions: DashQuickAction[];
-  layout?: "mobile" | "desktop";
+  layout?: "mobile" | "desktop" | "mobileStrip";
 }) {
   const gridClass =
     layout === "desktop"
       ? `${styles.actions} ${styles.actionsDesktop}`
-      : `${styles.actions} ${styles.actionsMobileGrid}`;
+      : layout === "mobileStrip"
+        ? `${styles.actions} ${styles.actionsMobileStrip}`
+        : `${styles.actions} ${styles.actionsMobileGrid}`;
 
   return (
     <div className={styles.actionsWrap}>

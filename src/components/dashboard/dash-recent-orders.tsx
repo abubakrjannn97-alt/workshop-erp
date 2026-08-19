@@ -53,10 +53,40 @@ export function DashRecentOrders({
   locale: string;
   variant?: "full" | "customer";
   showDate?: boolean;
-  layout?: "list" | "table";
+  layout?: "list" | "table" | "mobileCards";
 }) {
   if (orders.length === 0) {
     return <p className={styles.empty}>{empty}</p>;
+  }
+
+  if (layout === "mobileCards") {
+    return (
+      <ul className={styles.orderCards}>
+        {orders.map((order) => {
+          const statusLabel = n("ostatus", order.status.code, order.status.name);
+          return (
+            <li key={order.id}>
+              <Link href={`/orders/${order.id}`} className={styles.orderCard}>
+                <div className={styles.orderCardTop}>
+                  <span className={styles.orderCardNo}>{orderNo(String(order.number))}</span>
+                  <span className={styles.orderCardClient}>{order.customer.name}</span>
+                  <span className={`${styles.statusPill} ${statusTone(order.status.code)}`}>{statusLabel}</span>
+                </div>
+                <div className={styles.orderCardBottom}>
+                  <span className={styles.orderCardProduct}>{productSummary(order)}</span>
+                  <span className={styles.orderCardDate}>
+                    {order.dueAt ? formatDate(order.dueAt, locale) : formatDate(order.createdAt, locale)}
+                  </span>
+                  <span className={styles.orderCardGo}>
+                    <ChevronRight size={16} strokeWidth={ICON_STROKE} aria-hidden />
+                  </span>
+                </div>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    );
   }
 
   if (layout === "table") {
