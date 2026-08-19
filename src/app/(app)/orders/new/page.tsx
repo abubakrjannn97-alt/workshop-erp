@@ -15,10 +15,11 @@ export default async function NewOrderPage({
 }) {
   const { t, locale } = await getTranslator();
   const session = await requirePermission("orders.create");
-  const { leadId } = await searchParams;
+  const { leadId, customerId: customerIdParam } = await searchParams;
   const lead = leadId ? await prisma.lead.findUnique({ where: { id: leadId } }) : null;
   const canDiscount = hasPermission(session.user.permissions, session.user.roleCode, "orders.discount");
   const canChooseSeller = session.user.roleCode !== "sales_manager";
+  const canAddCustomer = hasPermission(session.user.permissions, session.user.roleCode, "crm.manage");
 
   const [customers, products, sellers, limit] = await Promise.all([
     prisma.customer.findMany({
@@ -55,9 +56,7 @@ export default async function NewOrderPage({
   return (
     <div className="page-stack" style={{ gap: "12px" }}>
       <PageHeader title={t("sales.newOrder")} backHref="/orders" backLabel={t("common.back")} />
-      {customers.length === 0 ? (
-        <p className="text-sm text-[var(--text-muted)]">{t("orders.needCustomer")}</p>
-      ) : products.length === 0 ? (
+      {products.length === 0 ? (
         <p className="text-sm text-[var(--text-muted)]">{t("orders.needProduct")}</p>
       ) : (
         <OrderForm
@@ -76,7 +75,8 @@ export default async function NewOrderPage({
           discountLimit={limit.toFixed(2)}
           defaultSellerId={session.user.id}
           leadId={lead?.id}
-          defaultCustomerId={lead?.customerId ?? undefined}
+          defaultCustomerId={customerIdParam ?? lead?.customerId ?? undefined}
+          canAddCustomer={canAddCustomer}
           locale={locale}
         />
       )}

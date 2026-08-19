@@ -94,7 +94,23 @@
 }
 
 .compactField :global(.ui-label) {
-  margin-bottom: 4px;
+  margin-bottom: 0;
+}
+
+.addCustomerLink {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: #9a7338;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.addCustomerLink:hover {
+  color: #7a5a28;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .footerRow {

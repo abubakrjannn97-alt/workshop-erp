@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { FormField } from "@/components/form-field";
 import { AppSelect } from "@/components/app-select";
@@ -39,6 +40,7 @@ export function OrderForm({
   defaultSellerId,
   leadId,
   defaultCustomerId,
+  canAddCustomer,
   locale,
 }: {
   action: (formData: FormData) => Promise<void>;
@@ -51,6 +53,7 @@ export function OrderForm({
   defaultSellerId: string;
   leadId?: string;
   defaultCustomerId?: string;
+  canAddCustomer?: boolean;
   locale: Locale;
 }) {
   const t = createT(locale);
@@ -64,6 +67,10 @@ export function OrderForm({
   const [partialPaid, setPartialPaid] = useState("");
   const [sellerId, setSellerId] = useState(defaultSellerId);
   const [nextKey, setNextKey] = useState(2);
+
+  useEffect(() => {
+    if (defaultCustomerId) setCustomerId(defaultCustomerId);
+  }, [defaultCustomerId]);
 
   const addLine = () => {
     setLines((prev) => [
@@ -113,6 +120,13 @@ export function OrderForm({
   const initialPaidAmount =
     payStatus === "paid" ? moneyDisplay(totals.total) : payStatus === "partial" ? partialPaid : "0";
 
+  const addCustomerHref = useMemo(() => {
+    const params = new URLSearchParams();
+    if (leadId) params.set("leadId", leadId);
+    const q = params.toString();
+    return q ? `/orders/new/customer?${q}` : "/orders/new/customer";
+  }, [leadId]);
+
   return (
     <form
       action={action}
@@ -132,7 +146,18 @@ export function OrderForm({
       <input type="hidden" name="initialPaymentStatus" value={payStatus} />
       <input type="hidden" name="initialPaidAmount" value={initialPaidAmount} />
 
-      <FormField label={t("common.customer")} required={!leadId} className={styles.compactField}>
+      <FormField
+        label={t("common.customer")}
+        required={!leadId}
+        className={styles.compactField}
+        labelExtra={
+          canAddCustomer && !leadId ? (
+            <Link href={addCustomerHref} className={styles.addCustomerLink}>
+              + {t("orders.addCustomer")}
+            </Link>
+          ) : null
+        }
+      >
         <AppSelect
           name="customerId"
           value={customerId}

@@ -31,6 +31,7 @@ export function FormField({
   required,
   id: explicitId,
   className,
+  labelExtra,
   children,
 }: {
   label: string;
@@ -39,6 +40,7 @@ export function FormField({
   required?: boolean;
   id?: string;
   className?: string;
+  labelExtra?: ReactNode;
   children: ReactNode;
 }) {
   const generatedId = useId();
@@ -59,9 +61,12 @@ export function FormField({
 
   return (
     <div className={`min-w-0 ${className ?? ""}`}>
-      <label htmlFor={id} className={`ui-label ${required ? "ui-label-required" : ""}`}>
-        {label}
-      </label>
+      <div className="mb-1 flex min-w-0 items-baseline justify-between gap-2">
+        <label htmlFor={id} className={`ui-label ${required ? "ui-label-required" : ""}`}>
+          {label}
+        </label>
+        {labelExtra}
+      </div>
       {control}
       {hint ? (
         <span id={hintId} className="ui-hint mt-1 block leading-snug">
