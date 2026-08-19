@@ -1,21 +1,10 @@
-import { PageHeader } from "@/components/page-header";
 import { getTranslator } from "@core/shared/i18n/locale";
 import { readFile } from "fs/promises";
 import path from "path";
 import { requirePermission } from "@core/auth/authz";
 import { SettingsNav } from "@/components/settings-nav";
-import { DashPanel } from "@/components/dash-panel";
 import { StatusBadge } from "@/components/status-badge";
-import {
-  DataList,
-  DataListCell,
-  DataListEmpty,
-  DataListHead,
-  DataListHeadCell,
-  DataListPrimary,
-  DataListRow,
-  dataListStyles,
-} from "@/components/data-table";
+import styles from "@/styles/premium.module.css";
 
 type Entry = { at?: string; file?: string; ok?: boolean; error?: string; size?: number };
 
@@ -24,55 +13,34 @@ export default async function BackupsPage() {
   await requirePermission("settings.view");
   const journal = path.join(process.cwd(), ".data", "backups", "journal.jsonl");
   let rows: Entry[] = [];
-  try {
-    const text = await readFile(journal, "utf8");
-    rows = text
-      .split(/\r?\n/)
-      .filter(Boolean)
-      .map((line) => JSON.parse(line) as Entry)
-      .reverse()
-      .slice(0, 30);
-  } catch {
-    rows = [];
-  }
+  try { const text = await readFile(journal, "utf8"); rows = text.split(/\r?\n/).filter(Boolean).map((line) => JSON.parse(line) as Entry).reverse().slice(0, 30); } catch { rows = []; }
 
   return (
-    <div className="page-stack">
-      <PageHeader title={t("set.backupsTitle")} description={t("set.backupsHint")} />
+    <div className={styles.page}>
+      <header className={styles.header}><div className={styles.headerText}><h1 className={styles.title}>{t("set.backupsTitle")}</h1><p className={styles.subtitle}>{t("set.backupsHint")}</p></div></header>
       <SettingsNav current="backups" locale={locale} />
 
-      <DashPanel title={t("set.backupsTitle")}>
+      <section className={styles.section}>
+        <div className={styles.sectionHead}><h2 className={styles.sectionTitle}>{t("set.backupsTitle")}</h2></div>
         {rows.length === 0 ? (
-          <DataListEmpty>{t("set.noBackupLog")}</DataListEmpty>
+          <div className={styles.empty}>{t("set.noBackupLog")}</div>
         ) : (
-          <DataList layout="cols3">
-            <DataListHead layout="cols3">
-              <DataListHeadCell>{t("common.status")}</DataListHeadCell>
-              <DataListHeadCell>{t("list.col.when")}</DataListHeadCell>
-              <DataListHeadCell>{t("list.col.what")}</DataListHeadCell>
-            </DataListHead>
-            <ul className={dataListStyles.rows}>
-              {rows.map((r, i) => (
-                <DataListRow key={i} layout="cols3">
-                  <DataListCell label={t("common.status")}>
-                    <StatusBadge
-                      label={r.ok ? t("set.success") : t("set.fail")}
-                      tone={r.ok ? "good" : "bad"}
-                    />
-                  </DataListCell>
-                  <DataListCell label={t("list.col.when")}>
-                    <span className="text-xs text-[var(--muted)]">{r.at ?? "—"}</span>
-                  </DataListCell>
-                  <DataListPrimary
-                    title={r.file ?? "—"}
-                    subtitle={[r.size != null ? `${r.size} B` : null, r.error].filter(Boolean).join(" · ") || undefined}
-                  />
-                </DataListRow>
-              ))}
-            </ul>
-          </DataList>
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead><tr><th>{t("common.status")}</th><th>{t("list.col.when")}</th><th>{t("list.col.what")}</th></tr></thead>
+              <tbody>
+                {rows.map((r, i) => (
+                  <tr key={i}>
+                    <td><StatusBadge label={r.ok ? t("set.success") : t("set.fail")} tone={r.ok ? "good" : "bad"} /></td>
+                    <td className={styles.tdMuted}>{r.at ?? "—"}</td>
+                    <td><span className={styles.tdBold}>{r.file ?? "—"}</span>{r.error ? <p className={styles.tdMuted}>{r.error}</p> : null}{r.size != null ? <p className={styles.tdMuted}>{r.size} B</p> : null}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </DashPanel>
+      </section>
     </div>
   );
 }

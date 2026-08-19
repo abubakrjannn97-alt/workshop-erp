@@ -1,4 +1,3 @@
-import { PageHeader } from "@/components/page-header";
 import { FormField } from "@/components/form-field";
 import { getTranslator } from "@core/shared/i18n/locale";
 import { redirect } from "next/navigation";
@@ -7,79 +6,46 @@ import { requirePermission } from "@core/auth/authz";
 import { createProduct } from "@/app/actions/products";
 import { CatalogNav } from "@/components/catalog-nav";
 import { getDomainConfig } from "@core/config/domain-config";
+import styles from "@/styles/premium.module.css";
 
 export default async function NewProductPage() {
   const { t, locale } = await getTranslator();
   await requirePermission("products.manage");
   const [units, domainConfig] = await Promise.all([
-    prisma.unit.findMany({
-      where: { archivedAt: null, isActive: true },
-      orderBy: { name: "asc" },
-    }),
+    prisma.unit.findMany({ where: { archivedAt: null, isActive: true }, orderBy: { name: "asc" } }),
     getDomainConfig(),
   ]);
   const defaultSaleUnitId = units.find((u) => u.code === domainConfig.product.defaultSaleUnit)?.id;
   const defaultOutputUnitId = units.find((u) => u.code === domainConfig.product.defaultOutputUnit)?.id;
 
-  async function action(formData: FormData) {
-    "use server";
-    const result = await createProduct(formData);
-    if (result.ok && result.id) redirect(`/products/${result.id}`);
-  }
+  async function action(formData: FormData) { "use server"; const result = await createProduct(formData); if (result.ok && result.id) redirect(`/products/${result.id}`); }
 
   return (
-    <div className="page-stack">
-      <PageHeader title={t("products.newTitle")} />
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <div className={styles.headerText}><h1 className={styles.title}>{t("products.newTitle")}</h1></div>
+      </header>
       <CatalogNav current="products" locale={locale} />
-      <form action={action} className="ui-card max-w-xl space-y-4 p-4">
-        <FormField label={t("common.name")} required>
-          <input name="name" required className="ui-input" />
-        </FormField>
-        <FormField label={t("common.category")}>
-          <input
-            name="category"
-            defaultValue={domainConfig.product.defaultCategory}
-            className="ui-input"
-          />
-        </FormField>
-        <FormField label={t("products.saleUnit")} required>
-          <select name="saleUnitId" defaultValue={defaultSaleUnitId} className="ui-input" required>
-            {units.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name} ({u.symbol})
-              </option>
-            ))}
-          </select>
-        </FormField>
-        <FormField label={t("products.fgUnit")} required>
-          <select name="outputUnitId" defaultValue={defaultOutputUnitId} className="ui-input" required>
-            {units.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name} ({u.symbol})
-              </option>
-            ))}
-          </select>
-        </FormField>
-        <FormField label={t("products.recipeBase")}>
-          <input name="recipeBaseQty" defaultValue="1" className="ui-input" />
-        </FormField>
-        <FormField label={t("products.outputBase")}>
-          <input
-            name="outputPerBase"
-            defaultValue={String(domainConfig.product.defaultOutputPerBase)}
-            className="ui-input"
-          />
-        </FormField>
-        <FormField label={t("products.salePrice")}>
-          <input name="price" defaultValue="0" className="ui-input" inputMode="decimal" />
-        </FormField>
-        <FormField label={t("products.minPrice")}>
-          <input name="minPrice" defaultValue="0" className="ui-input" inputMode="decimal" />
-        </FormField>
-        <button type="submit" className="ui-btn-primary w-full sm:w-auto">
-          {t("common.create")}
-        </button>
-      </form>
+      <section className={styles.section}>
+        <div className={styles.sectionHead}><h2 className={styles.sectionTitle}>{t("products.newTitle")}</h2></div>
+        <div className={styles.sectionBody}>
+          <form action={action} className="grid max-w-xl gap-4">
+            <FormField label={t("common.name")} required><input name="name" required className="ui-input" /></FormField>
+            <FormField label={t("common.category")}><input name="category" defaultValue={domainConfig.product.defaultCategory} className="ui-input" /></FormField>
+            <FormField label={t("products.saleUnit")} required>
+              <select name="saleUnitId" defaultValue={defaultSaleUnitId} className="ui-input" required>{units.map((u) => <option key={u.id} value={u.id}>{u.name} ({u.symbol})</option>)}</select>
+            </FormField>
+            <FormField label={t("products.fgUnit")} required>
+              <select name="outputUnitId" defaultValue={defaultOutputUnitId} className="ui-input" required>{units.map((u) => <option key={u.id} value={u.id}>{u.name} ({u.symbol})</option>)}</select>
+            </FormField>
+            <FormField label={t("products.recipeBase")}><input name="recipeBaseQty" defaultValue="1" className="ui-input" /></FormField>
+            <FormField label={t("products.outputBase")}><input name="outputPerBase" defaultValue={String(domainConfig.product.defaultOutputPerBase)} className="ui-input" /></FormField>
+            <FormField label={t("products.salePrice")}><input name="price" defaultValue="0" className="ui-input" inputMode="decimal" /></FormField>
+            <FormField label={t("products.minPrice")}><input name="minPrice" defaultValue="0" className="ui-input" inputMode="decimal" /></FormField>
+            <button type="submit" className="ui-btn-primary min-h-[44px]">{t("common.create")}</button>
+          </form>
+        </div>
+      </section>
     </div>
   );
 }
