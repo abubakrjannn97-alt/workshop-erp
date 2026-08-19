@@ -190,6 +190,19 @@
   border-radius: 18px;
   background: var(--surface);
   box-shadow: var(--shadow-soft);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+}
+
+.summaryCard:active {
+  transform: scale(0.985);
+}
+
+.summaryCardActive {
+  border-color: rgba(154, 115, 56, 0.45);
+  background: linear-gradient(180deg, #fffaf2 0%, #ffffff 100%);
+  box-shadow: 0 4px 16px rgba(154, 115, 56, 0.12);
 }
 
 .summaryIcon {

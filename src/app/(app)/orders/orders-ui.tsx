@@ -93,12 +93,18 @@ export function OrdersPageHeader({
 export function OrdersSummaryStrip({
   summary,
   labels,
+  activeBucket,
+  newHref,
+  completedHref,
 }: {
   summary: OrdersSummary;
   labels: {
     new: string;
     completed: string;
   };
+  activeBucket: "new" | "COMPLETED";
+  newHref: string;
+  completedHref: string;
 }) {
   const cards = [
     {
@@ -108,6 +114,8 @@ export function OrdersSummaryStrip({
       hint: `${summary.newRevenue} с`,
       icon: Sparkles,
       tone: styles.summaryOrange,
+      href: newHref,
+      active: activeBucket === "new",
     },
     {
       id: "completed",
@@ -116,6 +124,8 @@ export function OrdersSummaryStrip({
       hint: `${summary.completedRevenue} с`,
       icon: CheckCircle2,
       tone: styles.summaryGreen,
+      href: completedHref,
+      active: activeBucket === "COMPLETED",
     },
   ];
 
@@ -124,14 +134,20 @@ export function OrdersSummaryStrip({
       {cards.map((card) => {
         const Icon = card.icon;
         return (
-          <article key={card.id} className={`${styles.summaryCard} ${card.tone}`}>
+          <Link
+            key={card.id}
+            href={card.href}
+            scroll={false}
+            aria-current={card.active ? "page" : undefined}
+            className={`${styles.summaryCard} ${card.tone} ${card.active ? styles.summaryCardActive : ""}`.trim()}
+          >
             <span className={styles.summaryIcon}>
               <Icon size={20} strokeWidth={ICON_STROKE} aria-hidden />
             </span>
             <p className={styles.summaryLabel}>{card.label}</p>
             <p className={styles.summaryValue}>{card.value}</p>
             <p className={styles.summaryHint}>{card.hint}</p>
-          </article>
+          </Link>
         );
       })}
     </section>

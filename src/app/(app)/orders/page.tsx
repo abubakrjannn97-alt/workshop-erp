@@ -10,11 +10,12 @@ import {
   resolveOrderDateRange,
 } from "@core/shared/order-period";
 import {
-  ORDER_LIST_BUCKETS,
   completedOrdersStatusWhere,
   newOrdersStatusWhere,
   orderListStatusWhere,
   resolveOrderListBucket,
+  ORDER_LIST_BUCKET_DONE,
+  ORDER_LIST_BUCKET_NEW,
 } from "@core/shared/orders-list-filter";
 import { Segmented } from "@/components/segmented";
 import { OrdersMobileHeaderTools } from "./orders-mobile-header-tools";
@@ -153,20 +154,12 @@ export default async function OrdersPage({
           new: t("orders.kpiNew"),
           completed: t("orders.kpiCompleted"),
         }}
+        activeBucket={activeBucket}
+        newHref={buildOrdersQuery({ ...baseQuery, status: ORDER_LIST_BUCKET_NEW, page: undefined })}
+        completedHref={buildOrdersQuery({ ...baseQuery, status: ORDER_LIST_BUCKET_DONE, page: undefined })}
       />
 
       <div className={styles.navRow}>
-        <div className={styles.segScroll}>
-          <Segmented
-            scroll
-            aria-label={t("common.status")}
-            items={ORDER_LIST_BUCKETS.map((bucket) => ({
-              href: buildOrdersQuery({ ...baseQuery, status: bucket.code, page: undefined }),
-              label: t(bucket.labelKey),
-              active: bucket.code === activeBucket,
-            }))}
-          />
-        </div>
         <div className={styles.periodMobile}>
           <OrdersPeriodPicker
             current={resolvedPeriod}
