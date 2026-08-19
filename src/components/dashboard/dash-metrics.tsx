@@ -67,20 +67,22 @@ export function DashMetricStrip({
               <>
                 <div className={styles.kpiTop}>
                   <span className={styles.kpiIcon} aria-hidden>
-                    <Icon size={22} strokeWidth={1.75} />
+                    <Icon size={20} strokeWidth={1.75} />
                   </span>
                 </div>
                 <div className={styles.kpiContent}>
                   <p className={styles.kpiLabel}>{metric.label}</p>
                   <p className={styles.kpiValue}>{metric.value}</p>
-                  {metric.hint ? (
-                    <p
-                      className={`${styles.kpiHint} ${metric.hintTone === "positive" ? styles.kpiHintPositive : ""}`.trim()}
-                    >
-                      {metric.hint}
-                    </p>
-                  ) : null}
                 </div>
+                {metric.hint ? (
+                  <p
+                    className={`${styles.kpiHint} ${metric.hintTone === "positive" ? styles.kpiHintPositive : ""}`.trim()}
+                  >
+                    {metric.hint}
+                  </p>
+                ) : (
+                  <span className={styles.kpiHintSpacer} aria-hidden />
+                )}
               </>
             )}
           </article>

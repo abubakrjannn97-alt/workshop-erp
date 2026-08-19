@@ -14,7 +14,16 @@ type RecentOrder = {
   dueAt?: Date | null;
   customer: { name: string };
   status: { code: string; name: string };
+  items?: { product: { name: string } }[];
 };
+
+function productSummary(order: RecentOrder): string {
+  const items = order.items ?? [];
+  if (items.length === 0) return "—";
+  const first = items[0]?.product.name ?? "—";
+  if (items.length === 1) return first;
+  return `${first} +${items.length - 1}`;
+}
 
 function statusTone(code: string): string {
   if (["COMPLETED", "ISSUED", "DELIVERED"].includes(code)) return styles.statusGreen;
@@ -56,9 +65,9 @@ export function DashRecentOrders({
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>№</th>
+              <th>№ заказа</th>
               <th>Клиент</th>
-              <th>Сумма</th>
+              <th>Продукция</th>
               <th>Статус</th>
               <th>Срок</th>
               <th aria-hidden />
@@ -75,7 +84,7 @@ export function DashRecentOrders({
                     </Link>
                   </td>
                   <td>{order.customer.name}</td>
-                  <td>{moneyDisplay(String(order.total))} с</td>
+                  <td className={styles.tableProduct}>{productSummary(order)}</td>
                   <td>
                     <span className={`${styles.statusPill} ${statusTone(order.status.code)}`}>{statusLabel}</span>
                   </td>

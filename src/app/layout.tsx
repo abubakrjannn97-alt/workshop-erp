@@ -1,8 +1,16 @@
 import type { Metadata, Viewport } from "next";
+import { Cormorant_Garamond } from "next/font/google";
 import { PwaRegister } from "@/components/pwa-register";
 import { PwaInstall } from "@/components/pwa-install";
 import { getTranslator } from "@core/shared/i18n/locale";
 import "./globals.css";
+
+const displaySerif = Cormorant_Garamond({
+  subsets: ["latin", "cyrillic"],
+  weight: ["500", "600", "700"],
+  variable: "--font-display",
+  display: "swap",
+});
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +42,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const { locale } = await getTranslator();
   return (
-    <html lang={locale === "tj" ? "tg" : "ru"} className="h-full antialiased">
+    <html lang={locale === "tj" ? "tg" : "ru"} className={`${displaySerif.variable} h-full antialiased`}>
       <body className="min-h-full bg-[var(--color-background)] font-sans text-[var(--color-text-primary)]">
         <PwaRegister />
         <PwaInstall locale={locale} />

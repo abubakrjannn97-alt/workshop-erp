@@ -91,9 +91,9 @@
 }
 
 .linkActive {
-  background: var(--accent-gradient);
-  color: #fff;
-  box-shadow: 0 4px 14px rgba(184, 149, 74, 0.22);
+  background: rgba(184, 149, 74, 0.16);
+  color: #faf6ee;
+  box-shadow: none;
 }
 
 .linkActive::before {

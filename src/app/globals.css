@@ -34,7 +34,7 @@
   --on-navy: #f8fafc;
   --on-accent: #1c232b;
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-brand: Georgia, "Times New Roman", serif;
+  --font-brand: var(--font-display), "Cormorant Garamond", Georgia, "Times New Roman", serif;
 
   --space-1: 4px;
   --space-2: 8px;

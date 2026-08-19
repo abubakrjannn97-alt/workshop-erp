@@ -64,7 +64,10 @@ export function DashQuickActions({
   actions: DashQuickAction[];
   layout?: "mobile" | "desktop";
 }) {
-  const gridClass = layout === "desktop" ? `${styles.actions} ${styles.actionsDesktop}` : styles.actions;
+  const gridClass =
+    layout === "desktop"
+      ? `${styles.actions} ${styles.actionsDesktop}`
+      : `${styles.actions} ${styles.actionsMobileGrid}`;
 
   return (
     <div className={styles.actionsWrap}>
@@ -84,13 +87,6 @@ export function DashQuickActions({
           );
         })}
       </ul>
-      {layout === "mobile" ? (
-        <div className={styles.actionDots} aria-hidden>
-          <span className={styles.actionDotActive} />
-          <span className={styles.actionDot} />
-          <span className={styles.actionDot} />
-        </div>
-      ) : null}
     </div>
   );
 }
