@@ -24,6 +24,12 @@ const HINT_TONE_CLASS = {
   warn: styles.metricHintWarn,
 } as const;
 
+const BREAKDOWN_VALUE_CLASS = {
+  muted: styles.metricBreakdownValueMuted,
+  success: styles.metricBreakdownValueSuccess,
+  warn: styles.metricBreakdownValueWarn,
+} as const;
+
 export function OrderDetailMetrics({
   items,
 }: {
@@ -33,6 +39,7 @@ export function OrderDetailMetrics({
     value: string;
     hint?: string;
     hintTone?: keyof typeof HINT_TONE_CLASS;
+    breakdown?: { label: string; value: string; tone?: keyof typeof BREAKDOWN_VALUE_CLASS }[];
     tone: MetricTone;
     icon: keyof typeof ICONS;
   }[];
@@ -51,7 +58,20 @@ export function OrderDetailMetrics({
               <p className={styles.metricLabel}>{item.label}</p>
             </div>
             <p className={styles.metricValue}>{item.value}</p>
-            {item.hint ? <p className={hintClass}>{item.hint}</p> : null}
+            {item.breakdown && item.breakdown.length > 0 ? (
+              <dl className={styles.metricBreakdown}>
+                {item.breakdown.map((row) => (
+                  <div key={`${row.label}-${row.value}`} className={styles.metricBreakdownRow}>
+                    <dt className={styles.metricBreakdownLabel}>{row.label}</dt>
+                    <dd className={`${styles.metricBreakdownValue} ${BREAKDOWN_VALUE_CLASS[row.tone ?? "muted"]}`}>
+                      {row.value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            ) : item.hint ? (
+              <p className={hintClass}>{item.hint}</p>
+            ) : null}
           </article>
         );
       })}

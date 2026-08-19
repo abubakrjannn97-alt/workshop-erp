@@ -97,16 +97,18 @@ export default async function OrderPage({
   const orderDateLabel = order.confirmedAt ? t("orders.orderConfirmed") : t("orders.orderReceived");
   const shortDate = orderDate.toLocaleDateString(loc, { day: "2-digit", month: "2-digit" });
 
-  const paymentHint =
+  const paymentBreakdown =
     debt.lte(0) && paid.gt(0)
-      ? t("orders.fullyPaid")
+      ? [{ label: t("common.paid"), value: t("orders.fullyPaid"), tone: "success" as const }]
       : debt.gt(0) && paid.gt(0)
-        ? `${t("common.paid")}: ${moneyDisplay(order.paidAmount)} с · ${t("common.debt")}: ${moneyDisplay(debt)} с`
+        ? [
+            { label: t("common.paid"), value: `${moneyDisplay(order.paidAmount)} с`, tone: "success" as const },
+            { label: t("common.debt"), value: `${moneyDisplay(debt)} с`, tone: "warn" as const },
+          ]
         : debt.gt(0)
-          ? `${t("common.debt")}: ${moneyDisplay(debt)} с`
-          : t("pay.unpaid");
+          ? [{ label: t("common.debt"), value: `${moneyDisplay(debt)} с`, tone: "warn" as const }]
+          : [{ label: t("common.payment"), value: t("pay.unpaid"), tone: "muted" as const }];
 
-  const paymentHintTone = debt.lte(0) && paid.gt(0) ? ("success" as const) : debt.gt(0) ? ("warn" as const) : ("muted" as const);
   const sumTone = debt.gt(0) ? ("warn" as const) : paid.gt(0) && debt.lte(0) ? ("green" as const) : ("gold" as const);
   const sumIcon = debt.gt(0) ? ("warn" as const) : ("gold" as const);
 
@@ -115,8 +117,7 @@ export default async function OrderPage({
       id: "total",
       label: t("common.amount"),
       value: `${moneyDisplay(order.total)} с`,
-      hint: paymentHint,
-      hintTone: paymentHintTone,
+      breakdown: paymentBreakdown,
       tone: sumTone,
       icon: sumIcon,
     },

@@ -90,6 +90,52 @@
   color: #c2410c;
 }
 
+.metricBreakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: auto 0 0;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+}
+
+.metricBreakdownRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+}
+
+.metricBreakdownLabel {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 14px;
+  color: var(--ink-3);
+}
+
+.metricBreakdownValue {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 14px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.metricBreakdownValueSuccess {
+  color: #249565;
+}
+
+.metricBreakdownValueWarn {
+  color: #c2410c;
+}
+
+.metricBreakdownValueMuted {
+  color: var(--ink-3);
+}
+
 .orderDate {
   margin: 0;
   font-size: 13px;
