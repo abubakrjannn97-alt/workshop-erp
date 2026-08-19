@@ -80,7 +80,7 @@ export function OfflineSync({ locale }: { locale: Locale }) {
   return (
     <div
       className="fixed inset-x-0 z-[90] flex justify-center px-3 print:hidden"
-      style={{ top: "calc(2.75rem + env(safe-area-inset-top))" }}
+      style={{ top: "calc(var(--mobile-chrome-top) + 4px)" }}
     >
       <div
         className={`flex max-w-md items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-medium shadow-md ${

@@ -36,10 +36,10 @@ export function AppShellMobileHeader({
           aria-controls="mobile-header-menu"
           onClick={() => setMenuOpen(true)}
         >
-          <Menu size={24} strokeWidth={1.75} />
+          <Menu size={20} strokeWidth={1.75} />
         </button>
         <div className={styles.brand} aria-hidden>
-          <WorkshopMark size={28} className={styles.brandLogo} />
+          <WorkshopMark size={24} className={styles.brandLogo} />
           <div className={styles.brandText}>
             <span className={styles.brandLine}>Stone</span>
             <span className={styles.brandLine}>Factory</span>

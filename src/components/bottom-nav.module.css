@@ -3,16 +3,15 @@
   inset-inline: 0;
   bottom: 0;
   z-index: 50;
+  padding-bottom: var(--safe-bottom);
   pointer-events: none;
+  background: var(--mobile-nav-bg);
 }
 
-/* Frosted bar + opaque safe-area strip (iOS home indicator zone) */
 .shell::before {
   content: "";
   position: absolute;
-  inset-inline: 0;
-  top: 0;
-  bottom: 0;
+  inset: 0;
   background: var(--mobile-nav-bg);
   backdrop-filter: blur(var(--mobile-nav-blur)) saturate(1.15);
   -webkit-backdrop-filter: blur(var(--mobile-nav-blur)) saturate(1.15);
@@ -34,8 +33,7 @@
   display: flex;
   align-items: stretch;
   justify-content: space-around;
-  height: 76px;
-  padding-bottom: env(safe-area-inset-bottom);
+  height: var(--mobile-nav-bar-h);
   background: transparent;
 }
 
@@ -47,12 +45,12 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  padding: 6px 4px calc(8px + env(safe-area-inset-bottom, 0px));
+  gap: 1px;
+  padding: 2px 2px 4px;
   text-decoration: none;
-  font-size: 11px;
+  font-size: var(--mobile-nav-label-size);
   font-weight: 600;
-  line-height: 16px;
+  line-height: 1.2;
   color: var(--ink-3);
   transition: color 0.15s ease-out;
 }
@@ -71,8 +69,8 @@
 }
 
 .tabActive .iconWrap {
-  width: 44px;
-  height: 32px;
+  width: clamp(36px, 10vw, 40px);
+  height: clamp(28px, 7.5vw, 30px);
   border-radius: 10px;
   border: 1px solid var(--mobile-glass-border);
   background: rgba(244, 237, 224, 0.92);
@@ -81,23 +79,25 @@
 
 .iconWrap {
   display: flex;
-  width: 30px;
-  height: 30px;
+  width: clamp(26px, 7vw, 28px);
+  height: clamp(26px, 7vw, 28px);
   align-items: center;
   justify-content: center;
   color: inherit;
   transition: background 0.15s ease-out, color 0.15s ease-out;
 }
 
+.iconWrap svg {
+  width: var(--mobile-nav-icon-size);
+  height: var(--mobile-nav-icon-size);
+}
+
 .label {
   max-width: 100%;
   overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  text-overflow: ellipsis;
   text-align: center;
-  white-space: normal;
+  white-space: nowrap;
 }
 
 @media (prefers-reduced-motion: reduce) {

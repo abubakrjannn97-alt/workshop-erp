@@ -365,11 +365,9 @@
   padding: 16px 14px 14px;
   overflow: hidden;
   border-radius: 18px;
-  border: 1px solid var(--mobile-glass-border);
-  background: var(--mobile-glass);
+  border: 1px solid var(--line);
+  background: var(--surface);
   box-shadow: var(--mobile-glass-shadow);
-  backdrop-filter: blur(var(--mobile-glass-blur));
-  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
   transition: transform 0.16s ease;
 }
 
@@ -483,12 +481,10 @@
 /* ─── Panels ─── */
 
 .panelMobile {
-  border: 1px solid var(--mobile-glass-border);
+  border: 1px solid var(--line);
   border-radius: 18px;
-  background: var(--mobile-glass);
+  background: var(--surface);
   box-shadow: var(--mobile-glass-shadow);
-  backdrop-filter: blur(var(--mobile-glass-blur));
-  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
 }
 
 .panelMobile .panelHead {
@@ -661,11 +657,9 @@
   min-height: 116px;
   padding: 12px 4px 10px;
   border-radius: 16px;
-  border: 1px solid var(--mobile-glass-border);
-  background: var(--mobile-glass);
+  border: 1px solid var(--line);
+  background: var(--surface);
   box-shadow: var(--mobile-glass-shadow);
-  backdrop-filter: blur(var(--mobile-glass-blur));
-  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -678,7 +672,7 @@
 
 .actionsMobileStrip .actionStrip:hover {
   transform: none;
-  border-color: var(--mobile-glass-border);
+  border-color: var(--line-strong);
   box-shadow: var(--mobile-glass-shadow);
 }
 
@@ -925,11 +919,9 @@
 .mobileGlassCard,
 .kpiCardCompact,
 .homeMobile .orderCard {
-  border: 1px solid var(--mobile-glass-border);
-  background: var(--mobile-glass);
+  border: 1px solid var(--line);
+  background: var(--surface);
   box-shadow: var(--mobile-glass-shadow);
-  backdrop-filter: blur(var(--mobile-glass-blur));
-  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
 }
 
 .orderCard {

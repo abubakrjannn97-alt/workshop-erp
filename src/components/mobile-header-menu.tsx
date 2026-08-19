@@ -79,17 +79,17 @@ export function MobileHeaderMenu({
     <>
       <button type="button" className={styles.backdrop} aria-label={t("help.close")} onClick={onClose} />
       <nav id="mobile-header-menu" className={styles.panel} aria-label={t("nav.menu")}>
-        <div className={styles.head}>
+        <div className={styles.headCard}>
           <div className={styles.userBlock}>
             <p className={styles.userName}>{userName}</p>
             <p className={styles.roleName}>{roleName}</p>
           </div>
           <button type="button" className={styles.closeBtn} aria-label={t("help.close")} onClick={onClose}>
-            <X size={22} strokeWidth={ICON_STROKE} aria-hidden />
+            <X size={20} strokeWidth={ICON_STROKE} aria-hidden />
           </button>
         </div>
 
-        <section className={styles.section}>
+        <section className={styles.card}>
           <h2 className={styles.sectionTitle}>{t("lang.switch")}</h2>
           <div className={styles.langRow}>
             <LanguageSwitcher locale={locale} />
@@ -97,7 +97,7 @@ export function MobileHeaderMenu({
         </section>
 
         {quickActions.length > 0 ? (
-          <section className={styles.section}>
+          <section className={styles.card}>
             <h2 className={styles.sectionTitle}>{t("home.quickActions")}</h2>
             <ul className={styles.actionList}>
               {quickActions.map((action) => {
@@ -117,7 +117,7 @@ export function MobileHeaderMenu({
           </section>
         ) : null}
 
-        <div className={styles.footerLinks}>
+        <div className={styles.footerCard}>
           <Link href="/help" className={styles.footerLink} onClick={closeAndNavigate}>
             <CircleQuestionMark size={18} strokeWidth={ICON_STROKE} aria-hidden />
             {t("nav.help")}

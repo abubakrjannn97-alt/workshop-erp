@@ -1,21 +1,21 @@
 .bar {
   display: grid;
-  grid-template-columns: 44px 1fr 44px;
+  grid-template-columns: var(--mobile-header-btn) 1fr var(--mobile-header-btn);
   align-items: center;
-  height: calc(56px + env(safe-area-inset-top));
-  padding-top: env(safe-area-inset-top);
-  padding-left: 12px;
-  padding-right: 12px;
-  background: var(--mobile-glass);
-  backdrop-filter: blur(var(--mobile-glass-blur));
-  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
-  border-bottom: 1px solid var(--mobile-glass-border);
+  height: var(--mobile-chrome-top);
+  padding-top: var(--safe-top);
+  padding-left: clamp(8px, 2.5vw, 12px);
+  padding-right: clamp(8px, 2.5vw, 12px);
+  background: var(--surface);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom: 1px solid var(--line);
 }
 
 .menuBtn {
   display: flex;
-  width: 44px;
-  height: 44px;
+  width: var(--mobile-header-btn);
+  height: var(--mobile-header-btn);
   align-items: center;
   justify-content: center;
   color: var(--ink);
@@ -30,11 +30,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: clamp(4px, 1.5vw, 8px);
   justify-self: center;
+  min-width: 0;
 }
 
 .brandLogo {
+  width: var(--mobile-header-logo) !important;
+  height: var(--mobile-header-logo) !important;
   border-radius: 22%;
   flex-shrink: 0;
 }
@@ -43,12 +46,13 @@
   display: flex;
   flex-direction: column;
   gap: 0;
+  min-width: 0;
 }
 
 .brandLine {
-  font-size: 10px;
+  font-size: clamp(9px, 2.4vw, 10px);
   font-weight: 700;
-  line-height: 13px;
+  line-height: 1.2;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink);
@@ -56,9 +60,15 @@
 
 .actions {
   display: flex;
-  width: 44px;
-  height: 44px;
+  width: var(--mobile-header-btn);
+  height: var(--mobile-header-btn);
   align-items: center;
   justify-content: center;
   justify-self: end;
+}
+
+@media (max-width: 340px) {
+  .brandText {
+    display: none;
+  }
 }

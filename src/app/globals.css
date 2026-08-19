@@ -214,6 +214,18 @@
   /* Bottom nav — more opaque so list content does not bleed through on iOS */
   --mobile-nav-bg: rgba(255, 255, 255, 0.88);
   --mobile-nav-blur: 16px;
+
+  /* Mobile chrome — scales with viewport (not fixed px for one device) */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --mobile-header-content-h: 48px;
+  --mobile-header-btn: 40px;
+  --mobile-header-logo: 24px;
+  --mobile-nav-bar-h: 58px;
+  --mobile-nav-icon-size: 22px;
+  --mobile-nav-label-size: 11px;
+  --mobile-chrome-top: calc(var(--mobile-header-content-h) + var(--safe-top));
+  --mobile-chrome-bottom: calc(var(--mobile-nav-bar-h) + var(--safe-bottom));
 }
 
 html {
@@ -232,6 +244,22 @@ body {
 }
 
 @media (max-width: 1023px) {
+  :root {
+    --mobile-header-content-h: clamp(44px, 11.5vw, 48px);
+    --mobile-header-btn: clamp(36px, 9.5vw, 40px);
+    --mobile-header-logo: clamp(22px, 6vw, 26px);
+    --mobile-nav-bar-h: clamp(52px, 13.5vw, 58px);
+    --mobile-nav-icon-size: clamp(20px, 5.2vw, 22px);
+    --mobile-nav-label-size: clamp(10px, 2.6vw, 11px);
+    --mobile-chrome-top: calc(var(--mobile-header-content-h) + var(--safe-top));
+    --mobile-chrome-bottom: calc(var(--mobile-nav-bar-h) + var(--safe-bottom));
+    --control-h-mobile: var(--mobile-header-btn);
+    /* Mobile cards — solid surfaces, not heavy glass */
+    --mobile-glass: #ffffff;
+    --mobile-glass-shadow: 0 2px 12px rgba(28, 35, 43, 0.06);
+    --mobile-glass-blur: 0px;
+  }
+
   .mobile-stone-shell {
     background: transparent !important;
   }
@@ -1579,10 +1607,10 @@ main .ui-card > .section-title {
   }
 
   .ui-header-icon {
-    width: var(--control-h-mobile);
-    height: var(--control-h-mobile);
-    min-width: var(--control-h-mobile);
-    min-height: var(--control-h-mobile);
+    width: var(--mobile-header-btn);
+    height: var(--mobile-header-btn);
+    min-width: var(--mobile-header-btn);
+    min-height: var(--mobile-header-btn);
   }
 
   .page-title {
