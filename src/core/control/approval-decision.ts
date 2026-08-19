@@ -314,11 +314,14 @@ export async function executeApprovalDecision(input: {
   const row = await prisma.approvalRequest.findUnique({ where: { id: input.approvalId } });
   if (!row || row.status !== "PENDING") return { error: "Заявка не найдена." };
 
+  // Atomically claim the approval to prevent double-execution
+  const claimed = await prisma.approvalRequest.updateMany({
+    where: { id: input.approvalId, status: "PENDING" },
+    data: { status: input.decision === "REJECTED" ? "REJECTED" : "PROCESSING", decidedById: input.decidedById, decidedAt: new Date() },
+  });
+  if (claimed.count === 0) return { error: "Заявка уже обработана." };
+
   if (input.decision === "REJECTED") {
-    await prisma.approvalRequest.update({
-      where: { id: input.approvalId },
-      data: { status: "REJECTED", decidedById: input.decidedById, decidedAt: new Date() },
-    });
     await writeAudit({
       userId: input.decidedById,
       action: "approval.reject",
@@ -330,11 +333,18 @@ export async function executeApprovalDecision(input: {
 
   const payload = row.payload as Record<string, unknown>;
   const result = await executeApprovedPayload(row.type, payload, input.decidedById);
-  if (result.error) return result;
+  if (result.error) {
+    // Rollback claim on failure
+    await prisma.approvalRequest.update({
+      where: { id: input.approvalId },
+      data: { status: "PENDING", decidedById: null, decidedAt: null },
+    });
+    return result;
+  }
 
   await prisma.approvalRequest.update({
     where: { id: input.approvalId },
-    data: { status: "APPROVED", decidedById: input.decidedById, decidedAt: new Date() },
+    data: { status: "APPROVED" },
   });
   await writeAudit({
     userId: input.decidedById,

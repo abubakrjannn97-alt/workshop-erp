@@ -1,5 +1,15 @@
 import Link from "next/link";
-import { ChevronRight, ClipboardList, Plus, Search, SlidersHorizontal } from "lucide-react";
+import { Suspense } from "react";
+import {
+  Banknote,
+  ChevronRight,
+  ClipboardList,
+  Factory,
+  Plus,
+  Search,
+  ShoppingBag,
+  Wallet,
+} from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import { EmptyState } from "@/components/empty-state";
 import { StatusBadge, orderTone, type BadgeTone } from "@/components/status-badge";
@@ -14,6 +24,13 @@ export type OrderListItem = {
   customer: { name: string; id: string };
   status: { code: string; name: string };
   items?: { product: { name: string } }[];
+};
+
+export type OrdersSummary = {
+  count: number;
+  revenue: string;
+  debt: string;
+  inProduction: number;
 };
 
 export function productSummary(order: OrderListItem, moreLabel: (n: number) => string): string {
@@ -38,6 +55,7 @@ export function OrdersPageHeader({
   canCreate,
   newOrderHref,
   newOrderLabel,
+  mobileTools,
 }: {
   title: string;
   subtitle: string;
@@ -46,32 +64,74 @@ export function OrdersPageHeader({
   canCreate: boolean;
   newOrderHref: string;
   newOrderLabel: string;
+  mobileTools?: React.ReactNode;
 }) {
   return (
     <header className={styles.header}>
-      <div className={styles.headerText}>
-        <h1 className={styles.title}>{title}</h1>
-        <p className={styles.subtitle}>{subtitle}</p>
-      </div>
-      <div className={styles.headerActions}>
-        <Link href={historyHref} className={styles.ghostLink}>
-          {historyLabel}
-        </Link>
-        {canCreate ? (
-          <Link href={newOrderHref} className={styles.primaryBtn} data-tour="orders-new">
-            <span className={styles.primaryBtnIcon} aria-hidden>
-              <Plus size={16} strokeWidth={ICON_STROKE} />
-            </span>
-            {newOrderLabel}
+      <div className={styles.headerMain}>
+        <div className={styles.headerText}>
+          <h1 className={styles.title}>{title}</h1>
+          <p className={styles.subtitle}>{subtitle}</p>
+        </div>
+        <Suspense fallback={null}>{mobileTools}</Suspense>
+        <div className={styles.headerActions}>
+          <Link href={historyHref} className={styles.ghostLink}>
+            {historyLabel}
           </Link>
-        ) : null}
-        {canCreate ? (
-          <Link href={newOrderHref} className={styles.iconBtn} aria-label={newOrderLabel} data-tour="orders-new-mobile">
-            <Plus size={20} strokeWidth={ICON_STROKE} />
-          </Link>
-        ) : null}
+          {canCreate ? (
+            <Link href={newOrderHref} className={styles.primaryBtn} data-tour="orders-new">
+              <span className={styles.primaryBtnIcon} aria-hidden>
+                <Plus size={16} strokeWidth={ICON_STROKE} />
+              </span>
+              {newOrderLabel}
+            </Link>
+          ) : null}
+        </div>
       </div>
     </header>
+  );
+}
+
+export function OrdersSummaryStrip({
+  summary,
+  labels,
+}: {
+  summary: OrdersSummary;
+  labels: {
+    count: string;
+    revenue: string;
+    debt: string;
+    production: string;
+  };
+}) {
+  const cards = [
+    { id: "count", label: labels.count, value: String(summary.count), icon: ShoppingBag, tone: styles.summaryOrange },
+    { id: "revenue", label: labels.revenue, value: `${summary.revenue} с`, icon: Banknote, tone: styles.summaryGreen },
+    { id: "debt", label: labels.debt, value: `${summary.debt} с`, icon: Wallet, tone: styles.summaryGold },
+    {
+      id: "production",
+      label: labels.production,
+      value: String(summary.inProduction),
+      icon: Factory,
+      tone: styles.summaryBlue,
+    },
+  ];
+
+  return (
+    <section className={styles.summaryGrid} aria-label={labels.count}>
+      {cards.map((card) => {
+        const Icon = card.icon;
+        return (
+          <article key={card.id} className={`${styles.summaryCard} ${card.tone}`}>
+            <span className={styles.summaryIcon}>
+              <Icon size={20} strokeWidth={ICON_STROKE} aria-hidden />
+            </span>
+            <p className={styles.summaryLabel}>{card.label}</p>
+            <p className={styles.summaryValue}>{card.value}</p>
+          </article>
+        );
+      })}
+    </section>
   );
 }
 
@@ -126,13 +186,6 @@ export function OrdersFilterToolbar({
           />
         </span>
       </label>
-
-      <details className={styles.mobileFilters}>
-        <summary className={styles.mobileFiltersSummary}>
-          <span>{filtersLabel}</span>
-          <SlidersHorizontal size={16} strokeWidth={ICON_STROKE} aria-hidden />
-        </summary>
-      </details>
 
       <div className={styles.filterRow}>
         <label className={styles.toolbarField}>
@@ -252,19 +305,18 @@ export function OrdersListPanel({
                 className={`${styles.mobileCard} ${overdue ? styles.mobileCardAttention : ""}`.trim()}
               >
                 <div className={styles.mobileTop}>
-                  <span className={styles.mobileOrderNo}>{orderNo(order.number)}</span>
-                  <span className={styles.mobileAmount}>{moneyDisplay(String(order.total))} с</span>
+                  <span className={styles.mobileCustomerName}>{order.customer.name}</span>
+                  <span className={styles.chevron} aria-hidden>
+                    <ChevronRight size={16} strokeWidth={ICON_STROKE} />
+                  </span>
                 </div>
-                <p className={styles.mobileCustomer}>{order.customer.name}</p>
                 <p className={styles.mobileProduct}>{productSummary(order, productMoreLabel)}</p>
                 <div className={styles.mobileBottom}>
                   <div className={styles.statusCell}>
                     <StatusBadge label={label} tone={orderTone(order.status.code) as BadgeTone} />
                     {overdue ? <span className={styles.attention}>{attentionLabel}</span> : null}
                   </div>
-                  <span className={styles.chevron} aria-hidden>
-                    <ChevronRight size={16} strokeWidth={ICON_STROKE} />
-                  </span>
+                  <span className={styles.mobileAmount}>{moneyDisplay(String(order.total))} с</span>
                 </div>
               </Link>
             </li>

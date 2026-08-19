@@ -2,7 +2,7 @@ import { getTranslator } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { hasPermission } from "@core/auth/authz";
-import { moneyDisplay } from "@core/shared/decimal";
+import { D, moneyDisplay } from "@core/shared/decimal";
 import { orderNo } from "@core/shared/format";
 import {
   ORDERS_PAGE_SIZE,
@@ -10,11 +10,14 @@ import {
   resolveOrderDateRange,
 } from "@core/shared/order-period";
 import { Segmented } from "@/components/segmented";
+import { OrdersMobileHeaderTools } from "./orders-mobile-header-tools";
+import { OrdersPeriodPicker } from "./orders-period-picker";
 import {
   OrdersEmpty,
   OrdersFilterToolbar,
   OrdersListPanel,
   OrdersPageHeader,
+  OrdersSummaryStrip,
   type OrderListItem,
 } from "./orders-ui";
 import styles from "./orders.module.css";
@@ -54,9 +57,8 @@ export default async function OrdersPage({
     to: toRaw,
   });
 
-  const where = {
+  const periodWhere = {
     ...(ownOnly ? { sellerId: session.user.id } : {}),
-    ...(status ? { status: { code: status } } : {}),
     ...(from || to
       ? {
           createdAt: {
@@ -72,7 +74,12 @@ export default async function OrdersPage({
         : {}),
   };
 
-  const [orders, total, statuses] = await Promise.all([
+  const where = {
+    ...periodWhere,
+    ...(status ? { status: { code: status } } : {}),
+  };
+
+  const [orders, total, statuses, aggregate, inProduction] = await Promise.all([
     prisma.order.findMany({
       where,
       include: {
@@ -87,9 +94,24 @@ export default async function OrdersPage({
     }),
     prisma.order.count({ where }),
     prisma.orderStatus.findMany({ orderBy: { sortOrder: "asc" } }),
+    prisma.order.aggregate({
+      where: periodWhere,
+      _count: true,
+      _sum: { total: true, paidAmount: true },
+    }),
+    prisma.order.count({
+      where: {
+        ...periodWhere,
+        status: { code: "IN_PRODUCTION" },
+      },
+    }),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / ORDERS_PAGE_SIZE));
+  const revenue = D(String(aggregate._sum.total ?? 0));
+  const paid = D(String(aggregate._sum.paidAmount ?? 0));
+  const debtRaw = revenue.sub(paid);
+  const debt = debtRaw.lt(0) ? D(0) : debtRaw;
 
   const baseQuery = {
     q: q?.trim() || undefined,
@@ -113,6 +135,31 @@ export default async function OrdersPage({
         canCreate={canCreate}
         newOrderHref="/orders/new"
         newOrderLabel={t("sales.newOrder")}
+        mobileTools={
+          <OrdersMobileHeaderTools
+            searchLabel={t("orders.searchLabel")}
+            searchPlaceholder={t("orders.searchPh")}
+            initialQ={q}
+            canCreate={canCreate}
+            newOrderHref="/orders/new"
+            newOrderLabel={t("sales.newOrder")}
+          />
+        }
+      />
+
+      <OrdersSummaryStrip
+        summary={{
+          count: aggregate._count,
+          revenue: moneyDisplay(revenue),
+          debt: moneyDisplay(debt),
+          inProduction,
+        }}
+        labels={{
+          count: t("orders.kpiCount"),
+          revenue: t("orders.kpiRevenue"),
+          debt: t("orders.kpiDebt"),
+          production: t("orders.kpiProduction"),
+        }}
       />
 
       <div className={styles.navRow}>
@@ -127,7 +174,21 @@ export default async function OrdersPage({
             }))}
           />
         </div>
-        <div className={styles.segScroll}>
+        <div className={styles.periodMobile}>
+          <OrdersPeriodPicker
+            current={resolvedPeriod}
+            fromRaw={fromRaw}
+            toRaw={toRaw}
+            status={status}
+            q={q?.trim()}
+            t={t}
+            calendarLabel={t("orders.periodCalendar")}
+            fromLabel={t("orders.dateFrom")}
+            toLabel={t("orders.dateTo")}
+            applyLabel={t("orders.periodApply")}
+          />
+        </div>
+        <div className={styles.periodDesktop}>
           <Segmented
             scroll
             aria-label={t("home.period")}

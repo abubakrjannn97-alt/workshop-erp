@@ -14,9 +14,9 @@ import { findRawWarehouse } from "@/core/config/resolve-warehouse";
 import { PAYMENT_METHODS, STATUS_FLOW } from "@core/orders/orders";
 import { PageHeader } from "@/components/page-header";
 import { DashPanel } from "@/components/dash-panel";
-import { KpiCard } from "@/components/kpi-card";
-import { DashKpiGrid } from "@/components/dashboard/dashboard-system";
 import { StatusBadge, orderTone, payTone } from "@/components/status-badge";
+import { OrderDetailMetrics } from "./order-detail-metrics";
+import detailStyles from "./order-detail.module.css";
 import {
   DataList,
   DataListHead,
@@ -152,34 +152,56 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         </span>
       </div>
 
-      <p className="flex flex-wrap gap-3 text-sm">
-        <Link href={`/orders/${order.id}/print?doc=invoice`} className="text-[var(--titan-dark)] hover:underline">
-          {t("orders.invoice")}
-        </Link>
-        <Link href={`/orders/${order.id}/print?doc=receipt`} className="text-[var(--titan-dark)] hover:underline">
-          {t("orders.receipt")}
-        </Link>
-        <Link href={`/orders/${order.id}/print?doc=waybill`} className="text-[var(--titan-dark)] hover:underline">
-          {t("orders.waybill")}
-        </Link>
-        <a href={`/api/export/order?id=${order.id}`} className="text-[var(--titan-dark)] hover:underline">
-          CSV
-        </a>
-        <a href={`/api/export/order?id=${order.id}&format=xls`} className="text-[var(--titan-dark)] hover:underline">
-          Excel
-        </a>
-      </p>
+      <OrderDetailMetrics
+        items={[
+          {
+            id: "total",
+            label: t("common.amount"),
+            value: `${moneyDisplay(order.total)} с`,
+            tone: "gold",
+            icon: "gold",
+          },
+          {
+            id: "paid",
+            label: t("common.paid"),
+            value: `${moneyDisplay(order.paidAmount)} с`,
+            tone: "green",
+            icon: "green",
+          },
+          {
+            id: "debt",
+            label: t("common.debt"),
+            value: `${moneyDisplay(debt)} с`,
+            hint: debt.gt(0) ? t("orders.attention") : undefined,
+            tone: "warn",
+            icon: "warn",
+          },
+          {
+            id: "margin",
+            label: t("orders.marginMaterials"),
+            value: margin ? `${moneyDisplay(margin)} с` : canSeeCost ? t("orders.noCost") : t("orders.hidden"),
+            tone: "blue",
+            icon: "blue",
+          },
+        ]}
+      />
 
-      <DashKpiGrid cols="4">
-        <KpiCard label={t("common.amount")} value={`${moneyDisplay(order.total)} с`} tone="in" />
-        <KpiCard label={t("common.paid")} value={`${moneyDisplay(order.paidAmount)} с`} tone="in" />
-        <KpiCard label={t("common.debt")} value={`${moneyDisplay(debt)} с`} tone={debt.gt(0) ? "out" : "ink"} />
-        <KpiCard
-          label={t("orders.marginMaterials")}
-          value={margin ? `${moneyDisplay(margin)} с` : canSeeCost ? t("orders.noCost") : t("orders.hidden")}
-          tone="ink"
-        />
-      </DashKpiGrid>
+      {canCreate && nextStatuses.length > 0 ? (
+        <section className={detailStyles.statusPanel}>
+          <h2 className={detailStyles.statusPanelTitle}>{t("common.status")}</h2>
+          <div className={detailStyles.statusActions}>
+            {nextStatuses.map((s) => (
+              <form action={statusAction} key={s.id}>
+                <input type="hidden" name="id" value={order.id} />
+                <input type="hidden" name="statusCode" value={s.code} />
+                <button type="submit" className="ui-btn-secondary min-h-[44px]">
+                  {n("ostatus", s.code, s.name)}
+                </button>
+              </form>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <DataTableSection>
         <h2 className="border-b border-[var(--border-soft)] px-3 py-2 text-sm font-semibold">{t("orders.lines")}</h2>
@@ -264,17 +286,6 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                 </button>
               </form>
             ) : null}
-            {canCreate && nextStatuses.length > 0
-              ? nextStatuses.map((s) => (
-                  <form action={statusAction} key={s.id}>
-                    <input type="hidden" name="id" value={order.id} />
-                    <input type="hidden" name="statusCode" value={s.code} />
-                    <button type="submit" className="ui-btn-secondary min-h-[44px]">
-                      {n("ostatus", s.code, s.name)}
-                    </button>
-                  </form>
-                ))
-              : null}
             {canIssue && (order.status.code === "IN_FG" || order.status.code === "READY") ? (
               <form action={issueAction}>
                 <input type="hidden" name="id" value={order.id} />

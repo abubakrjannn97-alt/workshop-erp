@@ -86,6 +86,9 @@ export async function payEmployee(formData: FormData) {
   }
   if (!accountId) return { error: "Выберите кассу." };
 
+  const employee = await prisma.user.findUnique({ where: { id: userId } });
+  if (!employee || employee.archivedAt) return { error: "Сотрудник не найден или архивирован." };
+
   const accrued = await prisma.payrollAccrual.aggregate({
     where: { userId, status: "ACCRUED" },
     _sum: { amount: true },
@@ -100,6 +103,7 @@ export async function payEmployee(formData: FormData) {
   const laborFund = await prisma.financialFund.findUnique({ where: { code: FUND.LABOR } });
   const category = await prisma.expenseCategory.findUnique({ where: { code: "SALARY" } });
 
+  const idempKey = `payout-${userId}-${money(debt)}-${money(amount)}`;
   await prisma.$transaction(async (tx) => {
     await tx.payrollPayout.create({
       data: {
@@ -120,6 +124,7 @@ export async function payEmployee(formData: FormData) {
       relatedType: "payroll",
       relatedId: userId,
       comment: comment || "Выплата сотруднику",
+      idempotencyKey: `${idempKey}-cash`,
       createdById: session.user.id,
     });
     if (laborFund) {
@@ -130,6 +135,7 @@ export async function payEmployee(formData: FormData) {
         categoryId: category?.id,
         relatedType: "payroll",
         relatedId: userId,
+        idempotencyKey: `${idempKey}-fund`,
         createdById: session.user.id,
       });
     }

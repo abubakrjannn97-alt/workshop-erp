@@ -285,6 +285,9 @@ export async function cancelOrder(formData: FormData) {
   });
   if (!order) return { error: "Заказ не найден." };
   if (order.status.code === ORDER_STATUS.CANCELLED) return { error: "Заказ уже отменён." };
+  if (order.status.code === ORDER_STATUS.COMPLETED || order.status.code === ORDER_STATUS.ISSUED) {
+    return { error: "Нельзя отменить завершённый/выданный заказ." };
+  }
   if (
     D(String(order.paidAmount)).gt(0) &&
     !canSelfApprove(session.user.roleCode) &&

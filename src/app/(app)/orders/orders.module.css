@@ -10,6 +10,12 @@
 
 .header {
   display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.headerMain {
+  display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
@@ -103,7 +109,141 @@
   background: var(--surface);
   color: var(--ink);
   text-decoration: none;
-  box-shadow: 0 1px 4px rgba(28, 35, 43, 0.04);
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+}
+
+.iconBtnActive {
+  border-color: rgba(154, 115, 56, 0.4);
+  background: #f3ead8;
+  color: #8b6e2f;
+}
+
+.mobileHeaderToolsGrid {
+  display: none;
+}
+
+.mobileHeaderIcons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobileSearchBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 10px 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.mobileSearchIcon {
+  flex-shrink: 0;
+  color: var(--ink-3);
+}
+
+.mobileSearchInput {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  background: transparent;
+  font-size: 15px;
+  line-height: 20px;
+  color: var(--ink);
+  outline: none;
+}
+
+.mobileSearchInput::placeholder {
+  color: var(--ink-3);
+}
+
+.mobileSearchClear {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.summaryCard {
+  display: flex;
+  min-height: 108px;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.summaryIcon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 12px;
+}
+
+.summaryOrange .summaryIcon {
+  background: #fff0e4;
+  color: #d88942;
+}
+
+.summaryGreen .summaryIcon {
+  background: #eaf7f0;
+  color: #249565;
+}
+
+.summaryGold .summaryIcon {
+  background: #fff5e8;
+  color: #c2410c;
+}
+
+.summaryBlue .summaryIcon {
+  background: #eef3ff;
+  color: #4a70d0;
+}
+
+.summaryLabel {
+  margin: 4px 0 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--ink-2);
+}
+
+.summaryValue {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 26px;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.periodMobile {
+  display: none;
+}
+
+.periodDesktop {
+  display: block;
 }
 
 .filterRow {
@@ -114,7 +254,36 @@
 }
 
 @media (max-width: 1023px) {
-  .primaryBtn {
+  .headerMain {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .headerText {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .mobileHeaderToolsGrid {
+    display: contents;
+  }
+
+  .mobileHeaderIcons {
+    display: flex;
+    grid-column: 2;
+    grid-row: 1;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mobileSearchBar {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .headerActions {
     display: none;
   }
 
@@ -545,7 +714,7 @@
     max-width: none;
   }
 
-  .header {
+  .headerMain {
     align-items: center;
   }
 
@@ -562,37 +731,34 @@
     display: none;
   }
 
-  .mobileFilters {
-    display: block;
-    width: 100%;
-  }
-
   .toolbar {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 14px 16px;
+    display: none;
   }
 
-  .searchField {
-    min-width: 0;
-    flex: initial;
+  .periodMobile {
+    display: block;
   }
 
-  .searchFieldLabel {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
+  .periodDesktop {
+    display: none;
+  }
+
+  .mobileTop {
+    align-items: center;
+  }
+
+  .mobileCustomerName {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 22px;
+    color: var(--ink);
     overflow: hidden;
-    clip: rect(0, 0, 0, 0);
+    text-overflow: ellipsis;
     white-space: nowrap;
-    border: 0;
   }
 
-  .toolbarActions {
-    margin-left: 0;
-    justify-content: space-between;
+  .mobileOrderNo {
+    display: none;
   }
 
   .tableHead,
@@ -602,6 +768,16 @@
 
   .mobileList {
     display: block;
+  }
+
+  .listPanel {
+    border: none;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .mobileList {
+    padding: 0;
   }
 }
 

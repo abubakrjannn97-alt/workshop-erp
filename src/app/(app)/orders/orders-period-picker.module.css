@@ -1,0 +1,149 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pills {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.pills::-webkit-scrollbar {
+  display: none;
+}
+
+.pill,
+.pillActive {
+  display: inline-flex;
+  flex-shrink: 0;
+  min-height: 40px;
+  align-items: center;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  color: var(--ink-2);
+  text-decoration: none;
+  box-shadow: var(--shadow-soft);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.pillActive {
+  border-color: rgba(154, 115, 56, 0.35);
+  background: linear-gradient(180deg, #fffaf2 0%, #f3ead8 100%);
+  color: #8b6e2f;
+}
+
+.calendarRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendarToggle {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+}
+
+.calendarToggleActive {
+  border-color: rgba(154, 115, 56, 0.35);
+  background: linear-gradient(180deg, #fffaf2 0%, #f3ead8 100%);
+  color: #8b6e2f;
+}
+
+.calendarPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.calendarTitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.dateGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.dateField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dateLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.dateInput {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-2);
+  font-size: 14px;
+  color: var(--ink);
+  color-scheme: light;
+  accent-color: var(--accent);
+}
+
+.dateInput:focus {
+  outline: 2px solid rgba(184, 149, 74, 0.35);
+  outline-offset: 1px;
+  border-color: rgba(154, 115, 56, 0.45);
+  background: var(--surface);
+}
+
+.applyBtn {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--navy);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--on-navy);
+  cursor: pointer;
+}
+
+.applyBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
