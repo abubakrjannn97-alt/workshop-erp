@@ -1,7 +1,7 @@
 import { cache } from "react";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@core/infrastructure/prisma";
-import { getDomainConfig } from "@core/config/domain-config";
+import { getDomainConfig, getDomainPreset } from "@core/config/domain-config";
 
 type WarehouseClient = Pick<typeof prisma, "warehouse"> | Prisma.TransactionClient;
 
@@ -34,11 +34,17 @@ export const getFgWarehouse = cache(async () => {
 });
 
 export async function findRawWarehouse(client: WarehouseClient = prisma) {
-  const code = await resolveRawWarehouseCode();
+  const code =
+    client === prisma
+      ? (await getDomainConfig()).warehouses.rawCode
+      : getDomainPreset().warehouses.rawCode;
   return findWarehouseByCode(client, code);
 }
 
 export async function findFinishedGoodsWarehouse(client: WarehouseClient = prisma) {
-  const code = await resolveFinishedGoodsWarehouseCode();
+  const code =
+    client === prisma
+      ? (await getDomainConfig()).warehouses.fgCode
+      : getDomainPreset().warehouses.fgCode;
   return findWarehouseByCode(client, code);
 }

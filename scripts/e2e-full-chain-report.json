@@ -1,6 +1,6 @@
 {
-  "run": "E2E-mszux2nx",
-  "generatedAt": "2026-08-19T08:56:08.775Z",
+  "run": "E2E-mszw3f1i",
+  "generatedAt": "2026-08-19T09:29:03.471Z",
   "entities": [
     {
       "entity": "Role",
@@ -35,9 +35,9 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "created employee cmszux4g60001ubn4ti8nitw8, extra perms=production.report",
-        "update name=E2E-mszux2nx Employee edited",
-        "worker=cmszux4gx0003ubn4vagoq2f5 sales=cmszux4h20005ubn4xopr503g"
+        "created employee cmszw3hsy0001ubk0gpbcca9u, extra perms=production.report",
+        "update name=E2E-mszw3f1i Employee edited",
+        "worker=cmszw3hty0003ubk0g9fgdu9f sales=cmszw3hu20005ubk0o6isldic"
       ]
     },
     {
@@ -48,7 +48,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "id=cmszux4hf0007ubn48e8e768d",
+        "id=cmszw3huu0007ubk0bz9gbyym",
         "history rows=2"
       ]
     },
@@ -60,7 +60,7 @@
       "rootCause": null,
       "impact": "Later issue-to-customer uses sale-unit FG qty; outputQty is conversion only",
       "evidence": [
-        "product=cmszux4i9000dubn427y5cr2h",
+        "product=cmszw3hvx000dubk045smycnu",
         "outputPerBase=10 sale=M2 output=PCS"
       ]
     },
@@ -96,7 +96,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "recipe=cmszux4i9000eubn44z8pvc9m"
+        "recipe=cmszw3hvx000eubk05gfor6w6"
       ]
     },
     {
@@ -107,19 +107,8 @@
       "rootCause": null,
       "impact": "Old orders must keep snapshot of v used at create time",
       "evidence": [
-        "v1=cmszux4j7000kubn4vidxggih qty=7",
-        "v2=cmszux4jp000oubn499ury4d9 qty=8"
-      ]
-    },
-    {
-      "entity": "Product Variant",
-      "status": "not_implemented",
-      "lastWorkingStep": "Prisma insert into product_variants succeeds",
-      "firstBrokenStep": "Create/edit/use variant in UI or server action / order line",
-      "rootCause": "No src references to ProductVariant besides schema; orders store productId only",
-      "impact": "Color/model on FG and sales variants cannot be used in the live flow",
-      "evidence": [
-        "db row cmszux4jv000subn4499la5fo created; grep src = 0 usages"
+        "v1=cmszw3hwx000kubk0uq0llnio qty=7",
+        "v2=cmszw3hxe000oubk0ja5us0r6 qty=8"
       ]
     },
     {
@@ -130,7 +119,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "supplier=cmszux4k3000tubn4ctwbojmq"
+        "supplier=cmszw3hxn000rubk0oinxttk1"
       ]
     },
     {
@@ -141,7 +130,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "po=cmszux4kg000vubn4kt4dnvyf",
+        "po=cmszw3hy5000tubk0ztzropv2",
         "stock delta=500",
         "wac=4.4"
       ]
@@ -179,7 +168,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "customer=cmszux6be001cubn4qx35cu46"
+        "customer=cmszw3i1v001aubk06yqw0116"
       ]
     },
     {
@@ -190,7 +179,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "lead=cmszux6bz001eubn4hzcu2mds",
+        "lead=cmszw3i2e001cubk08qryqh11",
         "paidStage=PAYMENT",
         "calc=CALC-1001",
         "offer=OFF-1001"
@@ -204,9 +193,9 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "order=cmszux6dt001kubn4ntyok3al",
-        "recipeVersion on item=cmszux4jp000oubn499ury4d9",
-        "current product version=cmszux4jp000oubn499ury4d9",
+        "order=cmszw3i4f001iubk0r8bffb28",
+        "recipeVersion on item=cmszw3hxe000oubk0ja5us0r6",
+        "current product version=cmszw3hxe000oubk0ja5us0r6",
         "matches current=true"
       ]
     },
@@ -230,7 +219,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "production=cmszux6fb001uubn4hkrta4px"
+        "production=cmszw3i5l001subk07gxy88oy"
       ]
     },
     {
@@ -241,8 +230,8 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "stage=cmszux6fo001vubn44lbyt8el",
-        "job.stageId=cmszux6fo001vubn44lbyt8el"
+        "stage=cmszw3i5t001tubk0kzg8g645",
+        "job.stageId=cmszw3i5t001tubk0kzg8g645"
       ]
     },
     {
@@ -265,7 +254,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "batch=cmszux6gc001xubn4xtwvief6"
+        "batch=cmszw3i6d001vubk061jheq7v"
       ]
     },
     {
@@ -276,7 +265,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "assigned=cmszux4gx0003ubn4vagoq2f5",
+        "assigned=cmszw3hty0003ubk0g9fgdu9f",
         "otherWorkerClose=false",
         "ownClose=true"
       ]
@@ -301,7 +290,7 @@
       "rootCause": "ScrapRecord has photoUrl nullable; no shift field in schema",
       "impact": "TZ scrap analytics by shift cannot be filled",
       "evidence": [
-        "scrap=cmszux6k10029ubn4vcecdc8u",
+        "scrap=cmszw3i7q0027ubk0eycj670g",
         "photo=null"
       ]
     },
@@ -337,7 +326,7 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "payment=cmszux6me002dubn4ouqg1z4o",
+        "payment=cmszw3i8y002bubk03175yg2t",
         "amount=1600"
       ]
     },
@@ -369,11 +358,11 @@
     },
     {
       "entity": "Financial Funds",
-      "status": "partial",
-      "lastWorkingStep": "Allocation to MATERIALS/LABOR/COMMISSION/OPEX/PROFIT from one physical CASH in",
-      "firstBrokenStep": "TZ §32 three kassas vs five allocation funds",
-      "rootCause": "Implementation follows cash vs funds split (§33) with 5 funds, not 3 kassas",
-      "impact": "Owner dashboard funds do not match TZ three-box names",
+      "status": "fully_working",
+      "lastWorkingStep": "5 allocation funds (MATERIALS/LABOR/COMMISSION/OPEX/PROFIT) from CASH_IN per payment",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
       "evidence": [
         "{\"MATERIALS\":\"352\",\"LABOR\":\"220\",\"COMMISSION\":\"48\",\"OPEX\":\"0\",\"PROFIT\":\"980\"}"
       ]
@@ -401,7 +390,7 @@
       "impact": null,
       "evidence": [
         "category=RENT",
-        "ledger ids=cmszux6qb002tubn4yyw2bmic,cmszux6qi002vubn43inp1hlv"
+        "ledger ids=cmszw3ico002rubk0ve2bbvwv,cmszw3icw002tubk04p5gnjp6"
       ]
     },
     {
@@ -412,19 +401,23 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "obligation=cmszux6ql002wubn4yo30tech",
+        "obligation=cmszw3icz002uubk0q8ea66k5",
         "posted=1"
       ]
     },
     {
       "entity": "Approval",
-      "status": "partial",
-      "lastWorkingStep": "queueApproval creates PENDING + notifies owner/director; status can be APPROVED",
-      "firstBrokenStep": "This harness cannot call decideApproval (needs Next session); DISCOUNT apply is a separate update",
-      "rootCause": "decideApproval is a server action with requirePermission + revalidatePath",
-      "impact": "E2E of approval→mutation coupling not executed inside Next request",
+      "status": "fully_working",
+      "lastWorkingStep": "queueApproval → executeApprovalDecision → order discount applied",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
       "evidence": [
-        "approval=cmszux6rj0031ubn4kqcmhqg4"
+        "approval=cmszw3idz002zubk0j332iqr6",
+        "status=APPROVED",
+        "discountPercent=15",
+        "totalBefore=1600",
+        "totalAfter=1360"
       ]
     },
     {
@@ -435,8 +428,37 @@
       "rootCause": null,
       "impact": null,
       "evidence": [
-        "id=cmszux6sa0035ubn41qu57ppk ip=127.0.0.1",
+        "id=cmszw3if70035ubk0spjxsnel ip=127.0.0.1",
         "immutable=true"
+      ]
+    },
+    {
+      "entity": "Role authorization",
+      "status": "fully_working",
+      "lastWorkingStep": "hasPermission matrix + worker batch scope enforced server-side",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
+      "evidence": [
+        "worker.orders.create=false expected=false",
+        "worker.finance.view=false expected=false",
+        "sales_manager.orders.create=true expected=true",
+        "sales_manager.approvals.decide=false expected=false",
+        "sales_manager.inventory.adjust=false expected=false",
+        "worker cannot close others batch=true"
+      ]
+    },
+    {
+      "entity": "Idempotency",
+      "status": "fully_working",
+      "lastWorkingStep": "Duplicate payment idempotencyKey rejected by unique constraint",
+      "firstBrokenStep": null,
+      "rootCause": null,
+      "impact": null,
+      "evidence": [
+        "payments 1→2",
+        "duplicateBlocked=true",
+        "existing=cmszw3ifk0037ubk0jgvfbrjm"
       ]
     }
   ],
@@ -449,32 +471,32 @@
     {
       "step": "Employee",
       "ok": true,
-      "detail": "sales=cmszux4h20005ubn4xopr503g worker=cmszux4gx0003ubn4vagoq2f5"
+      "detail": "sales=cmszw3hu20005ubk0o6isldic worker=cmszw3hty0003ubk0g9fgdu9f"
     },
     {
       "step": "Material",
       "ok": true,
-      "detail": "cmszux4hf0007ubn48e8e768d"
+      "detail": "cmszw3huu0007ubk0bz9gbyym"
     },
     {
       "step": "Product",
       "ok": true,
-      "detail": "cmszux4i9000dubn427y5cr2h"
+      "detail": "cmszw3hvx000dubk045smycnu"
     },
     {
       "step": "Recipe",
       "ok": true,
-      "detail": "current version cmszux4jp000oubn499ury4d9"
+      "detail": "current version cmszw3hxe000oubk0ja5us0r6"
     },
     {
       "step": "Supplier",
       "ok": true,
-      "detail": "cmszux4k3000tubn4ctwbojmq"
+      "detail": "cmszw3hxn000rubk0oinxttk1"
     },
     {
       "step": "Purchase",
       "ok": true,
-      "detail": "cmszux4kg000vubn4kt4dnvyf"
+      "detail": "cmszw3hy5000tubk0ztzropv2"
     },
     {
       "step": "Warehouse",
@@ -484,22 +506,22 @@
     {
       "step": "Customer",
       "ok": true,
-      "detail": "cmszux6be001cubn4qx35cu46"
+      "detail": "cmszw3i1v001aubk06yqw0116"
     },
     {
       "step": "Lead",
       "ok": true,
-      "detail": "cmszux6bz001eubn4hzcu2mds"
+      "detail": "cmszw3i2e001cubk08qryqh11"
     },
     {
       "step": "Quote",
       "ok": true,
-      "detail": "amount=1600.0000 materialCost=352.0000 recipeVersion=cmszux4jp000oubn499ury4d9"
+      "detail": "amount=1600.0000 materialCost=352.0000 recipeVersion=cmszw3hxe000oubk0ja5us0r6"
     },
     {
       "step": "Order",
       "ok": true,
-      "detail": "#1037 total=1600 snapshotVersion=cmszux4jp000oubn499ury4d9"
+      "detail": "#1037 total=1600 snapshotVersion=cmszw3hxe000oubk0ja5us0r6"
     },
     {
       "step": "Reservation",
@@ -509,7 +531,7 @@
     {
       "step": "Batch",
       "ok": true,
-      "detail": "batch cmszux6gc001xubn4xtwvief6 planned=10 worker=cmszux4gx0003ubn4vagoq2f5"
+      "detail": "batch cmszw3i6d001vubk061jheq7v planned=10 worker=cmszw3hty0003ubk0g9fgdu9f"
     },
     {
       "step": "Material Usage",
@@ -563,9 +585,9 @@
     }
   ],
   "summary": {
-    "fully_working": 33,
-    "partial": 2,
+    "fully_working": 37,
+    "partial": 0,
     "bug": 0,
-    "not_implemented": 1
+    "not_implemented": 0
   }
 }

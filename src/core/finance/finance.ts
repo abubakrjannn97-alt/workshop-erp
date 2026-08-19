@@ -50,7 +50,7 @@ export async function postLedger(
 ) {
   const dup = await existing(tx, data.idempotencyKey);
   if (dup) return dup;
-  if (data.type !== LEDGER.REVERSAL) await assertPeriodOpen();
+  if (data.type !== LEDGER.REVERSAL) await assertPeriodOpen(undefined, tx);
   if (D(data.amount).lte(0)) throw new Error("Сумма проводки должна быть больше нуля.");
   return tx.ledgerEntry.create({
     data: {

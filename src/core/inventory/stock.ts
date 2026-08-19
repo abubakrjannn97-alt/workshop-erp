@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@core/infrastructure/prisma";
 import { D, money, qty } from "@core/shared/decimal";
 import { assertPeriodOpen } from "@core/control/control";
-import { resolveRawWarehouseCode } from "@/core/config/resolve-warehouse";
+import { getDomainPreset } from "@core/config/domain-config";
 
 export const MOVEMENT = {
   RECEIPT: "RECEIPT",
@@ -86,7 +86,7 @@ export async function getOrCreateProductStock(
 async function syncMaterialQty(tx: Tx, materialId: string | null, warehouseId: string) {
   if (!materialId) return;
   const warehouse = await tx.warehouse.findUnique({ where: { id: warehouseId } });
-  const rawCode = await resolveRawWarehouseCode();
+  const rawCode = getDomainPreset().warehouses.rawCode;
   if (warehouse?.code !== rawCode) return;
   const item = await tx.stockItem.findUnique({
     where: { warehouseId_materialId: { warehouseId, materialId } },
@@ -115,7 +115,7 @@ export async function receiveMaterial(
   const run = async (tx: Tx) => {
     const dup = await existingByKey(tx, input.idempotencyKey);
     if (dup) return dup;
-    await assertPeriodOpen();
+    await assertPeriodOpen(undefined, tx);
 
     const item = await getOrCreateMaterialStock(tx, input.warehouseId, input.materialId);
     const incoming = n(input.quantity);
@@ -334,7 +334,7 @@ export async function writeOffMaterial(
   const run = async (tx: Tx) => {
     const dup = await existingByKey(tx, input.idempotencyKey);
     if (dup) return dup;
-    await assertPeriodOpen();
+    await assertPeriodOpen(undefined, tx);
     const item = await getOrCreateMaterialStock(tx, input.warehouseId, input.materialId);
     const out = n(input.quantity);
     if (out.lte(0)) throw new Error("Количество списания должно быть больше нуля.");
@@ -546,7 +546,7 @@ export async function transferStock(
     const existingIn = await existingByKey(tx, inKey);
     if (existingOut && existingIn) return { out: existingOut, in: existingIn };
 
-    await assertPeriodOpen();
+    await assertPeriodOpen(undefined, tx);
     const qtyMove = n(input.quantity);
     if (qtyMove.lte(0)) throw new Error("Количество перемещения должно быть больше нуля.");
 

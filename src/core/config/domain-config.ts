@@ -86,6 +86,10 @@ export const getDomainConfig = cache(async (): Promise<DomainConfig> => {
   };
 });
 
+export function resolveProductionPaySchemeCodeSync(): string {
+  return getDomainPreset().payroll.productionScheme;
+}
+
 export async function resolveProductionPaySchemeCode(): Promise<string> {
   const config = await getDomainConfig();
   return config.payroll.productionScheme;

@@ -37,7 +37,7 @@ import { writeAudit } from "../src/core/control/audit";
 import { queueApproval } from "../src/core/control/control";
 import { executeApprovalDecision } from "../src/core/control/approval-decision";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "../src/core/config/resolve-warehouse";
-import { resolveProductionPaySchemeCode } from "../src/core/config/domain-config";
+import { resolveProductionPaySchemeCode, resolveProductionPaySchemeCodeSync } from "../src/core/config/domain-config";
 import { resolveBatchFinishedGoods, resolveProductionProductId } from "../src/core/production/production-order";
 import { assertCanCloseBatch } from "../src/core/production/batch-auth";
 import { ROLE_PERMISSIONS, canSeeMaterialCost, hasPermission } from "../src/core/rbac/permissions";
@@ -840,6 +840,7 @@ async function testFullChain(
     return s.add(D(actualOver).mul("4.4"));
   }, D(0));
   const unitCost = D(goodQty).gt(0) ? materialCost.div(goodQty) : D(0);
+  const productionSchemeCode = resolveProductionPaySchemeCodeSync();
 
   await prisma.$transaction(async (tx) => {
     for (const line of batch.materials) {
@@ -893,7 +894,6 @@ async function testFullChain(
         responsibleUserId: ids.workerId,
       },
     });
-    const productionSchemeCode = await resolveProductionPaySchemeCode();
     const rate =
       (await tx.user.findUnique({ where: { id: ids.workerId }, include: { payScheme: true } }))?.payScheme
         ?.productionRate ??

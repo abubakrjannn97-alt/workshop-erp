@@ -1,14 +1,17 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@core/infrastructure/prisma";
 
+type Db = typeof prisma | Prisma.TransactionClient;
+
 export function canSelfApprove(roleCode: string | undefined) {
   return roleCode === "owner" || roleCode === "director";
 }
 
-export async function assertPeriodOpen(at = new Date()) {
+export async function assertPeriodOpen(at = new Date(), tx?: Prisma.TransactionClient) {
+  const db: Db = tx ?? prisma;
   const year = at.getFullYear();
   const month = at.getMonth() + 1;
-  const period = await prisma.accountingPeriod.findUnique({
+  const period = await db.accountingPeriod.findUnique({
     where: { year_month: { year, month } },
   });
   if (period?.status === "CLOSED") {
