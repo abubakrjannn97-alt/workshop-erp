@@ -50,7 +50,7 @@ export function MobileQuickActionsStrip({ actions }: { actions: DashQuickAction[
           const toneClass = action.tone ? ACTION_TONE[action.tone] : "";
           return (
             <li key={action.href}>
-              <Link href={action.href} className={`${styles.action} ${styles.actionStrip} ${toneClass}`.trim()}>
+              <Link href={action.href} className={`${styles.actionStrip} ${toneClass}`.trim()}>
                 <span className={styles.actionIcon}>
                   <Icon size={22} strokeWidth={ICON_STROKE} aria-hidden />
                 </span>

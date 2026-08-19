@@ -510,44 +510,44 @@
   gap: 12px;
 }
 
-.actionsMobileStrip {
-  display: flex;
-  align-items: stretch;
+.actions.actionsMobileStrip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
-  overflow-x: auto;
-  padding: 2px 0 4px;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-.actionsMobileStrip::-webkit-scrollbar {
-  display: none;
+  overflow: visible;
+  padding: 0;
+  scroll-snap-type: none;
 }
 
 .actionsMobileStrip > li {
-  display: flex;
-  flex: 1 0 calc(25% - 6px);
+  display: block;
   min-width: 0;
-  scroll-snap-align: start;
 }
 
-.actionStrip {
+.actionsMobileStrip .actionStrip {
+  display: flex;
+  flex: none;
   width: 100%;
   height: 116px;
   min-height: 116px;
-  padding: 12px 6px 10px;
+  padding: 12px 4px 10px;
   border-radius: 16px;
   border: 1px solid var(--mobile-glass-border);
   background: var(--mobile-glass);
   box-shadow: var(--mobile-glass-shadow);
   backdrop-filter: blur(var(--mobile-glass-blur));
   -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 8px;
   box-sizing: border-box;
+  color: var(--ink);
+  text-decoration: none;
+  scroll-snap-align: unset;
 }
 
-.actionStrip:hover {
+.actionsMobileStrip .actionStrip:hover {
   transform: none;
   border-color: var(--mobile-glass-border);
   box-shadow: var(--mobile-glass-shadow);
