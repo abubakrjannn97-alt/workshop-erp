@@ -6,6 +6,9 @@ import {
   Package,
   Truck,
   ChartColumn,
+  Play,
+  Plus,
+  Box,
 } from "lucide-react";
 import Link from "next/link";
 import { ICON_STROKE } from "@/components/nav-icons";
@@ -23,6 +26,16 @@ export function ownerQuickActions(t: (key: string) => string): DashQuickAction[]
     { href: "/crm", label: t("nav.crm"), icon: Users },
     { href: "/production", label: t("nav.production"), icon: Factory },
     { href: "/warehouse", label: t("nav.warehouse"), icon: Package },
+  ];
+}
+
+export function ownerDesktopQuickActions(t: (key: string) => string): DashQuickAction[] {
+  return [
+    { href: "/orders/new", label: t("sales.newOrder"), icon: Plus },
+    { href: "/production", label: t("home.actionStartProduction"), icon: Play },
+    { href: "/products/new", label: t("home.actionAddProduct"), icon: Box },
+    { href: "/warehouse", label: t("home.actionToWarehouse"), icon: Truck },
+    { href: "/analytics", label: t("home.actionDailyReport"), icon: ChartColumn },
   ];
 }
 
@@ -44,13 +57,13 @@ export function DashQuickActions({
 
   return (
     <ul className={gridClass}>
-      {actions.slice(0, 4).map((action) => {
+      {actions.map((action) => {
         const Icon = action.icon;
         return (
           <li key={action.href}>
             <Link href={action.href} className={styles.action}>
-              <span className={`${styles.well} ${styles.wellNavy}`}>
-                <Icon size={18} strokeWidth={ICON_STROKE} aria-hidden />
+              <span className={styles.actionIcon}>
+                <Icon size={20} strokeWidth={ICON_STROKE} aria-hidden />
               </span>
               <span className={styles.actionLabel}>{action.label}</span>
             </Link>

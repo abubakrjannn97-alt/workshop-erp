@@ -1,21 +1,19 @@
+import { ClipboardList, Wallet, AlertTriangle, TrendingUp } from "lucide-react";
 import { prisma } from "@core/infrastructure/prisma";
 import { requireSession } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { FUND, fundDelta } from "@core/finance/finance";
 import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@core/inventory/alerts";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
-import { PageHeader } from "@/components/page-header";
-import { FundRow } from "@/components/fund-row";
 import {
-  buildOwnerDashAlerts,
   countOwnerAttention,
-  DashAlertList,
+  DashGreeting,
   DashMetricStrip,
   DashQuickActions,
   DashRecentOrders,
-  DashRecentOrdersAction,
+  DashRecentOrdersFooterLink,
   DashSection,
-  ownerQuickActions,
+  ownerDesktopQuickActions,
 } from "@/components/dashboard/dashboard-system";
 import styles from "@/components/dashboard/dash-home.module.css";
 
@@ -80,67 +78,61 @@ export async function DesktopHome() {
     criticalCount: critical.length,
     purchaseNeedCount: cover.purchaseNeed.length,
   });
-
-  const alerts = buildOwnerDashAlerts({
-    t,
-    overdue,
-    unpaid,
-    criticalMaterials: critical,
-    purchaseNeedCount: cover.purchaseNeed.length,
-  });
+  const profitFund = fundBalances.find((f) => f.code === FUND.PROFIT);
 
   return (
     <div className={styles.home}>
-      <PageHeader title={t("home.title")} description={t("home.greetSub")} />
+      <DashGreeting t={t} />
 
       <DashMetricStrip
         tour="home-income"
         metrics={[
-          { id: "sales", label: t("home.sold"), value: `${moneyDisplay(sold)} с`, hint: t("home.period") },
-          { id: "inflow", label: t("home.inflow"), value: `${moneyDisplay(received)} с`, hint: t("home.heroReceived") },
-          { id: "attention", label: t("home.attention"), value: String(attentionCount) },
+          {
+            id: "sales",
+            tone: "orange",
+            icon: ClipboardList,
+            label: t("home.sold"),
+            value: `${moneyDisplay(sold)} с`,
+            hint: t("home.period"),
+          },
+          {
+            id: "inflow",
+            tone: "green",
+            icon: Wallet,
+            label: t("home.inflow"),
+            value: `${moneyDisplay(received)} с`,
+            hint: t("home.heroReceived"),
+          },
+          {
+            id: "attention",
+            tone: "blue",
+            icon: AlertTriangle,
+            label: t("home.attention"),
+            value: String(attentionCount),
+            hint: t("home.open"),
+          },
+          {
+            id: "profit",
+            tone: "purple",
+            icon: TrendingUp,
+            label: n("fund", FUND.PROFIT, "Прибыль"),
+            value: `${moneyDisplay(profitFund?.balance ?? D(0))} с`,
+            hint: t("home.funds"),
+          },
         ]}
       />
 
-      <div className={styles.workGrid}>
-        <div className={styles.workWide}>
-          <DashSection title={t("home.attention")} tour="home-attention">
-            <DashAlertList alerts={alerts} empty={t("home.noAlerts")} openLabel={t("home.open")} />
-          </DashSection>
-        </div>
+      <DashSection title={t("home.quickActions")} tour="home-shortcuts" flush>
+        <DashQuickActions actions={ownerDesktopQuickActions(t)} layout="desktop" />
+      </DashSection>
 
-        <div className={styles.workSide}>
-          <DashSection title={t("home.funds")}>
-            <ul className={styles.list}>
-              {fundBalances.map((f) => (
-                <FundRow
-                  key={f.id}
-                  code={f.code}
-                  label={n("fund", f.code, f.name)}
-                  amount={`${moneyDisplay(f.balance)} с`}
-                  highlight={f.code === FUND.PROFIT}
-                />
-              ))}
-            </ul>
-          </DashSection>
-        </div>
-
-        <div className={styles.workWide}>
-          <DashSection
-            title={t("home.recentOrders")}
-            tour="home-orders"
-            action={<DashRecentOrdersAction href="/orders?period=month">{t("home.allOrders")}</DashRecentOrdersAction>}
-          >
-            <DashRecentOrders orders={recentOrders} empty={t("crm.noOrders")} n={n} locale={loc} showDate />
-          </DashSection>
-        </div>
-
-        <div className={styles.workSide}>
-          <DashSection title={t("home.quickActions")} tour="home-shortcuts" flush>
-            <DashQuickActions actions={ownerQuickActions(t)} layout="desktop" />
-          </DashSection>
-        </div>
-      </div>
+      <DashSection
+        title={t("home.recentOrders")}
+        tour="home-orders"
+        footer={<DashRecentOrdersFooterLink href="/orders?period=month">{t("home.viewAllOrders")}</DashRecentOrdersFooterLink>}
+      >
+        <DashRecentOrders orders={recentOrders} empty={t("crm.noOrders")} n={n} locale={loc} layout="table" />
+      </DashSection>
     </div>
   );
 }

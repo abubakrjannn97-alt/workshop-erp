@@ -6,13 +6,15 @@ export {
 } from "./owner-alerts";
 export { DashAlertList, DashAttentionCounts } from "./dash-alert-list";
 export { DashKpiGrid } from "./dash-kpi-grid";
+export { DashGreeting } from "./dash-greeting";
 export { DashMetricStrip, DashSection } from "./dash-metrics";
 export {
   DashQuickActions,
   DashQuickActionsDesktop,
   DashQuickActionsMobile,
   ownerQuickActions,
+  ownerDesktopQuickActions,
   ownerSecondaryActions,
   type DashQuickAction,
 } from "./dash-quick-actions";
-export { DashRecentOrders, DashRecentOrdersAction } from "./dash-recent-orders";
+export { DashRecentOrders, DashRecentOrdersAction, DashRecentOrdersFooterLink } from "./dash-recent-orders";

@@ -7,7 +7,7 @@
 /* ─── Design tokens (Phase 2 canonical + legacy aliases) ─── */
 :root {
   /* Canonical — Premium simplicity. Do not duplicate hex elsewhere. */
-  --bg: #f4f2ec;
+  --bg: #f8f9fa;
   --surface: #ffffff;
   --surface-2: #f7f6f2;
   --ink: #1a1d23;

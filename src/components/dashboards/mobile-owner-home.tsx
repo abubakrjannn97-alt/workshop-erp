@@ -1,18 +1,20 @@
+import { ClipboardList, Wallet, AlertTriangle, TrendingUp } from "lucide-react";
 import { prisma } from "@core/infrastructure/prisma";
 import { requireSession } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { FUND, fundDelta } from "@core/finance/finance";
 import { coverageAndPurchaseNeed, refreshOwnerAlerts } from "@core/inventory/alerts";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
-import { FundRow } from "@/components/fund-row";
 import {
   countOwnerAttention,
   DashAttentionCounts,
+  DashGreeting,
   DashMetricStrip,
   DashQuickActions,
   DashRecentOrders,
+  DashRecentOrdersAction,
   DashSection,
-  ownerQuickActions,
+  ownerDesktopQuickActions,
 } from "@/components/dashboard/dashboard-system";
 import { resolveFinanceDateRange } from "@core/shared/order-period";
 import styles from "@/components/dashboard/dash-home.module.css";
@@ -83,6 +85,7 @@ export async function MobileOwnerHome({ financePeriod }: { financePeriod?: strin
     criticalCount: critical.length,
     purchaseNeedCount: cover.purchaseNeed.length,
   });
+  const profitFund = fundBalances.find((f) => f.code === FUND.PROFIT);
 
   const attn = [
     overdue.length > 0
@@ -101,39 +104,60 @@ export async function MobileOwnerHome({ financePeriod }: { financePeriod?: strin
 
   return (
     <div className={styles.home}>
+      <DashGreeting t={t} />
+
       <DashMetricStrip
         tour="home-income"
         metrics={[
-          { id: "inflow", label: t("home.inflow"), value: `${moneyDisplay(received)} с`, hint: t("home.heroReceived") },
-          { id: "sales", label: t("home.sold"), value: `${moneyDisplay(sold)} с`, hint: t("home.period") },
-          { id: "attention", label: t("home.attention"), value: String(attentionCount) },
+          {
+            id: "sales",
+            tone: "orange",
+            icon: ClipboardList,
+            label: t("home.sold"),
+            value: `${moneyDisplay(sold)} с`,
+            hint: t("home.period"),
+          },
+          {
+            id: "inflow",
+            tone: "green",
+            icon: Wallet,
+            label: t("home.inflow"),
+            value: `${moneyDisplay(received)} с`,
+            hint: t("home.heroReceived"),
+          },
+          {
+            id: "attention",
+            tone: "blue",
+            icon: AlertTriangle,
+            label: t("home.attention"),
+            value: String(attentionCount),
+          },
+          {
+            id: "profit",
+            tone: "purple",
+            icon: TrendingUp,
+            label: n("fund", FUND.PROFIT, "Прибыль"),
+            value: `${moneyDisplay(profitFund?.balance ?? D(0))} с`,
+          },
         ]}
       />
 
-      <DashSection title={t("home.attention")} tour="home-attention">
-        <DashAttentionCounts rows={attn} empty={t("home.noAlerts")} />
-      </DashSection>
+      {attn.length > 0 ? (
+        <DashSection title={t("home.attention")} tour="home-attention">
+          <DashAttentionCounts rows={attn} empty={t("home.noAlerts")} />
+        </DashSection>
+      ) : null}
 
       <DashSection title={t("home.quickActions")} tour="home-shortcuts" flush>
-        <DashQuickActions actions={ownerQuickActions(t)} layout="mobile" />
+        <DashQuickActions actions={ownerDesktopQuickActions(t)} layout="mobile" />
       </DashSection>
 
-      <DashSection title={t("home.recentOrders")} tour="home-orders">
-        <DashRecentOrders orders={recentOrders} empty={t("crm.noOrders")} n={n} locale={loc} />
-      </DashSection>
-
-      <DashSection title={t("home.funds")}>
-        <ul className={styles.list}>
-          {fundBalances.map((f) => (
-            <FundRow
-              key={f.id}
-              code={f.code}
-              label={n("fund", f.code, f.name)}
-              amount={`${moneyDisplay(f.balance)} с`}
-              highlight={f.code === FUND.PROFIT}
-            />
-          ))}
-        </ul>
+      <DashSection
+        title={t("home.ordersToday")}
+        tour="home-orders"
+        action={<DashRecentOrdersAction href="/orders?period=month">{t("home.allOrders")}</DashRecentOrdersAction>}
+      >
+        <DashRecentOrders orders={recentOrders} empty={t("crm.noOrders")} n={n} locale={loc} layout="list" />
       </DashSection>
     </div>
   );
