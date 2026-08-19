@@ -13,24 +13,10 @@
 
 .hero {
   position: relative;
-  overflow: hidden;
 }
 
 .heroBg {
-  position: absolute;
-  top: -30px;
-  right: -20px;
-  width: 280px;
-  height: 260px;
-  background: url("/stone-hero.png") no-repeat top right / cover;
-  opacity: 0.18;
-  pointer-events: none;
-  mask-image: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.5) 55%, transparent 100%),
-              linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.6) 30%, rgba(0,0,0,1) 100%);
-  -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.5) 55%, transparent 100%),
-                      linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.6) 30%, rgba(0,0,0,1) 100%);
-  mask-composite: intersect;
-  -webkit-mask-composite: source-in;
+  display: none;
 }
 
 .greeting {
@@ -64,6 +50,17 @@
 .homeMobile {
   gap: 20px;
   max-width: none;
+  position: relative;
+}
+
+.homeMobile::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: url("/stone-hero.png") no-repeat top right / 75% auto;
+  opacity: 0.12;
+  pointer-events: none;
 }
 
 .homeMobile .greeting {
@@ -250,8 +247,10 @@
   overflow: hidden;
   border-radius: 18px;
   border: 1px solid #E8E7E3;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.82);
   box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   transition: transform 0.16s ease;
 }
 
@@ -365,8 +364,11 @@
 /* ─── Panels ─── */
 
 .panelMobile {
-  border-color: #E8E7E3;
+  border-color: rgba(232, 231, 227, 0.7);
   border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
 }
 
@@ -493,8 +495,10 @@
   min-height: 104px;
   padding: 16px 12px;
   border-radius: 16px;
-  border: 1px solid #E8E7E3;
-  background: #ffffff;
+  border: 1px solid rgba(232, 231, 227, 0.7);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
   scroll-snap-align: unset;
 }

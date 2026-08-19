@@ -13,8 +13,10 @@
   align-items: stretch;
   justify-content: space-around;
   height: 76px;
-  border-top: 1px solid #E8E7E3;
-  background: rgba(255, 255, 255, 0.96);
+  border-top: 1px solid rgba(232, 231, 227, 0.7);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .tab {
