@@ -51,6 +51,9 @@
   gap: 20px;
   max-width: none;
   position: relative;
+  --mobile-glass: rgba(255, 255, 255, 0.68);
+  --mobile-glass-border: rgba(255, 255, 255, 0.92);
+  --mobile-glass-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
 }
 
 .homeMobile::before {
@@ -246,9 +249,11 @@
   padding: 16px 14px 14px;
   overflow: hidden;
   border-radius: 18px;
-  border: 1px solid rgba(232, 231, 227, 0.45);
-  background: transparent;
-  box-shadow: none;
+  border: 1px solid var(--mobile-glass-border);
+  background: var(--mobile-glass);
+  box-shadow: var(--mobile-glass-shadow);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   transition: transform 0.16s ease;
 }
 
@@ -362,10 +367,12 @@
 /* ─── Panels ─── */
 
 .panelMobile {
-  border-color: rgba(232, 231, 227, 0.35);
+  border: 1px solid var(--mobile-glass-border);
   border-radius: 18px;
-  background: transparent;
-  box-shadow: none;
+  background: var(--mobile-glass);
+  box-shadow: var(--mobile-glass-shadow);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .panelMobile .panelHead {
@@ -491,9 +498,11 @@
   min-height: 104px;
   padding: 16px 12px;
   border-radius: 16px;
-  border: 1px solid rgba(232, 231, 227, 0.45);
-  background: transparent;
-  box-shadow: none;
+  border: 1px solid var(--mobile-glass-border);
+  background: var(--mobile-glass);
+  box-shadow: var(--mobile-glass-shadow);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   scroll-snap-align: unset;
 }
 
@@ -705,24 +714,25 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 8px;
 }
 
 .orderCards > li + li {
-  border-top: 1px solid #ECECEC;
+  border-top: none;
 }
 
 .orderCard {
   display: block;
-  padding: 14px 0;
+  padding: 14px 12px;
   min-height: 70px;
+  border-radius: 12px;
   color: var(--ink);
   text-decoration: none;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.35);
 }
 
 .orderCard:active {
-  background: rgba(0, 0, 0, 0.03);
+  background: rgba(255, 255, 255, 0.55);
 }
 
 .orderCardTop {

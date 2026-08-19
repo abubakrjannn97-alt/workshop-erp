@@ -2,18 +2,11 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { qtyDisplay } from "@core/shared/decimal";
 import { getTranslator } from "@core/shared/i18n/locale";
-import { PageHeader } from "@/components/page-header";
-import { DashPanel } from "@/components/dash-panel";
-import {
-  DataList,
-  DataListCell,
-  DataListEmpty,
-  DataListHead,
-  DataListHeadCell,
-  DataListPrimary,
-  DataListRow,
-  dataListStyles,
-} from "@/components/data-table";
+import Link from "next/link";
+import { ChevronRight, Layers } from "lucide-react";
+import { ICON_STROKE } from "@/components/nav-icons";
+import { EmptyState } from "@/components/empty-state";
+import styles from "../production.module.css";
 
 export default async function BatchesPage() {
   const { t } = await getTranslator();
@@ -21,10 +14,7 @@ export default async function BatchesPage() {
   const { isProductionScopedWorker } = await import("@core/production/batch-auth");
   const scoped = isProductionScopedWorker(session.user.roleCode, session.user.permissions ?? []);
   const batches = await prisma.productionBatch.findMany({
-    where: {
-      status: "OPEN",
-      ...(scoped ? { responsibleUserId: session.user.id } : {}),
-    },
+    where: { status: "OPEN", ...(scoped ? { responsibleUserId: session.user.id } : {}) },
     include: {
       production: { include: { order: { include: { customer: true, items: { include: { product: true } } } } } },
     },
@@ -32,37 +22,59 @@ export default async function BatchesPage() {
   });
 
   return (
-    <div className="page-stack">
-      <PageHeader title={t("nav.batches")} description={t("prod.batchesHint")} />
-      <DashPanel title={t("nav.batches")}>
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <div className={styles.headerText}>
+          <h1 className={styles.title}>{t("nav.batches")}</h1>
+          <p className={styles.subtitle}>{t("prod.batchesHint")}</p>
+        </div>
+        <div className={styles.headerActions}>
+          <Link href="/production" className={styles.ghostLink}>{t("page.production")}</Link>
+        </div>
+      </header>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHead}>
+          <h2 className={styles.sectionTitle}>{t("nav.batches")}</h2>
+        </div>
         {batches.length === 0 ? (
-          <DataListEmpty>{t("prod.noBatches")}</DataListEmpty>
+          <div className={styles.sectionBody}>
+            <EmptyState icon={Layers} title={t("prod.noBatches")} description="" />
+          </div>
         ) : (
-          <DataList layout="cols3">
-            <DataListHead layout="cols3">
-              <DataListHeadCell>{t("prod.batch")}</DataListHeadCell>
-              <DataListHeadCell>{t("common.product")}</DataListHeadCell>
-              <DataListHeadCell align="right">{t("orders.plan")}</DataListHeadCell>
-            </DataListHead>
-            <ul className={dataListStyles.rows}>
+          <>
+            <div className={`${styles.tableHead} ${styles.cols3}`}>
+              <span>{t("prod.batch")}</span>
+              <span>{t("common.product")}</span>
+              <span className={styles.tableHeadRight}>{t("orders.plan")}</span>
+            </div>
+            <ul className={styles.tableBody}>
               {batches.map((b) => (
-                <DataListRow key={b.id} layout="cols3">
-                  <DataListPrimary
-                    title={`№${b.number} · ${b.production.order.customer.name}`}
-                    href={`/production/${b.productionOrderId}`}
-                  />
-                  <DataListCell label={t("common.product")}>
-                    {b.production.order.items[0]?.product.name ?? "—"}
-                  </DataListCell>
-                  <DataListCell label={t("orders.plan")} align="right">
-                    <span className="font-mono text-xs tabular-nums">{qtyDisplay(b.plannedQty)}</span>
-                  </DataListCell>
-                </DataListRow>
+                <li key={b.id}>
+                  <Link href={`/production/${b.productionOrderId}`} className={`${styles.tableRow} ${styles.cols3}`}>
+                    <span className={styles.cellBold}>№{b.number} · {b.production.order.customer.name}</span>
+                    <span className={styles.cellText}>{b.production.order.items[0]?.product.name ?? "—"}</span>
+                    <span className={styles.cellMono}>{qtyDisplay(b.plannedQty)}</span>
+                  </Link>
+                </li>
               ))}
             </ul>
-          </DataList>
+            <ul className={styles.mobileList}>
+              {batches.map((b) => (
+                <li key={b.id}>
+                  <Link href={`/production/${b.productionOrderId}`} className={styles.mobileCard}>
+                    <div className={styles.mobileTop}>
+                      <span className={styles.mobileName}>№{b.number} · {b.production.order.customer.name}</span>
+                      <span className={styles.chevron} aria-hidden><ChevronRight size={16} strokeWidth={ICON_STROKE} /></span>
+                    </div>
+                    <p className={styles.mobileMeta}>{b.production.order.items[0]?.product.name ?? "—"} · {qtyDisplay(b.plannedQty)}</p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
-      </DashPanel>
+      </section>
     </div>
   );
 }
