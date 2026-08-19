@@ -54,21 +54,23 @@
 }
 
 .homeMobile .greeting {
-  gap: 6px;
+  align-items: center;
+  gap: 4px;
   padding-top: 0;
+  text-align: center;
 }
 
 .homeMobile .greetingTitle {
   font-family: var(--font-sans);
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 600;
-  line-height: 34px;
+  line-height: 28px;
   letter-spacing: -0.02em;
 }
 
 .homeMobile .greetingSub {
-  font-size: 14px;
-  line-height: 21px;
+  font-size: 13px;
+  line-height: 18px;
   color: #64748B;
 }
 

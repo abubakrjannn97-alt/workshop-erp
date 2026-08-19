@@ -1,25 +1,14 @@
 import { prisma } from "@core/infrastructure/prisma";
-import { requirePermission } from "@core/auth/authz";
-import { hasPermission } from "@core/auth/authz";
+import { requirePermission, hasPermission } from "@core/auth/authz";
 import { moneyDisplay } from "@core/shared/decimal";
 import { LEDGER } from "@core/finance/finance";
 import { createExpense } from "@/app/actions/finance";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
-import { PageHeader } from "@/components/page-header";
 import { FormField } from "@/components/form-field";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
-import { DashPanel } from "@/components/dash-panel";
-import {
-  DataList,
-  DataListEmpty,
-  DataListHead,
-  DataListHeadCell,
-  DataListMetric,
-  DataListPrimary,
-  DataListRow,
-  dataListStyles,
-} from "@/components/data-table";
+import Link from "next/link";
+import styles from "../finance.module.css";
 
 export default async function ExpensesPage() {
   const session = await requirePermission("finance.view");
@@ -40,65 +29,88 @@ export default async function ExpensesPage() {
   ]);
 
   return (
-    <div className="page-stack">
-      <PageHeader title={t("nav.expenses")} description={t("fin.expensesHint")} />
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <div className={styles.headerText}>
+          <h1 className={styles.title}>{t("nav.expenses")}</h1>
+          <p className={styles.subtitle}>{t("fin.expensesHint")}</p>
+        </div>
+        <div className={styles.headerActions}>
+          <Link href="/finance" className={styles.ghostLink}>{t("page.finance")}</Link>
+        </div>
+      </header>
+
       {canExpense ? (
-        <DashPanel title={t("fin.expense")}>
-          <form action={createExpense} className="grid gap-3">
-            <IdempotencyField prefix="expense" />
-            <FormField label={t("fin.accounts")}>
-              <select name="accountId" className="ui-input">
-                {accounts.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {n("cash", a.code, a.name)}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-            <FormField label={t("fin.expenseCat")}>
-              <select name="categoryId" className="ui-input">
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-            <FormField label={`${t("common.amount")}, с`}>
-              <input name="amount" required inputMode="decimal" className="ui-input" />
-            </FormField>
-            <FormField label={t("common.comment")}>
-              <input name="comment" className="ui-input" />
-            </FormField>
-            <PendingButton className="ui-btn-primary min-h-[44px] w-full" pendingLabel={t("common.sending")}>
-              {t("fin.postExpense")}
-            </PendingButton>
-          </form>
-        </DashPanel>
+        <section className={styles.section}>
+          <div className={styles.sectionHead}>
+            <h2 className={styles.sectionTitle}>{t("fin.expense")}</h2>
+          </div>
+          <div className={styles.sectionBody}>
+            <form action={createExpense} className="grid gap-3">
+              <IdempotencyField prefix="expense" />
+              <FormField label={t("fin.accounts")}>
+                <select name="accountId" className="ui-input">
+                  {accounts.map((a) => (<option key={a.id} value={a.id}>{n("cash", a.code, a.name)}</option>))}
+                </select>
+              </FormField>
+              <FormField label={t("fin.expenseCat")}>
+                <select name="categoryId" className="ui-input">
+                  {categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                </select>
+              </FormField>
+              <FormField label={`${t("common.amount")}, с`}>
+                <input name="amount" required inputMode="decimal" className="ui-input" />
+              </FormField>
+              <FormField label={t("common.comment")}>
+                <input name="comment" className="ui-input" />
+              </FormField>
+              <PendingButton className="ui-btn-primary min-h-[44px] w-full" pendingLabel={t("common.sending")}>{t("fin.postExpense")}</PendingButton>
+            </form>
+          </div>
+        </section>
       ) : null}
-      <DashPanel title={t("fin.monthExpenses")}>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHead}>
+          <h2 className={styles.sectionTitleAccent}>{t("fin.monthExpenses")}</h2>
+        </div>
         {entries.length === 0 ? (
-          <DataListEmpty>{t("common.empty")}</DataListEmpty>
+          <div className={styles.empty}>{t("common.empty")}</div>
         ) : (
-          <DataList layout="cols2">
-            <DataListHead layout="cols2">
-              <DataListHeadCell>{t("list.col.what")}</DataListHeadCell>
-              <DataListHeadCell align="right">{t("list.col.sum")}</DataListHeadCell>
-            </DataListHead>
-            <ul className={dataListStyles.rows}>
+          <>
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>{t("list.col.what")}</th>
+                    <th className={styles.thRight}>{t("list.col.sum")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {entries.map((e) => (
+                    <tr key={e.id}>
+                      <td>
+                        <span className={styles.tdBold}>{e.comment ?? t("fin.expense")}</span>
+                        <p className={styles.tdMuted}>{e.createdAt.toLocaleDateString(intlLocale(locale))}</p>
+                      </td>
+                      <td className={styles.tdRight}>{moneyDisplay(e.amount)} с</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <ul className={styles.mobileList}>
               {entries.map((e) => (
-                <DataListRow key={e.id} layout="cols2">
-                  <DataListPrimary
-                    title={e.comment ?? t("fin.expense")}
-                    subtitle={e.createdAt.toLocaleDateString(intlLocale(locale))}
-                  />
-                  <DataListMetric label={t("list.col.sum")} value={`${moneyDisplay(e.amount)} с`} />
-                </DataListRow>
+                <li key={e.id} className={styles.mobileCard}>
+                  <p className={styles.mobileName}>{e.comment ?? t("fin.expense")}</p>
+                  <p className={styles.mobileMeta}>{e.createdAt.toLocaleDateString(intlLocale(locale))}</p>
+                  <p className={styles.mobileValue}>{moneyDisplay(e.amount)} с</p>
+                </li>
               ))}
             </ul>
-          </DataList>
+          </>
         )}
-      </DashPanel>
+      </section>
     </div>
   );
 }
