@@ -246,11 +246,9 @@
   padding: 16px 14px 14px;
   overflow: hidden;
   border-radius: 18px;
-  border: 1px solid #E8E7E3;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(232, 231, 227, 0.45);
+  background: transparent;
+  box-shadow: none;
   transition: transform 0.16s ease;
 }
 
@@ -364,12 +362,10 @@
 /* ─── Panels ─── */
 
 .panelMobile {
-  border-color: rgba(232, 231, 227, 0.7);
+  border-color: rgba(232, 231, 227, 0.35);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+  background: transparent;
+  box-shadow: none;
 }
 
 .panelMobile .panelHead {
@@ -495,11 +491,9 @@
   min-height: 104px;
   padding: 16px 12px;
   border-radius: 16px;
-  border: 1px solid rgba(232, 231, 227, 0.7);
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+  border: 1px solid rgba(232, 231, 227, 0.45);
+  background: transparent;
+  box-shadow: none;
   scroll-snap-align: unset;
 }
 
@@ -724,11 +718,11 @@
   min-height: 70px;
   color: var(--ink);
   text-decoration: none;
-  transition: background 0.12s;
+  background: transparent;
 }
 
 .orderCard:active {
-  background: rgba(0, 0, 0, 0.02);
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .orderCardTop {
