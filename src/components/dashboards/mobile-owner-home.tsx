@@ -94,7 +94,7 @@ export async function MobileOwnerHome() {
         <DashQuickActions actions={ownerMobileQuickActions(t)} layout="mobileStrip" />
       </DashSection>
 
-      <DashSection title={t("home.recentOrders")} tour="home-orders" mobile>
+      <DashSection title={t("home.recentOrders")} tour="home-orders" mobile mobileList>
         <DashRecentOrders
           orders={recentOrders}
           empty={t("crm.noOrders")}

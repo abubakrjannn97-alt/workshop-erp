@@ -114,6 +114,7 @@ export function DashSection({
   flush,
   footer,
   mobile,
+  mobileList,
 }: {
   title: string;
   action?: ReactNode;
@@ -122,10 +123,11 @@ export function DashSection({
   flush?: boolean;
   footer?: ReactNode;
   mobile?: boolean;
+  mobileList?: boolean;
 }) {
   return (
     <section
-      className={`${styles.panel} ${mobile ? styles.panelMobile : ""}`.trim()}
+      className={`${styles.panel} ${mobile ? styles.panelMobile : ""} ${mobileList ? styles.panelMobileList : ""}`.trim()}
       data-tour={tour}
     >
       <div className={styles.panelHead}>

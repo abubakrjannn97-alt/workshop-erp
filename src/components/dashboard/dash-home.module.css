@@ -374,6 +374,22 @@
   padding: 6px 12px 14px;
 }
 
+.panelMobileList {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.panelMobileList .panelHead {
+  padding: 0 0 12px;
+}
+
+.panelMobileList .panelBody {
+  padding: 0;
+}
+
 .panel {
   min-width: 0;
   border: 1px solid var(--line);
@@ -701,28 +717,26 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-
-.orderCards > li + li {
-  border-top: none;
+  gap: 10px;
 }
 
 .orderCard {
   display: block;
-  padding: 14px 12px;
-  min-height: 70px;
-  border-radius: 12px;
+  padding: 14px 14px 12px;
+  min-height: 78px;
+  border-radius: 18px;
   border: 1px solid var(--mobile-glass-border);
   color: var(--ink);
   text-decoration: none;
-  background: rgba(255, 255, 255, 0.28);
+  background: var(--mobile-glass);
+  box-shadow: var(--mobile-glass-shadow);
   backdrop-filter: blur(var(--mobile-glass-blur));
   -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+  transition: transform 0.16s ease;
 }
 
 .orderCard:active {
-  background: rgba(255, 255, 255, 0.42);
+  transform: scale(0.985);
 }
 
 .orderCardTop {
