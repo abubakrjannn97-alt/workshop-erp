@@ -30,9 +30,9 @@ export function OrderPaymentPanel({
   canPay: boolean;
   payments: {
     id: string;
-    amount: unknown;
+    amount: string;
     method: string | null;
-    createdAt: Date;
+    createdAt: string;
     reversesId: string | null;
   }[];
   loc: string;
@@ -92,7 +92,7 @@ export function OrderPaymentPanel({
               <li key={p.id} className="ui-list-row flex min-h-[44px] items-center justify-between gap-3 text-sm">
                 <span>
                   {moneyDisplay(p.amount)} с · {p.method ? t(`pay.method.${p.method}`) : "—"} ·{" "}
-                  {p.createdAt.toLocaleString(loc)}
+                  {new Date(p.createdAt).toLocaleString(loc)}
                   {p.reversesId ? ` · ${t("orders.payCancelled")}` : ""}
                 </span>
                 {canPay && !p.reversesId && !payments.some((x) => x.reversesId === p.id) ? (
