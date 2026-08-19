@@ -9,7 +9,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - E:/workshop-erp/.data/postgres:/var/lib/postgresql/data
+      - ./.data/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U workshop -d workshop"]
       interval: 5s

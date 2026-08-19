@@ -5,8 +5,9 @@ const globalForPrisma = globalThis as unknown as { prisma?: ReturnType<typeof cr
 function databaseUrl() {
   const url = process.env.DATABASE_URL;
   if (!url || url.includes("connection_limit=")) return url;
+  const poolSize = process.env.DB_POOL_SIZE || "5";
   const sep = url.includes("?") ? "&" : "?";
-  return `${url}${sep}connection_limit=1`;
+  return `${url}${sep}connection_limit=${poolSize}`;
 }
 
 const AUDIT_MUTATIONS = new Set(["update", "updateMany", "delete", "deleteMany"]);

@@ -11,6 +11,7 @@ export function BackButton({
   label: string;
   className?: string;
 }) {
+  if (!href) return null;
   return (
     <Link href={href} className={className} aria-label={label} scroll={false}>
       <ChevronLeft size={22} strokeWidth={ICON_STROKE} aria-hidden />

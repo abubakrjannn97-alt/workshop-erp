@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { BackButton } from "@/components/back-button";
+import { HeaderBackButton } from "@/components/header-back-button";
 import { HeaderSearch } from "@/components/header-search";
 import { HelpHeaderLink } from "@/components/help-guide";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -42,7 +42,7 @@ export function AppShellDesktopHeader({
   return (
     <header className={styles.bar}>
       <div className={styles.context}>
-        {nested ? <BackButton locale={locale} /> : null}
+        {nested ? <HeaderBackButton locale={locale} className="ui-header-icon" /> : null}
         {contextLabel && nested ? <p className={styles.title}>{contextLabel}</p> : null}
       </div>
       <div className={styles.search}>
