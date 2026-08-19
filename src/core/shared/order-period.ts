@@ -1,4 +1,4 @@
-export type OrderPeriod = "month" | "prev" | "all" | "custom";
+export type OrderPeriod = "today" | "month" | "prev" | "all" | "custom";
 
 export type FinancePeriod = "month" | "prev" | "2m" | "3m" | "quarter" | "year" | "all";
 
@@ -40,6 +40,10 @@ export function resolveOrderDateRange(params: {
   }
 
   const now = new Date();
+  if (period === "today") {
+    return { from: startOfDay(now), to: endOfDay(now), period: "today" };
+  }
+
   if (period === "prev") {
     const from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const to = new Date(now.getFullYear(), now.getMonth(), 0);
@@ -58,6 +62,7 @@ export function orderPeriodLabel(
   to?: Date,
 ) {
   if (period === "all") return t("orders.periodAll");
+  if (period === "today") return t("orders.periodToday");
   if (period === "month") return t("orders.periodMonth");
   if (period === "prev") return t("orders.periodPrev");
   if (from && to) {

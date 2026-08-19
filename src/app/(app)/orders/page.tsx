@@ -168,9 +168,9 @@ export default async function OrdersPage({
             status={activeBucket}
             q={q?.trim()}
             presetLabels={{
+              today: t("orders.periodToday"),
               month: t("orders.periodMonth"),
               prev: t("orders.periodPrev"),
-              all: t("orders.periodAll"),
             }}
             customLabel={t("orders.periodCustom")}
             calendarLabel={t("orders.periodCalendar")}
@@ -185,9 +185,9 @@ export default async function OrdersPage({
             aria-label={t("home.period")}
             items={(
               [
+                ["today", t("orders.periodToday")],
                 ["month", t("orders.periodMonth")],
                 ["prev", t("orders.periodPrev")],
-                ["all", t("orders.periodAll")],
               ] as const
             ).map(([p, label]) => ({
               href: buildOrdersQuery({ ...baseQuery, period: p, page: undefined }),

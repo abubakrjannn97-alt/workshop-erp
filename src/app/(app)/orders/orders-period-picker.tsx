@@ -8,7 +8,7 @@ import { ICON_STROKE } from "@/components/nav-icons";
 import { buildOrdersQuery, type OrderPeriod } from "@core/shared/order-period";
 import styles from "./orders-period-picker.module.css";
 
-const PRESETS: OrderPeriod[] = ["month", "prev", "all"];
+const PRESETS: OrderPeriod[] = ["today", "month", "prev"];
 
 export function OrdersPeriodPicker({
   current,
@@ -28,7 +28,7 @@ export function OrdersPeriodPicker({
   toRaw?: string;
   status?: string;
   q?: string;
-  presetLabels: Record<"month" | "prev" | "all", string>;
+  presetLabels: Record<"today" | "month" | "prev", string>;
   customLabel: string;
   calendarLabel: string;
   fromLabel: string;
