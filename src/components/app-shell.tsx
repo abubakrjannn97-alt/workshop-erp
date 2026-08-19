@@ -43,7 +43,14 @@ export function AppShell({
       />
       <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden lg:bg-transparent">
         <div className="sticky top-0 z-40 shrink-0 print:hidden lg:hidden">
-          <AppShellMobileHeader unread={unread} locale={locale} />
+          <AppShellMobileHeader
+            unread={unread}
+            locale={locale}
+            userName={userName}
+            roleName={roleName}
+            roleCode={roleCode}
+            permissions={permissions}
+          />
         </div>
 
         <div className="sticky top-0 z-30 hidden shrink-0 print:hidden lg:block">

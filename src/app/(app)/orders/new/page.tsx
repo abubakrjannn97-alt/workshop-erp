@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { hasPermission } from "@core/auth/authz";
-import { createOrder } from "@/app/actions/orders";
+import { createOrder, createMultiItemOrder } from "@/app/actions/orders";
 import { OrderForm } from "../order-form";
 import { discountLimitPercent } from "@core/orders/orders";
 import { PageHeader } from "@/components/page-header";
@@ -46,7 +46,8 @@ export default async function NewOrderPage({
 
   async function action(formData: FormData) {
     "use server";
-    const result = await createOrder(formData);
+    const isMulti = formData.get("_multi") === "1";
+    const result = isMulti ? await createMultiItemOrder(formData) : await createOrder(formData);
     if ("error" in result && result.error) return;
     if (result.ok && result.id) redirect(`/orders/${result.id}`);
   }

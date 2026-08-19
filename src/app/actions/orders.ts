@@ -696,3 +696,155 @@ export async function completeOrder(formData: FormData) {
   revalidatePath("/orders");
   return { ok: true };
 }
+
+export async function createMultiItemOrder(formData: FormData) {
+  const session = await requirePermission("orders.create");
+  const customerId = String(formData.get("customerId") ?? "");
+  const discountPercent = String(formData.get("discountPercent") ?? "0") || "0";
+  const sellerId =
+    session.user.roleCode === "sales_manager"
+      ? session.user.id
+      : String(formData.get("sellerId") ?? session.user.id);
+  const paymentMethod = String(formData.get("paymentMethod") ?? "") || null;
+  const dueAtRaw = String(formData.get("dueAt") ?? "");
+  const leadId = String(formData.get("leadId") ?? "");
+
+  const productIds = formData.getAll("productId[]").map(String);
+  const quantities = formData.getAll("quantity[]").map(String);
+  const unitPrices = formData.getAll("unitPrice[]").map(String);
+
+  if (productIds.length === 0) return { error: "Добавьте хотя бы одно изделие." };
+
+  const items = productIds
+    .map((pid, i) => ({ productId: pid, quantity: quantities[i] ?? "", unitPrice: unitPrices[i] ?? "" }))
+    .filter((item) => item.productId && item.quantity && item.unitPrice);
+
+  if (items.length === 0) return { error: "Добавьте хотя бы одно изделие." };
+
+  for (const item of items) {
+    if (!qtyStr(item.quantity)) return { error: "Некорректное количество." };
+    if (!moneyStr(item.unitPrice)) return { error: "Некорректная цена." };
+  }
+
+  const discount = D(discountPercent);
+  if (discount.lt(0) || discount.gt(100)) return { error: "Скидка 0–100%." };
+  let requestedOverLimit: string | null = null;
+  if (discount.gt(0)) {
+    if (session.user.roleCode !== "owner" && !session.user.permissions.includes("orders.discount")) {
+      return { error: "Нет права на скидку." };
+    }
+    const limit = await discountLimitPercent();
+    if (discount.gt(limit) && !canSelfApprove(session.user.roleCode)) {
+      requestedOverLimit = discountPercent;
+    }
+  }
+  const appliedDiscount = requestedOverLimit ? D(0) : discount;
+
+  const quotes = [];
+  for (const item of items) {
+    const product = await prisma.product.findUnique({ where: { id: item.productId } });
+    if (!product || product.archivedAt) return { error: "Изделие не найдено." };
+    if (D(item.unitPrice).lt(product.minPrice)) {
+      return { error: `Цена ниже минимальной для ${product.name} (${money(product.minPrice)}).` };
+    }
+    try {
+      quotes.push(await quoteProduct(item.productId, item.quantity, item.unitPrice));
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : "Не удалось рассчитать заказ." };
+    }
+  }
+
+  const subtotal = quotes.reduce((s, q) => s.add(q.amount), D(0));
+  const discountAmount = subtotal.mul(appliedDiscount).div(100);
+  const total = subtotal.sub(discountAmount);
+  const needs = mergeMaterialNeeds(quotes);
+  const materialCost = quotes.reduce((s, q) => (q.materialCost ? s.add(q.materialCost) : s), D(0));
+  const outputQty = quotes.reduce((s, q) => s.add(q.outputQty), D(0));
+
+  let order;
+  try {
+    order = await prisma.$transaction(async (tx) => {
+      let resolvedCustomerId = customerId;
+      const lead = leadId ? await tx.lead.findUnique({ where: { id: leadId } }) : null;
+      if (!resolvedCustomerId && lead) {
+        const createdCustomer = await tx.customer.create({
+          data: { name: lead.name, phone: lead.phone, managerId: lead.managerId ?? session.user.id },
+        });
+        resolvedCustomerId = createdCustomer.id;
+      }
+      if (!resolvedCustomerId) throw new Error("Выберите клиента.");
+      const status = await tx.orderStatus.findUniqueOrThrow({ where: { code: ORDER_STATUS.NEW } });
+      const number = await nextOrderNumber(tx);
+      const created = await tx.order.create({
+        data: {
+          number,
+          customerId: resolvedCustomerId,
+          sellerId,
+          statusId: status.id,
+          paymentStatus: "unpaid",
+          paymentMethod,
+          dueAt: dueAtRaw ? new Date(dueAtRaw) : null,
+          discountPercent: money(appliedDiscount),
+          discountAmount: money(discountAmount),
+          subtotal: money(subtotal),
+          total: money(total),
+          paidAmount: "0",
+          materialCost: money(materialCost),
+          outputQty: qty(outputQty),
+          recipeSnapshot: { quotes } as Prisma.InputJsonValue,
+          createdById: session.user.id,
+          items: {
+            create: quotes.map((q) => ({
+              productId: q.productId,
+              quantity: q.quantity,
+              unitPrice: q.unitPrice,
+              amount: q.amount,
+              outputQty: q.outputQty,
+              recipeVersionId: q.recipeVersionId,
+            })),
+          },
+          materials: {
+            create: needs.map((line) => ({
+              materialId: line.materialId,
+              plannedQty: line.plannedQty,
+              unitCost: line.unitCost,
+              lineCost: line.lineCost,
+            })),
+          },
+        },
+      });
+      if (lead && !lead.convertedOrderId) {
+        const won = await tx.leadStage.findUnique({ where: { code: "WON" } });
+        await tx.lead.update({
+          where: { id: leadId },
+          data: { convertedOrderId: created.id, customerId: resolvedCustomerId, ...(won ? { stageId: won.id } : {}) },
+        });
+      }
+      return created;
+    });
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Не удалось создать заказ." };
+  }
+
+  await writeAudit({
+    userId: session.user.id,
+    action: "order.create",
+    entityType: "order",
+    entityId: order.id,
+    newValue: { number: order.number, total: money(total), items: items.length },
+  });
+  if (requestedOverLimit) {
+    await queueApproval({
+      type: "DISCOUNT",
+      title: `Скидка ${requestedOverLimit}% по заказу #${order.number}`,
+      entityType: "order",
+      entityId: order.id,
+      payload: { orderId: order.id, discountPercent: requestedOverLimit },
+      requestedById: session.user.id,
+    });
+  }
+  revalidatePath("/orders");
+  revalidatePath("/sales");
+  revalidatePath("/crm");
+  return { ok: true, id: order.id };
+}

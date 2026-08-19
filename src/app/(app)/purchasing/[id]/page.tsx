@@ -94,6 +94,12 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
             <form action={registerPurchasePayment} className="flex max-w-md flex-wrap items-end gap-3">
               <input type="hidden" name="id" value={order.id} />
               <FormField label={t("po.payPh")} className="min-w-0 flex-1"><input name="amount" className="ui-input" /></FormField>
+              <FormField label={t("common.method")} className="min-w-[8rem]">
+                <select name="method" className="ui-input">
+                  <option value="cash">{t("pay.method.cash")}</option>
+                  <option value="bank">{t("pay.method.bank")}</option>
+                </select>
+              </FormField>
               <PendingButton className="ui-btn-primary min-h-[44px]" pendingLabel={t("common.sending")}>{t("common.payment")}</PendingButton>
             </form>
           </div>

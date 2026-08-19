@@ -17,6 +17,13 @@ type Product = {
 type Customer = { id: string; name: string };
 type Seller = { id: string; name: string };
 
+type OrderLine = {
+  key: number;
+  productId: string;
+  quantity: string;
+  unitPrice: string;
+};
+
 export function OrderForm({
   action,
   customers,
@@ -43,90 +50,127 @@ export function OrderForm({
   locale: Locale;
 }) {
   const t = createT(locale);
-  const [productId, setProductId] = useState(products[0]?.id ?? "");
-  const [qty, setQty] = useState("1");
-  const product = products.find((p) => p.id === productId);
-  const [price, setPrice] = useState(product?.price ?? "0");
+  const [lines, setLines] = useState<OrderLine[]>([
+    { key: 1, productId: products[0]?.id ?? "", quantity: "1", unitPrice: products[0]?.price ?? "0" },
+  ]);
   const [discount, setDiscount] = useState("0");
+  const [nextKey, setNextKey] = useState(2);
+
+  const addLine = () => {
+    setLines((prev) => [
+      ...prev,
+      { key: nextKey, productId: products[0]?.id ?? "", quantity: "1", unitPrice: products[0]?.price ?? "0" },
+    ]);
+    setNextKey((k) => k + 1);
+  };
+
+  const removeLine = (key: number) => {
+    setLines((prev) => (prev.length > 1 ? prev.filter((l) => l.key !== key) : prev));
+  };
+
+  const updateLine = (key: number, field: keyof OrderLine, value: string) => {
+    setLines((prev) =>
+      prev.map((l) => {
+        if (l.key !== key) return l;
+        if (field === "productId") {
+          const p = products.find((pr) => pr.id === value);
+          return { ...l, productId: value, unitPrice: p?.price ?? l.unitPrice };
+        }
+        return { ...l, [field]: value };
+      }),
+    );
+  };
 
   const totals = useMemo(() => {
     try {
-      const subtotal = D(qty || "0").mul(price || "0");
+      const subtotal = lines.reduce(
+        (s, l) => s.add(D(l.quantity || "0").mul(l.unitPrice || "0")),
+        D(0),
+      );
       const disc = subtotal.mul(discount || "0").div(100);
       return { subtotal, total: subtotal.sub(disc) };
     } catch {
       return { subtotal: D(0), total: D(0) };
     }
-  }, [qty, price, discount]);
+  }, [lines, discount]);
+
+  const isMulti = lines.length > 1;
 
   return (
     <form action={action} className="ui-card max-w-xl space-y-4 p-4">
       {leadId ? <input type="hidden" name="leadId" value={leadId} /> : null}
+      <input type="hidden" name="_multi" value={isMulti ? "1" : "0"} />
 
       <FormField label={t("common.customer")} required={!leadId}>
-        <select
-          name="customerId"
-          required={!leadId}
-          defaultValue={defaultCustomerId ?? ""}
-          className="ui-input"
-        >
+        <select name="customerId" required={!leadId} defaultValue={defaultCustomerId ?? ""} className="ui-input">
           <option value="">{leadId ? t("orders.leadCard") : t("orders.select")}</option>
           {customers.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
+            <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </select>
       </FormField>
 
-      <FormField label={t("common.product")} required>
-        <select
-          name="productId"
-          value={productId}
-          onChange={(e) => {
-            setProductId(e.target.value);
-            const next = products.find((p) => p.id === e.target.value);
-            if (next) setPrice(next.price);
-          }}
-          className="ui-input"
-          required
-        >
-          {products.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-      </FormField>
+      {lines.map((line, idx) => {
+        const product = products.find((p) => p.id === line.productId);
+        return (
+          <div key={line.key} style={{ padding: "12px 0", borderTop: idx > 0 ? "1px solid var(--line)" : undefined }}>
+            <div className="flex items-center justify-between gap-2">
+              <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-3)" }}>
+                {t("common.product")} {lines.length > 1 ? `#${idx + 1}` : ""}
+              </span>
+              {lines.length > 1 ? (
+                <button type="button" onClick={() => removeLine(line.key)} style={{ fontSize: 12, color: "var(--bad)", cursor: "pointer", background: "none", border: "none" }}>
+                  {t("common.remove")}
+                </button>
+              ) : null}
+            </div>
+            <div className="mt-2 grid gap-3 sm:grid-cols-3">
+              <FormField label={t("common.product")} required>
+                <select
+                  name={isMulti ? "productId[]" : "productId"}
+                  value={line.productId}
+                  onChange={(e) => updateLine(line.key, "productId", e.target.value)}
+                  className="ui-input"
+                  required
+                >
+                  {products.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </FormField>
+              <FormField label={`${t("common.qty")}, ${product?.saleSymbol ?? ""}`} required>
+                <input
+                  name={isMulti ? "quantity[]" : "quantity"}
+                  value={line.quantity}
+                  onChange={(e) => updateLine(line.key, "quantity", e.target.value)}
+                  className="ui-input"
+                  required
+                  inputMode="decimal"
+                />
+              </FormField>
+              <FormField label={t("orders.unitPrice")} hint={product ? `min: ${moneyDisplay(product.minPrice)}` : undefined} required>
+                <input
+                  name={isMulti ? "unitPrice[]" : "unitPrice"}
+                  value={line.unitPrice}
+                  onChange={(e) => updateLine(line.key, "unitPrice", e.target.value)}
+                  className="ui-input"
+                  required
+                  inputMode="decimal"
+                />
+              </FormField>
+            </div>
+          </div>
+        );
+      })}
 
-      <FormField
-        label={`${t("orders.qtyWithUnit")}, ${product?.saleSymbol ?? t("orders.unitFallback")}`}
-        required
+      <button
+        type="button"
+        onClick={addLine}
+        className="ui-btn-ghost"
+        style={{ fontSize: 13 }}
       >
-        <input
-          name="quantity"
-          value={qty}
-          onChange={(e) => setQty(e.target.value)}
-          className="ui-input"
-          required
-          inputMode="decimal"
-        />
-      </FormField>
-
-      <FormField
-        label={t("orders.unitPrice")}
-        hint={product ? `${t("orders.minPrice")}: ${moneyDisplay(product.minPrice)}` : undefined}
-        required
-      >
-        <input
-          name="unitPrice"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          className="ui-input"
-          required
-          inputMode="decimal"
-        />
-      </FormField>
+        + {t("orders.addItem")}
+      </button>
 
       {canDiscount ? (
         <FormField label={t("orders.discountPct")} hint={`${t("orders.discountLimit")}: ${discountLimit}%`}>
@@ -146,9 +190,7 @@ export function OrderForm({
         <FormField label={t("orders.seller")}>
           <select name="sellerId" defaultValue={defaultSellerId} className="ui-input">
             {sellers.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
+              <option key={s.id} value={s.id}>{s.name}</option>
             ))}
           </select>
         </FormField>

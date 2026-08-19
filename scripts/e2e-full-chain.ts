@@ -140,6 +140,9 @@ async function main() {
     await testRoleAuthorization(ids);
     await testDuplicatePaymentGuard(ids, owner.id);
     await testGuardrailScenarios(owner.id, raw.id, fg.id, ids.salesId, ids.workerId);
+    await testPurchasePaymentAccount(owner.id);
+    await testAwaitingPaymentConfirm();
+    await testMultiProductOrder(owner.id, raw.id, fg.id);
   } finally {
     if (reopenedPeriod && period) {
       await prisma.accountingPeriod.update({
@@ -1676,6 +1679,159 @@ async function testGuardrailScenarios(
   await prisma.material.deleteMany({ where: { id: guardMaterial.id } });
   await prisma.stockItem.deleteMany({ where: { productId: { in: [guardProduct.id, guardProduct2.id] } } });
   await prisma.product.deleteMany({ where: { id: { in: [guardProduct.id, guardProduct2.id] } } });
+}
+
+/** G2-1: PO payment uses correct account based on method. */
+async function testPurchasePaymentAccount(ownerId: string) {
+  const { accountForMethod, accountByCode, LEDGER: L, postLedger: pl, fundByCode, FUND: F } = await import("../src/core/finance/finance");
+  const codeForCash = accountForMethod("cash");
+  const codeForBank = accountForMethod("bank");
+  const cashOk = codeForCash === "CASH";
+  const bankOk = codeForBank === "BANK";
+  rec({
+    entity: "G2-1 PO Payment Account",
+    status: cashOk && bankOk ? "fully_working" : "bug",
+    lastWorkingStep: cashOk && bankOk ? "accountForMethod resolves correctly" : "mapping",
+    firstBrokenStep: null,
+    rootCause: null,
+    impact: null,
+    evidence: [`cash→${codeForCash}`, `bank→${codeForBank}`],
+  });
+}
+
+/** G2-2: AWAITING_PAYMENT → CONFIRMED is allowed in STATUS_FLOW. */
+async function testAwaitingPaymentConfirm() {
+  const { STATUS_FLOW } = await import("../src/core/orders/order-constants");
+  const allowed = STATUS_FLOW["AWAITING_PAYMENT"] ?? [];
+  const hasConfirmed = allowed.includes("CONFIRMED");
+  const hasOnHold = allowed.includes("ON_HOLD");
+  rec({
+    entity: "G2-2 AWAITING_PAYMENT→CONFIRMED",
+    status: hasConfirmed && hasOnHold ? "fully_working" : "bug",
+    lastWorkingStep: hasConfirmed ? "CONFIRMED transition allowed" : "missing",
+    firstBrokenStep: hasConfirmed ? null : "CONFIRMED not in AWAITING_PAYMENT flow",
+    rootCause: null,
+    impact: null,
+    evidence: [`allowed=${JSON.stringify(allowed)}`],
+  });
+}
+
+/** G2-3: Multi-product order — create order with 2 items via core. */
+async function testMultiProductOrder(ownerId: string, rawId: string, fgId: string) {
+  const kg = await prisma.unit.findUniqueOrThrow({ where: { code: "KG" } });
+  const m2 = await prisma.unit.findUniqueOrThrow({ where: { code: "M2" } });
+  const pcs = await prisma.unit.findUniqueOrThrow({ where: { code: "PCS" } });
+
+  const mat = await prisma.material.create({
+    data: { name: `${RUN} multi-mat`, category: "test", storageUnitId: kg.id, purchaseUnitId: kg.id, packageWeight: "1", packagePrice: "5", minStock: "0", isActive: true },
+  });
+  await receiveMaterial({ warehouseId: rawId, materialId: mat.id, quantity: "1000", unitCost: "5", userId: ownerId, idempotencyKey: `${RUN}-multi-stock` });
+
+  const prodA = await prisma.product.create({
+    data: { name: `${RUN} Multi-A`, category: "E2E", saleUnitId: m2.id, outputUnitId: pcs.id, recipeBaseQty: "1", outputPerBase: "1", minPrice: "10", isActive: true, prices: { create: { price: "100" } } },
+  });
+  const prodB = await prisma.product.create({
+    data: { name: `${RUN} Multi-B`, category: "E2E", saleUnitId: m2.id, outputUnitId: pcs.id, recipeBaseQty: "1", outputPerBase: "1", minPrice: "10", isActive: true, prices: { create: { price: "200" } } },
+  });
+
+  const recipeA = await prisma.recipe.create({ data: { productId: prodA.id } });
+  await prisma.recipeVersion.create({ data: { recipeId: recipeA.id, versionNumber: 1, items: { create: { materialId: mat.id, quantity: "2", unitId: kg.id } } } });
+  const recipeB = await prisma.recipe.create({ data: { productId: prodB.id } });
+  await prisma.recipeVersion.create({ data: { recipeId: recipeB.id, versionNumber: 1, items: { create: { materialId: mat.id, quantity: "3", unitId: kg.id } } } });
+
+  const quoteA = await quoteProduct(prodA.id, "5", "100");
+  const quoteB = await quoteProduct(prodB.id, "3", "200");
+  const quotes = [quoteA, quoteB];
+  const needs = mergeMaterialNeeds(quotes);
+  const subtotal = D(quoteA.amount).add(quoteB.amount);
+  const total = subtotal;
+
+  const customer = await prisma.customer.create({ data: { name: `${RUN} multi-cust`, phone: "0" } });
+  const status = await prisma.orderStatus.findUniqueOrThrow({ where: { code: ORDER_STATUS.NEW } });
+  const number = await nextOrderNumber();
+
+  const order = await prisma.order.create({
+    data: {
+      number, customerId: customer.id, sellerId: ownerId, statusId: status.id,
+      paymentStatus: "unpaid", subtotal: money(subtotal), total: money(total),
+      paidAmount: "0", discountPercent: "0", discountAmount: "0",
+      materialCost: money(D(quoteA.materialCost ?? "0").add(quoteB.materialCost ?? "0")),
+      outputQty: qty(D(quoteA.outputQty).add(quoteB.outputQty)),
+      recipeSnapshot: { quotes } as unknown as Prisma.InputJsonValue,
+      createdById: ownerId,
+      items: {
+        create: quotes.map((q) => ({
+          productId: q.productId, quantity: q.quantity, unitPrice: q.unitPrice,
+          amount: q.amount, outputQty: q.outputQty, recipeVersionId: q.recipeVersionId,
+        })),
+      },
+      materials: {
+        create: needs.map((n) => ({ materialId: n.materialId, plannedQty: n.plannedQty, unitCost: n.unitCost, lineCost: n.lineCost })),
+      },
+    },
+    include: { items: true, materials: true },
+  });
+
+  const itemsOk = order.items.length === 2;
+  const totalOk = D(String(order.total)).eq(total);
+  const materialsOk = order.materials.length > 0;
+
+  // Confirm (reserve)
+  const confirmed = await prisma.orderStatus.findUniqueOrThrow({ where: { code: ORDER_STATUS.CONFIRMED } });
+  let canProduceFully = true;
+  for (const need of order.materials) {
+    const result = await reserveMaterial({ warehouseId: rawId, materialId: need.materialId, quantity: qty(need.plannedQty), userId: ownerId, relatedType: "order", relatedId: order.id, partial: true, idempotencyKey: `${RUN}-multi-res-${need.materialId}` });
+    if (D(result.shortage).gt(0)) canProduceFully = false;
+  }
+  await prisma.order.update({ where: { id: order.id }, data: { statusId: confirmed.id, confirmedAt: new Date(), canProduceFully } });
+
+  const prodOrder = await prisma.productionOrder.create({ data: { orderId: order.id, status: "OPEN", plannedQty: qty(D(quoteA.outputQty).add(quoteB.outputQty)) } });
+
+  // FG receipt for both products
+  for (const item of order.items) {
+    await receiveProduct({ warehouseId: fgId, productId: item.productId, quantity: qty(item.outputQty), unitCost: "10", userId: ownerId, idempotencyKey: `${RUN}-multi-fg-${item.productId}` });
+  }
+
+  // Issue
+  const inFg = await prisma.orderStatus.findUniqueOrThrow({ where: { code: ORDER_STATUS.IN_FG } });
+  await prisma.order.update({ where: { id: order.id }, data: { statusId: inFg.id } });
+  await issueOrderStockAndMarkIssued(prisma as unknown as Prisma.TransactionClient, {
+    orderId: order.id, orderNumber: order.number, items: order.items, warehouseId: fgId, userId: ownerId,
+  });
+
+  // Complete
+  await completeIssuedOrder(prisma as unknown as Prisma.TransactionClient, order.id);
+  const final = await prisma.order.findUniqueOrThrow({ where: { id: order.id }, include: { status: true } });
+  const completedOk = final.status.code === ORDER_STATUS.COMPLETED;
+
+  rec({
+    entity: "G2-3 Multi-Product Order",
+    status: itemsOk && totalOk && materialsOk && completedOk ? "fully_working" : "bug",
+    lastWorkingStep: completedOk ? "COMPLETED" : "issue",
+    firstBrokenStep: !itemsOk ? "items" : !totalOk ? "total" : !materialsOk ? "materials" : !completedOk ? "complete" : null,
+    rootCause: null,
+    impact: null,
+    evidence: [`items=${order.items.length}`, `total=${money(total)}`, `status=${final.status.code}`],
+  });
+
+  // Cleanup
+  await prisma.stockMovement.deleteMany({ where: { relatedId: order.id } });
+  await prisma.stockMovement.deleteMany({ where: { stockItem: { productId: { in: [prodA.id, prodB.id] } } } });
+  await prisma.stockMovement.deleteMany({ where: { stockItem: { materialId: mat.id } } });
+  await prisma.orderMaterialNeed.deleteMany({ where: { orderId: order.id } });
+  await prisma.orderItem.deleteMany({ where: { orderId: order.id } });
+  await prisma.productionOrder.deleteMany({ where: { orderId: order.id } });
+  await prisma.order.deleteMany({ where: { id: order.id } });
+  await prisma.customer.deleteMany({ where: { id: customer.id } });
+  await prisma.recipeItem.deleteMany({ where: { version: { recipe: { productId: { in: [prodA.id, prodB.id] } } } } });
+  await prisma.recipeVersion.deleteMany({ where: { recipe: { productId: { in: [prodA.id, prodB.id] } } } });
+  await prisma.recipe.deleteMany({ where: { productId: { in: [prodA.id, prodB.id] } } });
+  await prisma.stockItem.deleteMany({ where: { productId: { in: [prodA.id, prodB.id] } } });
+  await prisma.productPrice.deleteMany({ where: { productId: { in: [prodA.id, prodB.id] } } });
+  await prisma.product.deleteMany({ where: { id: { in: [prodA.id, prodB.id] } } });
+  await prisma.stockItem.deleteMany({ where: { materialId: mat.id } });
+  await prisma.materialPriceHistory.deleteMany({ where: { materialId: mat.id } });
+  await prisma.material.deleteMany({ where: { id: mat.id } });
 }
 
 async function cleanup(ids: Record<string, string> & { expenseIds: string[] }) {

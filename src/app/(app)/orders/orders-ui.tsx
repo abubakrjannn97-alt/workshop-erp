@@ -114,13 +114,14 @@ export function OrdersFilterToolbar({
     <form className={styles.toolbar} method="get" data-tour="orders-search">
       <input type="hidden" name="period" value={periodValue} />
       <label className={styles.searchField}>
-        <span className={styles.fieldLabel}>{searchLabel}</span>
+        <span className={`${styles.fieldLabel} ${styles.searchFieldLabel}`}>{searchLabel}</span>
         <span className={styles.searchInputWrap}>
           <Search size={16} strokeWidth={ICON_STROKE} className={styles.searchIcon} aria-hidden />
           <input
             name="q"
             defaultValue={qValue ?? ""}
             placeholder={searchPlaceholder}
+            aria-label={searchLabel}
             className={styles.searchInput}
           />
         </span>

@@ -172,6 +172,7 @@ export async function registerPurchasePayment(formData: FormData) {
   const session = await requirePermission("purchasing.manage");
   const id = String(formData.get("id") ?? "");
   const amountRaw = String(formData.get("amount") ?? "");
+  const method = String(formData.get("method") ?? "") || null;
   const parsed = z.string().regex(/^\d+(\.\d{1,4})?$/).safeParse(amountRaw);
   if (!parsed.success) return { error: "Сумма оплаты некорректна." };
 
@@ -181,6 +182,9 @@ export async function registerPurchasePayment(formData: FormData) {
   if (nextPaid.gt(D(String(order.total)).mul("1.0001"))) {
     return { error: "Оплата больше суммы заказа." };
   }
+
+  const { accountForMethod } = await import("@core/finance/finance");
+  const accountCode = accountForMethod(method);
 
   await prisma.$transaction(async (tx) => {
     await tx.purchasePayment.create({
@@ -195,12 +199,12 @@ export async function registerPurchasePayment(formData: FormData) {
       where: { id },
       data: { paidAmount: money(nextPaid) },
     });
-    const cash = await accountByCode(tx, "CASH");
+    const account = await accountByCode(tx, accountCode);
     const materials = await fundByCode(tx, FUND.MATERIALS);
     await postLedger(tx, {
       type: LEDGER.CASH_OUT,
       amount: money(amountRaw),
-      accountId: cash.id,
+      accountId: account.id,
       relatedType: "purchase_order",
       relatedId: id,
       comment: `Оплата поставщику ${order.number}`,
