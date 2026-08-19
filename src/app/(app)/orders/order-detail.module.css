@@ -172,8 +172,14 @@
 }
 
 .actionsPanel {
-  composes: sectionPanel;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
 }
 
 .primaryAction {
