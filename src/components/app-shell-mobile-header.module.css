@@ -36,6 +36,11 @@
   justify-self: center;
 }
 
+.logoMark {
+  border-radius: 22%;
+  box-shadow: 0 1px 4px rgba(28, 35, 43, 0.12);
+}
+
 .actions {
   display: flex;
   align-items: center;
