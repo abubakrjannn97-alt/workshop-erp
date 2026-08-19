@@ -90,7 +90,7 @@ export async function MobileOwnerHome() {
         ]}
       />
 
-      <DashSection title={t("home.quickActions")} tour="home-shortcuts" flush mobile>
+      <DashSection title={t("home.quickActions")} tour="home-shortcuts" flush mobileList>
         <DashQuickActions actions={ownerMobileQuickActions(t)} layout="mobileStrip" />
       </DashSection>
 

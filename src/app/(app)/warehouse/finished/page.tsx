@@ -10,7 +10,7 @@ import { PendingButton } from "@/components/pending-button";
 import { FormField } from "@/components/form-field";
 import { getFgWarehouse } from "@/core/config/resolve-warehouse";
 import { saleToOutputQty } from "@core/inventory/finished-goods";
-import styles from "./warehouse.module.css";
+import styles from "../warehouse.module.css";
 
 export default async function FinishedWarehousePage() {
   const { t, locale } = await getTranslator();
