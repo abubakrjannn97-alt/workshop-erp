@@ -58,8 +58,8 @@
   position: fixed;
   inset: 0;
   z-index: -1;
-  background: url("/stone-hero.png") no-repeat top right / 75% auto;
-  opacity: 0.12;
+  background: url("/stone-hero.png") no-repeat top right / 100% auto;
+  opacity: 0.32;
   pointer-events: none;
 }
 
