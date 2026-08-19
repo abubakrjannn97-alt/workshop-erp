@@ -9,7 +9,7 @@ export type DashMetric = {
   label: string;
   value: string;
   hint?: string;
-  hintTone?: "positive" | "neutral";
+  hintTone?: "positive" | "negative" | "neutral";
   tone: DashMetricTone;
   icon: LucideIcon;
 };
@@ -57,11 +57,19 @@ export function DashMetricStrip({
                 <p className={styles.kpiValueCompact}>{metric.value}</p>
                 {metric.hint ? (
                   <p
-                    className={`${styles.kpiHintCompact} ${metric.hintTone === "positive" ? styles.kpiHintPositive : ""}`.trim()}
+                    className={[
+                      styles.kpiHintCompact,
+                      metric.hintTone === "positive" ? styles.kpiHintPositive : "",
+                      metric.hintTone === "negative" ? styles.kpiHintNegative : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
                   >
                     {metric.hint}
                   </p>
-                ) : null}
+                ) : (
+                  <span className={styles.kpiHintSpacerCompact} aria-hidden />
+                )}
               </>
             ) : (
               <>
@@ -76,7 +84,13 @@ export function DashMetricStrip({
                 </div>
                 {metric.hint ? (
                   <p
-                    className={`${styles.kpiHint} ${metric.hintTone === "positive" ? styles.kpiHintPositive : ""}`.trim()}
+                    className={[
+                      styles.kpiHint,
+                      metric.hintTone === "positive" ? styles.kpiHintPositive : "",
+                      metric.hintTone === "negative" ? styles.kpiHintNegative : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
                   >
                     {metric.hint}
                   </p>

@@ -33,12 +33,13 @@ export async function MobileOwnerHome() {
   ]);
 
   let producedHint = t("home.kpi.noChangeToday");
-  let producedHintTone: "positive" | "neutral" = "neutral";
+  let producedHintTone: "positive" | "negative" | "neutral" = "neutral";
   if (kpis.producedChangePct !== null && kpis.producedChangePct > 0) {
     producedHint = t("home.kpi.vsYesterdayUp").replace("{pct}", String(kpis.producedChangePct));
     producedHintTone = "positive";
   } else if (kpis.producedChangePct !== null && kpis.producedChangePct < 0) {
     producedHint = t("home.kpi.vsYesterdayDown").replace("{pct}", String(Math.abs(kpis.producedChangePct)));
+    producedHintTone = "negative";
   }
 
   return (
