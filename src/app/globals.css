@@ -211,6 +211,9 @@
   --mobile-glass-border: #E8E7E3;
   --mobile-glass-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
   --mobile-glass-blur: 8px;
+  /* Bottom nav — more opaque so list content does not bleed through on iOS */
+  --mobile-nav-bg: rgba(255, 255, 255, 0.88);
+  --mobile-nav-blur: 16px;
 }
 
 html {
