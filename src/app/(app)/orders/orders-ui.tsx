@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import { EmptyState } from "@/components/empty-state";
+import { OrdersStatusFilter } from "./orders-status-filter";
 import { StatusBadge, orderTone, type BadgeTone } from "@/components/status-badge";
 import styles from "./orders.module.css";
 
@@ -209,14 +210,12 @@ export function OrdersFilterToolbar({
       <div className={styles.filterRow}>
         <label className={styles.toolbarField}>
           <span className={styles.fieldLabel}>{statusLabel}</span>
-          <select name="status" defaultValue={statusValue ?? ""} className={styles.selectInput}>
-            <option value="">{allStatusesLabel}</option>
-            {statuses.map((s) => (
-              <option key={s.code} value={s.code}>
-                {s.name}
-              </option>
-            ))}
-          </select>
+          <OrdersStatusFilter
+            name="status"
+            defaultValue={statusValue}
+            allLabel={allStatusesLabel}
+            statuses={statuses}
+          />
         </label>
         <label className={styles.toolbarField}>
           <span className={styles.fieldLabel}>{fromLabel}</span>

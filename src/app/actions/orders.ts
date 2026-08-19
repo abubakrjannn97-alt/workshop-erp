@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@core/infrastructure/prisma";
-import { requirePermission } from "@core/auth/authz";
+import { requirePermission, hasPermission } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money, qty } from "@core/shared/decimal";
 import { available, releaseMaterial, reserveMaterial } from "@core/inventory/stock";
@@ -38,6 +38,86 @@ function qtyStr(value: string) {
   return z.string().regex(/^\d+(\.\d{1,6})?$/).safeParse(value).success;
 }
 
+function resolveInitialPayment(
+  total: ReturnType<typeof D>,
+  statusRaw: string,
+  paidRaw: string,
+): { paidAmount: ReturnType<typeof D>; paymentStatus: string } | { error: string } {
+  if (statusRaw === "paid") {
+    return { paidAmount: total, paymentStatus: "paid" };
+  }
+  if (statusRaw === "partial") {
+    if (!moneyStr(paidRaw)) return { error: "Укажите сумму частичной оплаты." };
+    const paid = D(paidRaw);
+    if (paid.lte(0)) return { error: "Сумма оплаты должна быть больше нуля." };
+    if (paid.gte(total)) return { error: "Частичная оплата должна быть меньше суммы заказа." };
+    return { paidAmount: paid, paymentStatus: "partial" };
+  }
+  return { paidAmount: D(0), paymentStatus: "unpaid" };
+}
+
+async function recordInitialOrderPayment(
+  tx: Prisma.TransactionClient,
+  input: {
+    orderId: string;
+    paidAmount: ReturnType<typeof D>;
+    orderTotal: string;
+    materialCost: string | null;
+    sellerId: string;
+    saleQty: ReturnType<typeof D>;
+    userId: string;
+  },
+) {
+  if (input.paidAmount.lte(0)) return;
+
+  const payment = await tx.payment.create({
+    data: {
+      orderId: input.orderId,
+      amount: money(input.paidAmount),
+      method: "cash",
+      comment: "Оплата при создании заказа",
+      idempotencyKey: `order-create-pay-${input.orderId}`,
+      createdById: input.userId,
+    },
+  });
+
+  const seller = await tx.user.findUnique({
+    where: { id: input.sellerId },
+    include: { payScheme: { include: { tiers: true } } },
+  });
+  const productionSchemeCode = await resolveProductionPaySchemeCode();
+  const scheme = seller?.payScheme;
+  const laborAmount = scheme?.productionRate ? money(input.saleQty.mul(scheme.productionRate)) : "0";
+  let commissionAmount = "0";
+  if (scheme && (scheme.kind === "SALES_COMMISSION" || scheme.kind === "MIXED") && scheme.tiers.length) {
+    const pct = await commissionPercentNow(tx, input.sellerId, input.orderId, scheme);
+    commissionAmount = money(input.paidAmount.mul(pct).div(100));
+    await accrueSellerCommission(tx, {
+      sellerId: input.sellerId,
+      orderId: input.orderId,
+      paymentId: payment.id,
+      paidAmount: money(input.paidAmount),
+      scheme,
+    });
+  }
+  const prodScheme = await tx.payScheme.findUnique({ where: { code: productionSchemeCode } });
+  const laborFromProd = prodScheme?.productionRate
+    ? money(input.saleQty.mul(prodScheme.productionRate))
+    : laborAmount;
+
+  await postClientPayment(tx, {
+    orderId: input.orderId,
+    paymentId: payment.id,
+    amount: money(input.paidAmount),
+    method: "cash",
+    orderTotal: input.orderTotal,
+    materialCost: input.materialCost,
+    laborAmount: laborFromProd,
+    commissionAmount,
+    userId: input.userId,
+  });
+}
+
 async function canSeeOrder(userId: string, roleCode: string, sellerId: string) {
   if (roleCode === "owner" || roleCode === "director" || roleCode === "accountant" || roleCode === "production_manager") {
     return true;
@@ -56,7 +136,8 @@ export async function createOrder(formData: FormData) {
     session.user.roleCode === "sales_manager"
       ? session.user.id
       : String(formData.get("sellerId") ?? session.user.id);
-  const paymentMethod = String(formData.get("paymentMethod") ?? "") || null;
+  const initialPaymentStatus = String(formData.get("initialPaymentStatus") ?? "unpaid");
+  const initialPaidAmount = String(formData.get("initialPaidAmount") ?? "0");
   const dueAtRaw = String(formData.get("dueAt") ?? "");
   const leadId = String(formData.get("leadId") ?? "");
 
@@ -96,6 +177,9 @@ export async function createOrder(formData: FormData) {
   const discountAmount = subtotal.mul(appliedDiscount).div(100);
   const total = subtotal.sub(discountAmount);
   const needs = mergeMaterialNeeds([quote]);
+  const initialPay = resolveInitialPayment(total, initialPaymentStatus, initialPaidAmount);
+  if ("error" in initialPay) return { error: initialPay.error };
+  const canRecordPayment = hasPermission(session.user.permissions, session.user.roleCode, "payments.create");
 
   let order;
   try {
@@ -121,14 +205,13 @@ export async function createOrder(formData: FormData) {
         customerId: resolvedCustomerId,
         sellerId,
         statusId: status.id,
-        paymentStatus: "unpaid",
-        paymentMethod,
+        paymentStatus: initialPay.paymentStatus,
         dueAt: dueAtRaw ? new Date(dueAtRaw) : null,
         discountPercent: money(appliedDiscount),
         discountAmount: money(discountAmount),
         subtotal: money(subtotal),
         total: money(total),
-        paidAmount: "0",
+        paidAmount: money(initialPay.paidAmount),
         materialCost: quote.materialCost,
         outputQty: quote.outputQty,
         recipeSnapshot: {
@@ -155,6 +238,17 @@ export async function createOrder(formData: FormData) {
         },
       },
     });
+    if (canRecordPayment) {
+      await recordInitialOrderPayment(tx, {
+        orderId: created.id,
+        paidAmount: initialPay.paidAmount,
+        orderTotal: money(total),
+        materialCost: quote.materialCost,
+        sellerId,
+        saleQty: D(quote.quantity),
+        userId: session.user.id,
+      });
+    }
     if (lead && !lead.convertedOrderId) {
       const won = await tx.leadStage.findUnique({ where: { code: "WON" } });
       await tx.lead.update({
@@ -723,7 +817,8 @@ export async function createMultiItemOrder(formData: FormData) {
     session.user.roleCode === "sales_manager"
       ? session.user.id
       : String(formData.get("sellerId") ?? session.user.id);
-  const paymentMethod = String(formData.get("paymentMethod") ?? "") || null;
+  const initialPaymentStatus = String(formData.get("initialPaymentStatus") ?? "unpaid");
+  const initialPaidAmount = String(formData.get("initialPaidAmount") ?? "0");
   const dueAtRaw = String(formData.get("dueAt") ?? "");
   const leadId = String(formData.get("leadId") ?? "");
 
@@ -778,6 +873,10 @@ export async function createMultiItemOrder(formData: FormData) {
   const needs = mergeMaterialNeeds(quotes);
   const materialCost = quotes.reduce((s, q) => (q.materialCost ? s.add(q.materialCost) : s), D(0));
   const outputQty = quotes.reduce((s, q) => s.add(q.outputQty), D(0));
+  const saleQty = quotes.reduce((s, q) => s.add(q.quantity), D(0));
+  const initialPay = resolveInitialPayment(total, initialPaymentStatus, initialPaidAmount);
+  if ("error" in initialPay) return { error: initialPay.error };
+  const canRecordPayment = hasPermission(session.user.permissions, session.user.roleCode, "payments.create");
 
   let order;
   try {
@@ -799,14 +898,13 @@ export async function createMultiItemOrder(formData: FormData) {
           customerId: resolvedCustomerId,
           sellerId,
           statusId: status.id,
-          paymentStatus: "unpaid",
-          paymentMethod,
+          paymentStatus: initialPay.paymentStatus,
           dueAt: dueAtRaw ? new Date(dueAtRaw) : null,
           discountPercent: money(appliedDiscount),
           discountAmount: money(discountAmount),
           subtotal: money(subtotal),
           total: money(total),
-          paidAmount: "0",
+          paidAmount: money(initialPay.paidAmount),
           materialCost: money(materialCost),
           outputQty: qty(outputQty),
           recipeSnapshot: { quotes } as Prisma.InputJsonValue,
@@ -831,6 +929,17 @@ export async function createMultiItemOrder(formData: FormData) {
           },
         },
       });
+      if (canRecordPayment) {
+        await recordInitialOrderPayment(tx, {
+          orderId: created.id,
+          paidAmount: initialPay.paidAmount,
+          orderTotal: money(total),
+          materialCost: money(materialCost),
+          sellerId,
+          saleQty,
+          userId: session.user.id,
+        });
+      }
       if (lead && !lead.convertedOrderId) {
         const won = await tx.leadStage.findUnique({ where: { code: "WON" } });
         await tx.lead.update({

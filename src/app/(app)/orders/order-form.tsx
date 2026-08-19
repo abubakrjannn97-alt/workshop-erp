@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { FormField } from "@/components/form-field";
+import { AppSelect } from "@/components/app-select";
 import { PendingButton } from "@/components/pending-button";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
 import styles from "./order-form.module.css";
@@ -24,6 +25,8 @@ type OrderLine = {
   quantity: string;
   unitPrice: string;
 };
+
+type InitialPayStatus = "unpaid" | "partial" | "paid";
 
 export function OrderForm({
   action,
@@ -56,6 +59,10 @@ export function OrderForm({
   ]);
   const [discount, setDiscount] = useState("0");
   const [discountOpen, setDiscountOpen] = useState(false);
+  const [customerId, setCustomerId] = useState(defaultCustomerId ?? "");
+  const [payStatus, setPayStatus] = useState<InitialPayStatus>("unpaid");
+  const [partialPaid, setPartialPaid] = useState("");
+  const [sellerId, setSellerId] = useState(defaultSellerId);
   const [nextKey, setNextKey] = useState(2);
 
   const addLine = () => {
@@ -97,19 +104,46 @@ export function OrderForm({
   }, [lines, discount]);
 
   const isMulti = lines.length > 1;
+  const payOptions = [
+    { value: "unpaid", label: t("pay.unpaid") },
+    { value: "partial", label: t("pay.partial") },
+    { value: "paid", label: t("pay.paid") },
+  ];
+
+  const initialPaidAmount =
+    payStatus === "paid" ? moneyDisplay(totals.total) : payStatus === "partial" ? partialPaid : "0";
 
   return (
-    <form action={action} className={`ui-card ${styles.form}`}>
+    <form
+      action={action}
+      className={`ui-card ${styles.form}`}
+      onSubmit={(event) => {
+        if (!leadId && !customerId) {
+          event.preventDefault();
+          return;
+        }
+        if (payStatus === "partial" && !/^\d+(\.\d{1,4})?$/.test(partialPaid.trim())) {
+          event.preventDefault();
+        }
+      }}
+    >
       {leadId ? <input type="hidden" name="leadId" value={leadId} /> : null}
       <input type="hidden" name="_multi" value={isMulti ? "1" : "0"} />
+      <input type="hidden" name="initialPaymentStatus" value={payStatus} />
+      <input type="hidden" name="initialPaidAmount" value={initialPaidAmount} />
 
       <FormField label={t("common.customer")} required={!leadId} className={styles.compactField}>
-        <select name="customerId" required={!leadId} defaultValue={defaultCustomerId ?? ""} className="ui-input">
-          <option value="">{leadId ? t("orders.leadCard") : t("orders.select")}</option>
-          {customers.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </select>
+        <AppSelect
+          name="customerId"
+          value={customerId}
+          onChange={setCustomerId}
+          required={!leadId}
+          placeholder={leadId ? t("orders.leadCard") : t("orders.select")}
+          options={[
+            { value: "", label: leadId ? t("orders.leadCard") : t("orders.select") },
+            ...customers.map((c) => ({ value: c.id, label: c.name })),
+          ]}
+        />
       </FormField>
 
       {lines.map((line, idx) => {
@@ -128,17 +162,14 @@ export function OrderForm({
             </div>
 
             <FormField label={t("common.product")} required className={styles.compactField}>
-              <select
-                name={isMulti ? "productId[]" : "productId"}
+              <AppSelect
+                name={isMulti ? undefined : "productId"}
                 value={line.productId}
-                onChange={(e) => updateLine(line.key, "productId", e.target.value)}
-                className="ui-input"
+                onChange={(value) => updateLine(line.key, "productId", value)}
                 required
-              >
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
+                options={products.map((p) => ({ value: p.id, label: p.name }))}
+              />
+              {isMulti ? <input type="hidden" name="productId[]" value={line.productId} /> : null}
             </FormField>
 
             <div className={styles.qtyPriceRow}>
@@ -201,23 +232,37 @@ export function OrderForm({
 
       {canChooseSeller ? (
         <FormField label={t("orders.seller")} className={styles.compactField}>
-          <select name="sellerId" defaultValue={defaultSellerId} className="ui-input">
-            {sellers.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
+          <AppSelect
+            name="sellerId"
+            value={sellerId}
+            onChange={setSellerId}
+            options={sellers.map((s) => ({ value: s.id, label: s.name }))}
+          />
         </FormField>
       ) : (
         <input type="hidden" name="sellerId" value={defaultSellerId} />
       )}
 
-      <FormField label={t("orders.payMethod")} className={styles.compactField}>
-        <select name="paymentMethod" className="ui-input" defaultValue="cash">
-          <option value="cash">{t("orders.cash")}</option>
-          <option value="bank">{t("orders.transfer")}</option>
-          <option value="card">{t("orders.card")}</option>
-        </select>
+      <FormField label={t("orders.payStatus")} className={styles.compactField}>
+        <AppSelect
+          value={payStatus}
+          onChange={(value) => setPayStatus(value as InitialPayStatus)}
+          options={payOptions}
+        />
       </FormField>
+
+      {payStatus === "partial" ? (
+        <FormField label={t("orders.partialPayAmount")} className={styles.compactField}>
+          <input
+            value={partialPaid}
+            onChange={(e) => setPartialPaid(e.target.value)}
+            className="ui-input"
+            inputMode="decimal"
+            placeholder={moneyDisplay(totals.total)}
+            required
+          />
+        </FormField>
+      ) : null}
 
       <FormField label={t("orders.dueReady")} className={styles.compactField}>
         <input name="dueAt" type="date" className="ui-input" />
