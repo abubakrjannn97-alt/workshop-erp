@@ -1,4 +1,3 @@
-import { PageHeader } from "@/components/page-header";
 import { getTranslator } from "@core/shared/i18n/locale";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -9,24 +8,13 @@ import { archiveCustomer, updateCustomer } from "@/app/actions/customers";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { formatPhone } from "@core/shared/format";
 import { FormField } from "@/components/form-field";
-import { DashPanel } from "@/components/dash-panel";
-import { DashKpiGrid } from "@/components/dashboard/dashboard-system";
-import { KpiCard } from "@/components/kpi-card";
 import { PendingButton } from "@/components/pending-button";
-import {
-  DataList,
-  DataListEmpty,
-  DataListHead,
-  DataListHeadCell,
-  DataListMetric,
-  DataListPrimary,
-  DataListRow,
-  DataListCell,
-  DataTableSection,
-  dataListStyles,
-} from "@/components/data-table";
 import { StatusBadge, orderTone, payTone } from "@/components/status-badge";
+import { ChevronRight, Plus } from "lucide-react";
+import { ICON_STROKE } from "@/components/nav-icons";
+import { EmptyState } from "@/components/empty-state";
 import { ClipboardList } from "lucide-react";
+import styles from "../customers.module.css";
 
 export default async function CustomerPage({ params }: { params: Promise<{ id: string }> }) {
   const { t, n, locale } = await getTranslator();
@@ -63,97 +51,156 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
   }
 
   return (
-    <div className="page-stack">
-      <PageHeader
-        title={customer.name}
-        description={customer.phone ? `${t("common.tel")} ${formatPhone(customer.phone)}` : undefined}
-        actions={
-          <div className="flex flex-wrap gap-2">
-            <Link href={`/crm/history?customerId=${customer.id}`} className="ui-btn-secondary">
-              {t("crm.purchaseHistory")}
+    <div className={styles.page}>
+      {/* ─── Header ─── */}
+      <header className={styles.header}>
+        <div className={styles.headerText}>
+          <h1 className={styles.title}>{customer.name}</h1>
+          {customer.phone ? (
+            <p className={styles.subtitle}>{t("common.tel")} {formatPhone(customer.phone)}</p>
+          ) : null}
+        </div>
+        <div className={styles.headerActions}>
+          <Link href={`/crm/history?customerId=${customer.id}`} className={styles.ghostLink}>
+            {t("crm.purchaseHistory")}
+          </Link>
+          {canCreateOrder ? (
+            <Link href={`/orders/new?customerId=${customer.id}`} className={styles.primaryBtn}>
+              <span className={styles.primaryBtnIcon} aria-hidden>
+                <Plus size={16} strokeWidth={ICON_STROKE} />
+              </span>
+              {t("sales.newOrder")}
             </Link>
-            {canCreateOrder ? (
-              <Link href={`/orders/new?customerId=${customer.id}`} className="ui-btn-primary inline-flex min-h-[44px] items-center">
-                {t("sales.newOrder")}
-              </Link>
-            ) : null}
-          </div>
-        }
-      />
+          ) : null}
+          {canCreateOrder ? (
+            <Link href={`/orders/new?customerId=${customer.id}`} className={styles.iconBtn} aria-label={t("sales.newOrder")}>
+              <Plus size={20} strokeWidth={ICON_STROKE} />
+            </Link>
+          ) : null}
+        </div>
+      </header>
 
-      <DashKpiGrid cols="4">
-        <KpiCard label={t("crm.purchases")} value={`${moneyDisplay(turnover)} с`} tone="in" />
-        <KpiCard label={t("common.debt")} value={`${moneyDisplay(debt)} с`} tone="out" />
-        <KpiCard label={t("crm.avgCheck")} value={`${moneyDisplay(avg)} с`} tone="ink" />
-        <KpiCard label={t("crm.lastPurchase")} value={last ? last.createdAt.toLocaleDateString(loc) : "—"} tone="ink" />
-      </DashKpiGrid>
+      {/* ─── KPI ─── */}
+      <div className={styles.detailKpi}>
+        <div className={styles.kpiBox}>
+          <p className={styles.kpiLabel}>{t("crm.purchases")}</p>
+          <p className={styles.kpiValue}>{moneyDisplay(turnover)} с</p>
+        </div>
+        <div className={styles.kpiBox}>
+          <p className={styles.kpiLabel}>{t("common.debt")}</p>
+          <p className={debt.gt(0) ? styles.kpiValueDanger : styles.kpiValue}>{moneyDisplay(debt)} с</p>
+        </div>
+        <div className={styles.kpiBox}>
+          <p className={styles.kpiLabel}>{t("crm.avgCheck")}</p>
+          <p className={styles.kpiValue}>{moneyDisplay(avg)} с</p>
+        </div>
+        <div className={styles.kpiBox}>
+          <p className={styles.kpiLabel}>{t("crm.lastPurchase")}</p>
+          <p className={styles.kpiValue}>{last ? last.createdAt.toLocaleDateString(loc) : "—"}</p>
+        </div>
+      </div>
 
+      {/* ─── Edit form ─── */}
       {canManage && !customer.archivedAt ? (
-        <DashPanel title={t("crm.editCustomer")}>
-          <form action={save} className="grid max-w-xl gap-3 sm:grid-cols-2">
-            <input type="hidden" name="id" value={customer.id} />
-            <FormField label={t("crm.fioCompany")} className="sm:col-span-2">
-              <input name="name" defaultValue={customer.name} className="ui-input" required />
-            </FormField>
-            <FormField label={t("common.phone")}>
-              <input name="phone" defaultValue={customer.phone ?? ""} className="ui-input" />
-            </FormField>
-            <FormField label={t("common.whatsapp")}>
-              <input name="whatsapp" defaultValue={customer.whatsapp ?? ""} className="ui-input" />
-            </FormField>
-            <FormField label={t("common.address")} className="sm:col-span-2">
-              <input name="address" defaultValue={customer.address ?? ""} className="ui-input" />
-            </FormField>
-            <FormField label={t("common.source")}>
-              <input name="source" defaultValue={customer.source ?? ""} className="ui-input" />
-            </FormField>
-            <FormField label={t("common.comment")} className="sm:col-span-2">
-              <textarea name="comment" defaultValue={customer.comment ?? ""} className="ui-input min-h-[5rem]" />
-            </FormField>
-            <PendingButton className="ui-btn-primary min-h-[44px] sm:col-span-2" pendingLabel={t("common.sending")}>
-              {t("common.save")}
-            </PendingButton>
-          </form>
-          <form action={archive} className="mt-3">
-            <input type="hidden" name="id" value={customer.id} />
-            <button type="submit" className="min-h-[44px] text-sm text-[var(--danger)] hover:underline">
-              {t("crm.archiveCustomer")}
-            </button>
-          </form>
-        </DashPanel>
+        <section className={styles.section}>
+          <div className={styles.sectionHead}>
+            <h2 className={styles.sectionTitle}>{t("crm.editCustomer")}</h2>
+          </div>
+          <div className={styles.sectionBody}>
+            <form action={save} className="grid max-w-xl gap-3 sm:grid-cols-2">
+              <input type="hidden" name="id" value={customer.id} />
+              <FormField label={t("crm.fioCompany")} className="sm:col-span-2">
+                <input name="name" defaultValue={customer.name} className="ui-input" required />
+              </FormField>
+              <FormField label={t("common.phone")}>
+                <input name="phone" defaultValue={customer.phone ?? ""} className="ui-input" />
+              </FormField>
+              <FormField label={t("common.whatsapp")}>
+                <input name="whatsapp" defaultValue={customer.whatsapp ?? ""} className="ui-input" />
+              </FormField>
+              <FormField label={t("common.address")} className="sm:col-span-2">
+                <input name="address" defaultValue={customer.address ?? ""} className="ui-input" />
+              </FormField>
+              <FormField label={t("common.source")}>
+                <input name="source" defaultValue={customer.source ?? ""} className="ui-input" />
+              </FormField>
+              <FormField label={t("common.comment")} className="sm:col-span-2">
+                <textarea name="comment" defaultValue={customer.comment ?? ""} className="ui-input min-h-[5rem]" />
+              </FormField>
+              <PendingButton className="ui-btn-primary min-h-[44px] sm:col-span-2" pendingLabel={t("common.sending")}>
+                {t("common.save")}
+              </PendingButton>
+            </form>
+            <form action={archive} className="mt-3">
+              <input type="hidden" name="id" value={customer.id} />
+              <button type="submit" className="min-h-[44px] text-sm text-[var(--danger)] hover:underline">
+                {t("crm.archiveCustomer")}
+              </button>
+            </form>
+          </div>
+        </section>
       ) : null}
 
-      <DashPanel title={t("crm.orderHistory")} icon={ClipboardList}>
+      {/* ─── Orders ─── */}
+      <section className={styles.section}>
+        <div className={styles.sectionHead}>
+          <h2 className={styles.sectionTitle}>{t("crm.orderHistory")}</h2>
+        </div>
         {customer.orders.length === 0 ? (
-          <DataListEmpty>{t("crm.noOrders")}</DataListEmpty>
+          <div className={styles.sectionBody}>
+            <EmptyState icon={ClipboardList} title={t("crm.noOrders")} description="" />
+          </div>
         ) : (
-          <DataList layout="cols4">
-            <DataListHead layout="cols4">
-              <DataListHeadCell>{t("list.col.when")}</DataListHeadCell>
-              <DataListHeadCell align="right">{t("home.col.amount")}</DataListHeadCell>
-              <DataListHeadCell>{t("home.col.status")}</DataListHeadCell>
-              <DataListHeadCell align="right">{t("common.payment")}</DataListHeadCell>
-            </DataListHead>
-            <ul className={dataListStyles.rows}>
+          <>
+            <div className={styles.tableHead} style={{ gridTemplateColumns: "minmax(0,1fr) 6rem 8rem 8rem 2rem" }}>
+              <span>{t("list.col.when")}</span>
+              <span className={styles.tableHeadRight}>{t("home.col.amount")}</span>
+              <span>{t("home.col.status")}</span>
+              <span className={styles.tableHeadRight}>{t("common.payment")}</span>
+              <span aria-hidden />
+            </div>
+            <ul className={styles.tableBody}>
               {customer.orders.map((o) => (
-                <DataListRow key={o.id} layout="cols4">
-                  <DataListPrimary
-                    title={o.createdAt.toLocaleDateString(loc)}
+                <li key={o.id}>
+                  <Link
                     href={`/orders/${o.id}`}
-                  />
-                  <DataListMetric label={t("home.col.amount")} value={`${moneyDisplay(o.total)} с`} />
-                  <DataListCell label={t("home.col.status")}>
-                    <StatusBadge label={n("ostatus", o.status.code, o.status.name)} tone={orderTone(o.status.code)} />
-                  </DataListCell>
-                  <DataListCell label={t("common.payment")} align="right">
-                    <StatusBadge label={t(`pay.${o.paymentStatus}`)} tone={payTone(o.paymentStatus)} />
-                  </DataListCell>
-                </DataListRow>
+                    className={styles.tableRow}
+                    style={{ gridTemplateColumns: "minmax(0,1fr) 6rem 8rem 8rem 2rem" }}
+                  >
+                    <span className={styles.customerName}>{o.createdAt.toLocaleDateString(loc)}</span>
+                    <span className={styles.cellMoney}>{moneyDisplay(o.total)} с</span>
+                    <span>
+                      <StatusBadge label={n("ostatus", o.status.code, o.status.name)} tone={orderTone(o.status.code)} />
+                    </span>
+                    <span style={{ textAlign: "right" }}>
+                      <StatusBadge label={t(`pay.${o.paymentStatus}`)} tone={payTone(o.paymentStatus)} />
+                    </span>
+                    <span className={styles.chevron} aria-hidden>
+                      <ChevronRight size={16} strokeWidth={ICON_STROKE} />
+                    </span>
+                  </Link>
+                </li>
               ))}
             </ul>
-          </DataList>
+            <ul className={styles.mobileList}>
+              {customer.orders.map((o) => (
+                <li key={o.id}>
+                  <Link href={`/orders/${o.id}`} className={styles.mobileCard}>
+                    <div className={styles.mobileTop}>
+                      <span className={styles.mobileName}>{o.createdAt.toLocaleDateString(loc)}</span>
+                      <span className={styles.cellMoney}>{moneyDisplay(o.total)} с</span>
+                    </div>
+                    <div className={styles.mobileBottom}>
+                      <StatusBadge label={n("ostatus", o.status.code, o.status.name)} tone={orderTone(o.status.code)} />
+                      <StatusBadge label={t(`pay.${o.paymentStatus}`)} tone={payTone(o.paymentStatus)} />
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
-      </DashPanel>
+      </section>
     </div>
   );
 }
