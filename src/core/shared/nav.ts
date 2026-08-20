@@ -277,7 +277,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     id: "company",
     labelKey: "nav.org",
-    items: [EMPLOYEES_ITEM, APPROVALS_ITEM, ANALYTICS_ITEM, SETTINGS_ITEM, HELP_ITEM],
+    items: [EMPLOYEES_ITEM, APPROVALS_ITEM, ANALYTICS_ITEM, SETTINGS_ITEM],
   },
 ];
 
