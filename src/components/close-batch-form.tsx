@@ -32,10 +32,7 @@ export function CloseBatchForm({
 }) {
   const t = (key: string) => translate(locale, key);
   const router = useRouter();
-  const reactId = useId();
-  const [idempotencyKey] = useState(
-    () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`,
-  );
+  const idempotencyKey = useId().replace(/:/g, "");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();

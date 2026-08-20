@@ -1,12 +1,9 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId } from "react";
 
+/** Stable across SSR + hydration (unlike randomUUID / Date.now in useState). */
 export function IdempotencyField({ prefix }: { prefix: string }) {
-  const reactId = useId();
-  const [key] = useState(() => {
-    const rand = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
-    return `${prefix}-${rand}`;
-  });
-  return <input type="hidden" name="idempotencyKey" value={key || `${prefix}-${reactId}`} />;
+  const reactId = useId().replace(/:/g, "");
+  return <input type="hidden" name="idempotencyKey" value={`${prefix}-${reactId}`} />;
 }
