@@ -26,6 +26,7 @@ const eslintConfig = defineConfig([
     ignores: [
       "src/core/config/domain-config.ts",
       "src/core/config/i18n-domain.ts",
+      "src/core/config/workshop-domain.ts",
     ],
     rules: {
       "no-restricted-imports": ["error", { patterns: coreBoundaryPatterns }],
