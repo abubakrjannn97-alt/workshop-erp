@@ -26,6 +26,7 @@ import {
   isNavItemActive,
   type NavLeaf,
 } from "@core/shared/nav";
+import { resolveBackHref } from "@core/shared/back-nav";
 
 const CONTEXT_LEAVES: NavLeaf[] = [
   HOME_ITEM,
@@ -68,8 +69,7 @@ export function shellPageContext(path: string): NavLeaf | null {
   return hits.reduce((best, item) => (item.href.length >= best.href.length ? item : best));
 }
 
+/** True when the shell should show a back control (same parent rules as resolveBackHref). */
 export function isNestedShellPath(path: string): boolean {
-  const ctx = shellPageContext(path);
-  if (!ctx) return path.split("/").filter(Boolean).length > 1;
-  return path !== ctx.href;
+  return resolveBackHref(path) !== null;
 }

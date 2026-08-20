@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { ChevronLeft, Menu, X } from "lucide-react";
 import { NotificationBell } from "@/components/notification-bell";
@@ -9,6 +9,7 @@ import { MobileHeaderMenu } from "@/components/mobile-header-menu";
 import { WorkshopMark } from "@/components/workshop-mark";
 import { ICON_STROKE } from "@/components/nav-icons";
 import { resolveBackHref } from "@core/shared/back-nav";
+import { bottomTabsForRole, tabHrefSet } from "@core/shared/nav";
 import type { Locale } from "@core/shared/i18n/i18n";
 import { createT } from "@core/shared/i18n/i18n";
 import styles from "./app-shell-mobile-header.module.css";
@@ -30,7 +31,11 @@ export function AppShellMobileHeader({
 }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
-  const backHref = resolveBackHref(pathname);
+  const tabRoots = useMemo(
+    () => tabHrefSet(bottomTabsForRole(roleCode, permissions)),
+    [roleCode, permissions],
+  );
+  const backHref = resolveBackHref(pathname, { tabRoots });
   const t = createT(locale);
 
   useEffect(() => {
