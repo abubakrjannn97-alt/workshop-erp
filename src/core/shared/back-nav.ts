@@ -28,7 +28,6 @@ const SECTION_LIST_PARENTS: Record<string, string> = {
   "/warehouse/movements": "/warehouse",
   "/warehouse/print": "/warehouse",
   "/finance/expenses": "/finance",
-  "/finance/reports": "/finance",
   "/crm/history": "/crm",
   "/me/profile": "/me",
   "/me/commission": "/me",

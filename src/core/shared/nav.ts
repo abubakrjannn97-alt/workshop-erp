@@ -202,14 +202,6 @@ export const EXPENSES_ITEM: NavLeaf = {
   icon: "expenses",
 };
 
-export const REPORTS_ITEM: NavLeaf = {
-  id: "reports",
-  href: "/finance/reports",
-  labelKey: "nav.reports",
-  permission: "finance.view",
-  icon: "reports",
-};
-
 export const JOBS_ITEM: NavLeaf = {
   id: "jobs",
   href: "/me",
