@@ -33,7 +33,7 @@ export function CrmClientsView({
 }) {
   const t = createT(locale);
   const [showForm, setShowForm] = useState(false);
-  const [showList, setShowList] = useState(true);
+  const [showList, setShowList] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
