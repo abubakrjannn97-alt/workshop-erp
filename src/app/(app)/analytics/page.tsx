@@ -143,35 +143,30 @@ export default async function AnalyticsPage() {
         </div>
       </header>
 
-      <div className={styles.exportLinks} data-tour="an-export">
-        <a href="/api/export/sales" className={styles.exportLink}>{t("an.salesCsv")}</a>
-        <a href="/api/export/sales?format=xls" className={styles.exportLink}>Excel</a>
-        <a href="/api/export/warehouse" className={styles.exportLink}>{t("an.whCsv")}</a>
-        <a href="/api/export/payroll" className={styles.exportLink}>{t("an.payrollCsv")}</a>
-        <a href="/api/export/profit" className={styles.exportLink}>{t("an.profitCsv")}</a>
-        <a href="/api/export/debts" className={styles.exportLink}>{t("an.debtsCsv")}</a>
-      </div>
-
       <div className={styles.kpiStrip} data-tour="an-kpis">
-        <div className={styles.kpiBox}>
+        <div className={`${styles.kpiBox} ${styles.kpiToneGood}`}>
           <p className={styles.kpiLabel}>{t("an.contrib")}</p>
           <p className={styles.kpiValueGood}>{moneyDisplay(contribution)} с</p>
+          <p className={styles.kpiHint}>{t("an.contribHint")}</p>
         </div>
-        <div className={styles.kpiBox}>
+        <div className={`${styles.kpiBox} ${styles.kpiToneGood}`}>
           <p className={styles.kpiLabel}>{t("an.net")}</p>
           <p className={styles.kpiValueGood}>{moneyDisplay(net)} с</p>
+          <p className={styles.kpiHint}>{t("an.netHint")}</p>
         </div>
-        <div className={styles.kpiBox}>
+        <div className={`${styles.kpiBox} ${styles.kpiToneInfo}`}>
           <p className={styles.kpiLabel}>{t("an.coverFor")}</p>
           <p className={styles.kpiValue}>
             {cover.coverQty ? `${cover.coverQty} (${cover.productName ?? ""})` : "—"}
           </p>
+          <p className={styles.kpiHint}>{t("an.coverHint")}</p>
         </div>
-        <div className={styles.kpiBox}>
+        <div className={`${styles.kpiBox} ${styles.kpiToneBad}`}>
           <p className={styles.kpiLabel}>{t("an.scrapMonth")}</p>
           <p className={styles.kpiValueBad}>
             {qtyDisplay(scrapQty)} / {moneyDisplay(scrapCost)} с
           </p>
+          <p className={styles.kpiHint}>{t("an.scrapKpiHint")}</p>
         </div>
       </div>
 
@@ -203,8 +198,8 @@ export default async function AnalyticsPage() {
         <div className={styles.sectionHead}>
           <h2 className={styles.sectionTitle}>{t("an.byProduct")}</h2>
         </div>
-        <div className={styles.tableWrap}>
-          <table className={styles.table}>
+        <div className={`${styles.tableWrap} ${styles.tableWrapFit}`}>
+          <table className={`${styles.table} ${styles.tableDense}`}>
             <thead>
               <tr>
                 <th>{t("common.product")}</th>
@@ -236,13 +231,13 @@ export default async function AnalyticsPage() {
                     <tr key={row.name}>
                       <td className={styles.tdBold}>{row.name}</td>
                       <td className={styles.tdRight}>{qtyDisplay(row.qty)} {row.unit}</td>
-                      <td className={styles.tdRight}>{moneyDisplay(row.revenue)} с</td>
-                      <td className={styles.tdRight}>{moneyDisplay(avg)} с</td>
-                      <td className={styles.tdRight}>{moneyDisplay(row.materials)} с</td>
-                      <td className={styles.tdRight}>{moneyDisplay(row.labor)} с</td>
-                      <td className={styles.tdRight}>{moneyDisplay(row.commission)} с</td>
-                      <td className={styles.tdRight}>{moneyDisplay(fullCost)} с</td>
-                      <td className={styles.tdRight}>{moneyDisplay(profitRow)} с</td>
+                      <td className={styles.tdRight}>{moneyDisplay(row.revenue)}</td>
+                      <td className={styles.tdRight}>{moneyDisplay(avg)}</td>
+                      <td className={styles.tdRight}>{moneyDisplay(row.materials)}</td>
+                      <td className={styles.tdRight}>{moneyDisplay(row.labor)}</td>
+                      <td className={styles.tdRight}>{moneyDisplay(row.commission)}</td>
+                      <td className={styles.tdRight}>{moneyDisplay(fullCost)}</td>
+                      <td className={styles.tdRight}>{moneyDisplay(profitRow)}</td>
                       <td className={styles.tdRight}>{margin.toFixed(1)}%</td>
                     </tr>
                   );
