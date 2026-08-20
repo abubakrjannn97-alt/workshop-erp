@@ -2,6 +2,12 @@ import type { PrismaClient } from "@prisma/client";
 import Decimal from "decimal.js";
 import { persistDomainSettings } from "../persist-domain-settings";
 import { FACADE_DOMAIN_CONFIG } from "../../../src/domains/facade/config";
+import {
+  FACADE_MATERIALS,
+  FACADE_OPENING_STOCK,
+  FACADE_PRODUCTS,
+  type FacadeProductDef,
+} from "../../../src/domains/facade/catalog";
 import { receiveMaterial } from "../../../src/core/inventory/stock";
 
 const D = (v: string) => new Decimal(v);
@@ -40,109 +46,72 @@ async function seedFacadeCatalog(prisma: PrismaClient) {
   const pcs = await prisma.unit.findUniqueOrThrow({ where: { code: "PCS" } });
   const bucket = await prisma.unit.findUniqueOrThrow({ where: { code: "BUCKET" } });
 
-  async function material(data: {
-    name: string;
-    category: string;
-    packageWeight: string;
-    packagePrice: string;
-    minStock: string;
-  }) {
+  const unitByCode = { KG: kg, G: g, BUCKET: bucket };
+
+  async function upsertMaterial(data: (typeof FACADE_MATERIALS)[number]) {
     const existing = await prisma.material.findFirst({ where: { name: data.name } });
-    if (existing) return existing;
-    const created = await prisma.material.create({
-      data: {
-        name: data.name,
-        category: data.category,
-        storageUnitId: kg.id,
-        purchaseUnitId: kg.id,
-        packageWeight: data.packageWeight,
-        packagePrice: data.packagePrice,
-        minStock: data.minStock,
-        lastPurchasePrice: data.packagePrice === "0" ? null : undefined,
-      },
-    });
-    if (data.packagePrice !== "0") {
+    const purchaseUnit = data.purchaseUnit === "BUCKET" ? bucket : kg;
+    const row =
+      existing ??
+      (await prisma.material.create({
+        data: {
+          name: data.name,
+          category: data.category,
+          storageUnitId: kg.id,
+          purchaseUnitId: purchaseUnit.id,
+          packageWeight: data.packageWeight,
+          packagePrice: data.packagePrice,
+          minStock: data.minStock,
+          lastPurchasePrice: data.packagePrice === "0" ? null : undefined,
+        },
+      }));
+
+    if (!existing && data.packagePrice !== "0") {
       const unitPrice = new Decimal(data.packagePrice).div(data.packageWeight).toFixed(6);
       await prisma.materialPriceHistory.create({
         data: {
-          materialId: created.id,
+          materialId: row.id,
           packageWeight: data.packageWeight,
           packagePrice: data.packagePrice,
           unitPrice,
         },
       });
       await prisma.material.update({
-        where: { id: created.id },
+        where: { id: row.id },
         data: {
           lastPurchasePrice: unitPrice,
           averagePurchasePrice: unitPrice,
         },
       });
     }
-    return created;
+
+    if (existing && D(String(row.packagePrice)).lte(0) && data.packagePrice !== "0") {
+      const unitPrice = new Decimal(data.packagePrice).div(data.packageWeight).toFixed(6);
+      await prisma.material.update({
+        where: { id: row.id },
+        data: {
+          packagePrice: data.packagePrice,
+          lastPurchasePrice: unitPrice,
+          averagePurchasePrice: unitPrice,
+        },
+      });
+      await prisma.materialPriceHistory.create({
+        data: {
+          materialId: row.id,
+          packageWeight: data.packageWeight,
+          packagePrice: data.packagePrice,
+          unitPrice,
+        },
+      });
+    }
+
+    return row;
   }
 
-  const white = await material({
-    name: "Белый цемент",
-    category: "Цемент",
-    packageWeight: "50",
-    packagePrice: "200",
-    minStock: "200",
-  });
-  await material({
-    name: "Обычный цемент",
-    category: "Цемент",
-    packageWeight: "50",
-    packagePrice: "65",
-    minStock: "200",
-  });
-  const paint = await material({
-    name: "Краска",
-    category: "Краска",
-    packageWeight: "25",
-    packagePrice: "600",
-    minStock: "20",
-  });
-  const glue = await material({
-    name: "Клей",
-    category: "Клей",
-    packageWeight: "25",
-    packagePrice: "500",
-    minStock: "15",
-  });
-  const sand = await prisma.material.findFirst({ where: { name: "Песок" } });
-  const sandPrice = "15";
-  const sandRow =
-    sand ??
-    (await prisma.material.create({
-      data: {
-        name: "Песок",
-        category: "Заполнитель",
-        storageUnitId: kg.id,
-        purchaseUnitId: bucket.id,
-        packageWeight: "1",
-        packagePrice: sandPrice,
-        minStock: "0",
-      },
-    }));
-  if (sandRow && D(String(sandRow.packagePrice)).lte(0)) {
-    const unitPrice = new Decimal(sandPrice).div(sandRow.packageWeight).toFixed(6);
-    await prisma.material.update({
-      where: { id: sandRow.id },
-      data: {
-        packagePrice: sandPrice,
-        lastPurchasePrice: unitPrice,
-        averagePurchasePrice: unitPrice,
-      },
-    });
-    await prisma.materialPriceHistory.create({
-      data: {
-        materialId: sandRow.id,
-        packageWeight: sandRow.packageWeight,
-        packagePrice: sandPrice,
-        unitPrice,
-      },
-    });
+  const materialsByName = new Map<string, { id: string }>();
+  for (const def of FACADE_MATERIALS) {
+    const row = await upsertMaterial(def);
+    materialsByName.set(def.name, row);
   }
 
   async function ensureProductPrice(productId: string, price: string) {
@@ -157,65 +126,70 @@ async function seedFacadeCatalog(prisma: PrismaClient) {
     await prisma.productPrice.create({ data: { productId, price } });
   }
 
-  const { defaultCategory, defaultOutputPerBase } = FACADE_DOMAIN_CONFIG.product;
+  async function ensureRecipe(productId: string, def: FacadeProductDef) {
+    let recipe = await prisma.recipe.findUnique({ where: { productId } });
+    if (!recipe) {
+      recipe = await prisma.recipe.create({ data: { productId } });
+    }
 
-  let tile = await prisma.product.findFirst({ where: { name: "Фасадная плитка" } });
-  if (!tile) {
-    tile = await prisma.product.create({
-      data: {
-        name: "Фасадная плитка",
-        category: defaultCategory,
-        saleUnitId: m2.id,
-        outputUnitId: pcs.id,
-        recipeBaseQty: "1",
-        outputPerBase: String(defaultOutputPerBase),
-        minPrice: "120",
-        recipe: { create: {} },
-      },
+    const hasVersion = await prisma.recipeVersion.findFirst({
+      where: { recipeId: recipe.id },
     });
-    await prisma.productPrice.create({
-      data: { productId: tile.id, price: "150" },
-    });
-    const recipe = await prisma.recipe.findUniqueOrThrow({ where: { productId: tile.id } });
+    if (hasVersion) return;
+
     await prisma.recipeVersion.create({
       data: {
         recipeId: recipe.id,
         versionNumber: 1,
-        comment: "Стартовая норма: 1 м² / 10 плиток",
+        comment: def.recipeComment,
         items: {
-          create: [
-            { materialId: white.id, quantity: "7", unitId: kg.id },
-            { materialId: paint.id, quantity: "400", unitId: g.id },
-            { materialId: glue.id, quantity: "60", unitId: g.id },
-            { materialId: sandRow.id, quantity: "1", unitId: bucket.id },
-          ],
+          create: def.recipeItems.map((item) => {
+            const material = materialsByName.get(item.materialName);
+            if (!material) {
+              throw new Error(`Facade catalog: material "${item.materialName}" missing for ${def.name}`);
+            }
+            return {
+              materialId: material.id,
+              quantity: item.quantity,
+              unitId: unitByCode[item.unitCode].id,
+            };
+          }),
         },
       },
     });
-  } else {
-    await ensureProductPrice(tile.id, "150");
-    await prisma.product.update({
-      where: { id: tile.id },
-      data: { minPrice: "120" },
-    });
   }
 
-  const stone = await prisma.product.findFirst({ where: { name: "Декоративный камень" } });
-  if (!stone) {
-    const created = await prisma.product.create({
-      data: {
-        name: "Декоративный камень",
-        category: defaultCategory,
-        saleUnitId: m2.id,
-        outputUnitId: pcs.id,
-        recipeBaseQty: "1",
-        outputPerBase: "1",
-        recipe: { create: {} },
-      },
-    });
-    await prisma.productPrice.create({ data: { productId: created.id, price: "180" } });
-  } else {
-    await ensureProductPrice(stone.id, "180");
+  const { defaultCategory } = FACADE_DOMAIN_CONFIG.product;
+
+  for (const def of FACADE_PRODUCTS) {
+    let product = await prisma.product.findFirst({ where: { name: def.name } });
+    if (!product) {
+      product = await prisma.product.create({
+        data: {
+          name: def.name,
+          category: defaultCategory,
+          saleUnitId: m2.id,
+          outputUnitId: pcs.id,
+          recipeBaseQty: "1",
+          outputPerBase: String(def.outputPerBase),
+          minPrice: def.minPrice,
+          recipe: { create: {} },
+        },
+      });
+      await prisma.productPrice.create({ data: { productId: product.id, price: def.price } });
+    } else {
+      await ensureProductPrice(product.id, def.price);
+      await prisma.product.update({
+        where: { id: product.id },
+        data: {
+          minPrice: def.minPrice,
+          outputPerBase: String(def.outputPerBase),
+          category: defaultCategory,
+        },
+      });
+    }
+
+    await ensureRecipe(product.id, def);
   }
 }
 
@@ -228,14 +202,7 @@ async function seedFacadeOpeningStock(prisma: PrismaClient) {
   });
   if (!raw || !owner) return;
 
-  const amounts: Record<string, string> = {
-    "Белый цемент": "2000",
-    Краска: "500",
-    Клей: "300",
-    Песок: "500",
-  };
-
-  for (const [name, quantity] of Object.entries(amounts)) {
+  for (const [name, quantity] of Object.entries(FACADE_OPENING_STOCK)) {
     const material = await prisma.material.findFirst({ where: { name } });
     if (!material) continue;
     const stock = await prisma.stockItem.findFirst({
