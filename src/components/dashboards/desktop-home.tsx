@@ -10,14 +10,19 @@ import {
   DashRecentOrders,
   DashRecentOrdersFooterLink,
   DashSection,
-  ownerDesktopQuickActions,
+  ownerMobileQuickActions,
 } from "@/components/dashboard/dashboard-system";
 import { fetchOwnerOperationalKpis, formatFgQty } from "@/components/dashboard/owner-kpi-data";
 import styles from "@/components/dashboard/dash-home.module.css";
 
+/**
+ * Desktop home mirrors MobileOwnerHome 1:1 (same blocks, order, data, layouts).
+ * Only wrapper class differs for desktop max-width / centering.
+ */
 export async function DesktopHome() {
   await requireSession();
   const { t, n, locale } = await getTranslator();
+  const loc = intlLocale(locale);
 
   const [kpis, recentOrders] = await Promise.all([
     fetchOwnerOperationalKpis(),
@@ -33,22 +38,22 @@ export async function DesktopHome() {
   ]);
   await refreshOwnerAlerts();
 
-  const loc = intlLocale(locale);
-
   let producedHint = t("home.kpi.noChangeToday");
-  let producedHintTone: "positive" | "neutral" = "neutral";
+  let producedHintTone: "positive" | "negative" | "neutral" = "neutral";
   if (kpis.producedChangePct !== null && kpis.producedChangePct > 0) {
     producedHint = t("home.kpi.vsYesterdayUp").replace("{pct}", String(kpis.producedChangePct));
     producedHintTone = "positive";
   } else if (kpis.producedChangePct !== null && kpis.producedChangePct < 0) {
     producedHint = t("home.kpi.vsYesterdayDown").replace("{pct}", String(Math.abs(kpis.producedChangePct)));
+    producedHintTone = "negative";
   }
 
   return (
     <div className={`${styles.home} ${styles.homeDesktop}`}>
-      <DashGreeting t={t} />
+      <DashGreeting t={t} mobile />
 
       <DashMetricStrip
+        variant="compact"
         tour="home-income"
         metrics={[
           {
@@ -91,21 +96,25 @@ export async function DesktopHome() {
         ]}
       />
 
-      <DashSection title={t("home.quickActions")} tour="home-shortcuts" flush>
-        <DashQuickActions actions={ownerDesktopQuickActions(t)} layout="desktop" />
+      <DashSection title={t("home.quickActions")} tour="home-shortcuts" flush mobileList>
+        <DashQuickActions actions={ownerMobileQuickActions(t)} layout="mobileStrip" />
       </DashSection>
 
-      <DashSection
-        title={t("home.recentOrders")}
-        tour="home-orders"
-        footer={
-          <DashRecentOrdersFooterLink href="/orders?period=month">
-            {t("home.viewAllOrders")}
-          </DashRecentOrdersFooterLink>
-        }
-      >
-        <DashRecentOrders orders={recentOrders} empty={t("crm.noOrders")} n={n} locale={loc} layout="table" />
+      <DashSection title={t("home.recentOrders")} tour="home-orders" mobile mobileList>
+        <DashRecentOrders
+          orders={recentOrders}
+          empty={t("crm.noOrders")}
+          n={n}
+          locale={loc}
+          layout="mobileCards"
+        />
       </DashSection>
+
+      <div className={styles.mobileFooterLink}>
+        <DashRecentOrdersFooterLink href="/orders?period=month">
+          {t("home.viewAllOrders")}
+        </DashRecentOrdersFooterLink>
+      </div>
     </div>
   );
 }
