@@ -11,8 +11,9 @@ type MetricTone = "blue" | "purple" | "green" | "warn";
 export type ProductionMetricRow = {
   id: string;
   href: string;
-  title: string;
-  meta: string;
+  name: string;
+  product: string;
+  meta?: string;
 };
 
 export type ProductionMetricItem = {
@@ -84,8 +85,11 @@ export function ProductionMetrics({ items }: { items: ProductionMetricItem[] }) 
               {active.rows.map((row) => (
                 <li key={row.id}>
                   <Link href={row.href} className={styles.metricDetailRow}>
-                    <span className={styles.metricDetailRowTitle}>{row.title}</span>
-                    <span className={styles.metricDetailRowMeta}>{row.meta}</span>
+                    <span className={styles.metricDetailText}>
+                      <span className={styles.metricDetailName}>{row.name}</span>
+                      <span className={styles.metricDetailProduct}>{row.product}</span>
+                    </span>
+                    {row.meta ? <span className={styles.metricDetailRowMeta}>{row.meta}</span> : null}
                   </Link>
                 </li>
               ))}

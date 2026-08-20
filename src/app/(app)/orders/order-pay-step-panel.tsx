@@ -109,6 +109,7 @@ export function OrderPayStepPanel({
             locale={locale}
             day={dueDay}
             month={dueMonth}
+            autoFocus
             onChange={(d, m) => {
               setDueDay(d);
               setDueMonth(m);

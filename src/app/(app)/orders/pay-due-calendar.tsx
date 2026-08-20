@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import { createT, type Locale } from "@core/shared/i18n/i18n";
 import styles from "./pay-due-calendar.module.css";
 
 function daysInMonth(year: number, month: number) {
@@ -21,24 +22,23 @@ export function PayDueCalendar({
   month,
   onChange,
   onCommit,
+  autoFocus = false,
+  locale = "ru",
 }: {
   day: number;
   month: number;
   onChange: (day: number, month: number) => void;
   onCommit?: (day: number, month: number) => void;
-  locale?: string;
+  locale?: Locale;
+  autoFocus?: boolean;
 }) {
-  const [dayText, setDayText] = useState(pad2(day));
-  const [monthText, setMonthText] = useState(pad2(month));
+  const t = createT(locale);
+  const [dayText, setDayText] = useState(() => (day ? pad2(day) : ""));
+  const [monthText, setMonthText] = useState(() => (month ? pad2(month) : ""));
   const dayRef = useRef<HTMLInputElement>(null);
   const monthRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    setDayText(pad2(day));
-    setMonthText(pad2(month));
-  }, [day, month]);
-
-  function apply(nextDay: number, nextMonth: number, commit: boolean) {
+  function emit(nextDay: number, nextMonth: number, commit: boolean) {
     const m = Math.min(Math.max(nextMonth, 1), 12);
     const d = clampDay(nextDay, m);
     setDayText(pad2(d));
@@ -47,76 +47,90 @@ export function PayDueCalendar({
     if (commit) onCommit?.(d, m);
   }
 
-  function finishDay(raw: string) {
-    const digits = raw.replace(/\D/g, "").slice(0, 2);
-    const d = Number(digits || day);
-    const m = Number(monthText.replace(/\D/g, "") || month);
-    apply(d, m, digits.length === 2 && monthText.replace(/\D/g, "").length === 2);
-  }
-
-  function finishMonth(raw: string) {
-    const digits = raw.replace(/\D/g, "").slice(0, 2);
-    const m = Number(digits || month);
-    const d = Number(dayText.replace(/\D/g, "") || day);
-    apply(d, m, dayText.replace(/\D/g, "").length >= 1 && digits.length === 2);
+  function tryCommit() {
+    const dDigits = dayText.replace(/\D/g, "");
+    const mDigits = monthText.replace(/\D/g, "");
+    if (dDigits.length < 1 || mDigits.length < 1) return;
+    emit(Number(dDigits), Number(mDigits), true);
   }
 
   return (
-    <div className={styles.slots} aria-label="DD.MM">
-      <input
-        ref={dayRef}
-        className={styles.slot}
-        inputMode="numeric"
-        maxLength={2}
-        placeholder="12"
-        value={dayText}
-        autoFocus
-        aria-label="День"
-        onChange={(e) => {
-          const digits = e.target.value.replace(/\D/g, "").slice(0, 2);
-          setDayText(digits);
-          if (digits.length === 2) monthRef.current?.focus();
-        }}
-        onBlur={() => finishDay(dayText)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            finishDay(dayText);
-            monthRef.current?.focus();
-          }
-        }}
-      />
-      <span className={styles.dot} aria-hidden>
-        .
-      </span>
-      <input
-        ref={monthRef}
-        className={styles.slot}
-        inputMode="numeric"
-        maxLength={2}
-        placeholder="07"
-        value={monthText}
-        aria-label="Месяц"
-        onChange={(e) => {
-          const digits = e.target.value.replace(/\D/g, "").slice(0, 2);
-          setMonthText(digits);
-          if (digits.length === 2) {
-            const d = Number(dayText.replace(/\D/g, "") || day);
-            apply(d, Number(digits), dayText.replace(/\D/g, "").length >= 1);
-          }
-        }}
-        onBlur={() => finishMonth(monthText)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            finishMonth(monthText);
-          }
-          if (e.key === "Backspace" && monthText.length === 0) {
-            e.preventDefault();
-            dayRef.current?.focus();
-          }
-        }}
-      />
+    <div className={styles.wrap}>
+      <div className={styles.slots} aria-label="28.03">
+        <div className={styles.slotCol}>
+          <input
+            ref={dayRef}
+            className={styles.slot}
+            inputMode="numeric"
+            maxLength={2}
+            placeholder="28"
+            value={dayText}
+            autoFocus={autoFocus}
+            aria-label={t("orders.dueDay")}
+            onFocus={(e) => e.currentTarget.select()}
+            onChange={(e) => {
+              const digits = e.target.value.replace(/\D/g, "").slice(0, 2);
+              setDayText(digits);
+              if (digits.length === 2) monthRef.current?.focus();
+            }}
+            onBlur={() => {
+              const digits = dayText.replace(/\D/g, "");
+              if (digits) setDayText(pad2(Number(digits)));
+              tryCommit();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                monthRef.current?.focus();
+              }
+            }}
+          />
+          <span className={styles.slotHint}>{t("orders.dueDay")}</span>
+        </div>
+        <span className={styles.dot} aria-hidden>
+          .
+        </span>
+        <div className={styles.slotCol}>
+          <input
+            ref={monthRef}
+            className={styles.slot}
+            inputMode="numeric"
+            maxLength={2}
+            placeholder="03"
+            value={monthText}
+            aria-label={t("orders.dueMonth")}
+            onFocus={(e) => e.currentTarget.select()}
+            onChange={(e) => {
+              const digits = e.target.value.replace(/\D/g, "").slice(0, 2);
+              setMonthText(digits);
+              if (digits.length === 2) {
+                const dDigits = dayText.replace(/\D/g, "");
+                const d = dDigits ? Number(dDigits) : day || 1;
+                emit(d, Number(digits), dDigits.length >= 1);
+              }
+            }}
+            onBlur={() => {
+              const digits = monthText.replace(/\D/g, "");
+              if (digits) {
+                const m = Math.min(Math.max(Number(digits), 1), 12);
+                setMonthText(pad2(m));
+              }
+              tryCommit();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                tryCommit();
+              }
+              if (e.key === "Backspace" && monthText.length === 0) {
+                e.preventDefault();
+                dayRef.current?.focus();
+              }
+            }}
+          />
+          <span className={styles.slotHint}>{t("orders.dueMonth")}</span>
+        </div>
+      </div>
     </div>
   );
 }

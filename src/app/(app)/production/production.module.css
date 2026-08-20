@@ -96,7 +96,7 @@
 
 .metricDetailRow {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 12px 14px;
@@ -114,11 +114,28 @@
   border-bottom: 0;
 }
 
-.metricDetailRowTitle {
+.metricDetailText {
+  display: flex;
   min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metricDetailName {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 650;
+  line-height: 20px;
   color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metricDetailProduct {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ink-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

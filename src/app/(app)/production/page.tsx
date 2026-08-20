@@ -13,21 +13,29 @@ type ProdRow = {
   plannedQty: unknown;
   producedQty: unknown;
   scrapQty: unknown;
-  order: { number: number; customer: { name: string } };
+  order: {
+    customer: { name: string };
+    items: { product: { name: string }; quantity: unknown }[];
+  };
 };
 
-function toRows(
-  list: ProdRow[],
-  scrapLabel?: string,
-): ProductionMetricItem["rows"] {
+function productLabel(items: ProdRow["order"]["items"]) {
+  if (items.length === 0) return "—";
+  if (items.length === 1) return items[0].product.name;
+  return items.map((i) => i.product.name).join(", ");
+}
+
+function toRows(list: ProdRow[], scrapLabel?: string): ProductionMetricItem["rows"] {
   return list.map((p) => {
-    const scrap =
-      scrapLabel != null ? ` · ${qtyDisplay(p.scrapQty)} ${scrapLabel}` : "";
+    const progress = `${qtyDisplay(p.producedQty)} / ${qtyDisplay(p.plannedQty)}`;
+    const meta =
+      scrapLabel != null ? `${progress} · ${qtyDisplay(p.scrapQty)} ${scrapLabel}` : progress;
     return {
       id: p.id,
       href: `/production/${p.id}`,
-      title: `№ ${p.order.number} · ${p.order.customer.name}`,
-      meta: `${qtyDisplay(p.producedQty)} / ${qtyDisplay(p.plannedQty)}${scrap}`,
+      name: p.order.customer.name,
+      product: productLabel(p.order.items),
+      meta,
     };
   });
 }
@@ -40,7 +48,12 @@ export default async function ProductionPage() {
   const scopedFilter = scoped ? { batches: { some: { responsibleUserId: session.user.id } } } : {};
 
   const include = {
-    order: { select: { number: true, customer: { select: { name: true } } } },
+    order: {
+      select: {
+        customer: { select: { name: true } },
+        items: { select: { quantity: true, product: { select: { name: true } } } },
+      },
+    },
   } as const;
 
   const [inWorkList, openList, doneList, scrapList, inWork, open, done, withScrap] =
