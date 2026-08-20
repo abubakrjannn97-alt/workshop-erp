@@ -68,7 +68,16 @@
 .formActions { padding-top: 4px; }
 
 /* ─── Stage list ─── */
-.stageList { margin: 0 0 14px; padding: 0; list-style: none; font-size: 13px; line-height: 22px; color: var(--ink-2); }
+.stageGrid { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.stageCard { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: 0 1px 4px rgba(28,35,43,.02); }
+.stageNumber { display: grid; width: 32px; height: 32px; flex-shrink: 0; place-items: center; border-radius: 8px; background: #2563eb; color: #ffffff; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.stageInfo { min-width: 0; flex: 1; }
+.stageName { margin: 0; font-size: 14px; font-weight: 600; line-height: 20px; color: var(--ink); }
+.stageDesc { margin: 3px 0 0; font-size: 12px; line-height: 16px; color: var(--ink-2); }
+
+@media (max-width: 639px) {
+  .stageGrid { grid-template-columns: 1fr; }
+}
 
 /* ─── Materials list ─── */
 .matList { margin: 0; padding: 0; list-style: none; font-size: 13px; line-height: 24px; color: var(--ink-2); }

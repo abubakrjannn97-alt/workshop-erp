@@ -1,4 +1,7 @@
 import type { Dict, Locale } from "@core/shared/i18n/i18n";
+import { BAKERY_DOMAIN_CONFIG } from "./bakery/config";
+import { BAKERY_HELP_OVERRIDES } from "./bakery/help-overrides";
+import { BAKERY_I18N_OVERRIDES } from "./bakery/i18n-overrides";
 import { FACADE_DOMAIN_CONFIG } from "./facade/config";
 import { FACADE_I18N_OVERRIDES } from "./facade/i18n-overrides";
 import { FACADE_HELP_OVERRIDES } from "./facade/help-overrides";
@@ -53,6 +56,15 @@ function facadePreset(): DomainPreset {
   };
 }
 
+function bakeryPreset(): DomainPreset {
+  return {
+    domain: BAKERY_DOMAIN_CONFIG.domain,
+    warehouses: { ...BAKERY_DOMAIN_CONFIG.warehouses },
+    payroll: { ...BAKERY_DOMAIN_CONFIG.payroll },
+    product: { ...BAKERY_DOMAIN_CONFIG.product },
+  };
+}
+
 /**
  * Canonical registry of WORKSHOP_DOMAIN packages.
  * Add new clone domains here — not in domain-config.ts or i18n-domain.ts.
@@ -70,6 +82,18 @@ export const DOMAIN_REGISTRY: Record<string, DomainRegistryEntry> = {
       runScript: "prisma/seeds/run-domain-facade.ts",
       demoModule: "demo/facade-history",
       demoExport: "seedFacadeDemo",
+    },
+  },
+  [BAKERY_DOMAIN_CONFIG.domain]: {
+    id: BAKERY_DOMAIN_CONFIG.domain,
+    label: "Bakery Production",
+    preset: bakeryPreset(),
+    i18n: BAKERY_I18N_OVERRIDES,
+    help: BAKERY_HELP_OVERRIDES,
+    seed: {
+      seedExport: "seedBakeryDomain",
+      seedModule: "domains/bakery",
+      runScript: "prisma/seeds/run-domain-bakery.ts",
     },
   },
 };

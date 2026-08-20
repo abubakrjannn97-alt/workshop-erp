@@ -13,7 +13,8 @@ import { getDomainPreset } from "../src/core/config/domain-config";
 describe("domain registry", () => {
   it("registers facade as default domain", () => {
     assert.equal(DEFAULT_WORKSHOP_DOMAIN, "facade");
-    assert.deepEqual(SUPPORTED_WORKSHOP_DOMAINS, ["facade"]);
+    assert.ok(SUPPORTED_WORKSHOP_DOMAINS.includes("facade"));
+    assert.ok(SUPPORTED_WORKSHOP_DOMAINS.includes("bakery"));
   });
 
   it("exposes facade preset aligned with domain config", () => {
