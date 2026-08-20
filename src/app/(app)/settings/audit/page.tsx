@@ -1,7 +1,6 @@
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
-import { SettingsNav } from "@/components/settings-nav";
 import styles from "@/styles/premium.module.css";
 
 export default async function AuditPage() {
@@ -17,7 +16,6 @@ export default async function AuditPage() {
           <p className={styles.subtitle}>{t("set.auditHint")}</p>
         </div>
       </header>
-      <SettingsNav current="audit" locale={locale} />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {logs.map((log) => (

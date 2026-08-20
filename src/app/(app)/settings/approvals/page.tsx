@@ -2,7 +2,6 @@ import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
 import { decideApproval, closePeriod, openPeriod } from "@/app/actions/control";
-import { SettingsNav } from "@/components/settings-nav";
 import { FormField } from "@/components/form-field";
 import { StatusBadge } from "@/components/status-badge";
 import styles from "@/styles/premium.module.css";
@@ -34,7 +33,6 @@ export default async function ApprovalsPage() {
       <header className={styles.header}>
         <div className={styles.headerText}><h1 className={styles.title}>{t("set.approvalsTitle")}</h1></div>
       </header>
-      <SettingsNav current="approvals" locale={locale} />
 
       <section className={styles.section}>
         <div className={styles.sectionHead}><h2 className={styles.sectionTitle}>{t("set.pending")}</h2></div>

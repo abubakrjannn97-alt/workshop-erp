@@ -25,6 +25,8 @@ export type NavIcon =
   | "history"
   | "profile"
   | "reports"
+  | "approvals"
+  | "audit"
   | "notifications"
   | "search";
 
@@ -153,6 +155,22 @@ export const SETTINGS_ITEM: NavLeaf = {
   tour: "nav-settings",
 };
 
+export const APPROVALS_ITEM: NavLeaf = {
+  id: "approvals",
+  href: "/settings/approvals",
+  labelKey: "nav.approvals",
+  permission: "audit.view",
+  icon: "approvals",
+};
+
+export const AUDIT_ITEM: NavLeaf = {
+  id: "audit",
+  href: "/settings/audit",
+  labelKey: "set.audit",
+  permission: "audit.view",
+  icon: "audit",
+};
+
 export const HELP_ITEM: NavLeaf = {
   id: "help",
   href: "/help",
@@ -259,7 +277,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     id: "company",
     labelKey: "nav.org",
-    items: [EMPLOYEES_ITEM, ANALYTICS_ITEM, SETTINGS_ITEM, HELP_ITEM],
+    items: [EMPLOYEES_ITEM, APPROVALS_ITEM, AUDIT_ITEM, ANALYTICS_ITEM, SETTINGS_ITEM, HELP_ITEM],
   },
 ];
 

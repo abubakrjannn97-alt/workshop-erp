@@ -64,6 +64,8 @@ export const NAV_ICONS: Record<NavIcon, LucideIcon> = {
   history: Clock,
   profile: CircleUser,
   reports: ChartColumn,
+  approvals: CircleCheck,
+  audit: Inbox,
   notifications: Bell,
   search: Search,
 };
