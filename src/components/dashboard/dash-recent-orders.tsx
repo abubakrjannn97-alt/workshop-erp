@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 import { moneyDisplay } from "@core/shared/decimal";
-import { orderNo } from "@core/shared/format";
 import { ICON_STROKE } from "@/components/nav-icons";
 import styles from "./dash-home.module.css";
 
@@ -92,7 +91,6 @@ export function DashRecentOrders({
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>№ заказа</th>
               <th>Клиент</th>
               <th>Продукция</th>
               <th>Статус</th>
@@ -107,10 +105,9 @@ export function DashRecentOrders({
                 <tr key={order.id}>
                   <td>
                     <Link href={`/orders/${order.id}`} className={styles.tableRowLink}>
-                      {orderNo(String(order.number))}
+                      {order.customer.name}
                     </Link>
                   </td>
-                  <td>{order.customer.name}</td>
                   <td className={styles.tableProduct}>{productSummary(order)}</td>
                   <td>
                     <span className={`${styles.statusPill} ${statusTone(order.status.code)}`}>{statusLabel}</span>
@@ -136,9 +133,7 @@ export function DashRecentOrders({
         <li key={order.id}>
           <Link href={`/orders/${order.id}`} className={styles.row}>
             <span className={styles.rowMain}>
-              <span className={styles.rowTitle}>
-                {orderNo(String(order.number))} · {order.customer.name}
-              </span>
+              <span className={styles.rowTitle}>{order.customer.name}</span>
               {showDate ? (
                 <span className={styles.rowWhy}>
                   {order.createdAt.toLocaleDateString(locale, {
