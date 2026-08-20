@@ -262,7 +262,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     id: "money",
     labelKey: "nav.accounts",
-    items: [EXPENSES_ITEM, PURCHASING_ITEM, FINANCE_ITEM, REPORTS_ITEM],
+    items: [EXPENSES_ITEM, PURCHASING_ITEM, FINANCE_ITEM],
   },
   {
     id: "company",
@@ -316,7 +316,6 @@ function rawTabsForRole(roleCode: string): BottomTab[] {
         PURCHASING_ITEM,
         FINANCE_ITEM,
         EXPENSES_ITEM,
-        REPORTS_ITEM,
         JOBS_ITEM,
         HISTORY_ITEM,
         PROFILE_ITEM,
@@ -329,7 +328,7 @@ function rawTabsForRole(roleCode: string): BottomTab[] {
     case "warehouse_manager":
       return [HOME_ITEM, WAREHOUSE_ITEM, PURCHASING_ITEM, INVENTORY_ITEM, MORE_TAB];
     case "accountant":
-      return [HOME_ITEM, FINANCE_ITEM, EXPENSES_ITEM, REPORTS_ITEM, MORE_TAB];
+      return [HOME_ITEM, FINANCE_ITEM, EXPENSES_ITEM, MORE_TAB];
     default:
       return [HOME_ITEM, ORDERS_ITEM, PRODUCTION_ITEM, WAREHOUSE_ITEM, MORE_TAB];
   }

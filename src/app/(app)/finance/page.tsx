@@ -1,14 +1,16 @@
-import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
+import { getTranslator } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
-import { cashDelta, fundDelta, FUND } from "@core/finance/finance";
-import { RevealList } from "@/components/reveal-list";
+import { cashDelta, fundDelta, FUND, LEDGER } from "@core/finance/finance";
 import { Banknote, Layers, Receipt, Wallet } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import { FinanceDebts } from "./finance-debts";
+import { FinanceJournal } from "./finance-journal";
 import Link from "next/link";
 import styles from "./finance.module.css";
+
+const CASH_TYPES = new Set([LEDGER.CASH_IN, LEDGER.CASH_OUT, LEDGER.TRANSFER, LEDGER.REVERSAL]);
 
 export default async function FinancePage() {
   const { t, locale, n } = await getTranslator();
@@ -27,6 +29,33 @@ export default async function FinancePage() {
   const physical = cashBalances.reduce((s, a) => s.add(a.balance), D(0));
   const allocated = fundBalances.reduce((s, f) => s.add(f.balance), D(0));
   const supplierDebt = purchaseDebts.reduce((s, o) => s.add(D(String(o.total)).sub(o.paidAmount)), D(0));
+  const accountName = (id: string | null) => {
+    if (!id) return "";
+    const a = accounts.find((x) => x.id === id);
+    return a ? n("cash", a.code, a.name) : "";
+  };
+
+  const journalItems = entries
+    .filter((e) => CASH_TYPES.has(e.type))
+    .slice(0, 60)
+    .map((e) => {
+      const kind = t(`ledger.${e.type}`);
+      let where = "";
+      if (e.type === LEDGER.TRANSFER) {
+        where = `${accountName(e.fromAccountId)} → ${accountName(e.toAccountId)}`;
+      } else if (e.accountId) {
+        where = accountName(e.accountId);
+      }
+      return {
+        id: e.id,
+        title: e.comment?.trim() || kind,
+        kind,
+        where,
+        amount: String(e.amount),
+        outflow: e.type === LEDGER.CASH_OUT,
+        when: e.createdAt.toISOString(),
+      };
+    });
 
   return (
     <div className={styles.page}>
@@ -130,50 +159,7 @@ export default async function FinancePage() {
           }))}
       />
 
-      <section className={styles.section}>
-        <div className={styles.sectionHead}>
-          <h2 className={styles.sectionTitle}>{t("set.audit")}</h2>
-        </div>
-        {entries.length === 0 ? (
-          <div className={styles.empty}>{t("fin.noEntries")}</div>
-        ) : (
-          <>
-            <div className={styles.tableWrap}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>{t("list.col.what")}</th>
-                    <th className={styles.thRight}>{t("list.col.sum")}</th>
-                    <th className={styles.thRight}>{t("list.col.when")}</th>
-                  </tr>
-                </thead>
-                <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={15}>
-                  {entries.slice(0, 80).map((e) => (
-                    <tr key={e.id}>
-                      <td>
-                        <span className={styles.tdBold}>{e.type}</span>
-                        {e.comment ? <p className={styles.tdMuted}>{e.comment}</p> : null}
-                      </td>
-                      <td className={styles.tdRight}>{moneyDisplay(e.amount)} с</td>
-                      <td className={`${styles.tdRight} ${styles.tdMuted}`}>{e.createdAt.toLocaleString(intlLocale(locale))}</td>
-                    </tr>
-                  ))}
-                </RevealList>
-              </table>
-            </div>
-            <ul className={styles.mobileList}>
-              {entries.slice(0, 30).map((e) => (
-                <li key={e.id} className={styles.mobileCard}>
-                  <p className={styles.mobileName}>{e.type}</p>
-                  {e.comment ? <p className={styles.mobileMeta}>{e.comment}</p> : null}
-                  <p className={styles.mobileValue}>{moneyDisplay(e.amount)} с</p>
-                  <p className={styles.mobileMeta}>{e.createdAt.toLocaleString(intlLocale(locale))}</p>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-      </section>
+      <FinanceJournal locale={locale} items={journalItems} />
     </div>
   );
 }
