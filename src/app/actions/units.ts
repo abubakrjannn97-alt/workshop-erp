@@ -16,28 +16,51 @@ const schema = z.object({
   toBaseFactor: z.string().regex(/^\d+(\.\d{1,6})?$/, "Коэффициент должен быть числом"),
 });
 
+function autoUnitCode(symbol: string, name: string) {
+  const fromSymbol = symbol
+    .normalize("NFKD")
+    .replace(/[^\w]/g, "")
+    .toUpperCase()
+    .slice(0, 12);
+  if (/^[A-Z0-9_]+$/.test(fromSymbol) && fromSymbol.length > 0) return fromSymbol;
+  const fromName = name
+    .normalize("NFKD")
+    .replace(/[^\w]+/g, "_")
+    .toUpperCase()
+    .replace(/^_|_$/g, "")
+    .slice(0, 12);
+  if (/^[A-Z0-9_]+$/.test(fromName) && fromName.length > 0) return fromName;
+  return `U_${Date.now().toString(36).toUpperCase().slice(-8)}`;
+}
+
 export async function createUnit(formData: FormData) {
   const session = await requirePermission("units.manage");
+  const name = String(formData.get("name") ?? "").trim();
+  const symbol = String(formData.get("symbol") ?? "").trim();
+  const rawCode = String(formData.get("code") ?? "").trim().toUpperCase();
   const parsed = schema.safeParse({
-    code: String(formData.get("code") ?? "").toUpperCase(),
-    name: formData.get("name"),
-    symbol: formData.get("symbol"),
-    category: formData.get("category"),
+    code: rawCode || autoUnitCode(symbol, name),
+    name,
+    symbol,
+    category: String(formData.get("category") ?? "other") || "other",
     isBase: formData.get("isBase") === "on",
     baseUnitId: formData.get("baseUnitId") || null,
-    toBaseFactor: formData.get("toBaseFactor") || "1",
+    toBaseFactor: String(formData.get("toBaseFactor") ?? "1") || "1",
   });
 
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Проверьте поля." };
   }
 
-  const existing = await prisma.unit.findUnique({ where: { code: parsed.data.code } });
-  if (existing) return { error: "Единица с таким кодом уже есть." };
+  let code = parsed.data.code;
+  const existing = await prisma.unit.findUnique({ where: { code } });
+  if (existing) {
+    code = `${code}_${Date.now().toString(36).toUpperCase().slice(-4)}`.slice(0, 16);
+  }
 
   const unit = await prisma.unit.create({
     data: {
-      code: parsed.data.code,
+      code,
       name: parsed.data.name,
       symbol: parsed.data.symbol,
       category: parsed.data.category,
@@ -52,7 +75,7 @@ export async function createUnit(formData: FormData) {
     action: "unit.create",
     entityType: "unit",
     entityId: unit.id,
-    newValue: parsed.data,
+    newValue: { ...parsed.data, code },
   });
 
   revalidatePath("/settings/units");
