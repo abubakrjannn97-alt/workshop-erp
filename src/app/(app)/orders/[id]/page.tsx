@@ -317,7 +317,13 @@ export default async function OrderPage({
         payAction={payAction}
         reverseAction={reverseAction}
         canPay={canPay}
-        payments={order.payments}
+        payments={order.payments.map((p) => ({
+          id: p.id,
+          amount: String(p.amount),
+          method: p.method,
+          createdAt: p.createdAt.toISOString(),
+          reversesId: p.reversesId,
+        }))}
         loc={loc}
       />
 
