@@ -318,8 +318,9 @@ body {
     position: fixed;
     inset: 0;
     z-index: 0;
-    background: url("/stone-desktop-bg.png") no-repeat top right / 52% auto;
-    opacity: 0.3;
+    /* Cream base already on .desktop-stone-shell; photo sits on the right */
+    background: url("/stone-desktop-bg.png") no-repeat right center / min(920px, 58vw) auto;
+    opacity: 0.72;
     pointer-events: none;
   }
 
