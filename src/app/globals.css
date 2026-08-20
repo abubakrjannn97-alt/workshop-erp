@@ -293,7 +293,7 @@ body {
 
 @media (min-width: 1024px) {
   :root {
-    --sidebar-w: 168px;
+    --sidebar-w: 196px;
     --sidebar-collapsed: 44px;
     --header-h: 36px;
     --control-h: 28px;

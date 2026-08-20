@@ -20,11 +20,19 @@ const SECONDARY_IDS = new Set(["settings", "help"]);
 function brandLines(name: string): [string, string] {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length >= 2) {
-    return [parts.slice(0, -1).join(" "), parts[parts.length - 1]!];
+    const last = parts[parts.length - 1]!;
+    let head = parts.slice(0, -1).join(" ");
+    // Keep first line readable in a narrow sidebar
+    if (head.length > 16 && parts.length >= 3) {
+      head = parts.slice(0, -2).join(" ");
+      return [head, `${parts[parts.length - 2]} ${last}`];
+    }
+    return [head, last];
   }
   const single = parts[0] ?? "";
-  if (single.length <= 10) return [single, ""];
-  const mid = Math.ceil(single.length / 2);
+  if (single.length <= 12) return [single, ""];
+  // Prefer splitting long single words near a readable mid point
+  const mid = Math.min(14, Math.ceil(single.length / 2));
   return [single.slice(0, mid), single.slice(mid)];
 }
 

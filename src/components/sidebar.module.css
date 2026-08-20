@@ -18,8 +18,8 @@
   min-height: 52px;
   flex-shrink: 0;
   align-items: center;
-  gap: 8px;
-  padding: 8px 4px 8px 10px;
+  gap: 6px;
+  padding: 8px 2px 8px 8px;
   border-bottom: 1px solid var(--mobile-glass-border);
 }
 
@@ -32,6 +32,7 @@
 }
 
 .brandLogo {
+  flex-shrink: 0;
   border-radius: 22%;
   box-shadow: 0 1px 4px rgba(14, 28, 58, 0.18);
 }
@@ -42,16 +43,18 @@
   flex: 1;
   flex-direction: column;
   justify-content: center;
-  gap: 1px;
+  gap: 0;
 }
 
 .brandLine,
 .brandLineStrong {
   display: block;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  word-break: break-word;
+  hyphens: auto;
   font-family: var(--font-brand);
   font-weight: 700;
   letter-spacing: 0.01em;
@@ -59,17 +62,18 @@
 }
 
 .brandLine {
-  font-size: 12px;
-  line-height: 1.15;
+  font-size: 11px;
+  line-height: 1.2;
   color: #1c2330;
 }
 
 .brandLineStrong {
-  font-size: 14px;
-  line-height: 1.1;
+  font-size: 13px;
+  line-height: 1.15;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: #9a7338;
+  white-space: nowrap;
 }
 
 .nav {
@@ -219,6 +223,7 @@
   width: 26px;
   min-height: 26px;
   min-width: 26px;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   border: 0;
