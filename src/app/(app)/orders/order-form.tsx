@@ -73,8 +73,8 @@ export function OrderForm({
   const [partialPaid, setPartialPaid] = useState("");
   const [sellerId, setSellerId] = useState(defaultSellerId);
   const [nextKey, setNextKey] = useState(2);
-  const [dueDay, setDueDay] = useState(Math.min(now.getDate() + 7, daysInMonth(now.getFullYear(), now.getMonth() + 1)));
-  const [dueMonth, setDueMonth] = useState(now.getMonth() + 1);
+  const [dueDay, setDueDay] = useState<number | null>(null);
+  const [dueMonth, setDueMonth] = useState<number | null>(null);
 
   useEffect(() => {
     if (defaultCustomerId) setCustomerId(defaultCustomerId);
@@ -120,9 +120,10 @@ export function OrderForm({
 
   const isMulti = lines.length > 1;
   const year = now.getFullYear();
-  const monthNum = dueMonth;
-  const dayNum = Math.min(dueDay, daysInMonth(year, monthNum));
-  const dueAtValue = `${year}-${String(monthNum).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
+  const dueAtValue =
+    dueDay != null && dueMonth != null
+      ? `${year}-${String(dueMonth).padStart(2, "0")}-${String(Math.min(dueDay, daysInMonth(year, dueMonth))).padStart(2, "0")}`
+      : "";
 
   const initialPaidAmount =
     payStatus === "paid" ? moneyDisplay(totals.total) : payStatus === "partial" ? partialPaid : "0";
@@ -318,8 +319,8 @@ export function OrderForm({
         <p className={styles.dueLabel}>{t("orders.dueReady")}</p>
         <PayDueCalendar
           locale={locale}
-          day={dayNum}
-          month={monthNum}
+          day={dueDay}
+          month={dueMonth}
           onChange={(d, m) => {
             setDueDay(d);
             setDueMonth(m);

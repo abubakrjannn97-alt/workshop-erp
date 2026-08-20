@@ -22,23 +22,23 @@ function onlyDigits(raw: string, maxLen: number) {
 }
 
 export function PayDueCalendar({
-  day,
-  month,
+  day = null,
+  month = null,
   onChange,
   onCommit,
   autoFocus = false,
   locale = "ru",
 }: {
-  day: number;
-  month: number;
+  day?: number | null;
+  month?: number | null;
   onChange: (day: number, month: number) => void;
   onCommit?: (day: number, month: number) => void;
   locale?: Locale;
   autoFocus?: boolean;
 }) {
   const t = createT(locale);
-  const [dayText, setDayText] = useState(() => pad2(day));
-  const [monthText, setMonthText] = useState(() => pad2(month));
+  const [dayText, setDayText] = useState("");
+  const [monthText, setMonthText] = useState("");
   const dayRef = useRef<HTMLInputElement>(null);
   const monthRef = useRef<HTMLInputElement>(null);
   const editing = useRef<"day" | "month" | null>(null);
@@ -60,6 +60,11 @@ export function PayDueCalendar({
     if (commit) onCommit?.(d, m);
   }
 
+  function goToMonth() {
+    // после текущего нажатия клавиши — иначе цифра уезжает в месяц
+    queueMicrotask(() => monthRef.current?.focus());
+  }
+
   return (
     <div className={styles.wrap}>
       <div className={styles.slots} aria-label="28.03">
@@ -74,28 +79,31 @@ export function PayDueCalendar({
             value={dayText}
             autoFocus={autoFocus}
             aria-label={t("orders.dueDay")}
-            onFocus={(e) => {
+            onFocus={() => {
               editing.current = "day";
-              e.currentTarget.select();
             }}
             onChange={(e) => {
-              setDayText(onlyDigits(e.target.value, 2));
+              const digits = onlyDigits(e.target.value, 2);
+              setDayText(digits);
+              if (digits.length === 2) goToMonth();
             }}
             onBlur={() => {
               editing.current = null;
               const digits = onlyDigits(dayText, 2);
               if (!digits) {
-                setDayText(pad2(day));
+                setDayText("");
                 return;
               }
-              const normalized = pad2(clampDay(Number(digits), Number(onlyDigits(monthText, 2) || month)));
+              const mDigits = onlyDigits(monthText, 2);
+              const m = mDigits ? Math.min(Math.max(Number(mDigits), 1), 12) : month ?? 12;
+              const normalized = pad2(clampDay(Number(digits), m));
               setDayText(normalized);
               publish(normalized, monthText, true);
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
-                monthRef.current?.focus();
+                goToMonth();
               }
             }}
           />
@@ -114,18 +122,21 @@ export function PayDueCalendar({
             placeholder="03"
             value={monthText}
             aria-label={t("orders.dueMonth")}
-            onFocus={(e) => {
+            onFocus={() => {
               editing.current = "month";
-              e.currentTarget.select();
             }}
             onChange={(e) => {
-              setMonthText(onlyDigits(e.target.value, 2));
+              const digits = onlyDigits(e.target.value, 2);
+              setMonthText(digits);
+              if (digits.length === 2) {
+                publish(dayText, digits, true);
+              }
             }}
             onBlur={() => {
               editing.current = null;
               const digits = onlyDigits(monthText, 2);
               if (!digits) {
-                setMonthText(pad2(month));
+                setMonthText("");
                 return;
               }
               const m = Math.min(Math.max(Number(digits), 1), 12);

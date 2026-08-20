@@ -9,10 +9,6 @@ import { createT, type Locale } from "@core/shared/i18n/i18n";
 import { PayDueCalendar } from "./pay-due-calendar";
 import detailStyles from "./order-detail.module.css";
 
-function daysInMonth(year: number, month: number) {
-  return new Date(year, month, 0).getDate();
-}
-
 export function OrderPayStepPanel({
   locale,
   orderId,
@@ -29,13 +25,10 @@ export function OrderPayStepPanel({
   canPay: boolean;
 }) {
   const t = createT(locale);
-  const now = new Date();
   const [mode, setMode] = useState<"pay" | "later" | null>(null);
   const [method, setMethod] = useState("cash");
-  const [dueDay, setDueDay] = useState(
-    Math.min(now.getDate() + 3, daysInMonth(now.getFullYear(), now.getMonth() + 1)),
-  );
-  const [dueMonth, setDueMonth] = useState(now.getMonth() + 1);
+  const [dueDay, setDueDay] = useState<number | null>(null);
+  const [dueMonth, setDueMonth] = useState<number | null>(null);
   const [pending, startTransition] = useTransition();
   const savedKey = useRef<string | null>(null);
 
