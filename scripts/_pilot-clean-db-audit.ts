@@ -1,5 +1,5 @@
 import { execSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { PrismaClient } from "@prisma/client";
 import { loadLocalEnvFiles } from "./load-env";
 
@@ -35,19 +35,32 @@ psql("postgres", `DROP DATABASE IF EXISTS ${pilotDb}`);
 psql("postgres", `CREATE DATABASE ${pilotDb}`);
 console.log(`Created fresh DB: ${pilotDb}`);
 
-process.env.DATABASE_URL = pilotUrl.toString();
-process.env.NODE_ENV = "production";
-process.env.OWNER_PASSWORD = "PilotGoLive2026!Secure";
-process.env.SEED_DEMO = "0";
+const envPath = ".env";
+const envBackup = readFileSync(envPath, "utf8");
+const pilotUrlStr = pilotUrl.toString();
+const patchedEnv = envBackup.replace(
+  /^DATABASE_URL=.*$/m,
+  `DATABASE_URL="${pilotUrlStr}"`,
+);
+writeFileSync(envPath, patchedEnv, "utf8");
 
-execSync("node scripts/prod-db-setup.mjs", { stdio: "inherit", env: process.env });
+const pilotEnv = {
+  ...process.env,
+  DATABASE_URL: pilotUrlStr,
+  NODE_ENV: "production",
+  OWNER_PASSWORD: "PilotGoLive2026!Secure",
+  SEED_DEMO: "0",
+};
 
-execSync("npx tsx scripts/validate-workshop-setup.ts", {
-  stdio: "inherit",
-  env: { ...process.env, DATABASE_URL: pilotUrl.toString() },
-});
+try {
+  execSync("node scripts/prod-db-setup.mjs", { stdio: "inherit", env: pilotEnv });
+  execSync("npx tsx scripts/validate-workshop-setup.ts", { stdio: "inherit", env: pilotEnv });
+} finally {
+  writeFileSync(envPath, envBackup, "utf8");
+  console.log("Restored .env DATABASE_URL");
+}
 
-const prisma = new PrismaClient({ datasources: { db: { url: pilotUrl.toString() } } });
+const prisma = new PrismaClient({ datasources: { db: { url: pilotUrlStr } } });
 
 async function audit() {
   const owner = await prisma.user.findFirst({ where: { role: { code: "owner" } }, include: { role: true } });
@@ -65,7 +78,7 @@ async function audit() {
     ownerEmail: owner?.email ?? null,
     materials: await prisma.material.count(),
     products: await prisma.product.count(),
-    stockItems: await prisma.stockItem.count({ where: { qtyOnHand: { gt: 0 } } }),
+    stockOnHand: await prisma.stockItem.count({ where: { qtyOnHand: { gt: 0 } } }),
   };
   console.log("\nPILOT CLEAN DB AUDIT:");
   console.log(JSON.stringify(auditResult, null, 2));

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
@@ -290,9 +291,14 @@ export async function createPurchaseFromShortage(formData: FormData) {
   if (!supplierId || !materialId) return { error: "Нужны поставщик и материал." };
   const material = await prisma.material.findUnique({ where: { id: materialId } });
   if (!material) return { error: "Материал не найден." };
+  if (!quantity || D(quantity).lte(0)) return { error: "Количество должно быть больше 0." };
   const unitPrice = material.lastPurchasePrice ?? D(String(material.packagePrice)).div(material.packageWeight);
   formData.set("comment", "Заявка по дефициту / минимуму");
   formData.set("unitPrice", qty(unitPrice));
   void session;
-  return createPurchaseOrder(formData);
+  const result = await createPurchaseOrder(formData);
+  if (result?.ok && result.id) {
+    redirect(`/purchasing/${result.id}`);
+  }
+  return result;
 }
