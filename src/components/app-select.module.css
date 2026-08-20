@@ -28,8 +28,8 @@
 }
 
 .trigger:focus-visible {
-  outline: 2px solid rgba(184, 149, 74, 0.35);
-  outline-offset: 1px;
+  outline: none;
+  border-color: var(--line-strong, #d5dbe4);
 }
 
 .trigger:disabled {
