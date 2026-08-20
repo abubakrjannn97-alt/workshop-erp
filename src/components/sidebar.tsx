@@ -67,7 +67,7 @@ function NavLink({
       aria-current={active ? "page" : undefined}
       className={`${styles.link} ${active ? styles.linkActive : ""} ${collapsed ? styles.linkCollapsed : ""}`}
     >
-      <Icon size={16} strokeWidth={ICON_STROKE} className={styles.icon} aria-hidden />
+      <Icon size={14} strokeWidth={ICON_STROKE} className={styles.icon} aria-hidden />
       {!collapsed ? <span className={styles.label}>{label}</span> : null}
     </Link>
   );
@@ -141,7 +141,7 @@ export function Sidebar({
       aria-label={t("nav.menu")}
     >
       <div className={`${styles.brand} ${collapsed ? styles.brandCollapsed : ""}`}>
-        <StoneStackMark size={22} />
+        <StoneStackMark size={18} />
         {!collapsed ? <p className={styles.brandName}>{companyName}</p> : null}
         <button
           type="button"
@@ -151,7 +151,7 @@ export function Sidebar({
           aria-label={collapsed ? t("nav.expand") : t("nav.collapse")}
           aria-expanded={!collapsed}
         >
-          <ChevronsLeft size={16} strokeWidth={ICON_STROKE} className={collapsed ? "rotate-180" : undefined} aria-hidden />
+          <ChevronsLeft size={14} strokeWidth={ICON_STROKE} className={collapsed ? "rotate-180" : undefined} aria-hidden />
         </button>
       </div>
 
@@ -203,7 +203,7 @@ export function Sidebar({
         ) : null}
         <form action={logoutAction} className={collapsed ? undefined : "ml-auto"}>
           <button type="submit" title={t("nav.logout")} aria-label={t("nav.logout")} className={styles.footerBtn}>
-            <LogOut size={16} strokeWidth={ICON_STROKE} aria-hidden />
+            <LogOut size={14} strokeWidth={ICON_STROKE} aria-hidden />
           </button>
         </form>
       </div>

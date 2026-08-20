@@ -1,10 +1,10 @@
 .bar {
   display: flex;
-  height: var(--header-h);
-  min-height: var(--header-h);
+  height: 36px;
+  min-height: 36px;
   align-items: center;
-  gap: 8px;
-  padding: 0 12px;
+  gap: 6px;
+  padding: 0 10px;
   border-bottom: 1px solid var(--mobile-glass-border);
   background: var(--mobile-glass);
   backdrop-filter: blur(var(--mobile-glass-blur));
@@ -14,10 +14,10 @@
 .context {
   display: flex;
   min-width: 0;
-  max-width: 180px;
-  flex: 1 1 120px;
+  max-width: 140px;
+  flex: 0 1 120px;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .title {
@@ -25,16 +25,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  line-height: 18px;
+  line-height: 16px;
   color: var(--ink);
 }
 
 .search {
   display: flex;
   min-width: 0;
-  flex: 1 1 220px;
+  flex: 1 1 200px;
   justify-content: center;
 }
 
@@ -42,23 +42,23 @@
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
 }
 
 .user {
   display: flex;
-  max-width: 140px;
+  max-width: none;
   min-width: 0;
   align-items: center;
-  gap: 6px;
+  gap: 0;
   margin-left: 2px;
-  padding: 2px 2px 2px 6px;
+  padding: 0;
 }
 
 .avatar {
   display: inline-flex;
-  height: 28px;
-  width: 28px;
+  height: 24px;
+  width: 24px;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
@@ -70,34 +70,10 @@
 }
 
 .userMeta {
-  min-width: 0;
-  line-height: 1.15;
+  display: none;
 }
 
-.userName {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ink);
-}
-
+.userName,
 .userRole {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 11px;
-  color: var(--ink-2);
-}
-
-@media (max-width: 1279px) {
-  .userMeta {
-    display: none;
-  }
-
-  .user {
-    max-width: none;
-    padding: 2px;
-  }
+  display: none;
 }

@@ -70,15 +70,15 @@
 
 @media (min-width: 1024px) {
   .group {
-    height: 28px;
-    padding: 2px;
+    height: 26px;
+    padding: 1px;
   }
 
   .opt {
-    min-width: 28px;
-    min-height: 24px;
-    padding: 0 8px;
-    font-size: 11px;
+    min-width: 26px;
+    min-height: 22px;
+    padding: 0 7px;
+    font-size: 10px;
   }
 }
 

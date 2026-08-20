@@ -47,7 +47,7 @@ export function DashQuickActions({
             <li key={action.href}>
               <Link href={action.href} className={`${styles.action} ${toneClass}`.trim()}>
                 <span className={styles.actionIcon}>
-                  <Icon size={20} strokeWidth={ICON_STROKE} aria-hidden />
+                  <Icon size={layout === "desktop" ? 16 : 20} strokeWidth={ICON_STROKE} aria-hidden />
                 </span>
                 <span className={styles.actionLabel}>{action.label}</span>
               </Link>

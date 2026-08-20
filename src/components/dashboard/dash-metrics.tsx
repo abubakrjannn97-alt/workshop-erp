@@ -76,7 +76,7 @@ export function DashMetricStrip({
               <>
                 <div className={styles.kpiTop}>
                   <span className={styles.kpiIcon} aria-hidden>
-                    <Icon size={20} strokeWidth={1.75} />
+                    <Icon size={15} strokeWidth={1.75} />
                   </span>
                 </div>
                 <div className={styles.kpiContent}>

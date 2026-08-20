@@ -285,20 +285,20 @@ body {
 
 @media (min-width: 1024px) {
   :root {
-    --sidebar-w: 188px;
-    --sidebar-collapsed: 48px;
-    --header-h: 44px;
-    --control-h: 34px;
-    --font-size-display: 22px;
-    --line-height-display: 28px;
-    --font-size-h1: 18px;
-    --line-height-h1: 24px;
-    --font-size-h2: 14px;
-    --line-height-h2: 20px;
-    --font-size-body: 13px;
-    --line-height-body: 18px;
-    --font-size-small: 12px;
-    --line-height-small: 16px;
+    --sidebar-w: 168px;
+    --sidebar-collapsed: 44px;
+    --header-h: 36px;
+    --control-h: 28px;
+    --font-size-display: 18px;
+    --line-height-display: 22px;
+    --font-size-h1: 16px;
+    --line-height-h1: 20px;
+    --font-size-h2: 13px;
+    --line-height-h2: 18px;
+    --font-size-body: 12px;
+    --line-height-body: 16px;
+    --font-size-small: 11px;
+    --line-height-small: 14px;
   }
 
   .desktop-stone-shell {
