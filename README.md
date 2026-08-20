@@ -1,6 +1,10 @@
 # Workshop ERP / MRP
 
-Система автоматизации производственного цеха (плитка / камень) по `TZ.md`.
+Универсальный MASTER производственного ERP. Модель: **MASTER → CLONE → CUSTOMIZE → DEPLOY** (отдельная БД на каждый clone, не multi-tenant).
+
+Референс-домен по умолчанию — Facade (плитка / камень). Второй proof-clone — Bakery (`WORKSHOP_DOMAIN=bakery`).
+
+Как создать новый domain clone: [`docs/clone.md`](docs/clone.md).
 
 ## UI
 
