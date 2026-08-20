@@ -1,0 +1,274 @@
+.page {
+  gap: 18px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent, #b8954a);
+}
+
+.title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.subtitle {
+  margin: 6px 0 0;
+  max-width: 36rem;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+/* ─── KPI board ─── */
+.kpiBoard {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1.35fr 1fr 1fr;
+}
+
+.kpiCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 148px;
+  padding: 16px 16px 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.kpiCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(28, 35, 43, 0.08);
+  border-color: color-mix(in srgb, var(--accent, #b8954a) 35%, var(--line));
+}
+
+.kpiCard:active {
+  transform: translateY(0);
+}
+
+.kpiHero {
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(184, 149, 74, 0.22) 0%, transparent 55%),
+    linear-gradient(155deg, #1c232b 0%, #2a3340 55%, #1c232b 100%);
+  border-color: transparent;
+  color: #f7f4ee;
+  box-shadow: 0 16px 36px rgba(28, 35, 43, 0.22);
+}
+
+.kpiHero:hover {
+  border-color: transparent;
+  box-shadow: 0 18px 40px rgba(28, 35, 43, 0.28);
+}
+
+.kpiWarn {
+  background:
+    linear-gradient(180deg, #fff8f4 0%, #ffffff 60%),
+    var(--surface);
+}
+
+.kpiSoft {
+  background:
+    linear-gradient(180deg, #f7faf8 0%, #ffffff 60%),
+    var(--surface);
+}
+
+.kpiTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.kpiIcon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.kpiIconHero {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f0d9a0;
+}
+
+.kpiIconWarn {
+  background: #ffece5;
+  color: #c2410c;
+}
+
+.kpiIconSoft {
+  background: #e8f5ee;
+  color: #1b7a4a;
+}
+
+.kpiSource {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+  text-align: right;
+}
+
+.kpiHero .kpiSource {
+  color: rgba(247, 244, 238, 0.62);
+}
+
+.kpiLabel {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ink-2);
+}
+
+.kpiHero .kpiLabel {
+  color: rgba(247, 244, 238, 0.78);
+}
+
+.kpiHeroValue {
+  margin: 2px 0 0;
+  font-size: clamp(28px, 5vw, 36px);
+  font-weight: 750;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+
+.kpiValue {
+  margin: 2px 0 0;
+  font-size: 32px;
+  font-weight: 750;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.kpiValueWarn {
+  color: #c2410c;
+}
+
+.kpiHint {
+  margin: auto 0 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--ink-3);
+}
+
+.kpiHero .kpiHint {
+  color: rgba(247, 244, 238, 0.58);
+}
+
+/* ─── Month orders gate ─── */
+.monthGate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent, #b8954a) 28%, var(--line));
+  background:
+    linear-gradient(105deg, rgba(243, 234, 216, 0.55) 0%, rgba(255, 255, 255, 0.95) 42%, #fff 100%);
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 8px 22px rgba(28, 35, 43, 0.04);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.monthGate:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent, #b8954a);
+  box-shadow: 0 12px 28px rgba(28, 35, 43, 0.08);
+}
+
+.monthGateText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.monthGateTitle {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.monthGateHint {
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--ink-2);
+}
+
+.monthGateArrow {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--navy, #1c232b);
+  color: #f7f4ee;
+}
+
+@media (max-width: 1023px) {
+  .title {
+    font-size: 22px;
+  }
+
+  .subtitle {
+    display: none;
+  }
+
+  .kpiBoard {
+    grid-template-columns: 1fr;
+  }
+
+  .kpiCard {
+    min-height: 0;
+  }
+
+  .kpiHeroValue {
+    font-size: 30px;
+  }
+
+  .kpiValue {
+    font-size: 28px;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .kpiBoard {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .kpiHero {
+    grid-column: 1 / -1;
+  }
+}
