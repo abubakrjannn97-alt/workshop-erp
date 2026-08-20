@@ -76,7 +76,7 @@ export const ${constPrefix}_HELP_OVERRIDES: Record<Locale, HelpTextOverrides> = 
 `,
 
     [`prisma/seeds/domains/${slug}.ts`]: `import type { PrismaClient } from "@prisma/client";
-import { DOMAIN_SETTING_KEYS } from "../../../src/core/config/settings";
+import { persistDomainSettings } from "../persist-domain-settings";
 import { ${constPrefix}_DOMAIN_CONFIG } from "../../../src/domains/${slug}/config";
 
 export type ${pascal}DomainSeedResult = {
@@ -85,34 +85,15 @@ export type ${pascal}DomainSeedResult = {
 
 /** ${displayName} domain settings + payroll scheme stub. Extend with catalog/opening stock. */
 export async function seed${pascal}Domain(prisma: PrismaClient): Promise<${pascal}DomainSeedResult> {
-  const domainSettings: Record<string, string> = {
-    [DOMAIN_SETTING_KEYS.workshopDomain]: ${constPrefix}_DOMAIN_CONFIG.domain,
-    [DOMAIN_SETTING_KEYS.warehouseRawCode]: ${constPrefix}_DOMAIN_CONFIG.warehouses.rawCode,
-    [DOMAIN_SETTING_KEYS.warehouseFgCode]: ${constPrefix}_DOMAIN_CONFIG.warehouses.fgCode,
-    [DOMAIN_SETTING_KEYS.payrollProductionScheme]: ${constPrefix}_DOMAIN_CONFIG.payroll.productionScheme,
-    [DOMAIN_SETTING_KEYS.productDefaultSaleUnit]: ${constPrefix}_DOMAIN_CONFIG.product.defaultSaleUnit,
-    [DOMAIN_SETTING_KEYS.productDefaultOutputUnit]: ${constPrefix}_DOMAIN_CONFIG.product.defaultOutputUnit,
-    [DOMAIN_SETTING_KEYS.productDefaultCategory]: ${constPrefix}_DOMAIN_CONFIG.product.defaultCategory,
-    [DOMAIN_SETTING_KEYS.productDefaultOutputPerBase]: String(
-      ${constPrefix}_DOMAIN_CONFIG.product.defaultOutputPerBase,
-    ),
-  };
-
-  for (const [key, value] of Object.entries(domainSettings)) {
-    await prisma.setting.upsert({
-      where: { key },
-      update: {},
-      create: { key, value },
-    });
-  }
+  await persistDomainSettings(prisma, ${constPrefix}_DOMAIN_CONFIG);
 
   const prodScheme = await prisma.payScheme.upsert({
     where: { code: ${constPrefix}_DOMAIN_CONFIG.payroll.productionScheme },
-    update: { name: "${displayName} production", kind: "PRODUCTION_M2", productionRate: "0" },
+    update: { name: "${displayName} production", kind: "${ctx.defaultSaleUnit === "M2" ? "PRODUCTION_M2" : "PRODUCTION"}", productionRate: "0" },
     create: {
       code: ${constPrefix}_DOMAIN_CONFIG.payroll.productionScheme,
       name: "${displayName} production",
-      kind: "PRODUCTION_M2",
+      kind: "${ctx.defaultSaleUnit === "M2" ? "PRODUCTION_M2" : "PRODUCTION"}",
       productionRate: "0",
     },
   });

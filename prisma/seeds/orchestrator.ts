@@ -6,7 +6,7 @@ import {
   type DomainRegistryEntry,
 } from "../../src/domains/registry";
 import { seedCore } from "./core";
-import { runRegistryDemo, type DemoSeedArgs } from "./demo-loader";
+import { runRegistryDemo } from "./demo-loader";
 
 export type SeedWorkshopOptions = {
   /** When true, run optional demo/history seed if configured for the domain. Default: SEED_DEMO !== "0". */

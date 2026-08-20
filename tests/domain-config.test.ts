@@ -37,6 +37,7 @@ describe("facade domain config", () => {
 describe("domain preset product defaults", () => {
   it("exposes facade product defaults via getDomainPreset", () => {
     const preset = getDomainPreset();
+    assert.equal(preset.label, "Facade Production");
     assert.equal(preset.product.defaultSaleUnit, "M2");
     assert.equal(preset.product.defaultOutputUnit, "PCS");
     assert.equal(preset.product.defaultCategory, "Фасад");

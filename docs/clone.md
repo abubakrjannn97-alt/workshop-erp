@@ -40,6 +40,8 @@ Runtime adapters (do not duplicate registry maps here):
 - `src/core/config/domain-config.ts` — preset + DB settings
 - `src/core/config/i18n-domain.ts` — i18n/help merge
 - `prisma/seeds/orchestrator.ts` — core → domain → optional demo
+- `prisma/seeds/persist-domain-settings.ts` — upsert `DOMAIN_SETTING_KEYS` from preset
+- `prisma/seeds/demo-loader.ts` — optional demo via registry metadata (skip if unset)
 
 ---
 

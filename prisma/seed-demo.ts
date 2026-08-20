@@ -1,5 +1,6 @@
 import { createSeedClient } from "./seeds/client";
 import { resolveSeedDomainId } from "./seeds/orchestrator";
+import { runRegistryDemo } from "./seeds/demo-loader";
 import { getDomainRegistryEntry } from "../src/domains/registry";
 
 const prisma = createSeedClient();
@@ -7,8 +8,8 @@ const prisma = createSeedClient();
 async function main() {
   const domainId = resolveSeedDomainId();
   const entry = getDomainRegistryEntry(domainId);
-  if (!entry?.seed.demoModule || !entry.seed.demoExport) {
-    throw new Error(`Demo seed is not configured for WORKSHOP_DOMAIN="${domainId}".`);
+  if (!entry) {
+    throw new Error(`Unknown WORKSHOP_DOMAIN="${domainId}".`);
   }
 
   const [productionScheme, salesScheme] = await Promise.all([
@@ -24,17 +25,15 @@ async function main() {
     );
   }
 
-  const mod = await import(`./seeds/${entry.seed.demoModule}`);
-  const demoFn = (mod as Record<string, unknown>)[entry.seed.demoExport!];
-  if (typeof demoFn !== "function") {
-    throw new Error(`Demo export "${entry.seed.demoExport}" not found.`);
-  }
-
-  await (demoFn as (client: typeof prisma, opts: object) => Promise<void>)(prisma, {
+  const seeded = await runRegistryDemo(prisma, entry, {
     productionSchemeId: productionScheme.id,
     salesSchemeId: salesScheme.id,
     forceHistory: true,
   });
+
+  if (!seeded) {
+    throw new Error(`Demo seed is not configured for WORKSHOP_DOMAIN="${domainId}".`);
+  }
 }
 
 main()

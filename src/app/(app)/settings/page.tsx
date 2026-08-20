@@ -1,6 +1,7 @@
 import { getTranslator } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
+import { getDomainConfig } from "@core/config/domain-config";
 import { DEFAULT_SETTINGS, SETTING_KEYS } from "@core/config/settings";
 import { renameLeadStage, renameOrderStatus, updateBusinessSettings } from "@/app/actions/settings";
 import { LogoutButton } from "@/components/logout-button";
@@ -13,6 +14,7 @@ function asString(value: unknown, fallback: string) { return typeof value === "s
 export default async function SettingsPage() {
   const { t, locale } = await getTranslator();
   const session = await requirePermission("settings.view");
+  const domainConfig = await getDomainConfig();
   const rows = await prisma.setting.findMany();
   const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
   const canEdit = session.user.roleCode === "owner" || session.user.permissions.includes("settings.edit");
@@ -41,6 +43,23 @@ export default async function SettingsPage() {
         </div>
       </header>
       <SettingsNav current="business" locale={locale} />
+
+      <section className={styles.section}>
+        <div className={styles.sectionHead}><h2 className={styles.sectionTitle}>{t("set.domain")}</h2></div>
+        <div className={styles.sectionBody}>
+          <p className="mb-3 text-sm" style={{ color: "var(--ink-3)" }}>{t("set.domainHint")}</p>
+          <dl className="grid max-w-xl gap-2 text-sm">
+            <div className="flex justify-between gap-3"><dt>{t("set.domainLabel")}</dt><dd>{domainConfig.label}</dd></div>
+            <div className="flex justify-between gap-3"><dt>{t("set.domainId")}</dt><dd className="font-mono">{domainConfig.domain}</dd></div>
+            <div className="flex justify-between gap-3"><dt>{t("set.warehouseRaw")}</dt><dd className="font-mono">{domainConfig.warehouses.rawCode}</dd></div>
+            <div className="flex justify-between gap-3"><dt>{t("set.warehouseFg")}</dt><dd className="font-mono">{domainConfig.warehouses.fgCode}</dd></div>
+            <div className="flex justify-between gap-3"><dt>{t("set.payScheme")}</dt><dd className="font-mono">{domainConfig.payroll.productionScheme}</dd></div>
+            <div className="flex justify-between gap-3"><dt>{t("set.saleUnit")}</dt><dd className="font-mono">{domainConfig.product.defaultSaleUnit}</dd></div>
+            <div className="flex justify-between gap-3"><dt>{t("set.outputUnit")}</dt><dd className="font-mono">{domainConfig.product.defaultOutputUnit}</dd></div>
+            <div className="flex justify-between gap-3"><dt>{t("set.defaultCategory")}</dt><dd>{domainConfig.product.defaultCategory}</dd></div>
+          </dl>
+        </div>
+      </section>
 
       <section className={styles.section} data-tour="set-form">
         <div className={styles.sectionHead}><h2 className={styles.sectionTitle}>{t("set.business")}</h2></div>

@@ -101,6 +101,28 @@ describe("architecture — registry contract", () => {
   });
 });
 
+describe("architecture — seed orchestrator isolation", () => {
+  const seedShared = [
+    "prisma/seed.ts",
+    "prisma/seed-demo.ts",
+    "prisma/seeds/orchestrator.ts",
+    "prisma/seeds/index.ts",
+    "prisma/seeds/demo-loader.ts",
+    "prisma/seeds/persist-domain-settings.ts",
+    "prisma/seeds/core.ts",
+  ];
+
+  it("shared seed files do not import facade or bakery packages", () => {
+    const leak = /domains\/(facade|bakery)|demo\/facade-history/;
+    const offenders: string[] = [];
+    for (const relPath of seedShared) {
+      const text = fs.readFileSync(path.join(ROOT, relPath), "utf8");
+      if (leak.test(text)) offenders.push(relPath);
+    }
+    assert.deepEqual(offenders, []);
+  });
+});
+
 describe("architecture — warehouse codes come from preset", () => {
   it("facade and bakery both expose raw/fg warehouse codes", () => {
     const prev = process.env.WORKSHOP_DOMAIN;

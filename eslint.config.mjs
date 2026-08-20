@@ -32,6 +32,37 @@ const eslintConfig = defineConfig([
       "no-restricted-imports": ["error", { patterns: coreBoundaryPatterns }],
     },
   },
+  {
+    files: [
+      "prisma/seed.ts",
+      "prisma/seed-demo.ts",
+      "prisma/seeds/orchestrator.ts",
+      "prisma/seeds/index.ts",
+      "prisma/seeds/demo-loader.ts",
+      "prisma/seeds/persist-domain-settings.ts",
+      "prisma/seeds/core.ts",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "**/domains/facade/**",
+                "**/domains/bakery/**",
+                "**/demo/facade-history",
+                "../../../src/domains/facade/**",
+                "../../../src/domains/bakery/**",
+              ],
+              message:
+                "Seed orchestrator/demo-loader must use DOMAIN_REGISTRY metadata, not a hardcoded domain package.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

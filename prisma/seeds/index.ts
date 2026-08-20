@@ -1,20 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
-import {
-  seedDomainOnly,
-  seedDomainPackage,
-  seedWorkshop,
-  seedWorkshopFacade,
-} from "./orchestrator";
+import { seedWorkshop } from "./orchestrator";
 
-export {
-  seedCore,
-} from "./core";
-export {
-  seedFacadeDomain,
-} from "./domains/facade";
-export {
-  seedFacadeDemo,
-} from "./demo/facade-history";
+export { seedCore } from "./core";
 export {
   resolveSeedDomainId,
   seedDomainOnly,
@@ -24,8 +11,10 @@ export {
   type SeedWorkshopOptions,
   type SeedWorkshopResult,
 } from "./orchestrator";
+export { persistDomainSettings } from "./persist-domain-settings";
+export { domainHasDemo, runRegistryDemo } from "./demo-loader";
 
-/** @deprecated Alias for seedWorkshopFacade */
+/** @deprecated Alias for seedWorkshop */
 export async function seedWorkshopFull(prisma: PrismaClient) {
   return seedWorkshop(prisma);
 }
