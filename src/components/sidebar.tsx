@@ -7,7 +7,7 @@ import { ChevronsLeft, LogOut } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth";
 import type { Locale } from "@core/shared/i18n/i18n";
 import { createT } from "@core/shared/i18n/i18n";
-import { StoneStackMark } from "@/components/stone-stack-mark";
+import { WorkshopMark } from "@/components/workshop-mark";
 import { ICON_STROKE, NAV_ICONS } from "@/components/nav-icons";
 import { isNavItemActive, sidebarGroups, type NavLeaf } from "@core/shared/nav";
 import styles from "./sidebar.module.css";
@@ -15,6 +15,18 @@ import styles from "./sidebar.module.css";
 const STORAGE_KEY = "workshop_sidebar_collapsed";
 const COLLAPSE_EVENT = "workshop:sidebar-collapse";
 const SECONDARY_IDS = new Set(["settings", "help"]);
+
+/** Split company name across two brand lines (last word on row 2). */
+function brandLines(name: string): [string, string] {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return [parts.slice(0, -1).join(" "), parts[parts.length - 1]!];
+  }
+  const single = parts[0] ?? "";
+  if (single.length <= 10) return [single, ""];
+  const mid = Math.ceil(single.length / 2);
+  return [single.slice(0, mid), single.slice(mid)];
+}
 
 function readCollapsed(): boolean {
   try {
@@ -141,8 +153,18 @@ export function Sidebar({
       aria-label={t("nav.menu")}
     >
       <div className={`${styles.brand} ${collapsed ? styles.brandCollapsed : ""}`}>
-        <StoneStackMark size={18} />
-        {!collapsed ? <p className={styles.brandName}>{companyName}</p> : null}
+        <WorkshopMark size={collapsed ? 22 : 28} className={styles.brandLogo} />
+        {!collapsed ? (
+          <div className={styles.brandText} title={companyName}>
+            {brandLines(companyName).map((line, i) =>
+              line ? (
+                <span key={i} className={i === 0 ? styles.brandLine : styles.brandLineStrong}>
+                  {line}
+                </span>
+              ) : null,
+            )}
+          </div>
+        ) : null}
         <button
           type="button"
           onClick={toggle}

@@ -15,35 +15,61 @@
 
 .brand {
   display: flex;
-  height: 36px;
+  min-height: 52px;
   flex-shrink: 0;
   align-items: center;
-  gap: 6px;
-  padding: 0 4px 0 8px;
+  gap: 8px;
+  padding: 8px 4px 8px 10px;
   border-bottom: 1px solid var(--mobile-glass-border);
 }
 
 .brandCollapsed {
   justify-content: center;
-  padding: 4px;
+  padding: 8px 4px;
   flex-direction: column;
-  height: auto;
-  min-height: 36px;
+  min-height: 44px;
+  gap: 4px;
 }
 
-.brandName {
+.brandLogo {
+  border-radius: 22%;
+  box-shadow: 0 1px 4px rgba(14, 28, 58, 0.18);
+}
+
+.brandText {
+  display: flex;
   min-width: 0;
   flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+}
+
+.brandLine,
+.brandLineStrong {
+  display: block;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: var(--font-sans);
-  font-size: 9px;
+  font-family: var(--font-brand);
   font-weight: 700;
-  line-height: 12px;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+
+.brandLine {
+  font-size: 12px;
+  line-height: 1.15;
+  color: #1c2330;
+}
+
+.brandLineStrong {
+  font-size: 14px;
+  line-height: 1.1;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--ink);
+  color: #9a7338;
 }
 
 .nav {

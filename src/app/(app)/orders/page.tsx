@@ -132,9 +132,6 @@ export default async function OrdersPage({
         newOrderLabel={t("sales.newOrder")}
         mobileTools={
           <OrdersMobileHeaderTools
-            searchLabel={t("orders.searchLabel")}
-            searchPlaceholder={t("orders.searchPh")}
-            initialQ={q}
             canCreate={canCreate}
             newOrderHref="/orders/new"
             newOrderLabel={t("sales.newOrder")}
@@ -198,8 +195,6 @@ export default async function OrdersPage({
       </div>
 
       <OrdersFilterToolbar
-        searchLabel={t("orders.searchLabel")}
-        searchPlaceholder={t("orders.searchPh")}
         statusLabel={t("common.status")}
         allStatusesLabel={t("orders.allStatuses")}
         statuses={statuses.map((s) => ({ code: s.code, name: n("ostatus", s.code, s.name) }))}
@@ -208,11 +203,9 @@ export default async function OrdersPage({
         toLabel={t("orders.dateTo")}
         searchLabelBtn={t("common.search")}
         resetLabel={t("orders.filterReset")}
-        filtersLabel={t("orders.filters")}
         periodValue={resolvedPeriod === "custom" ? "custom" : resolvedPeriod}
         fromValue={fromRaw}
         toValue={toRaw}
-        qValue={q}
         resetHref="/orders"
       />
 

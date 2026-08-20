@@ -5,7 +5,6 @@ import {
   ChevronRight,
   ClipboardList,
   Plus,
-  Search,
   Sparkles,
 } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
@@ -156,8 +155,6 @@ export function OrdersSummaryStrip({
 }
 
 export function OrdersFilterToolbar({
-  searchLabel,
-  searchPlaceholder,
   statusLabel,
   allStatusesLabel,
   statuses,
@@ -166,15 +163,11 @@ export function OrdersFilterToolbar({
   toLabel,
   searchLabelBtn,
   resetLabel,
-  filtersLabel,
   periodValue,
   fromValue,
   toValue,
-  qValue,
   resetHref,
 }: {
-  searchLabel: string;
-  searchPlaceholder: string;
   statusLabel: string;
   allStatusesLabel: string;
   statuses: { code: string; name: string }[];
@@ -183,29 +176,14 @@ export function OrdersFilterToolbar({
   toLabel: string;
   searchLabelBtn: string;
   resetLabel: string;
-  filtersLabel: string;
   periodValue: string;
   fromValue?: string;
   toValue?: string;
-  qValue?: string;
   resetHref: string;
 }) {
   return (
     <form className={styles.toolbar} method="get" data-tour="orders-search">
       <input type="hidden" name="period" value={periodValue} />
-      <label className={styles.searchField}>
-        <span className={`${styles.fieldLabel} ${styles.searchFieldLabel}`}>{searchLabel}</span>
-        <span className={styles.searchInputWrap}>
-          <Search size={16} strokeWidth={ICON_STROKE} className={styles.searchIcon} aria-hidden />
-          <input
-            name="q"
-            defaultValue={qValue ?? ""}
-            placeholder={searchPlaceholder}
-            aria-label={searchLabel}
-            className={styles.searchInput}
-          />
-        </span>
-      </label>
 
       <div className={styles.filterRow}>
         <label className={styles.toolbarField}>
