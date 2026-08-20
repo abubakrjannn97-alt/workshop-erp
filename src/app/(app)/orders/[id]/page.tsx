@@ -12,6 +12,7 @@ import { STATUS_FLOW } from "@core/orders/orders";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge, orderTone } from "@/components/status-badge";
 import { OrderDetailMetrics } from "../order-detail-metrics";
+import { OrderStageProgress } from "../order-stage-progress";
 import { OrderPaymentPanel } from "../order-payment-panel";
 import detailStyles from "../order-detail.module.css";
 import {
@@ -126,7 +127,8 @@ export default async function OrderPage({
     metricItems.push({
       id: "margin",
       label: t("orders.profitEstimate"),
-      value: margin ? `${moneyDisplay(margin)} с` : t("orders.noCost"),
+      value: margin ? `${moneyDisplay(margin)} с` : "—",
+      hint: margin ? undefined : t("orders.noCostHint"),
       tone: "blue" as const,
       icon: "blue" as const,
     });
@@ -206,20 +208,27 @@ export default async function OrderPage({
             <h2 className={detailStyles.sectionTitle}>{t("orders.changeStatus")}</h2>
             <StatusBadge label={currentStatusName} tone={orderTone(order.status.code)} />
           </div>
+          <OrderStageProgress currentCode={order.status.code} t={t} />
           <p className={detailStyles.sectionHint}>
             {t("orders.changeStatusHint", { status: currentStatusName })}
           </p>
+          <p className={detailStyles.statusNextTitle}>{t("orders.nextStep")}</p>
           <ul className={detailStyles.statusOptions}>
-            {nextStatuses.map((s) => (
+            {nextStatuses.map((s, index) => (
               <li key={s.id}>
                 <form action={statusAction}>
                   <input type="hidden" name="id" value={order.id} />
                   <input type="hidden" name="statusCode" value={s.code} />
                   <button type="submit" className={detailStyles.statusOptionBtn}>
-                    <span className={detailStyles.statusOptionLabel}>
-                      {n("ostatus", s.code, s.name)}
+                    <span className={detailStyles.statusOptionRow}>
+                      <span className={detailStyles.statusOptionNumber}>{index + 1}</span>
+                      <span className={detailStyles.statusOptionText}>
+                        <span className={detailStyles.statusOptionLabel}>
+                          {n("ostatus", s.code, s.name)}
+                        </span>
+                        <span className={detailStyles.statusOptionHint}>{statusHint(s.code)}</span>
+                      </span>
                     </span>
-                    <span className={detailStyles.statusOptionHint}>{statusHint(s.code)}</span>
                   </button>
                 </form>
               </li>

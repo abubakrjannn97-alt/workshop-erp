@@ -15,14 +15,16 @@ export function WarehouseNav({
     { href: "/warehouse/finished", id: "fg" as const, labelKey: "whNav.fg" },
   ];
   return (
-    <Segmented
-      scroll
-      aria-label={t("page.warehouse")}
-      items={items.map((item) => ({
-        href: item.href,
-        label: t(item.labelKey),
-        active: current === item.id,
-      }))}
-    />
+    <div className="wh-nav-center">
+      <Segmented
+        className="wh-nav-seg"
+        aria-label={t("page.warehouse")}
+        items={items.map((item) => ({
+          href: item.href,
+          label: t(item.labelKey),
+          active: current === item.id,
+        }))}
+      />
+    </div>
   );
 }

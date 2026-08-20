@@ -1,6 +1,9 @@
 /* ─── Warehouse module — Premium visual language ─── */
 
 .page { display: flex; flex-direction: column; gap: 20px; min-width: 0; max-width: 1280px; }
+.page :global(.wh-nav-center) { display: flex; justify-content: center; width: 100%; }
+.page :global(.wh-nav-seg) { width: min(100%, 420px); justify-content: stretch; }
+.page :global(.wh-nav-seg .ui-seg-item) { flex: 1; min-width: 0; padding-inline: 10px; }
 .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
 .headerLead { display: flex; min-width: 0; flex: 1; align-items: flex-start; gap: 8px; }
 .headerText { min-width: 0; flex: 1; }

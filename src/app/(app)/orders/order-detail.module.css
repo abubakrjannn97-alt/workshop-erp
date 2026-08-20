@@ -217,6 +217,121 @@
   color: var(--ink-3);
 }
 
+.stageTrack {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stageItemDone,
+.stageItemCurrent,
+.stageItemPending {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  text-align: center;
+}
+
+.stageDot {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.stageLabel {
+  font-size: 10px;
+  line-height: 13px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+
+.stageItemDone .stageDot {
+  background: #eaf7f0;
+  color: #249565;
+}
+
+.stageItemDone .stageLabel {
+  color: #249565;
+}
+
+.stageItemCurrent .stageDot {
+  background: #eef3ff;
+  color: #4a70d0;
+  box-shadow: 0 0 0 3px rgba(74, 112, 208, 0.12);
+}
+
+.stageItemCurrent .stageLabel {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.stageItemPending .stageDot {
+  background: var(--surface-2);
+  color: var(--ink-3);
+}
+
+.statusNextTitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.statusOptionNumber {
+  display: inline-grid;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+
+.statusOptionRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+}
+
+.statusOptionText {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+@media (max-width: 639px) {
+  .stageTrack {
+    gap: 2px;
+  }
+
+  .stageLabel {
+    font-size: 9px;
+    line-height: 12px;
+  }
+
+  .stageDot {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+}
+
 .actionsPanel {
   display: flex;
   flex-direction: column;

@@ -68,11 +68,8 @@ export function DashRecentOrders({
             <li key={order.id}>
               <Link href={`/orders/${order.id}`} className={`${styles.orderCard} ${styles.mobileGlassCard}`}>
                 <div className={styles.orderCardTop}>
-                  <span className={styles.orderCardNo}>{orderNo(String(order.number))}</span>
-                  <span className={styles.orderCardAmount}>{moneyDisplay(String(order.total))} с</span>
-                </div>
-                <div className={styles.orderCardMid}>
                   <span className={styles.orderCardClient}>{order.customer.name}</span>
+                  <span className={styles.orderCardAmount}>{moneyDisplay(String(order.total))} с</span>
                 </div>
                 <div className={styles.orderCardBottom}>
                   <span className={styles.orderCardProduct}>{productSummary(order)}</span>
