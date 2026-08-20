@@ -261,11 +261,6 @@ const ruTour: Record<HelpPageId, TourStep[]> = {
       text: "На руках, по фондам, долг поставщикам. Это не склад — только деньги.",
     },
     {
-      targets: ["fin-shift"],
-      title: "Смена кассы",
-      text: "Открывают утром, закрывают вечером. Так видна касса за день.",
-    },
-    {
       targets: ["fin-expense"],
       title: "Расход",
       text: "Статья, сумма, касса. Это не списание со склада, а движение денег.",
@@ -548,11 +543,6 @@ const tjTour: Record<HelpPageId, TourStep[]> = {
       targets: ["fin-money"],
       title: "Пул",
       text: "Дар даст, аз рӯи фонд, қарзи таъминкунанда. Ин анбор нест.",
-    },
-    {
-      targets: ["fin-shift"],
-      title: "Басти хазина",
-      text: "Субҳ кушоед, шом бандед.",
     },
     {
       targets: ["fin-expense"],

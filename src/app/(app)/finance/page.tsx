@@ -3,8 +3,7 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { cashDelta, fundDelta, FUND } from "@core/finance/finance";
-import { createExpense, createExpenseCategory, createObligation, postRecurringObligations, transferCash } from "@/app/actions/finance";
-import { closeCashShift, openCashShift } from "@/app/actions/control";
+import { createExpense, createExpenseCategory, createObligation, postRecurringObligations } from "@/app/actions/finance";
 import { RevealList } from "@/components/reveal-list";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
@@ -18,16 +17,14 @@ export default async function FinancePage() {
   const { t, locale, n } = await getTranslator();
   const session = await requirePermission("finance.view");
   const canExpense = hasPermission(session.user.permissions, session.user.roleCode, "finance.expense.create");
-  const canTransfer = hasPermission(session.user.permissions, session.user.roleCode, "finance.transfer");
 
-  const [accounts, funds, categories, entries, obligations, purchaseDebts, shifts] = await Promise.all([
+  const [accounts, funds, categories, entries, obligations, purchaseDebts] = await Promise.all([
     prisma.cashAccount.findMany({ where: { archivedAt: null }, orderBy: { code: "asc" } }),
     prisma.financialFund.findMany({ orderBy: { sortOrder: "asc" } }),
     prisma.expenseCategory.findMany({ where: { archivedAt: null }, orderBy: { name: "asc" } }),
     prisma.ledgerEntry.findMany({ where: { status: "POSTED" }, orderBy: { createdAt: "desc" } }),
     prisma.obligation.findMany({ where: { status: "OPEN" }, orderBy: { createdAt: "desc" } }),
     prisma.purchaseOrder.findMany({ where: { status: { not: "CANCELLED" } }, include: { supplier: true } }),
-    prisma.cashShift.findMany({ where: { status: { in: ["OPEN", "PENDING_CLOSE"] } }, orderBy: { openedAt: "desc" } }),
   ]);
 
   const cashBalances = accounts.map((a) => ({ ...a, balance: entries.reduce((s, e) => s.add(cashDelta(e, a.id)), D(0)) }));
@@ -39,12 +36,9 @@ export default async function FinancePage() {
   const totalDebt = supplierDebt.add(otherDebt);
 
   async function expenseAction(formData: FormData) { "use server"; await createExpense(formData); }
-  async function transferAction(formData: FormData) { "use server"; await transferCash(formData); }
   async function obligationAction(formData: FormData) { "use server"; await createObligation(formData); }
   async function recurringAction() { "use server"; await postRecurringObligations(); }
   async function categoryAction(formData: FormData) { "use server"; await createExpenseCategory(formData); }
-  async function openShift(formData: FormData) { "use server"; await openCashShift(formData); }
-  async function closeShift(formData: FormData) { "use server"; await closeCashShift(formData); }
 
   return (
     <div className={styles.page}>
@@ -129,121 +123,38 @@ export default async function FinancePage() {
         </section>
       </div>
 
-      {/* Cash shift */}
-      <section className={styles.section} data-tour="fin-shift">
-        <div className={styles.sectionHead}>
-          <h2 className={styles.sectionTitle}>{t("fin.shift")}</h2>
-        </div>
-        <div className={styles.sectionBody}>
-          <form action={openShift} className="flex flex-wrap items-end gap-3 mb-4">
-            <FormField label={t("fin.accounts")} className="min-w-[10rem] flex-1">
-              <AppSelect
-                name="accountId"
-                defaultValue={accounts[0]?.id ?? ""}
-                options={accounts.map((a) => ({ value: a.id, label: n("cash", a.code, a.name) }))}
-              />
-            </FormField>
-            <FormField label={t("fin.openBalance")} className="min-w-[8rem]">
-              <input name="openingAmount" placeholder={t("fin.openBalance")} className="ui-input" />
-            </FormField>
-            <button type="submit" className="ui-btn-primary min-h-[44px]">{t("fin.openShift")}</button>
-          </form>
-          {shifts.length === 0 ? (
-            <p style={{ fontSize: 13, color: "var(--ink-3)" }}>{t("fin.noShifts")}</p>
-          ) : (
-            shifts.map((s) => {
-              const acc = accounts.find((a) => a.id === s.accountId);
-              const expected = cashBalances.find((a) => a.id === s.accountId)?.balance;
-              return (
-                <div key={s.id} className={styles.shiftCard}>
-                  <p className={styles.shiftMeta}>{acc?.name} · {t("fin.openedAt")} {s.openedAt.toLocaleString(intlLocale(locale))} · {t("fin.start")} {moneyDisplay(s.openingAmount)} с</p>
-                  <p className={styles.shiftHint}>{t("fin.expectedNow")}: {expected ? moneyDisplay(expected) : "—"} с</p>
-                  <form action={closeShift} className="flex flex-wrap items-end gap-2">
-                    <input type="hidden" name="id" value={s.id} />
-                    <FormField label={t("fin.closeBalance")} className="min-w-[8rem]">
-                      <input name="closingActual" placeholder={t("fin.closeBalance")} className="ui-input" />
-                    </FormField>
-                    <FormField label={t("fin.diffReason")} className="min-w-[10rem] flex-1">
-                      <input name="comment" placeholder={t("fin.diffReason")} className="ui-input" />
-                    </FormField>
-                    <button type="submit" className="ui-btn-secondary min-h-[44px]">{t("common.close")}</button>
-                  </form>
-                </div>
-              );
-            })
-          )}
-        </div>
-      </section>
-
-      {/* Operations: Expense + Transfer */}
-      {canExpense || canTransfer ? (
-        <div className={styles.twoCol}>
-          {canExpense ? (
-            <section className={styles.section} data-tour="fin-expense">
-              <div className={styles.sectionHead}>
-                <h2 className={styles.sectionTitle}>{t("fin.expense")}</h2>
-              </div>
-              <div className={styles.sectionBody}>
-                <form action={expenseAction} className="grid gap-3">
-                  <IdempotencyField prefix="expense" />
-                  <FormField label={t("fin.accounts")}>
-                    <AppSelect
-                      name="accountId"
-                      defaultValue={accounts[0]?.id ?? ""}
-                      options={accounts.map((a) => ({ value: a.id, label: n("cash", a.code, a.name) }))}
-                    />
-                  </FormField>
-                  <FormField label={t("fin.expenseCat")}>
-                    <AppSelect
-                      name="categoryId"
-                      defaultValue={categories[0]?.id ?? ""}
-                      options={categories.map((c) => ({ value: c.id, label: c.name }))}
-                    />
-                  </FormField>
-                  <FormField label={`${t("common.amount")}, с`}>
-                    <input name="amount" placeholder={t("common.amount")} className="ui-input" inputMode="decimal" />
-                  </FormField>
-                  <FormField label={t("common.comment")}>
-                    <input name="comment" placeholder={t("common.comment")} className="ui-input" />
-                  </FormField>
-                  <PendingButton className="ui-btn-primary min-h-[44px]" pendingLabel={t("common.sending")}>{t("fin.postExpense")}</PendingButton>
-                </form>
-              </div>
-            </section>
-          ) : null}
-          {canTransfer ? (
-            <section className={styles.section}>
-              <div className={styles.sectionHead}>
-                <h2 className={styles.sectionTitle}>{t("fin.transfer")}</h2>
-              </div>
-              <div className={styles.sectionBody}>
-                <form action={transferAction} className="grid gap-3">
-                  <FormField label={t("fin.from")}>
-                    <AppSelect
-                      name="fromAccountId"
-                      defaultValue={accounts[0]?.id ?? ""}
-                      options={accounts.map((a) => ({ value: a.id, label: n("cash", a.code, a.name) }))}
-                    />
-                  </FormField>
-                  <FormField label={t("fin.to")}>
-                    <AppSelect
-                      name="toAccountId"
-                      defaultValue={accounts[0]?.id ?? ""}
-                      options={accounts.map((a) => ({ value: a.id, label: n("cash", a.code, a.name) }))}
-                    />
-                  </FormField>
-                  <FormField label={`${t("common.amount")}, с`}>
-                    <input name="amount" placeholder={t("common.amount")} className="ui-input" inputMode="decimal" />
-                  </FormField>
-                  <FormField label={t("common.comment")}>
-                    <input name="comment" placeholder={t("common.comment")} className="ui-input" />
-                  </FormField>
-                  <button type="submit" className="ui-btn-primary min-h-[44px]">{t("fin.transferBtn")}</button>
-                </form>
-              </div>
-            </section>
-          ) : null}
-        </div>
+      {canExpense ? (
+        <section className={styles.section} data-tour="fin-expense">
+          <div className={styles.sectionHead}>
+            <h2 className={styles.sectionTitle}>{t("fin.expense")}</h2>
+          </div>
+          <div className={styles.sectionBody}>
+            <form action={expenseAction} className="grid gap-3">
+              <IdempotencyField prefix="expense" />
+              <FormField label={t("fin.accounts")}>
+                <AppSelect
+                  name="accountId"
+                  defaultValue={accounts[0]?.id ?? ""}
+                  options={accounts.map((a) => ({ value: a.id, label: n("cash", a.code, a.name) }))}
+                />
+              </FormField>
+              <FormField label={t("fin.expenseCat")}>
+                <AppSelect
+                  name="categoryId"
+                  defaultValue={categories[0]?.id ?? ""}
+                  options={categories.map((c) => ({ value: c.id, label: c.name }))}
+                />
+              </FormField>
+              <FormField label={`${t("common.amount")}, с`}>
+                <input name="amount" placeholder={t("common.amount")} className="ui-input" inputMode="decimal" />
+              </FormField>
+              <FormField label={t("common.comment")}>
+                <input name="comment" placeholder={t("common.comment")} className="ui-input" />
+              </FormField>
+              <PendingButton className="ui-btn-primary min-h-[44px]" pendingLabel={t("common.sending")}>{t("fin.postExpense")}</PendingButton>
+            </form>
+          </div>
+        </section>
       ) : null}
 
       {/* Obligation + Category */}

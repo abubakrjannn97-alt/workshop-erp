@@ -16,7 +16,6 @@ type Props = {
   permissions: string[];
   unread?: number;
   locale: Locale;
-  shiftBar?: React.ReactNode;
   children: React.ReactNode;
 };
 
@@ -28,7 +27,6 @@ export function AppShell({
   permissions,
   unread = 0,
   locale,
-  shiftBar,
   children,
 }: Props) {
   return (
@@ -59,7 +57,6 @@ export function AppShell({
             roleName={roleName}
             unread={unread}
             locale={locale}
-            shiftBar={shiftBar}
           />
         </div>
 

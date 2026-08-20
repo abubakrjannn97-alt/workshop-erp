@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { AppShell } from "@/components/app-shell";
-import { CashShiftBar } from "@/components/cash-shift-bar";
 import { getTranslator } from "@core/shared/i18n/locale";
 import { getShellData } from "@core/infrastructure/shell-data";
 
@@ -27,13 +26,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       permissions={session.user.permissions as string[]}
       unread={shell.unread}
       locale={locale}
-      shiftBar={
-        <CashShiftBar
-          permissions={session.user.permissions as string[]}
-          roleCode={session.user.roleCode}
-          locale={locale}
-        />
-      }
     >
       {children}
     </AppShell>

@@ -62,48 +62,9 @@ export async function createExpense(formData: FormData) {
   return { ok: true };
 }
 
-export async function transferCash(formData: FormData) {
-  const session = await requirePermission("finance.transfer");
-  const fromAccountId = String(formData.get("fromAccountId") ?? "");
-  const toAccountId = String(formData.get("toAccountId") ?? "");
-  const amount = String(formData.get("amount") ?? "");
-  const comment = String(formData.get("comment") ?? "").trim();
-  if (!fromAccountId || !toAccountId || fromAccountId === toAccountId) {
-    return { error: "Выберите разные кассы." };
-  }
-  if (!moneyStr(amount) || D(amount).lte(0)) return { error: "Сумма." };
-
-  if (!canSelfApprove(session.user.roleCode) && String(formData.get("_approved") ?? "") !== "1") {
-    await queueApproval({
-      type: "TRANSFER",
-      title: `Финансовый перевод ${amount}`,
-      reason: comment || undefined,
-      entityType: "cash",
-      payload: { fromAccountId, toAccountId, amount, comment },
-      requestedById: session.user.id,
-    });
-    return { ok: true, pending: true };
-  }
-
-  await prisma.$transaction(async (tx) => {
-    await postLedger(tx, {
-      type: LEDGER.TRANSFER,
-      amount: money(amount),
-      fromAccountId,
-      toAccountId,
-      comment: comment || "Перевод между кассами",
-      createdById: session.user.id,
-    });
-  });
-
-  await writeAudit({
-    userId: session.user.id,
-    action: "finance.transfer",
-    entityType: "ledger",
-    newValue: { amount, fromAccountId, toAccountId },
-  });
-  revalidatePath("/finance");
-  return { ok: true };
+/** Cash-account transfer removed from workshop UI — kept as stub so old callers fail safely. */
+export async function transferCash(_formData: FormData) {
+  return { error: "Перевод между кассами отключён." };
 }
 
 export async function createObligation(formData: FormData) {

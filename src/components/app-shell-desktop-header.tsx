@@ -25,13 +25,11 @@ export function AppShellDesktopHeader({
   roleName,
   unread,
   locale,
-  shiftBar,
 }: {
   userName: string;
   roleName: string;
   unread: number;
   locale: Locale;
-  shiftBar?: React.ReactNode;
 }) {
   const path = usePathname();
   const t = createT(locale);
@@ -49,7 +47,6 @@ export function AppShellDesktopHeader({
         <HeaderSearch locale={locale} />
       </div>
       <div className={styles.actions}>
-        {shiftBar}
         <NotificationBell unread={unread} locale={locale} />
         <HelpHeaderLink locale={locale} />
         <LanguageSwitcher locale={locale} />

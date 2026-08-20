@@ -66,26 +66,8 @@ async function executeWriteOff(payload: Record<string, unknown>, userId: string)
   return { ok: true };
 }
 
-async function executeTransfer(payload: Record<string, unknown>, userId: string): Promise<ApprovalDecisionResult> {
-  const fromAccountId = String(payload.fromAccountId ?? "");
-  const toAccountId = String(payload.toAccountId ?? "");
-  const amount = String(payload.amount ?? "");
-  const comment = String(payload.comment ?? "").trim();
-  if (!fromAccountId || !toAccountId || fromAccountId === toAccountId) {
-    return { error: "Выберите разные кассы." };
-  }
-  if (!amount || D(amount).lte(0)) return { error: "Сумма." };
-  await prisma.$transaction(async (tx) => {
-    await postLedger(tx, {
-      type: LEDGER.TRANSFER,
-      amount: money(amount),
-      fromAccountId,
-      toAccountId,
-      comment: comment || "Перевод между кассами",
-      createdById: userId,
-    });
-  });
-  return { ok: true };
+async function executeTransfer(_payload: Record<string, unknown>, _userId: string): Promise<ApprovalDecisionResult> {
+  return { error: "Перевод между кассами отключён." };
 }
 
 async function executeInventory(payload: Record<string, unknown>, userId: string): Promise<ApprovalDecisionResult> {
