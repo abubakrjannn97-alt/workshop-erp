@@ -49,7 +49,7 @@ export function NotificationWatch({ locale }: { locale: Locale }) {
     }
 
     tick();
-    const id = window.setInterval(tick, 45000);
+    const id = window.setInterval(tick, 90000);
     const onVis = () => {
       if (!cancelled && document.visibilityState === "visible") tick();
     };

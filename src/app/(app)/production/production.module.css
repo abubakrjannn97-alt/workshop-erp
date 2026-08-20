@@ -36,6 +36,8 @@
   background: var(--surface);
   box-shadow: var(--shadow-soft);
   text-align: left;
+  text-decoration: none;
+  color: inherit;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;

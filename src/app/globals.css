@@ -215,15 +215,15 @@
   --mobile-nav-bg: rgba(255, 255, 255, 0.88);
   --mobile-nav-blur: 16px;
 
-  /* Mobile chrome — scales with viewport (not fixed px for one device) */
+  /* Mobile chrome — compact for phones / PWA */
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --mobile-header-content-h: 48px;
-  --mobile-header-btn: 40px;
-  --mobile-header-logo: 24px;
-  --mobile-nav-bar-h: 58px;
-  --mobile-nav-icon-size: 22px;
-  --mobile-nav-label-size: 11px;
+  --mobile-header-content-h: 40px;
+  --mobile-header-btn: 34px;
+  --mobile-header-logo: 20px;
+  --mobile-nav-bar-h: 52px;
+  --mobile-nav-icon-size: 20px;
+  --mobile-nav-label-size: 10px;
   --mobile-chrome-top: calc(var(--mobile-header-content-h) + var(--safe-top));
   --mobile-chrome-bottom: calc(var(--mobile-nav-bar-h) + var(--safe-bottom));
 }
@@ -245,15 +245,23 @@ body {
 
 @media (max-width: 1023px) {
   :root {
-    --mobile-header-content-h: clamp(44px, 11.5vw, 48px);
-    --mobile-header-btn: clamp(36px, 9.5vw, 40px);
-    --mobile-header-logo: clamp(22px, 6vw, 26px);
-    --mobile-nav-bar-h: clamp(52px, 13.5vw, 58px);
-    --mobile-nav-icon-size: clamp(20px, 5.2vw, 22px);
-    --mobile-nav-label-size: clamp(10px, 2.6vw, 11px);
+    --mobile-header-content-h: clamp(38px, 10vw, 42px);
+    --mobile-header-btn: clamp(32px, 8.5vw, 36px);
+    --mobile-header-logo: clamp(18px, 5vw, 22px);
+    --mobile-nav-bar-h: clamp(48px, 12vw, 52px);
+    --mobile-nav-icon-size: clamp(18px, 4.8vw, 20px);
+    --mobile-nav-label-size: clamp(9px, 2.4vw, 10px);
     --mobile-chrome-top: calc(var(--mobile-header-content-h) + var(--safe-top));
     --mobile-chrome-bottom: calc(var(--mobile-nav-bar-h) + var(--safe-bottom));
-    --control-h-mobile: var(--mobile-header-btn);
+    --control-h-mobile: 36px;
+    --font-size-body: 13px;
+    --line-height-body: 18px;
+    --font-size-small: 11px;
+    --line-height-small: 14px;
+    --font-size-h1: 18px;
+    --line-height-h1: 24px;
+    --font-size-h2: 14px;
+    --line-height-h2: 18px;
     /* Mobile cards — solid surfaces, not heavy glass */
     --mobile-glass: #ffffff;
     --mobile-glass-shadow: 0 2px 12px rgba(28, 35, 43, 0.06);
@@ -1155,6 +1163,8 @@ main::-webkit-scrollbar-corner,
   .ui-btn-icon {
     min-height: var(--control-h-mobile);
     height: var(--control-h-mobile);
+    font-size: 13px;
+    padding-inline: 12px;
   }
   .ui-btn-icon {
     width: var(--control-h-mobile);

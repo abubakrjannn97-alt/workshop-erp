@@ -5,23 +5,25 @@ import { requirePermission, hasPermission } from "@core/auth/authz";
 import { WarehouseNav } from "@/components/warehouse-nav";
 import { qtyDisplay } from "@core/shared/decimal";
 import { D } from "@core/shared/decimal";
-import { unitCost } from "@core/costing/costing";
-import { createPurchaseFromShortage } from "@/app/actions/purchasing";
 import { getRawWarehouse } from "@/core/config/resolve-warehouse";
 import { WarehouseMetrics } from "./warehouse-metrics";
 import { Plus } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import styles from "./warehouse.module.css";
 
-export default async function WarehousePage() {
+export default async function WarehousePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string }>;
+}) {
   const { t, locale } = await getTranslator();
   const session = await requirePermission("inventory.view");
   const canReceive = hasPermission(session.user.permissions, session.user.roleCode, "inventory.receive");
-  const canBuy = hasPermission(session.user.permissions, session.user.roleCode, "purchasing.manage");
+  const params = await searchParams;
 
   const raw = await getRawWarehouse();
 
-  const [materials, waitingCount, waitingOrders, suppliers] = await Promise.all([
+  const [materials, waitingCount, waitingOrders] = await Promise.all([
     prisma.material.findMany({
       where: { archivedAt: null, isActive: true },
       include: { storageUnit: true, stockItems: { where: { warehouseId: raw.id } } },
@@ -32,9 +34,8 @@ export default async function WarehousePage() {
       where: { status: { code: { in: ["IN_FG", "READY"] } } },
       include: { customer: true, items: { include: { product: true } } },
       orderBy: { updatedAt: "desc" },
-      take: 10,
+      take: 40,
     }),
-    canBuy ? prisma.supplier.findMany({ where: { archivedAt: null }, orderBy: { name: "asc" }, take: 1 }) : Promise.resolve([]),
   ]);
 
   const urgentMaterials = materials.filter((m) => {
@@ -61,97 +62,81 @@ export default async function WarehousePage() {
     },
   ];
 
+  const activeId = params.view === "waiting" ? "waiting" : "urgent";
+
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <div className={styles.headerText}>
-          <h1 className={styles.title}>{t("wh.rawTitle")}</h1>
-        </div>
+      <WarehouseMetrics items={metrics} activeId={activeId} />
+
+      <div className={styles.toolbar}>
+        <WarehouseNav current="raw" locale={locale} />
         {canReceive ? (
-          <div className={styles.headerActions}>
-            <Link href="/warehouse/add" className={styles.iconBtn} aria-label={t("wh.addMaterial")}>
-              <Plus size={20} strokeWidth={ICON_STROKE} />
-            </Link>
-          </div>
+          <Link href="/warehouse/add" className={styles.iconBtn} aria-label={t("wh.addMaterial")}>
+            <Plus size={18} strokeWidth={ICON_STROKE} />
+          </Link>
         ) : null}
-      </header>
+      </div>
 
-      <WarehouseNav current="raw" locale={locale} />
-
-      <WarehouseMetrics items={metrics} />
-
-      {urgentMaterials.length > 0 ? (
+      {activeId === "urgent" ? (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
             <h2 className={styles.sectionTitle}>{t("wh.urgentList")}</h2>
           </div>
-          <ul className={styles.alertList}>
-            {urgentMaterials.map((material) => {
-              const stock = material.stockItems[0];
-              const onHand = D(String(stock?.qtyOnHand ?? 0));
-              const need = D(String(material.minStock)).sub(onHand);
-              return (
-                <li key={material.id} className={styles.alertItem}>
-                  <div className={styles.alertMain}>
-                    <p className={styles.alertName}>{material.name}</p>
-                    <p className={styles.alertMeta}>
-                      {qtyDisplay(onHand)} / {qtyDisplay(material.minStock)} {material.storageUnit.symbol}
-                      {need.gt(0) ? ` · −${qtyDisplay(need)}` : null}
-                    </p>
-                  </div>
-                  {canBuy && suppliers[0] && need.gt(0) ? (
-                    <form action={createPurchaseFromShortage} className={styles.shortageBuy}>
-                      <input type="hidden" name="supplierId" value={suppliers[0].id} />
-                      <input type="hidden" name="materialId" value={material.id} />
-                      <input type="hidden" name="quantity" value={need.toFixed(6)} />
-                      <label className={styles.shortagePrice}>
-                        <span>{t("wh.buyPrice")}</span>
-                        <input
-                          name="unitPrice"
-                          className="ui-input"
-                          inputMode="decimal"
-                          required
-                          placeholder={t("wh.buyPricePh", { unit: material.storageUnit.symbol })}
-                          defaultValue={
-                            material.lastPurchasePrice
-                              ? String(material.lastPurchasePrice)
-                              : unitCost(material.packagePrice, material.packageWeight)?.toFixed(4) ?? ""
-                          }
-                        />
-                      </label>
-                      <button type="submit" className="ui-btn-secondary min-h-[36px] text-sm">
-                        {t("wh.poRequest")}
-                      </button>
-                    </form>
-                  ) : null}
-                </li>
-              );
-            })}
-          </ul>
+          {urgentMaterials.length === 0 ? (
+            <div className={styles.sectionBody}>
+              <p className={styles.emptyNote}>{t("common.empty")}</p>
+            </div>
+          ) : (
+            <ul className={styles.alertList}>
+              {urgentMaterials.map((material) => {
+                const stock = material.stockItems[0];
+                const onHand = D(String(stock?.qtyOnHand ?? 0));
+                const need = D(String(material.minStock)).sub(onHand);
+                return (
+                  <li key={material.id}>
+                    <Link href="/warehouse/add" className={styles.alertItemLink}>
+                      <div className={styles.alertMain}>
+                        <p className={styles.alertName}>{material.name}</p>
+                        <p className={styles.alertMeta}>
+                          {qtyDisplay(onHand)} / {qtyDisplay(material.minStock)} {material.storageUnit.symbol}
+                          {need.gt(0) ? ` · −${qtyDisplay(need)}` : null}
+                        </p>
+                        <p className={styles.alertHint}>{t("wh.urgentAddHint")}</p>
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </section>
-      ) : null}
-
-      {waitingOrders.length > 0 ? (
+      ) : (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
             <h2 className={styles.sectionTitle}>{t("wh.waitingList")}</h2>
           </div>
-          <ul className={styles.alertList}>
-            {waitingOrders.map((order) => (
-              <li key={order.id}>
-                <Link href={`/orders/${order.id}`} className={styles.alertItemLink}>
-                  <div className={styles.alertMain}>
-                    <p className={styles.alertName}>{order.customer.name}</p>
-                    <p className={styles.alertMeta}>
-                      #{order.number} · {order.items[0]?.product.name ?? "—"}
-                    </p>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {waitingOrders.length === 0 ? (
+            <div className={styles.sectionBody}>
+              <p className={styles.emptyNote}>{t("common.empty")}</p>
+            </div>
+          ) : (
+            <ul className={styles.alertList}>
+              {waitingOrders.map((order) => (
+                <li key={order.id}>
+                  <Link href={`/orders/${order.id}`} className={styles.alertItemLink}>
+                    <div className={styles.alertMain}>
+                      <p className={styles.alertName}>{order.customer.name}</p>
+                      <p className={styles.alertMeta}>
+                        #{order.number} · {order.items[0]?.product.name ?? "—"}
+                      </p>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
-      ) : null}
+      )}
     </div>
   );
 }

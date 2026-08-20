@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AlertTriangle, PackageCheck } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import styles from "./warehouse.module.css";
@@ -16,6 +17,8 @@ const ICONS = {
 
 export function WarehouseMetrics({
   items,
+  activeId,
+  basePath = "/warehouse",
 }: {
   items: {
     id: string;
@@ -25,22 +28,33 @@ export function WarehouseMetrics({
     tone: MetricTone;
     icon: keyof typeof ICONS;
   }[];
+  activeId: string;
+  basePath?: string;
 }) {
   return (
-    <div className={styles.metricGrid}>
+    <div className={styles.metricGrid} role="tablist">
       {items.map((item) => {
         const Icon = ICONS[item.icon];
+        const selected = activeId === item.id;
         return (
-          <article key={item.id} className={`${styles.metricCard} ${TONE_CLASS[item.tone]}`}>
+          <Link
+            key={item.id}
+            href={`${basePath}?view=${item.id}`}
+            scroll={false}
+            prefetch={false}
+            role="tab"
+            aria-selected={selected}
+            className={`${styles.metricCard} ${TONE_CLASS[item.tone]} ${selected ? styles.metricCardActive : ""}`}
+          >
             <div className={styles.metricHead}>
               <span className={styles.metricIcon}>
-                <Icon size={20} strokeWidth={ICON_STROKE} aria-hidden />
+                <Icon size={18} strokeWidth={ICON_STROKE} aria-hidden />
               </span>
               <p className={styles.metricLabel}>{item.label}</p>
             </div>
             <p className={styles.metricValue}>{item.value}</p>
             <p className={styles.metricHint}>{item.hint}</p>
-          </article>
+          </Link>
         );
       })}
     </div>

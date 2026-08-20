@@ -13,10 +13,11 @@
   position: absolute;
   inset: 0;
   background: var(--mobile-nav-bg);
-  backdrop-filter: blur(var(--mobile-nav-blur)) saturate(1.15);
-  -webkit-backdrop-filter: blur(var(--mobile-nav-blur)) saturate(1.15);
+  /* blur is expensive on mid/low phones — keep solid for snappier UI */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border-top: 1px solid var(--mobile-glass-border);
-  box-shadow: 0 -4px 24px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 -2px 12px rgba(15, 23, 42, 0.05);
   pointer-events: none;
 }
 
@@ -69,9 +70,9 @@
 }
 
 .tabActive .iconWrap {
-  width: clamp(36px, 10vw, 40px);
-  height: clamp(28px, 7.5vw, 30px);
-  border-radius: 10px;
+  width: clamp(30px, 8vw, 34px);
+  height: clamp(24px, 6.5vw, 26px);
+  border-radius: 8px;
   border: 1px solid var(--mobile-glass-border);
   background: rgba(244, 237, 224, 0.92);
   color: #9A7338;

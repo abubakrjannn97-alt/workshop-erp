@@ -55,10 +55,10 @@
 }
 
 .brandLine {
-  font-size: clamp(9px, 2.4vw, 10px);
+  font-size: clamp(8px, 2.2vw, 9px);
   font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: 0.08em;
+  line-height: 1.15;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink);
 }

@@ -3,7 +3,6 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { isProductionScopedWorker } from "@core/production/batch-auth";
 import { qtyDisplay } from "@core/shared/decimal";
-import { Suspense } from "react";
 import { ProductionMetrics, type ProductionMetricItem } from "./production-metrics";
 import styles from "./production.module.css";
 
@@ -41,9 +40,14 @@ function toRows(list: ProdRow[], scrapLabel?: string): ProductionMetricItem["row
   });
 }
 
-export default async function ProductionPage() {
+export default async function ProductionPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string }>;
+}) {
   const { t } = await getTranslator();
   const session = await requirePermission("production.view");
+  const params = await searchParams;
 
   const scoped = isProductionScopedWorker(session.user.roleCode, session.user.permissions ?? []);
   const scopedFilter = scoped ? { batches: { some: { responsibleUserId: session.user.id } } } : {};
@@ -133,6 +137,9 @@ export default async function ProductionPage() {
     },
   ];
 
+  const requested = params.view ?? "";
+  const activeId = metrics.some((m) => m.id === requested) ? requested : metrics[0]!.id;
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -141,9 +148,7 @@ export default async function ProductionPage() {
         </div>
       </header>
 
-      <Suspense fallback={<div className={styles.metricsBlock} />}>
-        <ProductionMetrics items={metrics} />
-      </Suspense>
+      <ProductionMetrics items={metrics} activeId={activeId} />
     </div>
   );
 }
