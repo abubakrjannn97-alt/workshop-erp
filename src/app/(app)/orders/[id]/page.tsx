@@ -104,8 +104,15 @@ export default async function OrderPage({
 
   const debt = D(String(order.total)).sub(String(order.paidAmount));
   const paid = D(String(order.paidAmount));
+  const hasMaterialCost = order.materialCost != null && D(String(order.materialCost)).gte(0);
   const margin =
-    canSeeCost && order.materialCost ? D(String(order.total)).sub(String(order.materialCost)) : null;
+    canSeeCost && hasMaterialCost ? D(String(order.total)).sub(String(order.materialCost)) : null;
+  const noCostHint =
+    order.materials.length === 0 || !hasMaterialCost
+      ? t("orders.noCostNoRecipe")
+      : !order.confirmedAt
+        ? t("orders.noCostHint")
+        : t("orders.noCostNoRecipe");
   const loc = intlLocale(locale);
   const paymentBlocked = Boolean(payError?.includes("закрыт") || payError?.includes("пӯшида"));
   const hasDiscount = D(String(order.discountPercent)).gt(0);
@@ -143,7 +150,7 @@ export default async function OrderPage({
       id: "margin",
       label: t("orders.profitEstimate"),
       value: margin ? `${moneyDisplay(margin)} с` : "—",
-      hint: margin ? undefined : t("orders.noCostHint"),
+      hint: margin ? undefined : noCostHint,
       tone: "blue" as const,
       icon: "blue" as const,
     });
@@ -305,6 +312,9 @@ export default async function OrderPage({
 
       <section className={detailStyles.sectionPanel}>
         <h2 className={detailStyles.sectionTitle}>{t("orders.materialsForOrder")}</h2>
+        {order.materials.length === 0 ? (
+          <p className={detailStyles.sectionNote}>{t("orders.materialsEmpty")}</p>
+        ) : (
         <ul className="ui-list">
           {order.materials.map((need) => (
             <li key={need.id} className={detailStyles.materialRow}>
@@ -319,6 +329,7 @@ export default async function OrderPage({
             </li>
           ))}
         </ul>
+        )}
         {!order.canProduceFully && order.confirmedAt ? (
           <p className={detailStyles.sectionNote}>{t("orders.cannotProduce", { n: String(order.number) })}</p>
         ) : null}
