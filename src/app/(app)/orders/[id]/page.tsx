@@ -8,8 +8,6 @@ import { PendingButton } from "@/components/pending-button";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { available } from "@core/inventory/stock";
 import { findRawWarehouse } from "@/core/config/resolve-warehouse";
-import { STATUS_FLOW } from "@core/orders/orders";
-import { confirmOrderCore } from "@core/orders/confirm-order";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge, orderTone } from "@/components/status-badge";
 import { OrderDetailMetrics } from "../order-detail-metrics";
@@ -20,6 +18,7 @@ import detailStyles from "../order-detail.module.css";
 import {
   addPayment,
   cancelOrder,
+  confirmOrder,
   createPurchaseFromDeficit,
   issueOrderToCustomer,
   reversePayment,
@@ -56,36 +55,26 @@ export default async function OrderPage({
   }
 
   const canCreate = hasPermission(session.user.permissions, session.user.roleCode, "orders.create");
-  const paidNow = D(String(order.paidAmount));
-  const totalNow = D(String(order.total));
-  const isFullyPaid = paidNow.gte(totalNow) && paidNow.gt(0);
-  if (
-    canCreate &&
-    isFullyPaid &&
-    (order.status.code === "NEW" || order.status.code === "AWAITING_PAYMENT")
-  ) {
-    const autoConfirm = await confirmOrderCore(order.id, session.user.id);
-    if (autoConfirm.ok) {
-      redirect(`/orders/${id}`);
-    }
-  }
-
   const canCancel = hasPermission(session.user.permissions, session.user.roleCode, "orders.cancel");
   const canPay = hasPermission(session.user.permissions, session.user.roleCode, "payments.create");
   const canSeeCost = hasPermission(session.user.permissions, session.user.roleCode, "materials.view");
   const canPurchase = hasPermission(session.user.permissions, session.user.roleCode, "purchasing.manage");
   const canIssue = hasPermission(session.user.permissions, session.user.roleCode, "inventory.receive");
-  const nextCodes = (STATUS_FLOW[order.status.code] ?? []).filter(
-    (code) => code !== "AWAITING_PAYMENT" && code !== "ON_HOLD",
-  );
-  const nextStatuses = await prisma.orderStatus.findMany({
-    where: { code: { in: nextCodes } },
-    orderBy: { sortOrder: "asc" },
-  });
-  const showPayStep =
-    canCreate &&
-    (order.status.code === "NEW" || order.status.code === "AWAITING_PAYMENT");
-  const showStatusSteps = canCreate && nextStatuses.length > 0 && !showPayStep;
+
+  const code = order.status.code;
+  const paid = D(String(order.paidAmount));
+  const debt = D(String(order.total)).sub(String(order.paidAmount));
+  const paymentDecided =
+    code === "AWAITING_PAYMENT" ||
+    paid.gt(0) ||
+    order.paymentStatus === "paid" ||
+    order.paymentStatus === "partial" ||
+    order.paymentStatus === "overpaid";
+  const showPayStep = canCreate && (code === "NEW" || code === "AWAITING_PAYMENT");
+  const showSendToShop = canCreate && (code === "NEW" || code === "AWAITING_PAYMENT") && paymentDecided;
+  const showInShop = ["CONFIRMED", "SCHEDULED", "IN_PRODUCTION", "PARTIAL"].includes(code);
+  const showReady = canIssue && (code === "READY" || code === "IN_FG");
+  const showWorkflow = showPayStep || showSendToShop || showInShop || showReady;
 
   const raw = await findRawWarehouse();
   const stock = raw
@@ -109,8 +98,6 @@ export default async function OrderPage({
     })
     .filter((row) => row.short.gt(0));
 
-  const debt = D(String(order.total)).sub(String(order.paidAmount));
-  const paid = D(String(order.paidAmount));
   const hasMaterialCost = order.materialCost != null && D(String(order.materialCost)).gte(0);
   const margin =
     canSeeCost && hasMaterialCost ? D(String(order.total)).sub(String(order.materialCost)) : null;
@@ -165,6 +152,10 @@ export default async function OrderPage({
 
   const currentStatusName = n("ostatus", order.status.code, order.status.name);
 
+  async function confirmAction(formData: FormData) {
+    "use server";
+    await confirmOrder(formData);
+  }
   async function cancelAction(formData: FormData) {
     "use server";
     await cancelOrder(formData);
@@ -225,13 +216,14 @@ export default async function OrderPage({
 
       <OrderDetailMetrics items={metricItems} />
 
-      {showPayStep || showStatusSteps ? (
+      {showWorkflow ? (
         <section className={detailStyles.statusPanel}>
           <div className={detailStyles.statusPanelHead}>
             <h2 className={detailStyles.sectionTitle}>{t("orders.changeStatus")}</h2>
             <StatusBadge label={currentStatusName} tone={orderTone(order.status.code)} />
           </div>
           <OrderStageProgress currentCode={order.status.code} t={t} />
+
           {showPayStep ? (
             <OrderPayStepPanel
               locale={locale}
@@ -242,30 +234,49 @@ export default async function OrderPage({
               canPay={canPay}
             />
           ) : null}
-          {showStatusSteps ? (
-            <>
-              <p className={detailStyles.statusNextTitle}>{t("orders.nextStep")}</p>
-              <ul className={detailStyles.statusOptions}>
-                {nextStatuses.map((s, index) => (
-                  <li key={s.id}>
-                    <form action={statusAction}>
-                      <input type="hidden" name="id" value={order.id} />
-                      <input type="hidden" name="statusCode" value={s.code} />
-                      <button type="submit" className={detailStyles.statusOptionBtn}>
-                        <span className={detailStyles.statusOptionRow}>
-                          <span className={detailStyles.statusOptionNumber}>{index + 1}</span>
-                          <span className={detailStyles.statusOptionText}>
-                            <span className={detailStyles.statusOptionLabel}>
-                              {n("ostatus", s.code, s.name)}
-                            </span>
-                          </span>
-                        </span>
-                      </button>
-                    </form>
-                  </li>
-                ))}
-              </ul>
-            </>
+
+          {showSendToShop ? (
+            <form action={confirmAction} className={detailStyles.payFormCompact}>
+              <input type="hidden" name="id" value={order.id} />
+              <PendingButton className="ui-btn-primary min-h-[40px] w-full" pendingLabel={t("common.sending")}>
+                {t("orders.sendToShop")}
+              </PendingButton>
+              <p className={detailStyles.sectionNote}>{t("orders.sendToShopHint")}</p>
+            </form>
+          ) : null}
+
+          {showInShop ? (
+            <div className={detailStyles.workflowInfo}>
+              <p className={detailStyles.workflowInfoTitle}>{t("orders.inShopTitle")}</p>
+              <p className={detailStyles.sectionNote}>{t("orders.inShopHint")}</p>
+              {order.production ? (
+                <Link href={`/production/${order.production.id}`} className="ui-btn-secondary min-h-[40px] inline-flex items-center justify-center">
+                  {t("orders.openProduction")}
+                </Link>
+              ) : null}
+            </div>
+          ) : null}
+
+          {showReady ? (
+            <div className={detailStyles.payFormCompact}>
+              <p className={detailStyles.workflowInfoTitle}>{t("orders.readyTitle")}</p>
+              <p className={detailStyles.sectionNote}>{t("orders.readyHint")}</p>
+              <div className={detailStyles.payStepTabs}>
+                <form action={issueAction} className={detailStyles.flex1}>
+                  <input type="hidden" name="id" value={order.id} />
+                  <PendingButton className="ui-btn-primary min-h-[40px] w-full" pendingLabel={t("common.sending")}>
+                    {t("orders.issueToCustomer")}
+                  </PendingButton>
+                </form>
+                <form action={statusAction} className={detailStyles.flex1}>
+                  <input type="hidden" name="id" value={order.id} />
+                  <input type="hidden" name="statusCode" value="RETURN" />
+                  <PendingButton className="ui-btn-secondary min-h-[40px] w-full" pendingLabel={t("common.sending")}>
+                    {t("orders.markReturn")}
+                  </PendingButton>
+                </form>
+              </div>
+            </div>
           ) : null}
         </section>
       ) : null}
@@ -373,33 +384,17 @@ export default async function OrderPage({
         ) : null}
       </section>
 
-      {(canIssue && (order.status.code === "IN_FG" || order.status.code === "READY")) ||
-      (canCancel && order.status.code !== "CANCELLED") ? (
-        <section className={detailStyles.actionsPanel}>
-          <h2 className={detailStyles.sectionTitle}>{t("orders.whatToDo")}</h2>
-          {canIssue && (order.status.code === "IN_FG" || order.status.code === "READY") ? (
-            <div className={detailStyles.primaryAction}>
-              <form action={issueAction}>
-                <input type="hidden" name="id" value={order.id} />
-                <PendingButton className="ui-btn-primary min-h-[44px] w-full" pendingLabel={t("common.sending")}>
-                  {t("orders.issueToCustomer")}
-                </PendingButton>
-              </form>
-            </div>
-          ) : null}
-          {canCancel && order.status.code !== "CANCELLED" ? (
-            <form action={cancelAction} className={detailStyles.cancelAction}>
-              <input type="hidden" name="id" value={order.id} />
-              <PendingButton type="submit" className={detailStyles.cancelLink} pendingLabel={t("common.sending")}>
-                {t("orders.cancelOrderLink")}
-              </PendingButton>
-            </form>
-          ) : null}
-        </section>
+      {canCancel && order.status.code !== "CANCELLED" && order.status.code !== "COMPLETED" && order.status.code !== "ISSUED" ? (
+        <form action={cancelAction} className={detailStyles.cancelOnly}>
+          <input type="hidden" name="id" value={order.id} />
+          <PendingButton type="submit" className={detailStyles.cancelLink} pendingLabel={t("common.sending")}>
+            {t("orders.cancelOrderLink")}
+          </PendingButton>
+        </form>
       ) : null}
 
-      {order.production ? (
-        <Link href={`/production/${order.production.id}`} className="ui-btn-secondary min-h-[44px] inline-flex items-center">
+      {order.production && !showInShop ? (
+        <Link href={`/production/${order.production.id}`} className="ui-btn-secondary min-h-[40px] inline-flex items-center">
           {t("orders.openProduction")}
         </Link>
       ) : null}

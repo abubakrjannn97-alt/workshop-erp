@@ -304,6 +304,16 @@ export async function confirmOrder(formData: FormData) {
   if (order.status.code !== ORDER_STATUS.NEW && order.status.code !== ORDER_STATUS.AWAITING_PAYMENT) {
     return { error: "Заказ уже подтверждён или закрыт." };
   }
+  const paid = D(String(order.paidAmount));
+  const paymentDecided =
+    order.status.code === ORDER_STATUS.AWAITING_PAYMENT ||
+    paid.gt(0) ||
+    order.paymentStatus === "paid" ||
+    order.paymentStatus === "partial" ||
+    order.paymentStatus === "overpaid";
+  if (!paymentDecided) {
+    return { error: "Сначала укажите оплату или «Оплата потом»." };
+  }
 
   const result = await confirmOrderCore(id, session.user.id);
   if (result.error) return result;
@@ -576,21 +586,6 @@ export async function addPayment(formData: FormData) {
     entityId: orderId,
     newValue: { amount: money(amount) },
   });
-
-  const refreshed = await prisma.order.findUnique({
-    where: { id: orderId },
-    include: { status: true },
-  });
-  const fullyPaid =
-    refreshed &&
-    (refreshed.paymentStatus === "paid" || refreshed.paymentStatus === "overpaid") &&
-    (refreshed.status.code === ORDER_STATUS.NEW || refreshed.status.code === ORDER_STATUS.AWAITING_PAYMENT);
-  if (
-    fullyPaid &&
-    hasPermission(session.user.permissions, session.user.roleCode, "orders.create")
-  ) {
-    await confirmOrderCore(orderId, session.user.id);
-  }
 
   revalidatePath("/orders");
   revalidatePath(`/orders/${orderId}`);

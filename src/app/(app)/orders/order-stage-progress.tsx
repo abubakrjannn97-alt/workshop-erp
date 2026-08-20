@@ -2,10 +2,10 @@ import styles from "./order-detail.module.css";
 
 const PIPELINE = [
   { id: "pay", codes: ["NEW", "AWAITING_PAYMENT", "ON_HOLD"], labelKey: "orders.stageStep1" },
-  { id: "confirm", codes: ["CONFIRMED", "SCHEDULED"], labelKey: "orders.stageStep2" },
+  { id: "shop", codes: ["CONFIRMED", "SCHEDULED"], labelKey: "orders.stageStep2" },
   { id: "production", codes: ["IN_PRODUCTION", "PARTIAL"], labelKey: "orders.stageStep3" },
-  { id: "warehouse", codes: ["READY", "IN_FG"], labelKey: "orders.stageStep4" },
-  { id: "done", codes: ["ISSUED", "COMPLETED"], labelKey: "orders.stageStep5" },
+  { id: "ready", codes: ["READY", "IN_FG"], labelKey: "orders.stageStep4" },
+  { id: "client", codes: ["ISSUED", "COMPLETED"], labelKey: "orders.stageStep5" },
 ] as const;
 
 const STATE_CLASS = {

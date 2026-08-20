@@ -270,6 +270,32 @@
   color: var(--ink);
 }
 
+.workflowInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.workflowInfoTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.flex1 {
+  flex: 1;
+  min-width: 0;
+}
+
+.cancelOnly {
+  margin: 0;
+  text-align: center;
+}
+
 .sectionPanelCompact {
   display: flex;
   flex-direction: column;
