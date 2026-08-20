@@ -10,7 +10,91 @@
 .ghostLink { display: inline-flex; min-height: 44px; align-items: center; padding: 0 12px; border-radius: var(--radius-control); font-size: 14px; font-weight: 500; color: var(--ink-2); text-decoration: none; transition: color .15s, background .15s; }
 .ghostLink:hover { color: var(--ink); background: var(--surface-2); }
 
-/* ─── Summary strip ─── */
+/* ─── Summary / KPI metrics ─── */
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.metricCard {
+  display: flex;
+  min-height: 108px;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.metricHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.metricIcon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 12px;
+}
+
+.metricBlue .metricIcon {
+  background: #eef3ff;
+  color: #4a70d0;
+}
+
+.metricPurple .metricIcon {
+  background: #f3efff;
+  color: #7c5fd4;
+}
+
+.metricGreen .metricIcon {
+  background: #eaf7f0;
+  color: #249565;
+}
+
+.metricWarn .metricIcon {
+  background: #fff5e8;
+  color: #c2410c;
+}
+
+.metricLabel {
+  margin: 0;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  color: var(--ink);
+}
+
+.metricValue {
+  margin: 4px 0 0;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 32px;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.metricWarn .metricValue {
+  color: #c2410c;
+}
+
+.metricHint {
+  margin: auto 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ink-3);
+}
+
 .summary { display: grid; gap: 12px; grid-template-columns: repeat(4, 1fr); }
 .summaryBox { padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
 .summaryLabel { margin: 0 0 4px; font-size: 12px; font-weight: 500; color: var(--ink-3); }
@@ -67,26 +151,17 @@
 .formBody { display: grid; gap: 14px; }
 .formActions { padding-top: 4px; }
 
-/* ─── Stage list ─── */
-.stageGrid { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.stageCard { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: 0 1px 4px rgba(28,35,43,.02); }
-.stageNumber { display: grid; width: 32px; height: 32px; flex-shrink: 0; place-items: center; border-radius: 8px; background: #2563eb; color: #ffffff; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.stageInfo { min-width: 0; flex: 1; }
-.stageName { margin: 0; font-size: 14px; font-weight: 600; line-height: 20px; color: var(--ink); }
-.stageDesc { margin: 3px 0 0; font-size: 12px; line-height: 16px; color: var(--ink-2); }
-
-@media (max-width: 639px) {
-  .stageGrid { grid-template-columns: 1fr; }
-}
-
 /* ─── Materials list ─── */
 .matList { margin: 0; padding: 0; list-style: none; font-size: 13px; line-height: 24px; color: var(--ink-2); }
 
 /* ─── Responsive ─── */
 @media (max-width: 1023px) {
-  .page { gap: 16px; max-width: none; }
+  .page { gap: 12px; max-width: none; }
   .title { font-size: 22px; line-height: 28px; }
   .subtitle { display: none; }
+  .metricGrid { gap: 8px; }
+  .metricCard { min-height: 100px; padding: 12px; }
+  .metricValue { font-size: 24px; line-height: 28px; }
   .summary { grid-template-columns: repeat(2, 1fr); }
   .detailKpi { grid-template-columns: repeat(2, 1fr); }
   .tableHead, .tableBody { display: none; }

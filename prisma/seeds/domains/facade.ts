@@ -26,7 +26,9 @@ export async function seedFacadeDomain(prisma: PrismaClient): Promise<FacadeDoma
   });
 
   await seedFacadeCatalog(prisma);
-  await seedFacadeOpeningStock(prisma);
+  if (process.env.SEED_DEMO !== "0") {
+    await seedFacadeOpeningStock(prisma);
+  }
 
   return { productionSchemeId: prodScheme.id };
 }
