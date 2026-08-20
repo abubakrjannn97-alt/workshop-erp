@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef } from "react";
 import { CheckCircle2, Clock3, Factory, Trash2 } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import styles from "./production.module.css";
@@ -42,12 +43,34 @@ const ICONS = {
 } as const;
 
 export function ProductionMetrics({ items }: { items: ProductionMetricItem[] }) {
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const detailRef = useRef<HTMLElement | null>(null);
+
+  const fallbackId = items[0]?.id ?? null;
+  const requested = searchParams.get("view");
+  const activeId =
+    requested && items.some((item) => item.id === requested) ? requested : fallbackId;
   const active = items.find((item) => item.id === activeId) ?? null;
+
+  useEffect(() => {
+    if (!active || typeof window === "undefined") return;
+    // Keep list under the selected card in view on phones.
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      detailRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }, [activeId, active]);
+
+  function select(id: string) {
+    const next = new URLSearchParams(searchParams.toString());
+    next.set("view", id);
+    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+  }
 
   return (
     <div className={styles.metricsBlock}>
-      <div className={styles.metricGrid}>
+      <div className={styles.metricGrid} role="tablist" aria-label="production-metrics">
         {items.map((item) => {
           const Icon = ICONS[item.icon];
           const selected = activeId === item.id;
@@ -55,9 +78,11 @@ export function ProductionMetrics({ items }: { items: ProductionMetricItem[] }) 
             <button
               key={item.id}
               type="button"
+              role="tab"
+              aria-selected={selected}
+              aria-controls={`prod-metric-${item.id}`}
               className={`${styles.metricCard} ${TONE_CLASS[item.tone]} ${selected ? styles.metricCardActive : ""}`}
-              onClick={() => setActiveId(selected ? null : item.id)}
-              aria-expanded={selected}
+              onClick={() => select(item.id)}
             >
               <div className={styles.metricHead}>
                 <span className={styles.metricIcon}>
@@ -73,7 +98,13 @@ export function ProductionMetrics({ items }: { items: ProductionMetricItem[] }) 
       </div>
 
       {active ? (
-        <section className={styles.metricDetail} aria-label={active.label}>
+        <section
+          ref={detailRef}
+          id={`prod-metric-${active.id}`}
+          className={styles.metricDetail}
+          aria-label={active.label}
+          role="tabpanel"
+        >
           <div className={styles.metricDetailHead}>
             <h2 className={styles.metricDetailTitle}>{active.label}</h2>
             <span className={styles.metricDetailCount}>{active.value}</span>
@@ -84,7 +115,7 @@ export function ProductionMetrics({ items }: { items: ProductionMetricItem[] }) 
             <ul className={styles.metricDetailList}>
               {active.rows.map((row) => (
                 <li key={row.id}>
-                  <Link href={row.href} className={styles.metricDetailRow}>
+                  <Link href={row.href} prefetch className={styles.metricDetailRow}>
                     <span className={styles.metricDetailText}>
                       <span className={styles.metricDetailName}>{row.name}</span>
                       <span className={styles.metricDetailProduct}>{row.product}</span>

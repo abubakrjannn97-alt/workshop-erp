@@ -1,0 +1,114 @@
+.page {
+  display: flex;
+  max-width: 32rem;
+  margin: 0 auto;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 12px;
+}
+
+.group {
+  margin: 0;
+}
+
+.groupTitle {
+  margin: 0;
+  padding: 0 2px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--ink-2);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.list li + li {
+  border-top: 1px solid var(--line);
+}
+
+.row {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  color: var(--ink);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.row:active {
+  background: var(--surface-2);
+}
+
+.rowIcon {
+  display: inline-flex;
+  color: var(--ink-2);
+}
+
+.rowLabel {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.account {
+  margin-top: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.accountName {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.accountRole {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.accountLink {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--navy);
+  text-decoration: none;
+}
+
+.accountLogout {
+  margin-top: 8px;
+}
+
+@media (max-width: 1023px) {
+  .page {
+    gap: 8px;
+    max-width: none;
+  }
+
+  .groupTitle {
+    padding-bottom: 2px;
+    font-size: 11px;
+  }
+
+  .row {
+    min-height: 38px;
+    padding: 0 10px;
+  }
+}

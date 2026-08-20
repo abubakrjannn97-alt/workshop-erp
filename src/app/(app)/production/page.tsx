@@ -3,6 +3,7 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { isProductionScopedWorker } from "@core/production/batch-auth";
 import { qtyDisplay } from "@core/shared/decimal";
+import { Suspense } from "react";
 import { ProductionMetrics, type ProductionMetricItem } from "./production-metrics";
 import styles from "./production.module.css";
 
@@ -140,7 +141,9 @@ export default async function ProductionPage() {
         </div>
       </header>
 
-      <ProductionMetrics items={metrics} />
+      <Suspense fallback={<div className={styles.metricsBlock} />}>
+        <ProductionMetrics items={metrics} />
+      </Suspense>
     </div>
   );
 }

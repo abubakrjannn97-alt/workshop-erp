@@ -1,7 +1,7 @@
 /* ─── Production module — Premium visual language ─── */
 
-.page { display: flex; flex-direction: column; gap: 20px; min-width: 0; max-width: 1280px; }
-.header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.page { display: flex; flex-direction: column; gap: 12px; min-width: 0; max-width: 1280px; }
+.header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .headerLead { display: flex; min-width: 0; flex: 1; align-items: flex-start; gap: 8px; }
 .headerText { min-width: 0; flex: 1; }
 .title { margin: 0; font-size: 26px; font-weight: 700; line-height: 32px; letter-spacing: -0.03em; color: var(--ink); }
@@ -14,27 +14,32 @@
 .metricsBlock {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .metricGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .metricCard {
   display: flex;
-  min-height: 108px;
+  position: relative;
+  z-index: 1;
+  min-height: 96px;
   flex-direction: column;
-  gap: 4px;
-  padding: 14px;
+  gap: 2px;
+  padding: 12px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--surface);
   box-shadow: var(--shadow-soft);
   text-align: left;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
@@ -103,6 +108,8 @@
   border-bottom: 1px solid var(--line);
   text-decoration: none;
   color: inherit;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition: background 0.12s;
 }
 
@@ -275,12 +282,14 @@
 
 /* ─── Responsive ─── */
 @media (max-width: 1023px) {
-  .page { gap: 12px; max-width: none; }
-  .title { font-size: 22px; line-height: 28px; }
+  .page { gap: 8px; max-width: none; }
+  .title { font-size: 20px; line-height: 26px; }
   .subtitle { display: none; }
-  .metricGrid { gap: 8px; }
-  .metricCard { min-height: 100px; padding: 12px; }
-  .metricValue { font-size: 24px; line-height: 28px; }
+  .metricGrid { gap: 6px; }
+  .metricCard { min-height: 88px; padding: 10px; }
+  .metricValue { font-size: 22px; line-height: 26px; }
+  .metricDetailHead { padding: 10px 12px; }
+  .metricDetailRow { padding: 10px 12px; min-height: 44px; }
   .summary { grid-template-columns: repeat(2, 1fr); }
   .detailKpi { grid-template-columns: repeat(2, 1fr); }
   .tableHead, .tableBody { display: none; }
