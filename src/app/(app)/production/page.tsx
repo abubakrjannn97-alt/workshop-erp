@@ -2,8 +2,35 @@ import { getTranslator } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { isProductionScopedWorker } from "@core/production/batch-auth";
-import { ProductionMetrics } from "./production-metrics";
+import { qtyDisplay } from "@core/shared/decimal";
+import { ProductionMetrics, type ProductionMetricItem } from "./production-metrics";
 import styles from "./production.module.css";
+
+const LIST_TAKE = 40;
+
+type ProdRow = {
+  id: string;
+  plannedQty: unknown;
+  producedQty: unknown;
+  scrapQty: unknown;
+  order: { number: number; customer: { name: string } };
+};
+
+function toRows(
+  list: ProdRow[],
+  scrapLabel?: string,
+): ProductionMetricItem["rows"] {
+  return list.map((p) => {
+    const scrap =
+      scrapLabel != null ? ` · ${qtyDisplay(p.scrapQty)} ${scrapLabel}` : "";
+    return {
+      id: p.id,
+      href: `/production/${p.id}`,
+      title: `№ ${p.order.number} · ${p.order.customer.name}`,
+      meta: `${qtyDisplay(p.producedQty)} / ${qtyDisplay(p.plannedQty)}${scrap}`,
+    };
+  });
+}
 
 export default async function ProductionPage() {
   const { t } = await getTranslator();
@@ -12,45 +39,83 @@ export default async function ProductionPage() {
   const scoped = isProductionScopedWorker(session.user.roleCode, session.user.permissions ?? []);
   const scopedFilter = scoped ? { batches: { some: { responsibleUserId: session.user.id } } } : {};
 
-  const [inWork, open, done, withScrap] = await Promise.all([
-    prisma.productionOrder.count({ where: { status: "IN_PROGRESS", ...scopedFilter } }),
-    prisma.productionOrder.count({ where: { status: "OPEN", ...scopedFilter } }),
-    prisma.productionOrder.count({ where: { status: "DONE", ...scopedFilter } }),
-    prisma.productionOrder.count({ where: { scrapQty: { gt: 0 }, ...scopedFilter } }),
-  ]);
+  const include = {
+    order: { select: { number: true, customer: { select: { name: true } } } },
+  } as const;
 
-  const metrics = [
+  const [inWorkList, openList, doneList, scrapList, inWork, open, done, withScrap] =
+    await Promise.all([
+      prisma.productionOrder.findMany({
+        where: { status: "IN_PROGRESS", ...scopedFilter },
+        include,
+        orderBy: { updatedAt: "desc" },
+        take: LIST_TAKE,
+      }),
+      prisma.productionOrder.findMany({
+        where: { status: "OPEN", ...scopedFilter },
+        include,
+        orderBy: { updatedAt: "desc" },
+        take: LIST_TAKE,
+      }),
+      prisma.productionOrder.findMany({
+        where: { status: "DONE", ...scopedFilter },
+        include,
+        orderBy: { updatedAt: "desc" },
+        take: LIST_TAKE,
+      }),
+      prisma.productionOrder.findMany({
+        where: { scrapQty: { gt: 0 }, ...scopedFilter },
+        include,
+        orderBy: { updatedAt: "desc" },
+        take: LIST_TAKE,
+      }),
+      prisma.productionOrder.count({ where: { status: "IN_PROGRESS", ...scopedFilter } }),
+      prisma.productionOrder.count({ where: { status: "OPEN", ...scopedFilter } }),
+      prisma.productionOrder.count({ where: { status: "DONE", ...scopedFilter } }),
+      prisma.productionOrder.count({ where: { scrapQty: { gt: 0 }, ...scopedFilter } }),
+    ]);
+
+  const emptyLabel = t("prod.kpiEmptyList");
+  const metrics: ProductionMetricItem[] = [
     {
       id: "in-progress",
       label: t("prod.inProgress"),
       value: String(inWork),
       hint: t("prod.kpiInProgressHint"),
-      tone: "blue" as const,
-      icon: "inProgress" as const,
+      tone: "blue",
+      icon: "inProgress",
+      rows: toRows(inWorkList),
+      emptyLabel,
     },
     {
       id: "waiting",
       label: t("prod.kpiWaiting"),
       value: String(open),
       hint: t("prod.kpiWaitingHint"),
-      tone: "purple" as const,
-      icon: "waiting" as const,
+      tone: "purple",
+      icon: "waiting",
+      rows: toRows(openList),
+      emptyLabel,
     },
     {
       id: "done",
       label: t("prod.done"),
       value: String(done),
       hint: t("prod.kpiDoneHint"),
-      tone: "green" as const,
-      icon: "done" as const,
+      tone: "green",
+      icon: "done",
+      rows: toRows(doneList),
+      emptyLabel,
     },
     {
       id: "scrap",
       label: t("common.scrap"),
       value: String(withScrap),
       hint: t("prod.kpiScrapHint"),
-      tone: "warn" as const,
-      icon: "scrap" as const,
+      tone: "warn",
+      icon: "scrap",
+      rows: toRows(scrapList, t("common.scrap").toLowerCase()),
+      emptyLabel,
     },
   ];
 

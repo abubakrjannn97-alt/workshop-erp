@@ -11,6 +11,12 @@
 .ghostLink:hover { color: var(--ink); background: var(--surface-2); }
 
 /* ─── Summary / KPI metrics ─── */
+.metricsBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .metricGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -27,6 +33,102 @@
   border-radius: 14px;
   background: var(--surface);
   box-shadow: var(--shadow-soft);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.metricCard:hover {
+  border-color: var(--line-strong);
+}
+
+.metricCardActive {
+  border-color: rgba(74, 112, 208, 0.45);
+  box-shadow: 0 0 0 3px rgba(74, 112, 208, 0.1);
+}
+
+.metricDetail {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.metricDetailHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.metricDetailTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.metricDetailCount {
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}
+
+.metricDetailEmpty {
+  margin: 0;
+  padding: 16px 14px;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.metricDetailList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 360px;
+  overflow: auto;
+}
+
+.metricDetailRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.12s;
+}
+
+.metricDetailRow:hover {
+  background: #fafbfc;
+}
+
+.metricDetailList li:last-child .metricDetailRow {
+  border-bottom: 0;
+}
+
+.metricDetailRowTitle {
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metricDetailRowMeta {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
 }
 
 .metricHead {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./pay-due-calendar.module.css";
 
 function daysInMonth(year: number, month: number) {
@@ -11,15 +11,9 @@ function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
 
-function parseDdMm(raw: string): { day: number; month: number } | null {
-  const m = raw.trim().match(/^(\d{1,2})[./](\d{1,2})$/);
-  if (!m) return null;
-  const day = Number(m[1]);
-  const month = Number(m[2]);
-  if (month < 1 || month > 12 || day < 1) return null;
+function clampDay(day: number, month: number) {
   const max = daysInMonth(new Date().getFullYear(), month);
-  if (day > max) return null;
-  return { day, month };
+  return Math.min(Math.max(day, 1), max);
 }
 
 export function PayDueCalendar({
@@ -34,54 +28,94 @@ export function PayDueCalendar({
   onCommit?: (day: number, month: number) => void;
   locale?: string;
 }) {
-  const [text, setText] = useState(`${pad2(day)}.${pad2(month)}`);
-  const [error, setError] = useState(false);
+  const [dayText, setDayText] = useState(pad2(day));
+  const [monthText, setMonthText] = useState(pad2(month));
+  const dayRef = useRef<HTMLInputElement>(null);
+  const monthRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setText(`${pad2(day)}.${pad2(month)}`);
+    setDayText(pad2(day));
+    setMonthText(pad2(month));
   }, [day, month]);
 
-  const placeholder = useMemo(() => {
-    const now = new Date();
-    return `${pad2(now.getDate())}.${pad2(now.getMonth() + 1)}`;
-  }, []);
+  function apply(nextDay: number, nextMonth: number, commit: boolean) {
+    const m = Math.min(Math.max(nextMonth, 1), 12);
+    const d = clampDay(nextDay, m);
+    setDayText(pad2(d));
+    setMonthText(pad2(m));
+    onChange(d, m);
+    if (commit) onCommit?.(d, m);
+  }
 
-  function commit(raw: string) {
-    const parsed = parseDdMm(raw);
-    if (!parsed) {
-      setError(true);
-      return null;
-    }
-    setError(false);
-    setText(`${pad2(parsed.day)}.${pad2(parsed.month)}`);
-    onChange(parsed.day, parsed.month);
-    onCommit?.(parsed.day, parsed.month);
-    return parsed;
+  function finishDay(raw: string) {
+    const digits = raw.replace(/\D/g, "").slice(0, 2);
+    const d = Number(digits || day);
+    const m = Number(monthText.replace(/\D/g, "") || month);
+    apply(d, m, digits.length === 2 && monthText.replace(/\D/g, "").length === 2);
+  }
+
+  function finishMonth(raw: string) {
+    const digits = raw.replace(/\D/g, "").slice(0, 2);
+    const m = Number(digits || month);
+    const d = Number(dayText.replace(/\D/g, "") || day);
+    apply(d, m, dayText.replace(/\D/g, "").length >= 1 && digits.length === 2);
   }
 
   return (
-    <div className={styles.simple}>
+    <div className={styles.slots} aria-label="DD.MM">
       <input
-        className={`${styles.dateInput} ${error ? styles.dateInputError : ""}`.trim()}
+        ref={dayRef}
+        className={styles.slot}
         inputMode="numeric"
-        placeholder={placeholder}
-        value={text}
+        maxLength={2}
+        placeholder="12"
+        value={dayText}
         autoFocus
+        aria-label="День"
         onChange={(e) => {
-          const next = e.target.value.replace(/[^\d./]/g, "").slice(0, 5);
-          setText(next);
-          setError(false);
-          const parsed = parseDdMm(next);
-          if (parsed) {
-            onChange(parsed.day, parsed.month);
-            // полная дата вида 23.08 — сразу запоминаем
-            if (/^\d{2}\.\d{2}$/.test(next)) {
-              onCommit?.(parsed.day, parsed.month);
-            }
+          const digits = e.target.value.replace(/\D/g, "").slice(0, 2);
+          setDayText(digits);
+          if (digits.length === 2) monthRef.current?.focus();
+        }}
+        onBlur={() => finishDay(dayText)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            finishDay(dayText);
+            monthRef.current?.focus();
           }
         }}
-        onBlur={() => commit(text)}
-        aria-label="DD.MM"
+      />
+      <span className={styles.dot} aria-hidden>
+        .
+      </span>
+      <input
+        ref={monthRef}
+        className={styles.slot}
+        inputMode="numeric"
+        maxLength={2}
+        placeholder="07"
+        value={monthText}
+        aria-label="Месяц"
+        onChange={(e) => {
+          const digits = e.target.value.replace(/\D/g, "").slice(0, 2);
+          setMonthText(digits);
+          if (digits.length === 2) {
+            const d = Number(dayText.replace(/\D/g, "") || day);
+            apply(d, Number(digits), dayText.replace(/\D/g, "").length >= 1);
+          }
+        }}
+        onBlur={() => finishMonth(monthText)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            finishMonth(monthText);
+          }
+          if (e.key === "Backspace" && monthText.length === 0) {
+            e.preventDefault();
+            dayRef.current?.focus();
+          }
+        }}
       />
     </div>
   );
