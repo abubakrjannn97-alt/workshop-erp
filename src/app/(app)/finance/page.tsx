@@ -10,7 +10,8 @@ import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
 import { FormField } from "@/components/form-field";
 import { AppSelect } from "@/components/app-select";
-import Link from "next/link";
+import { Banknote, Layers, Wallet } from "lucide-react";
+import { ICON_STROKE } from "@/components/nav-icons";
 import styles from "./finance.module.css";
 
 export default async function FinancePage() {
@@ -35,6 +36,7 @@ export default async function FinancePage() {
   const allocated = fundBalances.reduce((s, f) => s.add(f.balance), D(0));
   const supplierDebt = purchaseDebts.reduce((s, o) => s.add(D(String(o.total)).sub(o.paidAmount)), D(0));
   const otherDebt = obligations.reduce((s, o) => s.add(D(String(o.amount)).sub(o.paidAmount)), D(0));
+  const totalDebt = supplierDebt.add(otherDebt);
 
   async function expenseAction(formData: FormData) { "use server"; await createExpense(formData); }
   async function transferAction(formData: FormData) { "use server"; await transferCash(formData); }
@@ -51,28 +53,47 @@ export default async function FinancePage() {
           <h1 className={styles.title}>{t("page.finance")}</h1>
           <p className={styles.subtitle}>{t("fin.hint")}</p>
         </div>
-        <div className={styles.headerActions}>
-          <Link href="/finance/expenses" className={styles.ghostLink}>{t("nav.expenses")}</Link>
-          <Link href="/finance/reports" className={styles.ghostLink}>{t("nav.reports")}</Link>
-        </div>
       </header>
 
-      {/* KPI strip */}
-      <div className={styles.kpiStrip} data-tour="fin-money">
-        <div className={styles.kpiBox}>
+      <section className={styles.kpiBoard} data-tour="fin-money" aria-label={t("page.finance")}>
+        <article className={`${styles.kpiCard} ${styles.kpiHero}`}>
+          <div className={styles.kpiTop}>
+            <span className={`${styles.kpiIcon} ${styles.kpiIconHero}`}>
+              <Wallet size={22} strokeWidth={ICON_STROKE} aria-hidden />
+            </span>
+            <span className={styles.kpiSource}>{t("fin.accounts")}</span>
+          </div>
           <p className={styles.kpiLabel}>{t("fin.physical")}</p>
-          <p className={styles.kpiValue}>{moneyDisplay(physical)} с</p>
-          <p className={styles.kpiHint}>{t("home.period")}</p>
-        </div>
-        <div className={styles.kpiBox}>
+          <p className={styles.kpiHeroValue}>{moneyDisplay(physical)} с</p>
+          <p className={styles.kpiHint}>{t("fin.physicalHint")}</p>
+        </article>
+
+        <article className={`${styles.kpiCard} ${styles.kpiSoft}`}>
+          <div className={styles.kpiTop}>
+            <span className={`${styles.kpiIcon} ${styles.kpiIconSoft}`}>
+              <Layers size={20} strokeWidth={ICON_STROKE} aria-hidden />
+            </span>
+            <span className={styles.kpiSource}>{t("fin.funds")}</span>
+          </div>
           <p className={styles.kpiLabel}>{t("fin.byFunds")}</p>
           <p className={styles.kpiValue}>{moneyDisplay(allocated)} с</p>
-        </div>
-        <div className={styles.kpiBox}>
+          <p className={styles.kpiHint}>{t("fin.byFundsHint")}</p>
+        </article>
+
+        <article className={`${styles.kpiCard} ${styles.kpiWarn}`}>
+          <div className={styles.kpiTop}>
+            <span className={`${styles.kpiIcon} ${styles.kpiIconWarn}`}>
+              <Banknote size={20} strokeWidth={ICON_STROKE} aria-hidden />
+            </span>
+            <span className={styles.kpiSource}>{t("fin.obligations")}</span>
+          </div>
           <p className={styles.kpiLabel}>{t("fin.supplierDebt")}</p>
-          <p className={supplierDebt.add(otherDebt).gt(0) ? styles.kpiValueBad : styles.kpiValue}>{moneyDisplay(supplierDebt.add(otherDebt))} с</p>
-        </div>
-      </div>
+          <p className={totalDebt.gt(0) ? `${styles.kpiValue} ${styles.kpiValueWarn}` : styles.kpiValue}>
+            {moneyDisplay(totalDebt)} с
+          </p>
+          <p className={styles.kpiHint}>{t("fin.supplierDebtHint")}</p>
+        </article>
+      </section>
 
       {/* Accounts + Funds */}
       <div className={styles.twoCol}>
