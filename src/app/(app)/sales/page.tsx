@@ -56,11 +56,9 @@ export default async function SalesPage() {
           <>
             <div className={styles.tableWrap}>
               <table className={styles.table}><thead><tr><th>{t("home.col.customer")}</th><th className={styles.thRight}>{t("common.debt")}</th><th>{t("home.col.status")}</th></tr></thead>
-                <tbody>
-                  <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={8}>
-                    {unpaid.map((o) => (<tr key={o.id}><td><Link href={`/orders/${o.id}`} className={styles.tdLink}>{o.customer.name}</Link></td><td className={`${styles.tdRight} ${styles.tdBad}`}>{moneyDisplay(D(String(o.total)).sub(o.paidAmount))} с</td><td><StatusBadge label={t(`pay.${o.paymentStatus}`)} tone={payTone(o.paymentStatus)} /></td></tr>))}
-                  </RevealList>
-                </tbody>
+                <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={8}>
+                  {unpaid.map((o) => (<tr key={o.id}><td><Link href={`/orders/${o.id}`} className={styles.tdLink}>{o.customer.name}</Link></td><td className={`${styles.tdRight} ${styles.tdBad}`}>{moneyDisplay(D(String(o.total)).sub(o.paidAmount))} с</td><td><StatusBadge label={t(`pay.${o.paymentStatus}`)} tone={payTone(o.paymentStatus)} /></td></tr>))}
+                </RevealList>
               </table>
             </div>
             <ul className={styles.mobileList}>{unpaid.map((o) => (<li key={o.id}><Link href={`/orders/${o.id}`} className={styles.mobileCard}><span className={styles.mobileName}>{o.customer.name}</span><p className={styles.mobileMeta}>{moneyDisplay(D(String(o.total)).sub(o.paidAmount))} с · <StatusBadge label={t(`pay.${o.paymentStatus}`)} tone={payTone(o.paymentStatus)} /></p></Link></li>))}</ul>
@@ -74,11 +72,9 @@ export default async function SalesPage() {
           <>
             <div className={styles.tableWrap}>
               <table className={styles.table}><thead><tr><th>{t("home.col.customer")}</th><th className={styles.thRight}>{t("home.col.amount")}</th><th>{t("home.col.status")}</th></tr></thead>
-                <tbody>
-                  <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={8}>
-                    {orders.map((o) => (<tr key={o.id}><td><Link href={`/orders/${o.id}`} className={styles.tdLink}>{o.customer.name}</Link></td><td className={styles.tdRight}>{moneyDisplay(o.total)} с</td><td><StatusBadge label={n("ostatus", o.status.code, o.status.name)} tone={orderTone(o.status.code)} /></td></tr>))}
-                  </RevealList>
-                </tbody>
+                <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={8}>
+                  {orders.map((o) => (<tr key={o.id}><td><Link href={`/orders/${o.id}`} className={styles.tdLink}>{o.customer.name}</Link></td><td className={styles.tdRight}>{moneyDisplay(o.total)} с</td><td><StatusBadge label={n("ostatus", o.status.code, o.status.name)} tone={orderTone(o.status.code)} /></td></tr>))}
+                </RevealList>
               </table>
             </div>
             <ul className={styles.mobileList}>{orders.map((o) => (<li key={o.id}><Link href={`/orders/${o.id}`} className={styles.mobileCard}><span className={styles.mobileName}>{o.customer.name}</span><p className={styles.mobileMeta}>{moneyDisplay(o.total)} с · <StatusBadge label={n("ostatus", o.status.code, o.status.name)} tone={orderTone(o.status.code)} /></p></Link></li>))}</ul>
