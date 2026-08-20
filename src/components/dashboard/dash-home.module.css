@@ -248,7 +248,7 @@
 .homeDesktop .actionsDesktop .action {
   flex: initial;
   min-height: 0;
-  height: auto;
+  height: 100%;
   gap: 6px;
   padding: 10px 8px;
   border-radius: 10px;
@@ -275,6 +275,10 @@
   font-size: 11px;
   font-weight: 600;
   line-height: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .homeDesktop .table th {
