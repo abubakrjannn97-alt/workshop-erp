@@ -45,10 +45,30 @@
 /* ─── Alert lists ─── */
 .alertList { margin: 0; padding: 0 12px 12px; list-style: none; }
 .alertItem,
-.alertItemLink { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 6px; border-bottom: 1px solid var(--line); color: inherit; text-decoration: none; }
+.alertItemLink { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 12px 6px; border-bottom: 1px solid var(--line); color: inherit; text-decoration: none; }
 .alertItem:last-child,
 .alertItemLink:last-child { border-bottom: 0; }
 .alertItemLink:hover { background: #fafbfc; }
+.shortageBuy {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  min-width: 140px;
+  flex-shrink: 0;
+}
+.shortagePrice {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+.shortagePrice .ui-input {
+  min-height: 36px;
+  font-size: 13px;
+}
 .alertMain { min-width: 0; flex: 1; }
 .alertName { margin: 0; font-size: 14px; font-weight: 600; line-height: 20px; color: var(--ink); }
 .alertMeta { margin: 3px 0 0; font-size: 12px; line-height: 16px; color: var(--ink-2); font-variant-numeric: tabular-nums; }

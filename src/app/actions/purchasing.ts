@@ -168,7 +168,11 @@ export async function receivePurchaseOrder(formData: FormData) {
         });
         await tx.material.update({
           where: { id: item.materialId },
-          data: { packagePrice: money(packagePrice) },
+          data: {
+            packagePrice: money(packagePrice),
+            lastPurchasePrice: qty(item.unitPrice),
+            averagePurchasePrice: qty(item.unitPrice),
+          },
         });
       }
       const nextStatus = allFullyReceived ? "POSTED" : "PARTIAL";
@@ -194,6 +198,7 @@ export async function receivePurchaseOrder(formData: FormData) {
   revalidatePath(`/purchasing/${id}`);
   revalidatePath("/warehouse");
   revalidatePath("/materials");
+  revalidatePath("/products");
   return { ok: true };
 }
 
@@ -288,17 +293,77 @@ export async function createPurchaseFromShortage(formData: FormData) {
   const supplierId = String(formData.get("supplierId") ?? "");
   const materialId = String(formData.get("materialId") ?? "");
   const quantity = String(formData.get("quantity") ?? "");
+  const unitPriceRaw = String(formData.get("unitPrice") ?? "").trim();
   if (!supplierId || !materialId) return { error: "Нужны поставщик и материал." };
   const material = await prisma.material.findUnique({ where: { id: materialId } });
   if (!material) return { error: "Материал не найден." };
   if (!quantity || D(quantity).lte(0)) return { error: "Количество должно быть больше 0." };
-  const unitPrice = material.lastPurchasePrice ?? D(String(material.packagePrice)).div(material.packageWeight);
+
+  let unitPrice = unitPriceRaw;
+  if (!unitPrice || D(unitPrice).lte(0)) {
+    const fallback = material.lastPurchasePrice ?? D(String(material.packagePrice)).div(material.packageWeight);
+    unitPrice = qty(fallback);
+  }
+  if (!/^\d+(\.\d{1,6})?$/.test(unitPrice) || D(unitPrice).lte(0)) {
+    return { error: "Укажите цену сырья за единицу." };
+  }
+
   formData.set("comment", "Заявка по дефициту / минимуму");
-  formData.set("unitPrice", qty(unitPrice));
+  formData.set("unitPrice", unitPrice);
   void session;
   const result = await createPurchaseOrder(formData);
   if (result?.ok && result.id) {
     redirect(`/purchasing/${result.id}`);
   }
   return result;
+}
+
+/** Update line prices on a REQUEST purchase (e.g. after buying shortage). */
+export async function updatePurchaseItemPrices(formData: FormData) {
+  const session = await requirePermission("purchasing.manage");
+  const id = String(formData.get("id") ?? "");
+  const order = await prisma.purchaseOrder.findUnique({
+    where: { id },
+    include: { items: true },
+  });
+  if (!order) return { error: "Заявка не найдена." };
+  if (order.status !== "REQUEST" && order.status !== "ORDERED") {
+    return { error: "Цены можно менять до оприходования." };
+  }
+
+  const itemIds = formData.getAll("itemId").map(String);
+  const unitPrices = formData.getAll("unitPrice").map(String);
+  if (itemIds.length === 0) return { error: "Нет позиций." };
+
+  let total = D(0);
+  for (let i = 0; i < itemIds.length; i++) {
+    const itemId = itemIds[i];
+    const unitPrice = unitPrices[i] ?? "";
+    if (!/^\d+(\.\d{1,6})?$/.test(unitPrice) || D(unitPrice).lt(0)) {
+      return { error: "Проверьте цены." };
+    }
+    const item = order.items.find((row) => row.id === itemId);
+    if (!item) return { error: "Позиция не найдена." };
+    const amount = D(String(item.quantity)).mul(unitPrice);
+    total = total.add(amount);
+    await prisma.purchaseItem.update({
+      where: { id: itemId },
+      data: { unitPrice, amount: money(amount) },
+    });
+  }
+
+  await prisma.purchaseOrder.update({
+    where: { id },
+    data: { total: money(total) },
+  });
+  await writeAudit({
+    userId: session.user.id,
+    action: "purchase.prices",
+    entityType: "purchase_order",
+    entityId: id,
+    newValue: { total: money(total) },
+  });
+  revalidatePath("/purchasing");
+  revalidatePath(`/purchasing/${id}`);
+  return { ok: true };
 }

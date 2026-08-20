@@ -29,7 +29,6 @@ type RecipeRow = {
   materialId: string;
   quantity: string;
   unitId: string;
-  unitPrice: string;
 };
 
 export function ProductCreateWizard({
@@ -59,7 +58,7 @@ export function ProductCreateWizard({
   const [pending, startTransition] = useTransition();
   const [nextKey, setNextKey] = useState(1);
   const [rows, setRows] = useState<RecipeRow[]>([
-    { key: 0, materialId: "", quantity: "", unitId: units[0]?.id ?? "", unitPrice: "" },
+    { key: 0, materialId: "", quantity: "", unitId: units[0]?.id ?? "" },
   ]);
   const [price, setPrice] = useState("");
   const [minPrice, setMinPrice] = useState("");
@@ -77,9 +76,11 @@ export function ProductCreateWizard({
     let total = D(0);
     let ok = false;
     for (const row of rows) {
-      if (!row.materialId || !row.quantity || !row.unitPrice) continue;
+      if (!row.materialId || !row.quantity) continue;
+      const unitPrice = materialMap.get(row.materialId)?.unitCost;
+      if (!unitPrice) continue;
       try {
-        const line = D(row.unitPrice || "0").mul(row.quantity || "0");
+        const line = D(unitPrice).mul(row.quantity || "0");
         if (line.gte(0) && D(row.quantity || "0").gt(0)) {
           total = total.add(line);
           ok = true;
@@ -89,7 +90,7 @@ export function ProductCreateWizard({
       }
     }
     return ok ? total : null;
-  }, [rows]);
+  }, [rows, materialMap]);
 
   function onPickFile(file: File | null) {
     if (!file) return;
@@ -147,7 +148,6 @@ export function ProductCreateWizard({
       fd.append("materialId", row.materialId);
       fd.append("quantity", row.quantity);
       fd.append("unitId", row.unitId || materialMap.get(row.materialId)?.storageUnitId || "");
-      fd.append("unitPrice", row.unitPrice || "0");
     }
 
     startTransition(async () => {
@@ -247,15 +247,16 @@ export function ProductCreateWizard({
 
           <ul className={styles.recipeList}>
             {rows.map((row, index) => {
+              const mat = materialMap.get(row.materialId);
+              const unitPrice = mat?.unitCost ?? null;
               let line: string | null = null;
               try {
-                if (row.unitPrice && row.quantity) {
-                  line = moneyDisplay(D(row.unitPrice).mul(row.quantity));
+                if (unitPrice && row.quantity) {
+                  line = moneyDisplay(D(unitPrice).mul(row.quantity));
                 }
               } catch {
                 line = null;
               }
-              const mat = materialMap.get(row.materialId);
               return (
                 <li key={row.key} className={styles.recipeRow}>
                   <AppSelect
@@ -269,7 +270,6 @@ export function ProductCreateWizard({
                                 ...r,
                                 materialId: value,
                                 unitId: m?.storageUnitId ?? r.unitId,
-                                unitPrice: m?.unitCost ? moneyDisplay(m.unitCost) : r.unitPrice,
                               }
                             : r,
                         ),
@@ -305,20 +305,14 @@ export function ProductCreateWizard({
                         }}
                       />
                     </label>
-                    <label className={styles.miniLabel}>
+                    <div className={styles.miniLabel}>
                       {t("products.matUnitPrice")}
                       {mat ? ` / ${mat.storageSymbol}` : ""}
-                      <input
-                        className="ui-input"
-                        inputMode="decimal"
-                        placeholder={t("products.matUnitPricePh")}
-                        value={row.unitPrice}
-                        onChange={(e) => {
-                          const p = e.target.value;
-                          setRows((prev) => prev.map((r, i) => (i === index ? { ...r, unitPrice: p } : r)));
-                        }}
-                      />
-                    </label>
+                      <div className={styles.costCell}>
+                        {unitPrice ? `${moneyDisplay(unitPrice)} с` : t("products.noPrice")}
+                        {!unitPrice && mat ? <small>{t("products.matPriceFromBuy")}</small> : null}
+                      </div>
+                    </div>
                   </div>
                   <p className={styles.lineSum}>
                     {t("products.lineCost")}: <strong>{line ? `${line} с` : "—"}</strong>
@@ -339,7 +333,6 @@ export function ProductCreateWizard({
                   materialId: "",
                   quantity: "",
                   unitId: units[0]?.id ?? "",
-                  unitPrice: "",
                 },
               ]);
               setNextKey((k) => k + 1);

@@ -5,6 +5,7 @@ import { requirePermission, hasPermission } from "@core/auth/authz";
 import { WarehouseNav } from "@/components/warehouse-nav";
 import { qtyDisplay } from "@core/shared/decimal";
 import { D } from "@core/shared/decimal";
+import { unitCost } from "@core/costing/costing";
 import { createPurchaseFromShortage } from "@/app/actions/purchasing";
 import { getRawWarehouse } from "@/core/config/resolve-warehouse";
 import { WarehouseMetrics } from "./warehouse-metrics";
@@ -99,11 +100,28 @@ export default async function WarehousePage() {
                     </p>
                   </div>
                   {canBuy && suppliers[0] && need.gt(0) ? (
-                    <form action={createPurchaseFromShortage}>
+                    <form action={createPurchaseFromShortage} className={styles.shortageBuy}>
                       <input type="hidden" name="supplierId" value={suppliers[0].id} />
                       <input type="hidden" name="materialId" value={material.id} />
                       <input type="hidden" name="quantity" value={need.toFixed(6)} />
-                      <button type="submit" className={styles.actionBtn}>{t("wh.poRequest")}</button>
+                      <label className={styles.shortagePrice}>
+                        <span>{t("wh.buyPrice")}</span>
+                        <input
+                          name="unitPrice"
+                          className="ui-input"
+                          inputMode="decimal"
+                          required
+                          placeholder={t("wh.buyPricePh", { unit: material.storageUnit.symbol })}
+                          defaultValue={
+                            material.lastPurchasePrice
+                              ? String(material.lastPurchasePrice)
+                              : unitCost(material.packagePrice, material.packageWeight)?.toFixed(4) ?? ""
+                          }
+                        />
+                      </label>
+                      <button type="submit" className="ui-btn-secondary min-h-[36px] text-sm">
+                        {t("wh.poRequest")}
+                      </button>
                     </form>
                   ) : null}
                 </li>
