@@ -15,7 +15,7 @@
 
 .title {
   margin: 0;
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 750;
   line-height: 1.15;
   letter-spacing: -0.03em;
@@ -23,9 +23,9 @@
 }
 
 .subtitle {
-  margin: 6px 0 0;
+  margin: 4px 0 0;
   max-width: 36rem;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.4;
   color: var(--ink-2);
 }
@@ -38,19 +38,19 @@
 .report {
   position: relative;
   overflow: hidden;
-  padding: 20px 18px 18px;
-  border-radius: 18px;
+  padding: 14px 16px 12px;
+  border-radius: 14px;
   border: 1px solid transparent;
   color: #f7f4ee;
   background:
     radial-gradient(120% 90% at 100% 0%, rgba(184, 149, 74, 0.24) 0%, transparent 55%),
     linear-gradient(155deg, #1c232b 0%, #2a3340 55%, #1c232b 100%);
-  box-shadow: 0 16px 36px rgba(28, 35, 43, 0.18);
+  box-shadow: 0 8px 20px rgba(28, 35, 43, 0.14);
 }
 
 .reportEyebrow {
   margin: 0;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -58,18 +58,18 @@
 }
 
 .reportRange {
-  margin: 6px 0 0;
-  font-size: 14px;
+  margin: 4px 0 0;
+  font-size: 12px;
   font-weight: 600;
   color: rgba(247, 244, 238, 0.72);
   text-transform: capitalize;
 }
 
 .reportTotal {
-  margin: 10px 0 0;
-  font-size: clamp(30px, 7vw, 40px);
+  margin: 8px 0 0;
+  font-size: clamp(22px, 4vw, 28px);
   font-weight: 750;
-  line-height: 1.05;
+  line-height: 1.1;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
   color: #fff;
@@ -78,9 +78,9 @@
 .reportMeta {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 16px;
-  padding-top: 14px;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 

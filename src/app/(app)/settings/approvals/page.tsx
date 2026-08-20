@@ -13,6 +13,19 @@ function approvalTone(status: string) {
   return "neutral" as const;
 }
 
+function approvalStatusLabel(t: (k: string) => string, status: string) {
+  if (status === "APPROVED") return t("set.apprApproved");
+  if (status === "REJECTED") return t("set.apprRejected");
+  if (status === "PENDING") return t("set.apprPending");
+  return status;
+}
+
+function approvalTypeLabel(t: (k: string) => string, type: string) {
+  const key = `set.apprType.${type}` as const;
+  const mapped = t(key);
+  return mapped === key ? type : mapped;
+}
+
 export default async function ApprovalsPage() {
   const { t, locale } = await getTranslator();
   const session = await requirePermission("audit.view");
@@ -34,18 +47,22 @@ export default async function ApprovalsPage() {
         <div className={styles.headerText}><h1 className={styles.title}>{t("set.approvalsTitle")}</h1></div>
       </header>
 
-      <section className={styles.section}>
-        <div className={styles.sectionHead}><h2 className={styles.sectionTitle}>{t("set.pending")}</h2></div>
-        <div className={styles.sectionBody}>
-          {pending.length === 0 ? (
-            <p style={{ fontSize: 14, color: "var(--ink-3)" }}>{t("set.noRequests")}</p>
-          ) : (
+      {pending.length > 0 ? (
+        <section className={styles.section}>
+          <div className={styles.sectionHead}><h2 className={styles.sectionTitle}>{t("set.pending")}</h2></div>
+          <div className={styles.sectionBody}>
             <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
               {pending.map((a) => (
-                <li key={a.id} style={{ padding: 12, border: "1px solid var(--line)", borderRadius: 10, marginBottom: 10 }}>
+                <li key={a.id} style={{ padding: 12, border: "1px solid var(--line)", borderRadius: 10, marginBottom: 10, background: "#fff" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", alignItems: "flex-start" }}>
-                    <div><p style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)" }}>{a.title}</p><p style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 2 }}>{a.type} · {a.createdAt.toLocaleString(intlLocale(locale))}{a.reason ? ` · ${a.reason}` : ""}</p></div>
-                    <StatusBadge label={a.status} tone={approvalTone(a.status)} />
+                    <div>
+                      <p style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)" }}>{a.title}</p>
+                      <p style={{ fontSize: 12, color: "var(--ink-2)", marginTop: 2 }}>
+                        {approvalTypeLabel(t, a.type)} · {a.createdAt.toLocaleString(intlLocale(locale))}
+                        {a.reason ? ` · ${a.reason}` : ""}
+                      </p>
+                    </div>
+                    <StatusBadge label={approvalStatusLabel(t, a.status)} tone={approvalTone(a.status)} />
                   </div>
                   {canDecide ? (
                     <div className="mt-2 flex flex-wrap gap-2">
@@ -56,9 +73,9 @@ export default async function ApprovalsPage() {
                 </li>
               ))}
             </ul>
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
+      ) : null}
 
       {canDecide ? (
         <section className={styles.section}>
@@ -69,7 +86,7 @@ export default async function ApprovalsPage() {
               <FormField label={t("home.periodMonth")} className="min-w-[5rem]"><input name="month" defaultValue={String(now.getMonth() + 1)} className="ui-input" inputMode="numeric" /></FormField>
               <button type="submit" className="ui-btn-primary min-h-[44px]">{t("set.closeMonth")}</button>
             </form>
-            <ul style={{ marginTop: 12, fontSize: 12, color: "var(--ink-3)", listStyle: "none", padding: 0 }}>
+            <ul style={{ marginTop: 12, fontSize: 12, color: "var(--ink-2)", listStyle: "none", padding: 0 }}>
               {periods.map((p) => (
                 <li key={p.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
                   <span>
@@ -98,13 +115,34 @@ export default async function ApprovalsPage() {
         ) : (
           <div className={styles.tableWrap}>
             <table className={styles.table}>
-              <thead><tr><th>{t("common.status")}</th><th>{t("list.col.what")}</th><th className={styles.thRight}>{t("list.col.when")}</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>{t("common.status")}</th>
+                  <th>{t("list.col.what")}</th>
+                  <th className={styles.thRight}>{t("list.col.when")}</th>
+                </tr>
+              </thead>
               <tbody>
                 {recent.map((a) => (
                   <tr key={a.id}>
-                    <td><StatusBadge label={a.status} tone={approvalTone(a.status)} /></td>
-                    <td><span className={styles.tdBold}>{a.title}</span><p className={styles.tdMuted}>{a.type}</p></td>
-                    <td className={styles.tdRight} style={{ fontSize: 12, color: "var(--ink-3)" }}>{a.createdAt.toLocaleString(intlLocale(locale))}</td>
+                    <td>
+                      <StatusBadge label={approvalStatusLabel(t, a.status)} tone={approvalTone(a.status)} />
+                    </td>
+                    <td>
+                      <span className={styles.tdBold}>{a.title}</span>
+                      <p className={styles.tdMuted} style={{ color: "var(--ink-2)" }}>
+                        {approvalTypeLabel(t, a.type)}
+                      </p>
+                    </td>
+                    <td className={styles.tdRight} style={{ fontSize: 12, color: "var(--ink-2)", fontWeight: 500 }}>
+                      {a.createdAt.toLocaleString(intlLocale(locale), {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </td>
                   </tr>
                 ))}
               </tbody>

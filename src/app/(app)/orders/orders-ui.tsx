@@ -241,12 +241,10 @@ export function OrdersFilterToolbar({
 
 export function OrdersListPanel({
   orders,
-  orderNo,
   moneyDisplay,
   statusLabel,
   attentionLabel,
   productMoreLabel,
-  colOrder,
   colCustomer,
   colProduct,
   colStatus,
@@ -254,12 +252,10 @@ export function OrdersListPanel({
   pagination,
 }: {
   orders: OrderListItem[];
-  orderNo: (n: number) => string;
   moneyDisplay: (v: string) => string;
   statusLabel: (code: string, name: string) => string;
   attentionLabel: string;
   productMoreLabel: (extra: number) => string;
-  colOrder: string;
   colCustomer: string;
   colProduct: string;
   colStatus: string;
@@ -277,7 +273,6 @@ export function OrdersListPanel({
   return (
     <section className={styles.listPanel} data-tour="orders-list">
       <div className={styles.tableHead}>
-        <span>{colOrder}</span>
         <span>{colCustomer}</span>
         <span>{colProduct}</span>
         <span className={styles.tableHeadRight}>{colStatus}</span>
@@ -295,7 +290,6 @@ export function OrdersListPanel({
                 href={`/orders/${order.id}`}
                 className={`${styles.tableRow} ${overdue ? styles.tableRowAttention : ""}`.trim()}
               >
-                <span className={styles.orderNo}>{orderNo(order.number)}</span>
                 <span className={styles.customerName}>{order.customer.name}</span>
                 <span className={styles.productName}>{productSummary(order, productMoreLabel)}</span>
                 <span className={styles.statusCell}>

@@ -3,7 +3,6 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { hasPermission } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
-import { orderNo } from "@core/shared/format";
 import {
   ORDERS_PAGE_SIZE,
   buildOrdersQuery,
@@ -227,12 +226,10 @@ export default async function OrdersPage({
       ) : (
         <OrdersListPanel
           orders={listOrders}
-          orderNo={orderNo}
           moneyDisplay={moneyDisplay}
           statusLabel={statusLabel}
           attentionLabel={t("orders.attention")}
           productMoreLabel={productMoreLabel}
-          colOrder={t("home.col.order")}
           colCustomer={t("home.col.customer")}
           colProduct={t("home.col.product")}
           colStatus={t("home.col.status")}

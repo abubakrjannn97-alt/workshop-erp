@@ -1,19 +1,24 @@
 .wrap {
   position: relative;
   width: 100%;
+  z-index: 1;
+}
+
+.wrap:has([aria-expanded="true"]) {
+  z-index: 90;
 }
 
 .trigger {
   display: flex;
   width: 100%;
-  min-height: 44px;
+  min-height: 40px;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   padding: 0 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius-control);
-  background: var(--surface);
+  background: #fff;
   font-size: 14px;
   font-weight: 500;
   color: var(--ink);
@@ -60,16 +65,24 @@
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  z-index: 80;
+  z-index: 100;
   margin: 0;
-  max-height: min(240px, 42vh);
+  max-height: min(220px, 40vh);
   overflow-y: auto;
   list-style: none;
   padding: 4px;
-  border: 1px solid var(--line);
+  border: 1px solid #e5e2dc;
   border-radius: 12px;
-  background: var(--surface);
-  box-shadow: 0 8px 24px rgba(28, 35, 43, 0.1);
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(28, 35, 43, 0.14);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.menu::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .option,
@@ -82,14 +95,14 @@
   border-radius: 8px;
   background: transparent;
   text-align: left;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--ink);
   cursor: pointer;
 }
 
 .option:hover {
-  background: var(--surface-2);
+  background: #f4f2ee;
 }
 
 .optionActive {

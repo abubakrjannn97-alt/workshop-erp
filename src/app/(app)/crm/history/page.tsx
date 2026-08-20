@@ -8,9 +8,7 @@ import { orderNo } from "@core/shared/format";
 import { PageHeader } from "@/components/page-header";
 import { DashKpiGrid } from "@/components/dashboard/dashboard-system";
 import { KpiCard } from "@/components/kpi-card";
-import { FormField } from "@/components/form-field";
 import { DashPanel } from "@/components/dash-panel";
-import { ModuleToolbar } from "@/components/module/module-ui";
 import {
   DataList,
   DataListEmpty,
@@ -27,29 +25,18 @@ import { StatusBadge, orderTone } from "@/components/status-badge";
 export default async function CrmHistoryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ customerId?: string; q?: string }>;
+  searchParams: Promise<{ customerId?: string }>;
 }) {
   const { t, n, locale } = await getTranslator();
   const session = await requirePermission("crm.view");
-  const { customerId, q } = await searchParams;
+  const { customerId } = await searchParams;
   const own = session.user.roleCode === "sales_manager" ? { managerId: session.user.id } : {};
   const loc = intlLocale(locale);
 
   const customers = customerId
     ? []
     : await prisma.customer.findMany({
-        where: {
-          archivedAt: null,
-          ...own,
-          ...(q?.trim()
-            ? {
-                OR: [
-                  { name: { contains: q.trim(), mode: "insensitive" } },
-                  { phone: { contains: q.trim(), mode: "insensitive" } },
-                ],
-              }
-            : {}),
-        },
+        where: { archivedAt: null, ...own },
         orderBy: { name: "asc" },
         take: 30,
       });
@@ -95,25 +82,9 @@ export default async function CrmHistoryPage({
       />
 
       {!customerId ? (
-        <ModuleToolbar tour="crm-history-search">
-          <FormField label={t("crm.searchCustomer")} className="min-w-[12rem] flex-1">
-            <input
-              name="q"
-              defaultValue={q ?? ""}
-              placeholder={t("crm.searchCustomer")}
-              className="ui-input w-full"
-            />
-          </FormField>
-          <button type="submit" className="ui-btn-secondary min-h-[44px]">
-            {t("common.search")}
-          </button>
-        </ModuleToolbar>
-      ) : null}
-
-      {!customerId ? (
         <DashPanel title={t("crm.pickCustomer")}>
           {customers.length === 0 ? (
-            <DataListEmpty>{q?.trim() ? t("orders.empty") : t("crm.noCustomers")}</DataListEmpty>
+            <DataListEmpty>{t("crm.noCustomers")}</DataListEmpty>
           ) : (
             <DataList layout="cols2">
               <DataListHead layout="cols2">
@@ -127,9 +98,9 @@ export default async function CrmHistoryPage({
                     <DataListCell label={t("common.open")} align="right">
                       <Link
                         href={`/crm/history?customerId=${c.id}`}
-                        className="text-[12px] font-semibold text-[#0E1522] hover:underline"
+                        className="whitespace-nowrap text-[12px] font-semibold text-[#0E1522] hover:underline"
                       >
-                        {t("crm.purchaseHistory")} →
+                        {t("common.open")} →
                       </Link>
                     </DataListCell>
                   </DataListRow>

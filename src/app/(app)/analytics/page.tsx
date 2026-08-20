@@ -5,7 +5,7 @@ import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { FUND, LEDGER, fundDelta } from "@core/finance/finance";
 import { contributionAndNet } from "@core/finance/profit";
 import { coverageAndPurchaseNeed } from "@core/inventory/alerts";
-import { resolveProductionPaySchemeCode, getDomainConfig } from "@core/config/domain-config";
+import { resolveProductionPaySchemeCode } from "@core/config/domain-config";
 import { getTranslator } from "@core/shared/i18n/locale";
 import { RevealList } from "@/components/reveal-list";
 import styles from "@/styles/premium.module.css";
@@ -13,44 +13,28 @@ import styles from "@/styles/premium.module.css";
 export default async function AnalyticsPage() {
   await requirePermission("analytics.view");
   const { t } = await getTranslator();
-  const domainConfig = await getDomainConfig();
-  const outputUnit = await prisma.unit.findUnique({ where: { code: domainConfig.product.defaultOutputUnit } });
-  const outputUnitSymbol = outputUnit?.symbol ?? t("common.unitGeneric");
   const productionSchemeCode = await resolveProductionPaySchemeCode();
   const monthStart = new Date();
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
 
-  const [monthOrders, scraps, accruals, funds, entries, overUses, cover, productItems, prodScheme] = await Promise.all([
+  const [monthOrders, scraps, accruals, funds, entries, cover, productItems, prodScheme] = await Promise.all([
     prisma.order.findMany({
       where: { createdAt: { gte: monthStart }, status: { code: { not: "CANCELLED" } } },
       include: { payments: true },
     }),
     prisma.scrapRecord.findMany({
       where: { createdAt: { gte: monthStart } },
-      include: {
-        batch: {
-          include: {
-            production: {
-              include: { order: { include: { items: { include: { product: { include: { outputUnit: true } } } } } } },
-            },
-          },
-        },
-      },
     }),
     prisma.payrollAccrual.groupBy({ by: ["kind"], where: { status: "ACCRUED" }, _sum: { amount: true } }),
     prisma.financialFund.findMany(),
     prisma.ledgerEntry.findMany({ where: { status: "POSTED" } }),
-    prisma.batchMaterialUse.findMany({
-      where: { batch: { status: "CLOSED" } },
-      include: { material: true, batch: { include: { production: { include: { order: true } } } } },
-    }),
     coverageAndPurchaseNeed(),
     prisma.orderItem.findMany({
       where: { order: { createdAt: { gte: monthStart }, status: { code: { not: "CANCELLED" } } } },
       include: {
         product: { include: { saleUnit: true } },
-        order: { include: { materials: true, payments: true } },
+        order: { include: { payments: true } },
       },
     }),
     prisma.payScheme.findUnique({ where: { code: productionSchemeCode } }),
@@ -67,10 +51,6 @@ export default async function AnalyticsPage() {
   const commission = D(String(accruals.find((a) => a.kind === "COMMISSION")?._sum.amount ?? 0));
   const scrapQty = scraps.reduce((s, r) => s.add(String(r.quantity)), D(0));
   const scrapCost = scraps.reduce((s, r) => s.add(String(r.materialCost ?? 0)), D(0));
-  const over = overUses.filter((u) => {
-    const plan = D(String(u.plannedQty));
-    return plan.gt(0) && D(String(u.actualQty)).sub(plan).div(plan).mul(100).gte(5);
-  });
   const materialCost = monthOrders.reduce((s, o) => s.add(String(o.materialCost ?? 0)), D(0));
   const expenses = entries
     .filter((e) => e.type === LEDGER.CASH_OUT && e.categoryId)
@@ -121,19 +101,6 @@ export default async function AnalyticsPage() {
     byProduct.set(key, row);
   }
 
-  const scrapByUser = new Map<string, ReturnType<typeof D>>();
-  const scrapByProduct = new Map<string, ReturnType<typeof D>>();
-  for (const r of scraps) {
-    const q = D(String(r.quantity));
-    if (r.userId) scrapByUser.set(r.userId, (scrapByUser.get(r.userId) ?? D(0)).add(q));
-    const pname = r.batch.production.order.items[0]?.product.name ?? "—";
-    scrapByProduct.set(pname, (scrapByProduct.get(pname) ?? D(0)).add(q));
-  }
-  const users = scrapByUser.size
-    ? await prisma.user.findMany({ where: { id: { in: [...scrapByUser.keys()] } } })
-    : [];
-  const userName = new Map(users.map((u) => [u.id, u.name]));
-
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -172,23 +139,42 @@ export default async function AnalyticsPage() {
 
       <section className={styles.section}>
         <div className={styles.sectionHead}>
-          <h2 className={styles.sectionTitleAccent}>{t("an.saleTotal")}</h2>
+          <h2 className={styles.sectionTitle}>{t("an.saleTotal")}</h2>
         </div>
         <div className={styles.sectionBody}>
-          <ul style={{ margin: 0, padding: 0, listStyle: "none", fontSize: 13, lineHeight: "24px", color: "var(--ink-2)" }}>
-            <li>{t("an.sale")}: {moneyDisplay(sold)} с</li>
-            <li>{t("an.receivedReal")}: {moneyDisplay(received)} с</li>
-            <li>{t("an.matCost")}: {moneyDisplay(materialCost)} с</li>
-            <li>{t("an.payroll")}: {moneyDisplay(labor)} с</li>
-            <li>{t("an.commission")}: {moneyDisplay(commission)} с</li>
-            <li>{t("an.marginProfit")}: {moneyDisplay(contribution)} с</li>
-            <li>{t("an.fixedExp")}: {moneyDisplay(expenses)} с</li>
-            <li style={{ fontWeight: 700, color: "var(--ink)" }}>{t("an.netProfit")}: {moneyDisplay(net)} с</li>
-            <li style={{ fontSize: 12, color: "var(--ink-3)" }}>
-              {t("an.profitInCash")}: {moneyDisplay(profit)} с ·{" "}
-              <Link href="/finance" className={styles.ghostLink} style={{ padding: 0, minHeight: 0 }}>
-                {t("page.finance")}
-              </Link>
+          <ul className={styles.summaryList}>
+            <li>
+              <span>{t("an.sale")}</span>
+              <strong>{moneyDisplay(sold)} с</strong>
+            </li>
+            <li>
+              <span>{t("an.receivedReal")}</span>
+              <strong>{moneyDisplay(received)} с</strong>
+            </li>
+            <li>
+              <span>{t("an.matCost")}</span>
+              <strong>{moneyDisplay(materialCost)} с</strong>
+            </li>
+            <li>
+              <span>{t("an.payroll")} + {t("an.commission")}</span>
+              <strong>{moneyDisplay(labor.add(commission))} с</strong>
+            </li>
+            <li>
+              <span>{t("an.fixedExp")}</span>
+              <strong>{moneyDisplay(expenses)} с</strong>
+            </li>
+            <li className={styles.summaryTotal}>
+              <span>{t("an.netProfit")}</span>
+              <strong>{moneyDisplay(net)} с</strong>
+            </li>
+            <li className={styles.summaryNote}>
+              <span>{t("an.profitInCash")}</span>
+              <strong>
+                {moneyDisplay(profit)} с ·{" "}
+                <Link href="/finance" className={styles.inlineLink}>
+                  {t("page.finance")}
+                </Link>
+              </strong>
             </li>
           </ul>
         </div>
@@ -205,10 +191,6 @@ export default async function AnalyticsPage() {
                 <th>{t("common.product")}</th>
                 <th className={styles.thRight}>{t("an.sold")}</th>
                 <th className={styles.thRight}>{t("an.revenue")}</th>
-                <th className={styles.thRight}>{t("an.avgPrice")}</th>
-                <th className={styles.thRight}>{t("an.materials")}</th>
-                <th className={styles.thRight}>{t("an.labor")}</th>
-                <th className={styles.thRight}>{t("an.commission")}</th>
                 <th className={styles.thRight}>{t("an.fullCost")}</th>
                 <th className={styles.thRight}>{t("an.profit")}</th>
                 <th className={styles.thRight}>{t("an.marginPct")}</th>
@@ -217,7 +199,9 @@ export default async function AnalyticsPage() {
             {[...byProduct.values()].length === 0 ? (
               <tbody>
                 <tr>
-                  <td colSpan={10} className={styles.empty}>{t("an.noSales")}</td>
+                  <td colSpan={6} className={styles.empty}>
+                    {t("an.noSales")}
+                  </td>
                 </tr>
               </tbody>
             ) : (
@@ -226,16 +210,13 @@ export default async function AnalyticsPage() {
                   const fullCost = row.materials.add(row.labor).add(row.commission);
                   const profitRow = row.revenue.sub(fullCost);
                   const margin = row.revenue.gt(0) ? profitRow.div(row.revenue).mul(100) : D(0);
-                  const avg = row.qty.gt(0) ? row.revenue.div(row.qty) : D(0);
                   return (
                     <tr key={row.name}>
                       <td className={styles.tdBold}>{row.name}</td>
-                      <td className={styles.tdRight}>{qtyDisplay(row.qty)} {row.unit}</td>
+                      <td className={styles.tdRight}>
+                        {qtyDisplay(row.qty)} {row.unit}
+                      </td>
                       <td className={styles.tdRight}>{moneyDisplay(row.revenue)}</td>
-                      <td className={styles.tdRight}>{moneyDisplay(avg)}</td>
-                      <td className={styles.tdRight}>{moneyDisplay(row.materials)}</td>
-                      <td className={styles.tdRight}>{moneyDisplay(row.labor)}</td>
-                      <td className={styles.tdRight}>{moneyDisplay(row.commission)}</td>
                       <td className={styles.tdRight}>{moneyDisplay(fullCost)}</td>
                       <td className={styles.tdRight}>{moneyDisplay(profitRow)}</td>
                       <td className={styles.tdRight}>{margin.toFixed(1)}%</td>
@@ -245,80 +226,6 @@ export default async function AnalyticsPage() {
               </RevealList>
             )}
           </table>
-        </div>
-      </section>
-
-      {over.length > 0 ? (
-        <section className={styles.section} style={{ borderColor: "var(--warn)" }}>
-          <div className={styles.sectionHead}>
-            <h2 className={styles.sectionTitleAccent}>{t("an.overuse")}</h2>
-          </div>
-          <div className={styles.sectionBody}>
-            <ul style={{ margin: 0, padding: 0, listStyle: "none", fontSize: 13, color: "var(--ink-2)" }}>
-              {over.slice(0, 20).map((u) => (
-                <li key={u.id}>
-                  #{u.batch.production.order.number}: {u.material.name} {t("orders.plan")}{" "}
-                  {qtyDisplay(u.plannedQty)}, {t("prod.actual")} {qtyDisplay(u.actualQty)}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-      ) : null}
-
-      <section className={styles.section}>
-        <div className={styles.sectionHead}>
-          <h2 className={styles.sectionTitle}>{t("an.scrapBy")}</h2>
-        </div>
-        <div className={styles.sectionBody}>
-          <p style={{ fontSize: 13, color: "var(--ink-2)" }}>{t("an.scrapHint")}</p>
-          <p style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 2 }}>{t("an.periodMonth")}</p>
-          {scrapByUser.size === 0 && scrapByProduct.size === 0 ? (
-            <p style={{ marginTop: 8, fontSize: 13, color: "var(--ink-3)" }}>{t("an.noScrap")}</p>
-          ) : (
-            <div style={{ marginTop: 12 }}>
-              {scrapByUser.size > 0 ? (
-                <div>
-                  <p style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-3)", marginBottom: 4 }}>
-                    {t("an.scrapPerson")}
-                  </p>
-                  <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-                    {[...scrapByUser.entries()].map(([id, q]) => (
-                      <li
-                        key={id}
-                        style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: 13 }}
-                      >
-                        <span>{userName.get(id) ?? id}</span>
-                        <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 600 }}>
-                          {qtyDisplay(q)} {outputUnitSymbol}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-              {scrapByProduct.size > 0 ? (
-                <div style={{ marginTop: 12 }}>
-                  <p style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-3)", marginBottom: 4 }}>
-                    {t("an.scrapProduct")}
-                  </p>
-                  <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-                    {[...scrapByProduct.entries()].map(([name, q]) => (
-                      <li
-                        key={name}
-                        style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: 13 }}
-                      >
-                        <span>{name}</span>
-                        <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 600 }}>
-                          {qtyDisplay(q)} {outputUnitSymbol}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-            </div>
-          )}
         </div>
       </section>
     </div>

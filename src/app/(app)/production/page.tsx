@@ -25,11 +25,11 @@ function productLabel(items: ProdRow["order"]["items"]) {
   return items.map((i) => i.product.name).join(", ");
 }
 
-function toRows(list: ProdRow[], scrapLabel?: string): ProductionMetricItem["rows"] {
+function toRows(list: ProdRow[], scrapOnly?: boolean): ProductionMetricItem["rows"] {
   return list.map((p) => {
-    const progress = `${qtyDisplay(p.producedQty)} / ${qtyDisplay(p.plannedQty)}`;
-    const meta =
-      scrapLabel != null ? `${progress} · ${qtyDisplay(p.scrapQty)} ${scrapLabel}` : progress;
+    const meta = scrapOnly
+      ? `${qtyDisplay(p.scrapQty)}`
+      : `${qtyDisplay(p.producedQty)} / ${qtyDisplay(p.plannedQty)}`;
     return {
       id: p.id,
       href: `/production/${p.id}`,
@@ -132,7 +132,7 @@ export default async function ProductionPage({
       hint: t("prod.kpiScrapHint"),
       tone: "warn",
       icon: "scrap",
-      rows: toRows(scrapList, t("common.scrap").toLowerCase()),
+      rows: toRows(scrapList, true),
       emptyLabel,
     },
   ];

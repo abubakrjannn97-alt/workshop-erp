@@ -348,12 +348,12 @@ body {
 
   /* Shared glass language for all desktop pages */
   .desktop-stone-shell {
-    --surface: rgba(255, 255, 255, 0.55);
-    --surface-2: rgba(255, 255, 255, 0.38);
+    --surface: rgba(255, 255, 255, 0.82);
+    --surface-2: rgba(255, 255, 255, 0.55);
     --line: var(--mobile-glass-border);
     --line-strong: #ddd9d2;
     --shadow: var(--mobile-glass-shadow);
-    --card: rgba(255, 255, 255, 0.55);
+    --card: rgba(255, 255, 255, 0.82);
     --header: rgba(255, 255, 255, 0.52);
   }
 

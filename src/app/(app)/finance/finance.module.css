@@ -158,7 +158,7 @@
 .twoCol { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
 
 /* ─── Section card ─── */
-.section { overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: 0 2px 12px rgba(28,35,43,.03); }
+.section { overflow: visible; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: 0 2px 12px rgba(28,35,43,.03); }
 .sectionHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px 12px; border-bottom: 1px solid var(--line); }
 .sectionTitle { margin: 0; font-size: 15px; font-weight: 600; line-height: 22px; color: var(--ink); }
 .sectionTitleAccent { composes: sectionTitle; color: var(--accent, #A68649); }
