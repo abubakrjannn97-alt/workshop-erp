@@ -11,9 +11,9 @@ type MobileMenuActionDef = {
 
 const OWNER_ACTIONS: MobileMenuActionDef[] = [
   { href: "/orders/new", labelKey: "sales.newOrder", icon: "plus", permission: "orders.create" },
+  { href: "/finance/expenses", labelKey: "nav.expenses", icon: "clipboard-list", permission: "finance.expense.create" },
   { href: "/production", labelKey: "home.actionStartProduction", icon: "play", permission: "production.view" },
   { href: "/warehouse", labelKey: "home.actionToWarehouse", icon: "truck", permission: "inventory.view" },
-  { href: "/analytics", labelKey: "home.actionDailyReport", icon: "chart-column", permission: "analytics.view" },
 ];
 
 const SALES_ACTIONS: MobileMenuActionDef[] = [
@@ -33,8 +33,8 @@ const WAREHOUSE_ACTIONS: MobileMenuActionDef[] = [
 ];
 
 const ACCOUNTANT_ACTIONS: MobileMenuActionDef[] = [
-  { href: "/finance", labelKey: "nav.finance", icon: "chart-column", permission: "finance.view" },
   { href: "/finance/expenses", labelKey: "nav.expenses", icon: "clipboard-list", permission: "finance.view" },
+  { href: "/finance", labelKey: "nav.finance", icon: "chart-column", permission: "finance.view" },
 ];
 
 const WORKER_ACTIONS: MobileMenuActionDef[] = [

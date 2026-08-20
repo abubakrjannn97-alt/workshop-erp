@@ -1,12 +1,17 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money } from "@core/shared/decimal";
 import { LEDGER, postLedger } from "@core/finance/finance";
+
+function normalizeAmount(value: string) {
+  return value.trim().replace(",", ".");
+}
 
 function moneyStr(value: string) {
   return z.string().regex(/^\d+(\.\d{1,4})?$/).safeParse(value).success;
@@ -15,11 +20,11 @@ function moneyStr(value: string) {
 export async function createExpense(formData: FormData) {
   const session = await requirePermission("finance.expense.create");
   const accountId = String(formData.get("accountId") ?? "");
-  const categoryId = String(formData.get("categoryId") ?? "");
-  const amount = String(formData.get("amount") ?? "");
-  const comment = String(formData.get("comment") ?? "").trim();
+  const categoryId = String(formData.get("categoryId") ?? "").trim();
+  const amount = normalizeAmount(String(formData.get("amount") ?? ""));
   const idem = String(formData.get("idempotencyKey") ?? "") || null;
-  if (!accountId || !categoryId) return { error: "Касса и категория обязательны." };
+  if (!accountId) return { error: "Выберите кассу или счёт." };
+  if (!categoryId) return { error: "Выберите категорию расхода." };
   if (!moneyStr(amount) || D(amount).lte(0)) return { error: "Сумма." };
 
   const category = await prisma.expenseCategory.findUnique({ where: { id: categoryId } });
@@ -33,7 +38,7 @@ export async function createExpense(formData: FormData) {
       accountId,
       categoryId,
       fundId: fund?.id,
-      comment: comment || category.name,
+      comment: category.name,
       createdById: session.user.id,
       idempotencyKey: idem ? `${idem}-cash` : null,
     });
@@ -43,7 +48,7 @@ export async function createExpense(formData: FormData) {
         amount: money(amount),
         fundId: fund.id,
         categoryId,
-        comment: comment || category.name,
+        comment: category.name,
         createdById: session.user.id,
         idempotencyKey: idem ? `${idem}-fund` : null,
       });
@@ -54,11 +59,11 @@ export async function createExpense(formData: FormData) {
     userId: session.user.id,
     action: "finance.expense",
     entityType: "ledger",
-    newValue: { amount, category: category.code },
+    newValue: { amount, category: category.code, accountId },
   });
   revalidatePath("/finance");
   revalidatePath("/finance/expenses");
-  return { ok: true };
+  redirect("/finance/expenses");
 }
 
 /** Cash-account transfer removed from workshop UI — kept as stub so old callers fail safely. */

@@ -21,10 +21,10 @@ export function ownerQuickActions(t: (key: string) => string): DashQuickAction[]
 export function ownerDesktopQuickActions(t: (key: string) => string): DashQuickAction[] {
   return [
     { href: "/orders/new", label: t("sales.newOrder"), icon: "plus", tone: "orange" },
+    { href: "/finance/expenses", label: t("nav.expenses"), icon: "clipboard-list", tone: "gold" },
     { href: "/production", label: t("home.actionStartProduction"), icon: "play", tone: "green" },
-    { href: "/products/new", label: t("home.actionAddProduct"), icon: "box", tone: "blue" },
     { href: "/warehouse", label: t("home.actionToWarehouse"), icon: "truck", tone: "purple" },
-    { href: "/analytics", label: t("home.actionDailyReport"), icon: "chart-column", tone: "gold" },
+    { href: "/analytics", label: t("home.actionDailyReport"), icon: "chart-column", tone: "blue" },
   ];
 }
 
@@ -38,8 +38,8 @@ export function ownerSecondaryActions(t: (key: string) => string): DashQuickActi
 export function ownerMobileQuickActions(t: (key: string) => string): DashQuickAction[] {
   return [
     { href: "/orders/new", label: t("sales.newOrder"), icon: "plus", tone: "orange" },
+    { href: "/finance/expenses", label: t("nav.expenses"), icon: "clipboard-list", tone: "gold" },
     { href: "/production", label: t("home.actionStartProduction"), icon: "play", tone: "green" },
     { href: "/warehouse", label: t("home.actionToWarehouse"), icon: "truck", tone: "purple" },
-    { href: "/analytics", label: t("home.actionDailyReport"), icon: "chart-column", tone: "gold" },
   ];
 }

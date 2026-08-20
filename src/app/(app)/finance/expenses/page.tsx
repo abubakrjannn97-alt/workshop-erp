@@ -8,7 +8,6 @@ import { FormField } from "@/components/form-field";
 import { AppSelect } from "@/components/app-select";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
-import Link from "next/link";
 import styles from "../finance.module.css";
 
 export default async function ExpensesPage() {
@@ -29,6 +28,8 @@ export default async function ExpensesPage() {
     }),
   ]);
 
+  const defaultAccountId = accounts.find((a) => a.code === "CASH")?.id ?? accounts[0]?.id ?? "";
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -36,13 +37,10 @@ export default async function ExpensesPage() {
           <h1 className={styles.title}>{t("nav.expenses")}</h1>
           <p className={styles.subtitle}>{t("fin.expensesHint")}</p>
         </div>
-        <div className={styles.headerActions}>
-          <Link href="/finance" className={styles.ghostLink}>{t("page.finance")}</Link>
-        </div>
       </header>
 
       {canExpense ? (
-        <section className={styles.section}>
+        <section className={styles.section} data-tour="fin-expense">
           <div className={styles.sectionHead}>
             <h2 className={styles.sectionTitle}>{t("fin.expense")}</h2>
           </div>
@@ -52,24 +50,25 @@ export default async function ExpensesPage() {
               <FormField label={t("fin.accounts")}>
                 <AppSelect
                   name="accountId"
-                  defaultValue={accounts[0]?.id ?? ""}
+                  defaultValue={defaultAccountId}
                   options={accounts.map((a) => ({ value: a.id, label: n("cash", a.code, a.name) }))}
                 />
               </FormField>
               <FormField label={t("fin.expenseCat")}>
                 <AppSelect
                   name="categoryId"
-                  defaultValue={categories[0]?.id ?? ""}
+                  defaultValue=""
+                  required
+                  placeholder={t("fin.pickCategory")}
                   options={categories.map((c) => ({ value: c.id, label: c.name }))}
                 />
               </FormField>
               <FormField label={`${t("common.amount")}, с`}>
-                <input name="amount" required inputMode="decimal" className="ui-input" />
+                <input name="amount" required inputMode="decimal" placeholder={t("common.amount")} className="ui-input" />
               </FormField>
-              <FormField label={t("common.comment")}>
-                <input name="comment" className="ui-input" />
-              </FormField>
-              <PendingButton className="ui-btn-primary min-h-[44px] w-full" pendingLabel={t("common.sending")}>{t("fin.postExpense")}</PendingButton>
+              <PendingButton className="ui-btn-primary min-h-[44px] w-full" pendingLabel={t("common.sending")}>
+                {t("fin.postExpense")}
+              </PendingButton>
             </form>
           </div>
         </section>

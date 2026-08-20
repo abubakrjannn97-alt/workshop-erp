@@ -3,15 +3,11 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { cashDelta, fundDelta, FUND } from "@core/finance/finance";
-import { createExpense, createExpenseCategory } from "@/app/actions/finance";
 import { RevealList } from "@/components/reveal-list";
-import { IdempotencyField } from "@/components/idempotency-field";
-import { PendingButton } from "@/components/pending-button";
-import { FormField } from "@/components/form-field";
-import { AppSelect } from "@/components/app-select";
-import { Banknote, Layers, Wallet } from "lucide-react";
+import { Banknote, Layers, Receipt, Wallet } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import { FinanceDebts } from "./finance-debts";
+import Link from "next/link";
 import styles from "./finance.module.css";
 
 export default async function FinancePage() {
@@ -19,10 +15,9 @@ export default async function FinancePage() {
   const session = await requirePermission("finance.view");
   const canExpense = hasPermission(session.user.permissions, session.user.roleCode, "finance.expense.create");
 
-  const [accounts, funds, categories, entries, purchaseDebts] = await Promise.all([
+  const [accounts, funds, entries, purchaseDebts] = await Promise.all([
     prisma.cashAccount.findMany({ where: { archivedAt: null }, orderBy: { code: "asc" } }),
     prisma.financialFund.findMany({ orderBy: { sortOrder: "asc" } }),
-    prisma.expenseCategory.findMany({ where: { archivedAt: null }, orderBy: { name: "asc" } }),
     prisma.ledgerEntry.findMany({ where: { status: "POSTED" }, orderBy: { createdAt: "desc" } }),
     prisma.purchaseOrder.findMany({ where: { status: { not: "CANCELLED" } }, include: { supplier: true } }),
   ]);
@@ -33,9 +28,6 @@ export default async function FinancePage() {
   const allocated = fundBalances.reduce((s, f) => s.add(f.balance), D(0));
   const supplierDebt = purchaseDebts.reduce((s, o) => s.add(D(String(o.total)).sub(o.paidAmount)), D(0));
 
-  async function expenseAction(formData: FormData) { "use server"; await createExpense(formData); }
-  async function categoryAction(formData: FormData) { "use server"; await createExpenseCategory(formData); }
-
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -43,6 +35,14 @@ export default async function FinancePage() {
           <h1 className={styles.title}>{t("page.finance")}</h1>
           <p className={styles.subtitle}>{t("fin.hint")}</p>
         </div>
+        {canExpense ? (
+          <div className={styles.headerActions}>
+            <Link href="/finance/expenses" className="ui-btn-primary min-h-[44px] inline-flex items-center gap-2">
+              <Receipt size={18} strokeWidth={ICON_STROKE} aria-hidden />
+              {t("nav.expenses")}
+            </Link>
+          </div>
+        ) : null}
       </header>
 
       <section className={styles.kpiBoard} data-tour="fin-money" aria-label={t("page.finance")}>
@@ -85,7 +85,6 @@ export default async function FinancePage() {
         </article>
       </section>
 
-      {/* Accounts + Funds */}
       <div className={styles.twoCol}>
         <section className={styles.section}>
           <div className={styles.sectionHead}>
@@ -119,66 +118,6 @@ export default async function FinancePage() {
         </section>
       </div>
 
-      {canExpense ? (
-        <section className={styles.section} data-tour="fin-expense">
-          <div className={styles.sectionHead}>
-            <h2 className={styles.sectionTitle}>{t("fin.expense")}</h2>
-          </div>
-          <div className={styles.sectionBody}>
-            <form action={expenseAction} className="grid gap-3">
-              <IdempotencyField prefix="expense" />
-              <FormField label={t("fin.accounts")}>
-                <AppSelect
-                  name="accountId"
-                  defaultValue={accounts[0]?.id ?? ""}
-                  options={accounts.map((a) => ({ value: a.id, label: n("cash", a.code, a.name) }))}
-                />
-              </FormField>
-              <FormField label={t("fin.expenseCat")}>
-                <AppSelect
-                  name="categoryId"
-                  defaultValue={categories[0]?.id ?? ""}
-                  options={categories.map((c) => ({ value: c.id, label: c.name }))}
-                />
-              </FormField>
-              <FormField label={`${t("common.amount")}, с`}>
-                <input name="amount" placeholder={t("common.amount")} className="ui-input" inputMode="decimal" />
-              </FormField>
-              <FormField label={t("common.comment")}>
-                <input name="comment" placeholder={t("common.comment")} className="ui-input" />
-              </FormField>
-              <PendingButton className="ui-btn-primary min-h-[44px]" pendingLabel={t("common.sending")}>{t("fin.postExpense")}</PendingButton>
-            </form>
-          </div>
-        </section>
-      ) : null}
-
-      {canExpense ? (
-        <section className={styles.section}>
-          <div className={styles.sectionHead}>
-            <h2 className={styles.sectionTitle}>{t("fin.expenseCat")}</h2>
-          </div>
-          <div className={styles.sectionBody}>
-            <form action={categoryAction} className="grid gap-3">
-              <FormField label={t("common.code")}>
-                <input name="code" placeholder={t("common.code")} className="ui-input" />
-              </FormField>
-              <FormField label={t("common.name")}>
-                <input name="name" placeholder={t("common.name")} className="ui-input" />
-              </FormField>
-              <FormField label={t("home.col.fund")}>
-                <AppSelect
-                  name="fundCode"
-                  defaultValue={funds[0]?.code ?? ""}
-                  options={funds.map((f) => ({ value: f.code, label: n("fund", f.code, f.name) }))}
-                />
-              </FormField>
-              <button type="submit" className="ui-btn-primary min-h-[44px]">{t("fin.saveCat")}</button>
-            </form>
-          </div>
-        </section>
-      ) : null}
-
       <FinanceDebts
         locale={locale}
         items={purchaseDebts
@@ -191,7 +130,6 @@ export default async function FinancePage() {
           }))}
       />
 
-      {/* Ledger entries */}
       <section className={styles.section}>
         <div className={styles.sectionHead}>
           <h2 className={styles.sectionTitle}>{t("set.audit")}</h2>

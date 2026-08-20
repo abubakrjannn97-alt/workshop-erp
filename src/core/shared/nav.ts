@@ -262,7 +262,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     id: "money",
     labelKey: "nav.accounts",
-    items: [PURCHASING_ITEM, FINANCE_ITEM],
+    items: [EXPENSES_ITEM, PURCHASING_ITEM, FINANCE_ITEM, REPORTS_ITEM],
   },
   {
     id: "company",
