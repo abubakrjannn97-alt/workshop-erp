@@ -38,7 +38,7 @@ export default async function WarehousePage() {
 
   const urgentMaterials = materials.filter((m) => {
     const stock = m.stockItems[0];
-    return D(String(stock?.qtyOnHand ?? 0)).lte(m.minStock);
+    return D(String(stock?.qtyOnHand ?? 0)).lt(m.minStock);
   });
 
   const metrics = [
