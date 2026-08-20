@@ -1,4 +1,4 @@
-name: Seed production demo data
+name: Seed production baseline
 
 on:
   workflow_dispatch:

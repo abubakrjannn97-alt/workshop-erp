@@ -41,22 +41,19 @@ PostgreSQL: `127.0.0.1:5433`. Скопируйте `.env.example` → `.env`.
 
 Для теста без логина: `AUTH_BYPASS=1` в `.env` (только локально, всегда owner).
 
-## Production (Vercel)
+## Production
 
-**Ссылка:** https://workshop-erp-zeta.vercel.app/login
+Production login uses `OWNER_EMAIL` / `OWNER_PASSWORD` from the environment.
 
-> Не используйте `workshop-erp.vercel.app` — это чужой шаблон, не наш проект.
+Do **not** use demo credentials (`ChangeMeNow!`, `owner@workshop.local` as a published password) on a live workshop database.
 
-Вход:
-
-- Email: `owner@workshop.local`
-- Пароль: `ChangeMeNow!`
-
-Повторный seed production БД:
+Production bootstrap:
 
 ```powershell
 npx dotenv-cli -e .env.vercel -- node scripts/prod-db-setup.mjs
 ```
+
+That script runs migrations and seeds **without** demo history (`SEED_DEMO=0`). `OWNER_PASSWORD` must be set and must not equal the demo default.
 
 ## Тесты
 
