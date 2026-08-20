@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, canSeeMaterialCost } from "@core/auth/authz";
 import { updateProduct } from "@/app/actions/products";
-import { CatalogNav } from "@/components/catalog-nav";
 import { materialCostForRecipe } from "@core/costing/costing";
 import { moneyDisplay } from "@core/shared/decimal";
 import { RecipeEditor } from "./recipe-editor";
@@ -55,7 +54,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           <Link href="/products" className={styles.ghostLink}>{t("page.products")}</Link>
         </div>
       </header>
-      <CatalogNav current="products" locale={locale} />
 
       <section className={styles.section}>
         <div className={`${styles.sectionHead} ${catalogStyles.sectionTightHead}`}><h2 className={styles.sectionTitle}>{t("common.settings")}</h2></div>

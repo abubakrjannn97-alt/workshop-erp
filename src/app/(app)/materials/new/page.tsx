@@ -4,13 +4,12 @@ import { redirect } from "next/navigation";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { createMaterial } from "@/app/actions/materials";
-import { CatalogNav } from "@/components/catalog-nav";
 import { AppSelect } from "@/components/app-select";
 import styles from "@/styles/premium.module.css";
 import catalogStyles from "@/components/catalog-form.module.css";
 
 export default async function NewMaterialPage() {
-  const { t, locale } = await getTranslator();
+  const { t } = await getTranslator();
   await requirePermission("materials.manage");
   const units = await prisma.unit.findMany({
     where: { archivedAt: null, isActive: true },
@@ -30,7 +29,6 @@ export default async function NewMaterialPage() {
           <h1 className={styles.title}>{t("materials.newTitle")}</h1>
         </div>
       </header>
-      <CatalogNav current="materials" locale={locale} />
       <section className={styles.section} data-tour="materials-form">
         <div className={`${styles.sectionHead} ${catalogStyles.sectionTightHead}`}>
           <h2 className={styles.sectionTitle}>{t("materials.newTitle")}</h2>

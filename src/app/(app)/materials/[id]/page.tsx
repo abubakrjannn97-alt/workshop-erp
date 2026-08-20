@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { updateMaterial } from "@/app/actions/materials";
-import { CatalogNav } from "@/components/catalog-nav";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { unitCost } from "@core/costing/costing";
 import { PendingButton } from "@/components/pending-button";
@@ -42,7 +41,6 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
           <Link href="/materials" className={styles.ghostLink}>{t("catalog.materials")}</Link>
         </div>
       </header>
-      <CatalogNav current="materials" locale={locale} />
 
       <section className={styles.section}>
         <div className={`${styles.sectionHead} ${catalogStyles.sectionTightHead}`}><h2 className={styles.sectionTitle}>{t("materials.savePriceHist")}</h2></div>

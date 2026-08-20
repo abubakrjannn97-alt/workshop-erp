@@ -1,7 +1,6 @@
 import { getTranslator } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
-import { CatalogNav } from "@/components/catalog-nav";
 import { getDomainConfig } from "@core/config/domain-config";
 import { unitCost } from "@core/costing/costing";
 import { ProductCreateWizard } from "../product-wizard";
@@ -31,7 +30,6 @@ export default async function NewProductPage() {
           <h1 className={styles.title}>{t("products.newTitle")}</h1>
         </div>
       </header>
-      <CatalogNav current="products" locale={locale} />
       <section className={styles.section} data-tour="products-form">
         <div className={`${styles.sectionHead} ${catalogStyles.sectionTightHead}`}>
           <h2 className={styles.sectionTitle}>{t("products.newTitle")}</h2>

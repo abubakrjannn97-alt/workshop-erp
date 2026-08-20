@@ -122,7 +122,7 @@ const ruTour: Record<HelpPageId, TourStep[]> = {
   ],
   materials: [
     {
-      targets: ["catalog-nav"],
+      targets: ["materials-list"],
       title: "Сырьё",
       text: "Материалы для рецептов: цемент, пигмент и т.д. Цена за 1 ед. считается из цены и веса упаковки.",
     },
@@ -135,11 +135,6 @@ const ruTour: Record<HelpPageId, TourStep[]> = {
       targets: ["materials-form"],
       title: "Параметры сырья",
       text: "Ед. склада — как считаете остаток. Ед. закупки — как покупаете. Вес и цена упаковки нужны для расчёта стоимости.",
-    },
-    {
-      targets: ["materials-list"],
-      title: "Список",
-      text: "Все материалы. Откройте карточку, чтобы изменить цену — старая останется в истории.",
     },
   ],
   sales: [
@@ -411,7 +406,7 @@ const tjTour: Record<HelpPageId, TourStep[]> = {
   ],
   materials: [
     {
-      targets: ["catalog-nav"],
+      targets: ["materials-list"],
       title: "Ашё",
       text: "Мавод барои рецепт. Нархи 1 воҳид аз нархи баста ва вазн ҳисоб мешавад.",
     },
@@ -424,11 +419,6 @@ const tjTour: Record<HelpPageId, TourStep[]> = {
       targets: ["materials-form"],
       title: "Параметрҳои ашё",
       text: "Воҳиди анбор — бақия. Воҳиди харид — харид. Вазн ва нархи баста барои ҳисоби арзиш лозим.",
-    },
-    {
-      targets: ["materials-list"],
-      title: "Рӯйхат",
-      text: "Ҳамаи ашё. Кортро кушоед — нархи кӯҳна дар таърих мемонад.",
     },
   ],
   sales: [

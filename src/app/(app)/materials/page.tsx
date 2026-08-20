@@ -2,7 +2,6 @@ import { getTranslator } from "@core/shared/i18n/locale";
 import Link from "next/link";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
-import { CatalogNav } from "@/components/catalog-nav";
 import { archiveMaterial } from "@/app/actions/materials";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { unitCost } from "@core/costing/costing";
@@ -13,7 +12,7 @@ import styles from "@/styles/premium.module.css";
 import catalogStyles from "@/components/catalog-form.module.css";
 
 export default async function MaterialsPage() {
-  const { t, locale } = await getTranslator();
+  const { t } = await getTranslator();
   const session = await requirePermission("materials.view");
   const canManage =
     session.user.roleCode === "owner" || session.user.permissions.includes("materials.manage");
@@ -38,7 +37,6 @@ export default async function MaterialsPage() {
           </div>
         ) : null}
       </header>
-      <CatalogNav current="materials" locale={locale} />
 
       <section className={styles.section} data-tour="materials-list">
         <div className={`${styles.sectionHead} ${catalogStyles.sectionTightHead}`}>

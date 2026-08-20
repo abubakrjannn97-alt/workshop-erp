@@ -2,7 +2,6 @@ import { getTranslator } from "@core/shared/i18n/locale";
 import Link from "next/link";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, canSeeMaterialCost } from "@core/auth/authz";
-import { CatalogNav } from "@/components/catalog-nav";
 import { materialCostForRecipe } from "@core/costing/costing";
 import { moneyDisplay } from "@core/shared/decimal";
 import { archiveProduct } from "@/app/actions/products";
@@ -13,7 +12,7 @@ import styles from "@/styles/premium.module.css";
 import catalogStyles from "@/components/catalog-form.module.css";
 
 export default async function ProductsPage() {
-  const { t, locale } = await getTranslator();
+  const { t } = await getTranslator();
   const session = await requirePermission("products.view");
   const canManage = session.user.roleCode === "owner" || session.user.permissions.includes("products.manage");
   const canSeeCost = canSeeMaterialCost(session.user.permissions, session.user.roleCode);
@@ -40,7 +39,6 @@ export default async function ProductsPage() {
           </div>
         ) : null}
       </header>
-      <CatalogNav current="products" locale={locale} />
 
       <section className={styles.section} data-tour="products-list">
         <div className={styles.sectionHead}><h2 className={styles.sectionTitle}>{t("page.products")}</h2></div>
