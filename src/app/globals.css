@@ -284,6 +284,23 @@ body {
 }
 
 @media (min-width: 1024px) {
+  :root {
+    --sidebar-w: 188px;
+    --sidebar-collapsed: 48px;
+    --header-h: 44px;
+    --control-h: 34px;
+    --font-size-display: 22px;
+    --line-height-display: 28px;
+    --font-size-h1: 18px;
+    --line-height-h1: 24px;
+    --font-size-h2: 14px;
+    --line-height-h2: 20px;
+    --font-size-body: 13px;
+    --line-height-body: 18px;
+    --font-size-small: 12px;
+    --line-height-small: 16px;
+  }
+
   .desktop-stone-shell {
     background: #fafaf8 !important;
   }
@@ -328,7 +345,7 @@ body {
   .desktop-stone-shell .ui-card-solid,
   .desktop-stone-shell .ui-card-panel {
     border-color: var(--mobile-glass-border);
-    border-radius: 18px;
+    border-radius: 12px;
     background: var(--mobile-glass);
     box-shadow: var(--mobile-glass-shadow);
     backdrop-filter: blur(var(--mobile-glass-blur));
@@ -340,12 +357,16 @@ body {
   .desktop-stone-shell .ui-card > h2.section-title {
     background: rgba(255, 255, 255, 0.35);
     border-bottom-color: #ececec;
+    padding: 8px 12px;
+    font-size: 13px;
+    line-height: 18px;
   }
 
   .desktop-stone-shell .ui-card-body,
   .desktop-stone-shell .ui-card > .section-title + *,
   .desktop-stone-shell .ui-card > h2.section-title + * {
     background: transparent;
+    padding: 8px 12px 10px;
   }
 
   .desktop-stone-shell .ui-list-row,
@@ -354,6 +375,9 @@ body {
   .desktop-stone-shell .ui-card > .section-title + ul > li {
     background: transparent;
     border-bottom-color: #ececec;
+    min-height: 36px;
+    padding-top: 6px;
+    padding-bottom: 6px;
   }
 
   .desktop-stone-shell .ui-list-row:hover,
@@ -364,7 +388,7 @@ body {
   }
 
   .desktop-stone-shell .ui-table-wrap {
-    border-radius: 18px;
+    border-radius: 12px;
     border: 1px solid var(--mobile-glass-border);
     background: var(--mobile-glass);
     box-shadow: var(--mobile-glass-shadow);
@@ -958,6 +982,27 @@ main::-webkit-scrollbar-corner,
     gap: var(--space-5);
     min-width: 0;
     max-width: 100%;
+  }
+
+  @media (min-width: 1024px) {
+    .page-stack {
+      gap: 12px;
+    }
+
+    .page-header {
+      margin-bottom: 4px;
+      gap: 8px;
+    }
+
+    .page-title {
+      font-size: 18px;
+      line-height: 22px;
+    }
+
+    .page-subtitle {
+      font-size: 12px;
+      line-height: 16px;
+    }
   }
 
   .text-display {

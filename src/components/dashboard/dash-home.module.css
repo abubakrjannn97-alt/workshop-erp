@@ -9,6 +9,12 @@
   max-width: 1280px;
 }
 
+@media (min-width: 1024px) {
+  .home {
+    gap: 14px;
+  }
+}
+
 /* ─── Hero / Greeting ─── */
 
 .hero {
@@ -83,40 +89,56 @@
 /* ─── Desktop premium (same style language as mobile, wide layout) ─── */
 
 .homeDesktop {
-  gap: 24px;
+  gap: 14px;
+}
+
+.homeDesktop .greeting {
+  gap: 2px;
+  padding-top: 0;
 }
 
 .homeDesktop .greetingTitle {
   font-family: var(--font-sans);
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 600;
-  line-height: 30px;
+  line-height: 22px;
   letter-spacing: -0.02em;
 }
 
 .homeDesktop .greetingSub {
-  font-size: 14px;
-  line-height: 21px;
+  font-size: 12px;
+  line-height: 16px;
   color: #64748b;
 }
 
 .homeDesktop .kpiCard {
-  min-height: 156px;
-  border-radius: 18px;
+  min-height: 96px;
+  border-radius: 12px;
   border: 1px solid var(--mobile-glass-border);
   background: var(--mobile-glass);
   box-shadow: var(--mobile-glass-shadow);
   backdrop-filter: blur(var(--mobile-glass-blur));
   -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+  padding: 12px;
 }
 
 .homeDesktop .kpiCard:hover {
   box-shadow: var(--mobile-glass-shadow);
-  transform: translateY(-1px);
+  transform: none;
 }
 
 .homeDesktop .kpiScenery {
   display: none;
+}
+
+.homeDesktop .kpiTop {
+  margin-bottom: 6px;
+}
+
+.homeDesktop .kpiIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
 }
 
 .homeDesktop .kpiOrange .kpiIcon {
@@ -139,37 +161,72 @@
   color: #8067c5;
 }
 
+.homeDesktop .kpiContent {
+  gap: 2px;
+}
+
 .homeDesktop .kpiLabel {
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 18px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 14px;
 }
 
 .homeDesktop .kpiValue {
-  font-size: 30px;
-  font-weight: 600;
-  line-height: 34px;
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 24px;
   letter-spacing: -0.02em;
 }
 
 .homeDesktop .kpiHint {
-  font-size: 12px;
+  margin-top: 4px;
+  font-size: 11px;
   font-weight: 400;
+  line-height: 14px;
   color: #64748b;
+}
+
+.homeDesktop .kpiHintSpacer {
+  min-height: 0;
+  margin-top: 0;
+  display: none;
 }
 
 .homeDesktop .panel {
   border: 1px solid var(--mobile-glass-border);
-  border-radius: 18px;
+  border-radius: 12px;
   background: var(--mobile-glass);
   box-shadow: var(--mobile-glass-shadow);
   backdrop-filter: blur(var(--mobile-glass-blur));
   -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
 }
 
+.homeDesktop .panelHead {
+  padding: 10px 12px 0;
+  gap: 8px;
+}
+
+.homeDesktop .panelBody {
+  padding: 8px 12px 12px;
+}
+
+.homeDesktop .panelBodyFlush {
+  padding: 4px 8px 10px;
+}
+
+.homeDesktop .panelFooter {
+  padding: 0 12px 10px;
+}
+
+.homeDesktop .actionsDesktop {
+  gap: 8px;
+}
+
 .homeDesktop .actionsDesktop .action {
-  min-height: 116px;
-  border-radius: 16px;
+  min-height: 72px;
+  gap: 6px;
+  padding: 10px 6px;
+  border-radius: 10px;
   border: 1px solid var(--mobile-glass-border);
   background: rgba(255, 255, 255, 0.55);
   box-shadow: var(--mobile-glass-shadow);
@@ -178,17 +235,34 @@
 }
 
 .homeDesktop .actionsDesktop .action:hover {
-  transform: translateY(-1px);
+  transform: none;
   border-color: var(--mobile-glass-border);
   box-shadow: var(--mobile-glass-shadow);
 }
 
+.homeDesktop .actionsDesktop .actionIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+}
+
+.homeDesktop .actionsDesktop .actionLabel {
+  font-size: 11px;
+  line-height: 14px;
+}
+
 .homeDesktop .table th {
+  padding: 6px 10px;
+  font-size: 11px;
+  line-height: 14px;
   border-bottom: 1px solid #ececec;
   background: rgba(255, 255, 255, 0.35);
 }
 
 .homeDesktop .table td {
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 16px;
   border-bottom: 1px solid #ececec;
 }
 
@@ -197,8 +271,13 @@
 }
 
 .homeDesktop .sectionTitle {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 600;
+  line-height: 18px;
+}
+
+.homeDesktop .kpiStrip {
+  gap: 10px;
 }
 
 /* ─── KPI Cards (desktop) ─── */
