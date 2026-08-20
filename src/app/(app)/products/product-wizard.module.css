@@ -1,0 +1,224 @@
+.wizard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.stepOn {
+  color: var(--ink);
+}
+
+.stepDone {
+  color: #249565;
+}
+
+.stepIdle {
+  color: var(--ink-3);
+}
+
+.stepSep {
+  color: var(--ink-3);
+}
+
+.error {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b42318;
+  font-size: 13px;
+}
+
+.photoBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.photoLabel {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.photoPreview {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+}
+
+.photoEmpty {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+  padding: 12px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--ink-3);
+  font-size: 13px;
+  text-align: center;
+}
+
+.photoActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.photoBtn {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.photoBtn:hover {
+  background: var(--surface-2);
+}
+
+.hiddenFile {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.step2 {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.step2Lead {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-2);
+  line-height: 1.4;
+}
+
+.recipeList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recipeRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.qtyCost {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  grid-column: 1 / -1;
+}
+
+.costCell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.costCell small {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+
+.removeBtn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+
+.removeBtn:hover {
+  color: #b42318;
+  background: #fef2f2;
+}
+
+.addRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  min-height: 36px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--titan-dark, #8b6e2f);
+  cursor: pointer;
+}
+
+.expenseBox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #eaf7f0;
+  border: 1px solid #c6e8d4;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.expenseBox strong {
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+  color: #1b7a4a;
+}
+
+.priceHint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-3);
+  line-height: 1.4;
+}

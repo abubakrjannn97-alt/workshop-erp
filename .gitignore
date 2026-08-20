@@ -37,6 +37,9 @@ yarn-error.log*
 # local database volume on E:
 .data/
 
+# user uploads
+/public/uploads/
+
 # vercel
 .vercel
 .env.local

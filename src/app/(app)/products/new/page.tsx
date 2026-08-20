@@ -1,30 +1,28 @@
-import { FormField } from "@/components/form-field";
 import { getTranslator } from "@core/shared/i18n/locale";
-import { redirect } from "next/navigation";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
-import { createProduct } from "@/app/actions/products";
 import { CatalogNav } from "@/components/catalog-nav";
-import { AppSelect } from "@/components/app-select";
 import { getDomainConfig } from "@core/config/domain-config";
+import { unitCost } from "@core/costing/costing";
+import { ProductCreateWizard } from "../product-wizard";
 import styles from "@/styles/premium.module.css";
 import catalogStyles from "@/components/catalog-form.module.css";
 
 export default async function NewProductPage() {
   const { t, locale } = await getTranslator();
   await requirePermission("products.manage");
-  const [units, domainConfig] = await Promise.all([
+  const [units, materials, domainConfig] = await Promise.all([
     prisma.unit.findMany({ where: { archivedAt: null, isActive: true }, orderBy: { name: "asc" } }),
+    prisma.material.findMany({
+      where: { archivedAt: null, isActive: true },
+      include: { storageUnit: true },
+      orderBy: { name: "asc" },
+    }),
     getDomainConfig(),
   ]);
-  const defaultSaleUnitId = units.find((u) => u.code === domainConfig.product.defaultSaleUnit)?.id;
-  const defaultOutputUnitId = units.find((u) => u.code === domainConfig.product.defaultOutputUnit)?.id;
-
-  async function action(formData: FormData) {
-    "use server";
-    const result = await createProduct(formData);
-    if (result.ok && result.id) redirect(`/products/${result.id}`);
-  }
+  const defaultSaleUnitId = units.find((u) => u.code === domainConfig.product.defaultSaleUnit)?.id ?? units[0]?.id ?? "";
+  const defaultOutputUnitId =
+    units.find((u) => u.code === domainConfig.product.defaultOutputUnit)?.id ?? units[0]?.id ?? "";
 
   return (
     <div className={`${styles.page} ${catalogStyles.pageTight}`}>
@@ -39,50 +37,27 @@ export default async function NewProductPage() {
           <h2 className={styles.sectionTitle}>{t("products.newTitle")}</h2>
         </div>
         <div className={`${styles.sectionBody} ${catalogStyles.sectionTightBody}`}>
-          <form action={action} className={catalogStyles.formGrid}>
-            <FormField label={t("common.name")} required>
-              <input name="name" required className="ui-input" />
-            </FormField>
-            <FormField label={t("common.category")}>
-              <input name="category" defaultValue={domainConfig.product.defaultCategory} className="ui-input" />
-            </FormField>
-            <FormField label={t("products.saleUnit")} required>
-              <AppSelect
-                name="saleUnitId"
-                defaultValue={defaultSaleUnitId ?? units[0]?.id ?? ""}
-                required
-                options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
-              />
-            </FormField>
-            <FormField label={t("products.fgUnit")} required>
-              <AppSelect
-                name="outputUnitId"
-                defaultValue={defaultOutputUnitId ?? units[0]?.id ?? ""}
-                required
-                options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
-              />
-            </FormField>
-            <FormField label={t("products.recipeBaseShort")}>
-              <input name="recipeBaseQty" defaultValue="1" placeholder={t("products.phRecipeBase")} className="ui-input" />
-            </FormField>
-            <FormField label={t("products.outputBaseShort")}>
-              <input
-                name="outputPerBase"
-                defaultValue={String(domainConfig.product.defaultOutputPerBase)}
-                placeholder={t("products.phOutput")}
-                className="ui-input"
-              />
-            </FormField>
-            <FormField label={t("products.salePrice")}>
-              <input name="price" defaultValue="0" placeholder={t("products.phSalePrice")} className="ui-input" inputMode="decimal" />
-            </FormField>
-            <FormField label={t("products.minPrice")}>
-              <input name="minPrice" defaultValue="0" placeholder={t("products.phMinPrice")} className="ui-input" inputMode="decimal" />
-            </FormField>
-            <button type="submit" className={`${catalogStyles.formFull} ui-btn-primary min-h-[44px]`}>
-              {t("common.create")}
-            </button>
-          </form>
+          <ProductCreateWizard
+            locale={locale}
+            units={units.map((u) => ({ id: u.id, name: u.name, symbol: u.symbol }))}
+            materials={materials.map((m) => {
+              const cost = unitCost(m.packagePrice, m.packageWeight);
+              return {
+                id: m.id,
+                name: m.name,
+                unitCost: cost ? cost.toFixed(6) : null,
+                storageUnitId: m.storageUnitId,
+                storageSymbol: m.storageUnit.symbol,
+              };
+            })}
+            defaults={{
+              category: domainConfig.product.defaultCategory,
+              saleUnitId: defaultSaleUnitId,
+              outputUnitId: defaultOutputUnitId,
+              recipeBaseQty: "1",
+              outputPerBase: String(domainConfig.product.defaultOutputPerBase),
+            }}
+          />
         </div>
       </section>
     </div>
