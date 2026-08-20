@@ -17,6 +17,10 @@ function clampDay(day: number, month: number) {
   return Math.min(Math.max(day, 1), max);
 }
 
+function onlyDigits(raw: string, maxLen: number) {
+  return raw.replace(/\D/g, "").slice(0, maxLen);
+}
+
 export function PayDueCalendar({
   day,
   month,
@@ -33,25 +37,27 @@ export function PayDueCalendar({
   autoFocus?: boolean;
 }) {
   const t = createT(locale);
-  const [dayText, setDayText] = useState(() => (day ? pad2(day) : ""));
-  const [monthText, setMonthText] = useState(() => (month ? pad2(month) : ""));
+  const [dayText, setDayText] = useState(() => pad2(day));
+  const [monthText, setMonthText] = useState(() => pad2(month));
   const dayRef = useRef<HTMLInputElement>(null);
   const monthRef = useRef<HTMLInputElement>(null);
+  const editing = useRef<"day" | "month" | null>(null);
 
-  function emit(nextDay: number, nextMonth: number, commit: boolean) {
-    const m = Math.min(Math.max(nextMonth, 1), 12);
-    const d = clampDay(nextDay, m);
-    setDayText(pad2(d));
-    setMonthText(pad2(m));
+  function publish(rawDay: string, rawMonth: string, commit: boolean) {
+    const dDigits = onlyDigits(rawDay, 2);
+    const mDigits = onlyDigits(rawMonth, 2);
+    if (!dDigits || !mDigits) return;
+
+    const m = Math.min(Math.max(Number(mDigits), 1), 12);
+    const d = clampDay(Number(dDigits), m);
+    const nextDay = pad2(d);
+    const nextMonth = pad2(m);
+
+    if (editing.current !== "day") setDayText(nextDay);
+    if (editing.current !== "month") setMonthText(nextMonth);
+
     onChange(d, m);
     if (commit) onCommit?.(d, m);
-  }
-
-  function tryCommit() {
-    const dDigits = dayText.replace(/\D/g, "");
-    const mDigits = monthText.replace(/\D/g, "");
-    if (dDigits.length < 1 || mDigits.length < 1) return;
-    emit(Number(dDigits), Number(mDigits), true);
   }
 
   return (
@@ -62,21 +68,29 @@ export function PayDueCalendar({
             ref={dayRef}
             className={styles.slot}
             inputMode="numeric"
+            pattern="[0-9]*"
             maxLength={2}
             placeholder="28"
             value={dayText}
             autoFocus={autoFocus}
             aria-label={t("orders.dueDay")}
-            onFocus={(e) => e.currentTarget.select()}
+            onFocus={(e) => {
+              editing.current = "day";
+              e.currentTarget.select();
+            }}
             onChange={(e) => {
-              const digits = e.target.value.replace(/\D/g, "").slice(0, 2);
-              setDayText(digits);
-              if (digits.length === 2) monthRef.current?.focus();
+              setDayText(onlyDigits(e.target.value, 2));
             }}
             onBlur={() => {
-              const digits = dayText.replace(/\D/g, "");
-              if (digits) setDayText(pad2(Number(digits)));
-              tryCommit();
+              editing.current = null;
+              const digits = onlyDigits(dayText, 2);
+              if (!digits) {
+                setDayText(pad2(day));
+                return;
+              }
+              const normalized = pad2(clampDay(Number(digits), Number(onlyDigits(monthText, 2) || month)));
+              setDayText(normalized);
+              publish(normalized, monthText, true);
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
@@ -95,32 +109,34 @@ export function PayDueCalendar({
             ref={monthRef}
             className={styles.slot}
             inputMode="numeric"
+            pattern="[0-9]*"
             maxLength={2}
             placeholder="03"
             value={monthText}
             aria-label={t("orders.dueMonth")}
-            onFocus={(e) => e.currentTarget.select()}
+            onFocus={(e) => {
+              editing.current = "month";
+              e.currentTarget.select();
+            }}
             onChange={(e) => {
-              const digits = e.target.value.replace(/\D/g, "").slice(0, 2);
-              setMonthText(digits);
-              if (digits.length === 2) {
-                const dDigits = dayText.replace(/\D/g, "");
-                const d = dDigits ? Number(dDigits) : day || 1;
-                emit(d, Number(digits), dDigits.length >= 1);
-              }
+              setMonthText(onlyDigits(e.target.value, 2));
             }}
             onBlur={() => {
-              const digits = monthText.replace(/\D/g, "");
-              if (digits) {
-                const m = Math.min(Math.max(Number(digits), 1), 12);
-                setMonthText(pad2(m));
+              editing.current = null;
+              const digits = onlyDigits(monthText, 2);
+              if (!digits) {
+                setMonthText(pad2(month));
+                return;
               }
-              tryCommit();
+              const m = Math.min(Math.max(Number(digits), 1), 12);
+              const normalized = pad2(m);
+              setMonthText(normalized);
+              publish(dayText, normalized, true);
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
-                tryCommit();
+                (e.currentTarget as HTMLInputElement).blur();
               }
               if (e.key === "Backspace" && monthText.length === 0) {
                 e.preventDefault();
