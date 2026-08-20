@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState, useTransition } from "react";
 import { AppSelect } from "@/components/app-select";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
@@ -36,6 +36,21 @@ export function OrderPayStepPanel({
     Math.min(now.getDate() + 3, daysInMonth(now.getFullYear(), now.getMonth() + 1)),
   );
   const [dueMonth, setDueMonth] = useState(now.getMonth() + 1);
+  const [pending, startTransition] = useTransition();
+  const savedKey = useRef<string | null>(null);
+
+  function savePayLater(day: number, month: number) {
+    const key = `${orderId}:${day}.${month}`;
+    if (savedKey.current === key || pending) return;
+    savedKey.current = key;
+    const fd = new FormData();
+    fd.set("id", orderId);
+    fd.set("day", String(day));
+    fd.set("month", String(month));
+    startTransition(async () => {
+      await payLaterAction(fd);
+    });
+  }
 
   return (
     <div className={detailStyles.payStep}>
@@ -44,15 +59,17 @@ export function OrderPayStepPanel({
           type="button"
           className={mode === "pay" ? detailStyles.payStepTabOn : detailStyles.payStepTab}
           onClick={() => setMode(mode === "pay" ? null : "pay")}
+          disabled={pending}
         >
           {t("orders.payNow")}
         </button>
         <button
           type="button"
-          className={mode === "later" ? detailStyles.payStepTabOn : detailStyles.payStepTab}
+          className={mode === "later" || pending ? detailStyles.payStepTabOn : detailStyles.payStepTab}
           onClick={() => setMode(mode === "later" ? null : "later")}
+          disabled={pending}
         >
-          {t("orders.payLater")}
+          {pending ? t("common.sending") : t("orders.payLater")}
         </button>
       </div>
 
@@ -86,10 +103,7 @@ export function OrderPayStepPanel({
       ) : null}
 
       {mode === "later" ? (
-        <form action={payLaterAction} className={detailStyles.payFormCompact}>
-          <input type="hidden" name="id" value={orderId} />
-          <input type="hidden" name="day" value={String(dueDay)} />
-          <input type="hidden" name="month" value={String(dueMonth)} />
+        <div className={detailStyles.payFormCompact}>
           <p className={detailStyles.payLaterLabel}>{t("orders.payLaterDate")}</p>
           <PayDueCalendar
             locale={locale}
@@ -99,11 +113,9 @@ export function OrderPayStepPanel({
               setDueDay(d);
               setDueMonth(m);
             }}
+            onCommit={(d, m) => savePayLater(d, m)}
           />
-          <PendingButton className="ui-btn-secondary min-h-[40px] w-full" pendingLabel={t("common.sending")}>
-            {t("orders.payLaterSave")}
-          </PendingButton>
-        </form>
+        </div>
       ) : null}
     </div>
   );

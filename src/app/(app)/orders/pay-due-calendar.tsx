@@ -1,83 +1,88 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { ICON_STROKE } from "@/components/nav-icons";
+import { useEffect, useMemo, useState } from "react";
 import styles from "./pay-due-calendar.module.css";
 
 function daysInMonth(year: number, month: number) {
   return new Date(year, month, 0).getDate();
 }
 
-const MONTHS_RU = ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"];
-const MONTHS_TJ = ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"];
-const WEEK_RU = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
-const WEEK_TJ = ["Дш", "Сш", "Чш", "Пш", "Ҷм", "Шб", "Як"];
+function pad2(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+function parseDdMm(raw: string): { day: number; month: number } | null {
+  const m = raw.trim().match(/^(\d{1,2})[./](\d{1,2})$/);
+  if (!m) return null;
+  const day = Number(m[1]);
+  const month = Number(m[2]);
+  if (month < 1 || month > 12 || day < 1) return null;
+  const max = daysInMonth(new Date().getFullYear(), month);
+  if (day > max) return null;
+  return { day, month };
+}
 
 export function PayDueCalendar({
   day,
   month,
   onChange,
-  locale,
+  onCommit,
 }: {
   day: number;
   month: number;
   onChange: (day: number, month: number) => void;
-  locale: string;
+  onCommit?: (day: number, month: number) => void;
+  locale?: string;
 }) {
-  const year = new Date().getFullYear();
-  const months = locale.startsWith("tg") ? MONTHS_TJ : MONTHS_RU;
-  const week = locale.startsWith("tg") ? WEEK_TJ : WEEK_RU;
-  const maxDay = daysInMonth(year, month);
-  const selectedDay = Math.min(day, maxDay);
+  const [text, setText] = useState(`${pad2(day)}.${pad2(month)}`);
+  const [error, setError] = useState(false);
 
-  // Monday-first weekday index for day 1
-  const firstWeekday = (new Date(year, month - 1, 1).getDay() + 6) % 7;
-  const cells: Array<number | null> = [
-    ...Array.from({ length: firstWeekday }, () => null),
-    ...Array.from({ length: maxDay }, (_, i) => i + 1),
-  ];
-  while (cells.length % 7 !== 0) cells.push(null);
+  useEffect(() => {
+    setText(`${pad2(day)}.${pad2(month)}`);
+  }, [day, month]);
 
-  function shiftMonth(delta: number) {
-    let nextMonth = month + delta;
-    if (nextMonth < 1) nextMonth = 12;
-    if (nextMonth > 12) nextMonth = 1;
-    const nextMax = daysInMonth(year, nextMonth);
-    onChange(Math.min(selectedDay, nextMax), nextMonth);
+  const placeholder = useMemo(() => {
+    const now = new Date();
+    return `${pad2(now.getDate())}.${pad2(now.getMonth() + 1)}`;
+  }, []);
+
+  function commit(raw: string) {
+    const parsed = parseDdMm(raw);
+    if (!parsed) {
+      setError(true);
+      return null;
+    }
+    setError(false);
+    setText(`${pad2(parsed.day)}.${pad2(parsed.month)}`);
+    onChange(parsed.day, parsed.month);
+    onCommit?.(parsed.day, parsed.month);
+    return parsed;
   }
 
   return (
-    <div className={styles.cal}>
-      <div className={styles.head}>
-        <button type="button" className={styles.navBtn} onClick={() => shiftMonth(-1)} aria-label="prev">
-          <ChevronLeft size={18} strokeWidth={ICON_STROKE} />
-        </button>
-        <p className={styles.monthLabel}>{months[month - 1]}</p>
-        <button type="button" className={styles.navBtn} onClick={() => shiftMonth(1)} aria-label="next">
-          <ChevronRight size={18} strokeWidth={ICON_STROKE} />
-        </button>
-      </div>
-      <div className={styles.week}>
-        {week.map((w) => (
-          <span key={w} className={styles.weekDay}>{w}</span>
-        ))}
-      </div>
-      <div className={styles.grid}>
-        {cells.map((d, idx) =>
-          d == null ? (
-            <span key={`e-${idx}`} className={styles.empty} />
-          ) : (
-            <button
-              key={d}
-              type="button"
-              className={d === selectedDay ? styles.dayOn : styles.day}
-              onClick={() => onChange(d, month)}
-            >
-              {d}
-            </button>
-          ),
-        )}
-      </div>
+    <div className={styles.simple}>
+      <input
+        className={`${styles.dateInput} ${error ? styles.dateInputError : ""}`.trim()}
+        inputMode="numeric"
+        placeholder={placeholder}
+        value={text}
+        autoFocus
+        onChange={(e) => {
+          const next = e.target.value.replace(/[^\d./]/g, "").slice(0, 5);
+          setText(next);
+          setError(false);
+          const parsed = parseDdMm(next);
+          if (parsed) {
+            onChange(parsed.day, parsed.month);
+            // полная дата вида 23.08 — сразу запоминаем
+            if (/^\d{2}\.\d{2}$/.test(next)) {
+              onCommit?.(parsed.day, parsed.month);
+            }
+          }
+        }}
+        onBlur={() => commit(text)}
+        aria-label="DD.MM"
+      />
     </div>
   );
 }

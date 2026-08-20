@@ -1,91 +1,28 @@
-.cal {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: linear-gradient(180deg, #fffdf9 0%, #fff8ee 100%);
-}
-
-.head {
+.simple {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
 }
 
-.monthLabel {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--ink);
-}
-
-.navBtn {
-  display: grid;
-  width: 36px;
-  height: 36px;
-  place-items: center;
+.dateInput {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--surface);
-  color: var(--ink-2);
-  cursor: pointer;
-}
-
-.navBtn:hover {
-  background: var(--surface-2);
-  color: var(--ink);
-}
-
-.week,
-.grid {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 4px;
-}
-
-.weekDay {
-  display: grid;
-  height: 24px;
-  place-items: center;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--ink-3);
-}
-
-.day,
-.dayOn,
-.empty {
-  display: grid;
-  aspect-ratio: 1;
-  place-items: center;
-  border-radius: 10px;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-}
-
-.empty {
-  visibility: hidden;
-}
-
-.day {
-  border: 0;
-  background: transparent;
+  letter-spacing: 0.04em;
   color: var(--ink);
-  cursor: pointer;
 }
 
-.day:hover {
-  background: rgba(154, 115, 56, 0.12);
+.dateInput:focus {
+  outline: none;
+  border-color: rgba(154, 115, 56, 0.65);
+  box-shadow: 0 0 0 3px rgba(154, 115, 56, 0.12);
 }
 
-.dayOn {
-  border: 0;
-  background: linear-gradient(180deg, #c9a36a 0%, #9a7338 100%);
-  color: #fff;
-  box-shadow: 0 4px 10px rgba(154, 115, 56, 0.28);
-  cursor: pointer;
+.dateInputError {
+  border-color: var(--bad);
 }
