@@ -1,7 +1,6 @@
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
-import { WarehouseNav } from "@/components/warehouse-nav";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { reverseStockMovement } from "@/app/actions/inventory";
 import { IdempotencyField } from "@/components/idempotency-field";
@@ -46,8 +45,6 @@ export default async function MovementsPage() {
           <p className={styles.subtitle}>{t("wh.movesHint")}</p>
         </div>
       </header>
-
-      <WarehouseNav current="moves" locale={locale} />
 
       <section className={styles.section}>
         <div className={styles.sectionHead}>

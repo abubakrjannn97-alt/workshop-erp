@@ -6,15 +6,13 @@ export function WarehouseNav({
   current,
   locale,
 }: {
-  current: "raw" | "fg" | "moves" | "inventory";
+  current: "raw" | "fg";
   locale: Locale;
 }) {
   const t = createT(locale);
   const items = [
     { href: "/warehouse", id: "raw" as const, labelKey: "whNav.raw" },
     { href: "/warehouse/finished", id: "fg" as const, labelKey: "whNav.fg" },
-    { href: "/warehouse/movements", id: "moves" as const, labelKey: "whNav.moves" },
-    { href: "/warehouse/inventory", id: "inventory" as const, labelKey: "whNav.inventory" },
   ];
   return (
     <Segmented

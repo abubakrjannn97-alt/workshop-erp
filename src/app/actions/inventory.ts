@@ -9,6 +9,7 @@ import { requirePermission } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money, qty } from "@core/shared/decimal";
 import { adjustToActual, receiveMaterial, receiveProduct, reverseMovement, transferStock, writeOffMaterial } from "@core/inventory/stock";
+import { getRawWarehouse } from "@core/config/resolve-warehouse";
 import { notifyRoles } from "@core/control/control";
 import { canSelfApprove, queueApproval } from "@core/control/control";
 
@@ -319,4 +320,80 @@ export async function transferWarehouse(formData: FormData) {
   revalidatePath("/warehouse/finished");
   revalidatePath("/warehouse/movements");
   return { ok: true };
+}
+
+const addRawSchema = z.object({
+  name: z.string().trim().min(1).max(160),
+  category: z.string().trim().max(80).optional().or(z.literal("")),
+  quantity: z.string().regex(/^\d+(\.\d{1,6})?$/),
+  unitCost: z.string().regex(/^\d+(\.\d{1,6})?$/),
+  comment: z.string().optional(),
+});
+
+export async function addRawMaterialToWarehouse(formData: FormData) {
+  const session = await requirePermission("inventory.receive");
+  const parsed = addRawSchema.safeParse({
+    name: formData.get("name"),
+    category: formData.get("category") ?? "",
+    quantity: formData.get("quantity"),
+    unitCost: formData.get("unitCost"),
+    comment: formData.get("comment") || undefined,
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Проверьте поля." };
+
+  const raw = await getRawWarehouse();
+
+  let material = await prisma.material.findFirst({
+    where: { name: { equals: parsed.data.name, mode: "insensitive" }, archivedAt: null },
+  });
+
+  if (!material) {
+    const kg = await prisma.unit.findUnique({ where: { code: "KG" } });
+    if (!kg) return { error: "Единица измерения не найдена." };
+    material = await prisma.material.create({
+      data: {
+        name: parsed.data.name.trim(),
+        category: parsed.data.category?.trim() || "Прочее",
+        storageUnitId: kg.id,
+        purchaseUnitId: kg.id,
+        packageWeight: "1",
+        packagePrice: parsed.data.unitCost,
+        minStock: "0",
+        lastPurchasePrice: money(parsed.data.unitCost),
+        averagePurchasePrice: money(parsed.data.unitCost),
+      },
+    });
+    await writeAudit({
+      userId: session.user.id,
+      action: "material.create",
+      entityType: "material",
+      entityId: material.id,
+      newValue: { name: material.name, from: "warehouse.add" },
+    });
+  }
+
+  try {
+    await receiveMaterial({
+      warehouseId: raw.id,
+      materialId: material.id,
+      quantity: parsed.data.quantity,
+      unitCost: parsed.data.unitCost,
+      userId: session.user.id,
+      reason: "Приход",
+      comment: parsed.data.comment ?? "Добавлено на склад",
+      idempotencyKey: key(formData),
+    });
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Ошибка прихода." };
+  }
+
+  await writeAudit({
+    userId: session.user.id,
+    action: "stock.receipt",
+    entityType: "stock_movement",
+    newValue: { materialId: material.id, quantity: parsed.data.quantity },
+  });
+  revalidatePath("/warehouse");
+  revalidatePath("/materials");
+  redirect("/warehouse");
 }

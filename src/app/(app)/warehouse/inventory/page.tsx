@@ -1,7 +1,6 @@
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
-import { WarehouseNav } from "@/components/warehouse-nav";
 import { createInventoryCount } from "@/app/actions/inventory";
 import { PendingButton } from "@/components/pending-button";
 import { FormField } from "@/components/form-field";
@@ -34,8 +33,6 @@ export default async function InventoryListPage() {
           <p className={styles.subtitle}>{t("wh.invHint")}</p>
         </div>
       </header>
-
-      <WarehouseNav current="inventory" locale={locale} />
 
       <section className={styles.section}>
         <div className={styles.sectionHead}>
