@@ -5,7 +5,7 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requireSession } from "@core/auth/authz";
 import { markNotificationsRead } from "@/app/actions/control";
 import { RevealList } from "@/components/reveal-list";
-import { Segmented } from "@/components/segmented";
+import { NotifCategoryFilter } from "@/components/notif-category-filter";
 import {
   NOTIF_CATEGORIES,
   notificationCategory,
@@ -31,19 +31,14 @@ export default async function NotificationsPage({
     take: 100,
   });
 
-  const counts = Object.fromEntries(NOTIF_CATEGORIES.map((c) => [c, 0])) as Record<NotifCategory, number>;
   const unread = Object.fromEntries(NOTIF_CATEGORIES.map((c) => [c, 0])) as Record<NotifCategory, number>;
   for (const n of items) {
     const cat = notificationCategory(n.type);
-    counts.all += 1;
-    counts[cat] += 1;
     if (!n.readAt) {
       unread.all += 1;
       unread[cat] += 1;
     }
   }
-
-  const visibleCats = NOTIF_CATEGORIES.filter((cat) => cat === "all" || counts[cat] > 0 || ["warehouse", "debts", "orders"].includes(cat));
 
   const filtered =
     active === "all" ? items : items.filter((n) => notificationCategory(n.type) === active);
@@ -56,7 +51,7 @@ export default async function NotificationsPage({
   function catLabel(cat: NotifCategory) {
     const base = t(`notif.cat.${cat}`);
     const n = unread[cat];
-    return n > 0 ? `${base} ${n}` : base;
+    return n > 0 ? `${base} (${n})` : base;
   }
 
   return (
@@ -75,16 +70,17 @@ export default async function NotificationsPage({
         </div>
       </header>
 
-      <Segmented
-        scroll
-        tour="notif-cats"
-        aria-label={t("page.notifications")}
-        items={visibleCats.map((cat) => ({
-          href: cat === "all" ? "/notifications" : `/notifications?cat=${cat}`,
-          label: catLabel(cat),
-          active: active === cat,
-        }))}
-      />
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="text-sm font-medium text-[var(--ink-2)]">{t("notif.filter")}</span>
+        <NotifCategoryFilter
+          active={active}
+          ariaLabel={t("notif.filter")}
+          options={NOTIF_CATEGORIES.map((cat) => ({
+            value: cat,
+            label: catLabel(cat),
+          }))}
+        />
+      </div>
 
       <section className={styles.section} data-tour="notif-list">
         {filtered.length === 0 ? (
