@@ -354,12 +354,22 @@ body {
     --line-strong: #ddd9d2;
     --shadow: var(--mobile-glass-shadow);
     --card: rgba(255, 255, 255, 0.55);
-    --header: rgba(255, 255, 255, 0.78);
+    --header: rgba(255, 255, 255, 0.52);
   }
 
   .desktop-stone-shell main,
+  .desktop-stone-shell .app-shell-main,
   .desktop-stone-shell .ui-scroll {
-    scrollbar-color: #c8c2b8 transparent;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .desktop-stone-shell main::-webkit-scrollbar,
+  .desktop-stone-shell .app-shell-main::-webkit-scrollbar,
+  .desktop-stone-shell .ui-scroll::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
   }
 
   .desktop-stone-shell .ui-card,
