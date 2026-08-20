@@ -80,10 +80,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
               />
             </FormField>
-            <FormField label={t("products.recipeBaseShort")}><input name="recipeBaseQty" defaultValue={product.recipeBaseQty.toString()} disabled={!canManage} className="ui-input" /></FormField>
-            <FormField label={t("products.outputBaseShort")}><input name="outputPerBase" defaultValue={product.outputPerBase.toString()} disabled={!canManage} className="ui-input" /></FormField>
-            <FormField label={t("products.salePrice")}><input name="price" defaultValue={currentPrice?.price.toString() ?? "0"} disabled={!canManage} className="ui-input" /></FormField>
-            <FormField label={t("products.minPrice")}><input name="minPrice" defaultValue={product.minPrice.toString()} disabled={!canManage} className="ui-input" /></FormField>
+            <FormField label={t("products.recipeBaseShort")}><input name="recipeBaseQty" defaultValue={product.recipeBaseQty.toString()} disabled={!canManage} placeholder={t("products.phRecipeBase")} className="ui-input" /></FormField>
+            <FormField label={t("products.outputBaseShort")}><input name="outputPerBase" defaultValue={product.outputPerBase.toString()} disabled={!canManage} placeholder={t("products.phOutput")} className="ui-input" /></FormField>
+            <FormField label={t("products.salePrice")}><input name="price" defaultValue={currentPrice?.price.toString() ?? "0"} disabled={!canManage} placeholder={t("products.phSalePrice")} className="ui-input" /></FormField>
+            <FormField label={t("products.minPrice")}><input name="minPrice" defaultValue={product.minPrice.toString()} disabled={!canManage} placeholder={t("products.phMinPrice")} className="ui-input" /></FormField>
             {canManage ? <button className={`${catalogStyles.formFull} ui-btn-primary min-h-[44px]`}>{t("products.savePriceHist")}</button> : null}
           </form>
         </div>

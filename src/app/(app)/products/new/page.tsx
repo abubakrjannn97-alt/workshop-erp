@@ -63,20 +63,21 @@ export default async function NewProductPage() {
               />
             </FormField>
             <FormField label={t("products.recipeBaseShort")}>
-              <input name="recipeBaseQty" defaultValue="1" className="ui-input" />
+              <input name="recipeBaseQty" defaultValue="1" placeholder={t("products.phRecipeBase")} className="ui-input" />
             </FormField>
             <FormField label={t("products.outputBaseShort")}>
               <input
                 name="outputPerBase"
                 defaultValue={String(domainConfig.product.defaultOutputPerBase)}
+                placeholder={t("products.phOutput")}
                 className="ui-input"
               />
             </FormField>
             <FormField label={t("products.salePrice")}>
-              <input name="price" defaultValue="0" className="ui-input" inputMode="decimal" />
+              <input name="price" defaultValue="0" placeholder={t("products.phSalePrice")} className="ui-input" inputMode="decimal" />
             </FormField>
             <FormField label={t("products.minPrice")}>
-              <input name="minPrice" defaultValue="0" className="ui-input" inputMode="decimal" />
+              <input name="minPrice" defaultValue="0" placeholder={t("products.phMinPrice")} className="ui-input" inputMode="decimal" />
             </FormField>
             <button type="submit" className={`${catalogStyles.formFull} ui-btn-primary min-h-[44px]`}>
               {t("common.create")}
