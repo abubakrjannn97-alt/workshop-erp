@@ -251,8 +251,8 @@ export async function seedCore(prisma: PrismaClient) {
   });
   await prisma.cashAccount.upsert({
     where: { code: "BANK" },
-    update: { name: "Банк", kind: "bank" },
-    create: { code: "BANK", name: "Банк", kind: "bank" },
+    update: { name: "Счёт карты", kind: "bank" },
+    create: { code: "BANK", name: "Счёт карты", kind: "bank" },
   });
 
   const funds = [
