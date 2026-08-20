@@ -209,9 +209,6 @@ export default async function OrderPage({
             <StatusBadge label={currentStatusName} tone={orderTone(order.status.code)} />
           </div>
           <OrderStageProgress currentCode={order.status.code} t={t} />
-          <p className={detailStyles.sectionHint}>
-            {t("orders.changeStatusHint", { status: currentStatusName })}
-          </p>
           <p className={detailStyles.statusNextTitle}>{t("orders.nextStep")}</p>
           <ul className={detailStyles.statusOptions}>
             {nextStatuses.map((s, index) => (
