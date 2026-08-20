@@ -14,6 +14,7 @@
 | Error handling | PASS | Production error page masks technical error details |
 | Permissions | PASS | Existing RBAC unchanged; no weakening applied |
 | Audit | PASS | Existing audit trail logic unchanged and active |
-| Test-data isolation | PASS | production setup enforces `SEED_DEMO=0` |
+| Test-data isolation | PASS | production setup enforces `SEED_DEMO=0`; no seed opening stock on production baseline |
+| Workshop validation | PASS | `npm run validate:workshop` checks roles, warehouses, finance, catalog, workflow prerequisites |
 | Environment | PASS | production env validation for `AUTH_SECRET`, `DATABASE_URL`, `AUTH_BYPASS` |
 
