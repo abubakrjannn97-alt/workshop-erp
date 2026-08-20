@@ -10,8 +10,10 @@ import { PendingButton } from "@/components/pending-button";
 import { FormField } from "@/components/form-field";
 import { HeaderBackButton } from "@/components/header-back-button";
 import { AppSelect } from "@/components/app-select";
+import { FirstVisitTips } from "@/components/first-visit-tips";
 import Link from "next/link";
 import styles from "@/styles/premium.module.css";
+import catalogStyles from "@/components/catalog-form.module.css";
 
 export default async function MaterialDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { t, locale } = await getTranslator();
@@ -28,7 +30,7 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
   const cost = unitCost(material.packagePrice, material.packageWeight);
 
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} ${catalogStyles.pageTight}`}>
       <header className={styles.header}>
         <div className={styles.headerLead}>
           <HeaderBackButton locale={locale} />
@@ -44,13 +46,24 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
       <CatalogNav current="materials" locale={locale} />
 
       <section className={styles.section}>
-        <div className={styles.sectionHead}><h2 className={styles.sectionTitle}>{t("materials.savePriceHist")}</h2></div>
-        <div className={styles.sectionBody}>
-          <form action={updateMaterial} className="grid gap-3 sm:grid-cols-2">
+        <div className={`${styles.sectionHead} ${catalogStyles.sectionTightHead}`}><h2 className={styles.sectionTitle}>{t("materials.savePriceHist")}</h2></div>
+        <div className={`${styles.sectionBody} ${catalogStyles.sectionTightBody}`}>
+          <FirstVisitTips
+            locale={locale}
+            storageKey="tips:materials-edit"
+            tips={[
+              t("materials.storageHint"),
+              t("materials.purchaseHint"),
+              t("materials.packWeightHint"),
+              t("materials.packPriceHint"),
+            ]}
+          />
+          <form action={updateMaterial} className={catalogStyles.formGrid}>
             <input type="hidden" name="id" value={material.id} />
             <FormField label={t("common.name")}><input name="name" defaultValue={material.name} disabled={!canManage} className="ui-input" /></FormField>
             <FormField label={t("common.category")}><input name="category" defaultValue={material.category} disabled={!canManage} className="ui-input" /></FormField>
             <FormField label={t("common.supplier")}><input name="supplierName" defaultValue={material.supplierName ?? ""} disabled={!canManage} className="ui-input" /></FormField>
+            <FormField label={t("materials.minQty")}><input name="minStock" defaultValue={material.minStock.toString()} disabled={!canManage} className="ui-input" /></FormField>
             <FormField label={t("materials.storageUnit")}>
               <AppSelect
                 name="storageUnitId"
@@ -69,8 +82,7 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
             </FormField>
             <FormField label={t("materials.packVolume")}><input name="packageWeight" defaultValue={material.packageWeight.toString()} disabled={!canManage} className="ui-input" /></FormField>
             <FormField label={t("materials.packPriceSom")}><input name="packagePrice" defaultValue={material.packagePrice.toString()} disabled={!canManage} className="ui-input" /></FormField>
-            <FormField label={t("materials.minQty")}><input name="minStock" defaultValue={material.minStock.toString()} disabled={!canManage} className="ui-input" /></FormField>
-            {canManage ? <PendingButton className="ui-btn-primary min-h-[44px] sm:col-span-2" pendingLabel={t("common.sending")}>{t("materials.savePriceHist")}</PendingButton> : null}
+            {canManage ? <PendingButton className={`${catalogStyles.formFull} ui-btn-primary min-h-[44px]`} pendingLabel={t("common.sending")}>{t("materials.savePriceHist")}</PendingButton> : null}
           </form>
         </div>
       </section>

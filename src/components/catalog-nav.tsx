@@ -1,5 +1,6 @@
 import { createT, type Locale } from "@core/shared/i18n/i18n";
 import { Segmented } from "@/components/segmented";
+import catalogStyles from "./catalog-form.module.css";
 
 export function CatalogNav({
   current,
@@ -10,12 +11,14 @@ export function CatalogNav({
 }) {
   const t = createT(locale);
   return (
-    <Segmented
-      aria-label={t("catalog.products")}
-      items={[
-        { href: "/products", label: t("catalog.products"), active: current === "products" },
-        { href: "/materials", label: t("catalog.materials"), active: current === "materials" },
-      ]}
-    />
+    <div className={catalogStyles.navCenter}>
+      <Segmented
+        aria-label={t("catalog.products")}
+        items={[
+          { href: "/products", label: t("catalog.products"), active: current === "products" },
+          { href: "/materials", label: t("catalog.materials"), active: current === "materials" },
+        ]}
+      />
+    </div>
   );
 }

@@ -10,6 +10,7 @@ import { RevealList } from "@/components/reveal-list";
 import { ChevronRight } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import styles from "@/styles/premium.module.css";
+import catalogStyles from "@/components/catalog-form.module.css";
 
 export default async function ProductsPage() {
   const { t, locale } = await getTranslator();
@@ -28,11 +29,10 @@ export default async function ProductsPage() {
   });
 
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} ${catalogStyles.pageTight}`}>
       <header className={styles.header}>
         <div className={styles.headerText}>
           <h1 className={styles.title}>{t("page.products")}</h1>
-          <p className={styles.subtitle}>{t("products.hint")}</p>
         </div>
         {canManage ? (
           <div className={styles.headerActions}>

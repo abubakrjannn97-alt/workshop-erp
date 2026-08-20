@@ -11,8 +11,10 @@ import { NeedPreview } from "./need-preview";
 import { FormField } from "@/components/form-field";
 import { HeaderBackButton } from "@/components/header-back-button";
 import { AppSelect } from "@/components/app-select";
+import { FirstVisitTips } from "@/components/first-visit-tips";
 import Link from "next/link";
 import styles from "@/styles/premium.module.css";
+import catalogStyles from "@/components/catalog-form.module.css";
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { t, locale } = await getTranslator();
@@ -41,7 +43,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const cost = currentVersion ? materialCostForRecipe(currentVersion.items) : null;
 
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} ${catalogStyles.pageTight}`}>
       <header className={styles.header}>
         <div className={styles.headerLead}>
           <HeaderBackButton locale={locale} />
@@ -57,9 +59,14 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       <CatalogNav current="products" locale={locale} />
 
       <section className={styles.section}>
-        <div className={styles.sectionHead}><h2 className={styles.sectionTitle}>{t("common.settings")}</h2></div>
-        <div className={styles.sectionBody}>
-          <form action={updateProduct} className="grid gap-3 sm:grid-cols-2">
+        <div className={`${styles.sectionHead} ${catalogStyles.sectionTightHead}`}><h2 className={styles.sectionTitle}>{t("common.settings")}</h2></div>
+        <div className={`${styles.sectionBody} ${catalogStyles.sectionTightBody}`}>
+          <FirstVisitTips
+            locale={locale}
+            storageKey="tips:products-edit"
+            tips={[t("products.tipRecipe"), t("products.tipOutput"), t("products.tipUnits")]}
+          />
+          <form action={updateProduct} className={catalogStyles.formGrid}>
             <input type="hidden" name="id" value={product.id} />
             <FormField label={t("common.name")}><input name="name" defaultValue={product.name} disabled={!canManage} className="ui-input" /></FormField>
             <FormField label={t("common.category")}><input name="category" defaultValue={product.category} disabled={!canManage} className="ui-input" /></FormField>
@@ -83,7 +90,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <FormField label={t("products.outputBaseShort")}><input name="outputPerBase" defaultValue={product.outputPerBase.toString()} disabled={!canManage} className="ui-input" /></FormField>
             <FormField label={t("products.salePrice")}><input name="price" defaultValue={currentPrice?.price.toString() ?? "0"} disabled={!canManage} className="ui-input" /></FormField>
             <FormField label={t("products.minPrice")}><input name="minPrice" defaultValue={product.minPrice.toString()} disabled={!canManage} className="ui-input" /></FormField>
-            {canManage ? <button className="sm:col-span-2 ui-btn-primary min-h-[44px]">{t("products.savePriceHist")}</button> : null}
+            {canManage ? <button className={`${catalogStyles.formFull} ui-btn-primary min-h-[44px]`}>{t("products.savePriceHist")}</button> : null}
           </form>
         </div>
       </section>
