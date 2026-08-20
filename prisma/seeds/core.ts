@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { DEMO_PASSWORD } from "../../src/core/auth/demo-users";
 import { PERMISSIONS, ROLE_PERMISSIONS } from "../../src/core/rbac/permissions";
 import { DEFAULT_SETTINGS, SETTING_KEYS } from "../../src/core/config/settings";
+import { isValidPhone, normalizePhone } from "../../src/core/shared/phone";
 const CORE_WAREHOUSE_RAW_CODE = "RAW";
 const CORE_WAREHOUSE_FG_CODE = "FG";
 
@@ -23,6 +24,21 @@ export function resolveSeedOwnerPassword() {
     throw new Error("OWNER_PASSWORD must be explicitly set in production and must not use the demo default.");
   }
   return password;
+}
+
+/** Phone used for owner login (required in production). */
+export function resolveSeedOwnerPhone() {
+  const raw = process.env.OWNER_PHONE?.trim();
+  if (raw) {
+    if (!isValidPhone(raw)) {
+      throw new Error("OWNER_PHONE is invalid.");
+    }
+    return normalizePhone(raw);
+  }
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("OWNER_PHONE must be explicitly set in production.");
+  }
+  return "900000001";
 }
 
 /** Universal CORE seed — no facade catalog, products, recipes, or demo history. */
@@ -169,14 +185,16 @@ export async function seedCore(prisma: PrismaClient) {
   const ownerRole = await prisma.role.findUniqueOrThrow({ where: { code: "owner" } });
   const email = process.env.OWNER_EMAIL ?? "owner@workshop.local";
   const password = resolveSeedOwnerPassword();
+  const phone = resolveSeedOwnerPhone();
   const passwordHash = await bcrypt.hash(password, 12);
 
   await prisma.user.upsert({
     where: { email },
-    update: { passwordHash, roleId: ownerRole.id },
+    update: { passwordHash, roleId: ownerRole.id, phone },
     create: {
       email,
       name: "Владелец",
+      phone,
       passwordHash,
       roleId: ownerRole.id,
     },

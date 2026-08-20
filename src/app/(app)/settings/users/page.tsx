@@ -44,15 +44,12 @@ export default async function UsersPage() {
             <h2 className={styles.sectionTitle}>{t("set.createUser")}</h2>
           </div>
           <div className={styles.sectionBody}>
-            <form action={createUser} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <form action={createUser} className="grid gap-3 sm:grid-cols-2">
               <FormField label={t("set.userName")}>
                 <input name="name" required placeholder={t("set.userName")} className="ui-input" />
               </FormField>
-              <FormField label={t("set.userEmail")}>
-                <input name="email" type="email" required placeholder="name@workshop.local" className="ui-input" />
-              </FormField>
               <FormField label={t("set.userPhone")}>
-                <input name="phone" placeholder="+992 …" className="ui-input" />
+                <input name="phone" type="tel" required placeholder="+992 …" className="ui-input" />
               </FormField>
               <FormField label={t("set.userRole")}>
                 <AppSelect
@@ -61,10 +58,10 @@ export default async function UsersPage() {
                   options={roles.map((role) => ({ value: role.id, label: n("role", role.code, role.name) }))}
                 />
               </FormField>
-              <FormField label={t("set.userPassword")} className="sm:col-span-2 lg:col-span-1">
-                <input name="password" type="password" required minLength={8} className="ui-input" />
+              <FormField label={t("set.userPassword")}>
+                <input name="password" type="password" required minLength={6} className="ui-input" />
               </FormField>
-              <button type="submit" className="ui-btn-primary min-h-[44px] sm:col-span-2 lg:col-span-3">
+              <button type="submit" className="ui-btn-primary min-h-[44px] sm:col-span-2">
                 {t("set.createUser")}
               </button>
             </form>
@@ -84,16 +81,20 @@ export default async function UsersPage() {
             <h2 className={styles.sectionTitle}>{user.name}</h2>
           </div>
           <div className={styles.sectionBody}>
-            <form action={updateUser} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <form action={updateUser} className="grid gap-3 sm:grid-cols-2">
               <input type="hidden" name="id" value={user.id} />
               <FormField label={t("set.userName")}>
                 <input name="name" defaultValue={user.name} disabled={!canEdit} className="ui-input" />
               </FormField>
-              <FormField label={t("set.userEmail")}>
-                <input value={user.email} disabled title={user.email} className="ui-input min-w-0" />
-              </FormField>
               <FormField label={t("set.userPhone")}>
-                <input name="phone" defaultValue={user.phone ?? ""} disabled={!canEdit} className="ui-input" />
+                <input
+                  name="phone"
+                  type="tel"
+                  defaultValue={user.phone ?? ""}
+                  required
+                  disabled={!canEdit}
+                  className="ui-input"
+                />
               </FormField>
               <FormField label={t("set.userRole")}>
                 <AppSelect
@@ -107,11 +108,11 @@ export default async function UsersPage() {
                 <input type="checkbox" name="isActive" defaultChecked={user.isActive} disabled={!canEdit} />
               </FormField>
               {canEdit ? (
-                <FormField label={t("set.newPassword")} hint={t("set.newPasswordHint")}>
-                  <input name="password" type="password" className="ui-input" />
+                <FormField label={t("set.newPassword")} hint={t("set.newPasswordHint")} className="sm:col-span-2">
+                  <input name="password" type="password" minLength={6} className="ui-input" />
                 </FormField>
               ) : null}
-              <div className="sm:col-span-2 lg:col-span-3 flex flex-wrap gap-3">
+              <div className="sm:col-span-2 flex flex-wrap gap-3">
                 {canEdit ? (
                   <button type="submit" className="ui-btn-primary min-h-[44px]">
                     {t("common.save")}

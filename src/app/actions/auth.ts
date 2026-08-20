@@ -13,54 +13,24 @@ function clientIp(h: Headers) {
 }
 
 export async function loginAction(_prev: { error?: string } | undefined, formData: FormData) {
-  const mode = String(formData.get("loginMode") ?? "admin");
   const h = await headers();
   const ip = clientIp(h);
 
-  if (mode === "employee") {
-    const phoneRaw = String(formData.get("phone") ?? "").trim();
-    const pin = String(formData.get("pin") ?? "").trim();
-
-    if (!phoneRaw || !pin) {
-      return { error: "Укажите номер телефона и код." };
-    }
-    if (!isValidPhone(phoneRaw)) {
-      return { error: "Некорректный номер телефона." };
-    }
-    if (!/^\d{4,6}$/.test(pin)) {
-      return { error: "Код должен содержать 4–6 цифр." };
-    }
-
-    const phone = normalizePhone(phoneRaw);
-    const guard = assertLoginAllowed(ip, phone);
-    if (!guard.ok) {
-      return { error: guard.error };
-    }
-
-    setLoginRequestIp(ip);
-    try {
-      await signIn("credentials", {
-        phone,
-        pin,
-        redirectTo: "/",
-      });
-      return {};
-    } catch (error) {
-      if (error instanceof AuthError) {
-        return { error: "Неверный номер или код." };
-      }
-      throw error;
-    }
-  }
-
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const phoneRaw = String(formData.get("phone") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
-  if (!email || !password) {
-    return { error: "Укажите email и пароль." };
+  if (!phoneRaw || !password) {
+    return { error: "Укажите номер телефона и пароль." };
+  }
+  if (!isValidPhone(phoneRaw)) {
+    return { error: "Некорректный номер телефона." };
+  }
+  if (password.length < 6) {
+    return { error: "Пароль — минимум 6 символов." };
   }
 
-  const guard = assertLoginAllowed(ip, email);
+  const phone = normalizePhone(phoneRaw);
+  const guard = assertLoginAllowed(ip, phone);
   if (!guard.ok) {
     return { error: guard.error };
   }
@@ -68,14 +38,14 @@ export async function loginAction(_prev: { error?: string } | undefined, formDat
   setLoginRequestIp(ip);
   try {
     await signIn("credentials", {
-      email,
+      phone,
       password,
       redirectTo: "/",
     });
     return {};
   } catch (error) {
     if (error instanceof AuthError) {
-      return { error: "Неверный email или пароль." };
+      return { error: "Неверный номер или пароль." };
     }
     throw error;
   }

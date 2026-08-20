@@ -18,15 +18,12 @@ function requireOwner() {
   });
 }
 
-const pinSchema = z
-  .string()
-  .trim()
-  .regex(/^\d{4,6}$/, "Код должен содержать 4–6 цифр.");
+const passwordSchema = z.string().trim().min(6, "Пароль — минимум 6 символов.").max(100);
 
 const createSchema = z.object({
   name: z.string().trim().min(1).max(120),
   phone: z.string().trim().min(1),
-  pin: pinSchema,
+  password: passwordSchema,
   permissionCodes: z.array(z.string()).default([]),
 });
 
@@ -51,7 +48,7 @@ export async function createEmployee(
     const parsed = createSchema.safeParse({
       name: formData.get("name"),
       phone: phoneRaw,
-      pin: formData.get("pin"),
+      password: formData.get("password"),
       permissionCodes: parsePermissionCodes(formData),
     });
 
@@ -92,7 +89,7 @@ export async function createEmployee(
       where: { code: { in: parsed.data.permissionCodes } },
     });
 
-    const passwordHash = await bcrypt.hash(parsed.data.pin, 12);
+    const passwordHash = await bcrypt.hash(parsed.data.password, 12);
     const user = await prisma.user.create({
       data: {
         name: parsed.data.name,
@@ -137,7 +134,7 @@ export async function updateEmployeeAccess(
   try {
     const session = await requireOwner();
     const id = String(formData.get("id") ?? "");
-    const pinRaw = String(formData.get("pin") ?? "").trim();
+    const passwordRaw = String(formData.get("password") ?? "").trim();
     const permissionCodes = parsePermissionCodes(formData);
 
     if (!id) return { error: "Нет идентификатора." };
@@ -158,12 +155,12 @@ export async function updateEmployeeAccess(
     });
 
     const data: { passwordHash?: string } = {};
-    if (pinRaw) {
-      const pinCheck = pinSchema.safeParse(pinRaw);
-      if (!pinCheck.success) {
-        return { error: pinCheck.error.issues[0]?.message ?? "Неверный код." };
+    if (passwordRaw) {
+      const passwordCheck = passwordSchema.safeParse(passwordRaw);
+      if (!passwordCheck.success) {
+        return { error: passwordCheck.error.issues[0]?.message ?? "Неверный пароль." };
       }
-      data.passwordHash = await bcrypt.hash(pinRaw, 12);
+      data.passwordHash = await bcrypt.hash(passwordRaw, 12);
     }
 
     await prisma.$transaction(async (tx) => {
@@ -186,7 +183,7 @@ export async function updateEmployeeAccess(
       entityId: id,
       newValue: {
         permissions: permissionCodes,
-        pinChanged: Boolean(data.passwordHash),
+        passwordChanged: Boolean(data.passwordHash),
       },
     });
 

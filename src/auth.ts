@@ -73,14 +73,13 @@ const nextAuth = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
         phone: { label: "Phone", type: "tel" },
-        pin: { label: "PIN", type: "password" },
       },
       async authorize(credentials) {
         const ip = takeLoginRequestIp();
         const phoneRaw = String(credentials?.phone ?? "").trim();
-        const pin = String(credentials?.pin ?? "").trim();
+        const phonePassword = String(credentials?.password ?? "").trim();
 
-        if (phoneRaw && pin) {
+        if (phoneRaw && phonePassword) {
           if (!isValidPhone(phoneRaw)) return null;
           const phone = normalizePhone(phoneRaw);
           const guard = assertLoginAllowed(ip, phone);
@@ -95,7 +94,7 @@ const nextAuth = NextAuth({
             return null;
           }
 
-          const valid = await bcrypt.compare(pin, user.passwordHash);
+          const valid = await bcrypt.compare(phonePassword, user.passwordHash);
           if (!valid) {
             await recordLoginFailure(ip, phone);
             return null;
@@ -105,6 +104,7 @@ const nextAuth = NextAuth({
           return loadAuthUser(user);
         }
 
+        // Email path kept for demo quick-login / e2e only.
         const email = String(credentials?.email ?? "")
           .trim()
           .toLowerCase();

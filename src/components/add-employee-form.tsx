@@ -25,7 +25,7 @@ export function AddEmployeeForm({ locale, permissions, modules }: Props) {
   const [step, setStep] = useState<1 | 2>(1);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [pin, setPin] = useState("");
+  const [password, setPassword] = useState("");
   const [state, action] = useActionState(createEmployee, undefined);
 
   function resetForm() {
@@ -33,7 +33,7 @@ export function AddEmployeeForm({ locale, permissions, modules }: Props) {
     setStep(1);
     setName("");
     setPhone("");
-    setPin("");
+    setPassword("");
   }
 
   if (state?.ok) {
@@ -56,7 +56,7 @@ export function AddEmployeeForm({ locale, permissions, modules }: Props) {
   }
 
   function goToStep2() {
-    if (!name.trim() || !phone.trim() || !/^\d{4,6}$/.test(pin)) return;
+    if (!name.trim() || !phone.trim() || password.trim().length < 6) return;
     setStep(2);
   }
 
@@ -92,7 +92,7 @@ export function AddEmployeeForm({ locale, permissions, modules }: Props) {
       <form action={action}>
         <input type="hidden" name="name" value={name} />
         <input type="hidden" name="phone" value={phone} />
-        <input type="hidden" name="pin" value={pin} />
+        <input type="hidden" name="password" value={password} />
 
         {step === 1 ? (
           <div className="grid gap-4 sm:grid-cols-2">
@@ -116,17 +116,15 @@ export function AddEmployeeForm({ locale, permissions, modules }: Props) {
                 className="ui-input"
               />
             </FormField>
-            <FormField label={t("login.pin")} hint={t("emp.pinOwnerHint")} required>
+            <FormField label={t("login.password")} hint={t("emp.pinOwnerHint")} required>
               <input
-                value={pin}
-                onChange={(e) => setPin(e.target.value)}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 type="password"
                 required
-                inputMode="numeric"
-                pattern="\d{4,6}"
-                maxLength={6}
-                autoComplete="one-time-code"
-                className="ui-input font-mono"
+                minLength={6}
+                autoComplete="new-password"
+                className="ui-input"
               />
             </FormField>
             <div className="sm:col-span-2">

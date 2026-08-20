@@ -29,13 +29,11 @@ export function EmployeeAccessForm({ locale, userId, permissions, modules, selec
 
       <FormField label={t("emp.newPin")} hint={t("emp.newPinHint")} className="max-w-xs">
         <input
-          name="pin"
+          name="password"
           type="password"
-          inputMode="numeric"
-          pattern="\d{4,6}"
-          maxLength={6}
-          autoComplete="one-time-code"
-          className="ui-input font-mono"
+          minLength={6}
+          autoComplete="new-password"
+          className="ui-input"
         />
       </FormField>
 

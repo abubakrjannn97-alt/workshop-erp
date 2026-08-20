@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { loginAction } from "@/app/actions/auth";
@@ -8,11 +7,11 @@ import { FormField } from "@/components/form-field";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
 import styles from "./login-form.module.css";
 
-function SubmitButton({ t, labelKey }: { t: (k: string) => string; labelKey: string }) {
+function SubmitButton({ t }: { t: (k: string) => string }) {
   const { pending } = useFormStatus();
   return (
     <button type="submit" disabled={pending} aria-busy={pending || undefined} className="ui-btn-primary mt-6 w-full">
-      {pending ? t("login.pending") : t(labelKey)}
+      {pending ? t("login.pending") : t("login.submit")}
     </button>
   );
 }
@@ -27,10 +26,16 @@ export function OwnerLoginForm({ locale }: { locale: Locale }) {
       <p className="page-subtitle">{t("login.subtitleOwner")}</p>
 
       <form action={action} className={styles.form}>
-        <input type="hidden" name="loginMode" value="admin" />
-
-        <FormField label={t("login.email")} required>
-          <input name="email" type="email" required autoComplete="username" className="ui-input" />
+        <FormField label={t("login.phone")} required>
+          <input
+            name="phone"
+            type="tel"
+            required
+            autoComplete="tel"
+            inputMode="tel"
+            placeholder="+992 …"
+            className="ui-input"
+          />
         </FormField>
 
         <FormField label={t("login.password")} required className="mt-3">
@@ -38,6 +43,7 @@ export function OwnerLoginForm({ locale }: { locale: Locale }) {
             name="password"
             type="password"
             required
+            minLength={6}
             autoComplete="current-password"
             className="ui-input"
           />
@@ -49,71 +55,8 @@ export function OwnerLoginForm({ locale }: { locale: Locale }) {
           </p>
         ) : null}
 
-        <SubmitButton t={t} labelKey="login.submit" />
+        <SubmitButton t={t} />
       </form>
-
-      <p className="mt-4 text-center text-sm">
-        <Link
-          href="/login/staff"
-          className="font-medium text-[var(--color-primary)] underline-offset-2 hover:underline"
-        >
-          {t("login.staffLink")}
-        </Link>
-      </p>
-    </div>
-  );
-}
-
-export function StaffLoginForm({ locale }: { locale: Locale }) {
-  const t = createT(locale);
-  const [state, action] = useActionState(loginAction, undefined);
-
-  return (
-    <div className={styles.loginCard}>
-      <h1 className="page-title">{t("login.staffTitle")}</h1>
-      <p className="page-subtitle">{t("login.subtitleStaff")}</p>
-
-      <form action={action} className={styles.form}>
-        <input type="hidden" name="loginMode" value="employee" />
-
-        <FormField label={t("login.phone")} required>
-          <input
-            name="phone"
-            type="tel"
-            required
-            autoComplete="tel"
-            inputMode="tel"
-            className="ui-input"
-          />
-        </FormField>
-
-        <FormField label={t("login.pin")} hint={t("login.pinHint")} required className="mt-3">
-          <input
-            name="pin"
-            type="password"
-            required
-            autoComplete="one-time-code"
-            inputMode="numeric"
-            pattern="\d{4,6}"
-            maxLength={6}
-            className="ui-input font-mono tracking-widest"
-          />
-        </FormField>
-
-        {state?.error ? (
-          <p className={styles.error} role="alert">
-            {state.error}
-          </p>
-        ) : null}
-
-        <SubmitButton t={t} labelKey="login.submit" />
-      </form>
-
-      <p className="mt-4 text-center text-sm">
-        <Link href="/login" className="font-medium text-[var(--color-primary)] underline-offset-2 hover:underline">
-          {t("login.ownerLink")}
-        </Link>
-      </p>
     </div>
   );
 }
