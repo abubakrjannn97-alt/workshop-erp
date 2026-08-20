@@ -82,6 +82,7 @@
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
+  cursor: pointer;
   box-shadow: 0 2px 8px rgba(28, 35, 43, 0.08);
   transition: background 0.15s, transform 0.15s;
 }
@@ -111,6 +112,7 @@
   background: var(--surface);
   color: var(--ink);
   text-decoration: none;
+  cursor: pointer;
   box-shadow: 0 1px 4px rgba(28, 35, 43, 0.04);
 }
 
@@ -317,8 +319,89 @@
   gap: 14px;
 }
 
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+}
+
 .formActions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
   padding-top: 4px;
+}
+
+.formError {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b42318;
+  font-size: 13px;
+}
+
+.cancelBtn {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control, 8px);
+  background: var(--surface);
+  color: var(--ink-2);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancelBtn:hover {
+  color: var(--ink);
+  background: var(--surface-2);
+}
+
+.countBadge {
+  display: inline-flex;
+  margin-left: 8px;
+  min-width: 1.5rem;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  vertical-align: middle;
+}
+
+.toggleListBtn {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.toggleListBtn:hover {
+  color: var(--ink);
+  background: var(--surface-2);
+}
+
+.listCollapsed {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-3);
+  text-align: center;
 }
 
 /* ─── Pipeline ─── */
@@ -486,6 +569,10 @@
 
   .formsGrid {
     grid-template-columns: 1fr;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr 1fr;
   }
 
   .docForm {
