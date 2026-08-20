@@ -19,11 +19,18 @@ type MaterialOpt = {
   id: string;
   name: string;
   unitCost: string | null;
+  packageWeight: string;
   storageUnitId: string;
   storageSymbol: string;
 };
 
-type RecipeRow = { key: number; materialId: string; quantity: string; unitId: string };
+type RecipeRow = {
+  key: number;
+  materialId: string;
+  quantity: string;
+  unitId: string;
+  unitPrice: string;
+};
 
 export function ProductCreateWizard({
   locale,
@@ -52,7 +59,7 @@ export function ProductCreateWizard({
   const [pending, startTransition] = useTransition();
   const [nextKey, setNextKey] = useState(1);
   const [rows, setRows] = useState<RecipeRow[]>([
-    { key: 0, materialId: "", quantity: "", unitId: units[0]?.id ?? "" },
+    { key: 0, materialId: "", quantity: "", unitId: units[0]?.id ?? "", unitPrice: "" },
   ]);
   const [price, setPrice] = useState("");
   const [minPrice, setMinPrice] = useState("");
@@ -70,11 +77,10 @@ export function ProductCreateWizard({
     let total = D(0);
     let ok = false;
     for (const row of rows) {
-      const mat = materialMap.get(row.materialId);
-      if (!mat?.unitCost || !row.quantity) continue;
+      if (!row.materialId || !row.quantity || !row.unitPrice) continue;
       try {
-        const line = D(mat.unitCost).mul(row.quantity || "0");
-        if (line.gt(0)) {
+        const line = D(row.unitPrice || "0").mul(row.quantity || "0");
+        if (line.gte(0) && D(row.quantity || "0").gt(0)) {
           total = total.add(line);
           ok = true;
         }
@@ -83,7 +89,7 @@ export function ProductCreateWizard({
       }
     }
     return ok ? total : null;
-  }, [rows, materialMap]);
+  }, [rows]);
 
   function onPickFile(file: File | null) {
     if (!file) return;
@@ -141,6 +147,7 @@ export function ProductCreateWizard({
       fd.append("materialId", row.materialId);
       fd.append("quantity", row.quantity);
       fd.append("unitId", row.unitId || materialMap.get(row.materialId)?.storageUnitId || "");
+      fd.append("unitPrice", row.unitPrice || "0");
     }
 
     startTransition(async () => {
@@ -240,15 +247,15 @@ export function ProductCreateWizard({
 
           <ul className={styles.recipeList}>
             {rows.map((row, index) => {
-              const mat = materialMap.get(row.materialId);
               let line: string | null = null;
               try {
-                if (mat?.unitCost && row.quantity) {
-                  line = moneyDisplay(D(mat.unitCost).mul(row.quantity));
+                if (row.unitPrice && row.quantity) {
+                  line = moneyDisplay(D(row.unitPrice).mul(row.quantity));
                 }
               } catch {
                 line = null;
               }
+              const mat = materialMap.get(row.materialId);
               return (
                 <li key={row.key} className={styles.recipeRow}>
                   <AppSelect
@@ -258,7 +265,12 @@ export function ProductCreateWizard({
                       setRows((prev) =>
                         prev.map((r, i) =>
                           i === index
-                            ? { ...r, materialId: value, unitId: m?.storageUnitId ?? r.unitId }
+                            ? {
+                                ...r,
+                                materialId: value,
+                                unitId: m?.storageUnitId ?? r.unitId,
+                                unitPrice: m?.unitCost ? moneyDisplay(m.unitCost) : r.unitPrice,
+                              }
                             : r,
                         ),
                       );
@@ -266,26 +278,6 @@ export function ProductCreateWizard({
                     options={materialOptions}
                     placeholder={t("products.pickMaterial")}
                   />
-                  <div className={styles.qtyCost}>
-                    <input
-                      className="ui-input"
-                      inputMode="decimal"
-                      placeholder={t("common.qty")}
-                      value={row.quantity}
-                      onChange={(e) => {
-                        const q = e.target.value;
-                        setRows((prev) => prev.map((r, i) => (i === index ? { ...r, quantity: q } : r)));
-                      }}
-                    />
-                    <span className={styles.costCell}>
-                      {line ? `${line} с` : mat ? t("products.noMatPrice") : "—"}
-                      {mat ? (
-                        <small>
-                          / {mat.storageSymbol}
-                        </small>
-                      ) : null}
-                    </span>
-                  </div>
                   {rows.length > 1 ? (
                     <button
                       type="button"
@@ -295,7 +287,42 @@ export function ProductCreateWizard({
                     >
                       <Trash2 size={16} strokeWidth={ICON_STROKE} />
                     </button>
-                  ) : null}
+                  ) : (
+                    <span />
+                  )}
+                  <div className={styles.qtyCost}>
+                    <label className={styles.miniLabel}>
+                      {t("common.qty")}
+                      {mat ? ` (${mat.storageSymbol})` : ""}
+                      <input
+                        className="ui-input"
+                        inputMode="decimal"
+                        placeholder="1"
+                        value={row.quantity}
+                        onChange={(e) => {
+                          const q = e.target.value;
+                          setRows((prev) => prev.map((r, i) => (i === index ? { ...r, quantity: q } : r)));
+                        }}
+                      />
+                    </label>
+                    <label className={styles.miniLabel}>
+                      {t("products.matUnitPrice")}
+                      {mat ? ` / ${mat.storageSymbol}` : ""}
+                      <input
+                        className="ui-input"
+                        inputMode="decimal"
+                        placeholder={t("products.matUnitPricePh")}
+                        value={row.unitPrice}
+                        onChange={(e) => {
+                          const p = e.target.value;
+                          setRows((prev) => prev.map((r, i) => (i === index ? { ...r, unitPrice: p } : r)));
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <p className={styles.lineSum}>
+                    {t("products.lineCost")}: <strong>{line ? `${line} с` : "—"}</strong>
+                  </p>
                 </li>
               );
             })}
@@ -307,7 +334,13 @@ export function ProductCreateWizard({
             onClick={() => {
               setRows((prev) => [
                 ...prev,
-                { key: nextKey, materialId: "", quantity: "", unitId: units[0]?.id ?? "" },
+                {
+                  key: nextKey,
+                  materialId: "",
+                  quantity: "",
+                  unitId: units[0]?.id ?? "",
+                  unitPrice: "",
+                },
               ]);
               setNextKey((k) => k + 1);
             }}

@@ -45,7 +45,8 @@ export default async function NewProductPage() {
               return {
                 id: m.id,
                 name: m.name,
-                unitCost: cost ? cost.toFixed(6) : null,
+                unitCost: cost ? cost.toFixed(4) : null,
+                packageWeight: String(m.packageWeight),
                 storageUnitId: m.storageUnitId,
                 storageSymbol: m.storageUnit.symbol,
               };

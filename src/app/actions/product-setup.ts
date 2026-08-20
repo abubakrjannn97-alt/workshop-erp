@@ -6,13 +6,60 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money } from "@core/shared/decimal";
-import { materialCostForRecipe } from "@core/costing/costing";
+import { materialCostForRecipe, unitCost } from "@core/costing/costing";
 import { publishRecipeVersion } from "@/app/actions/recipes";
 
 const priceSchema = z.object({
   price: z.string().regex(/^\d+(\.\d{1,4})?$/),
   minPrice: z.string().regex(/^\d+(\.\d{1,4})?$/),
 });
+
+async function applyMaterialUnitPrices(
+  materialIds: string[],
+  unitPrices: string[],
+  userId: string,
+) {
+  for (let i = 0; i < materialIds.length; i++) {
+    const materialId = materialIds[i];
+    const unitPriceRaw = unitPrices[i] ?? "";
+    if (!materialId || !/^\d+(\.\d{1,6})?$/.test(unitPriceRaw)) continue;
+    const unitPrice = D(unitPriceRaw);
+    if (unitPrice.lt(0)) continue;
+
+    const material = await prisma.material.findUnique({ where: { id: materialId } });
+    if (!material || material.archivedAt) continue;
+
+    const weight = D(String(material.packageWeight));
+    if (weight.lte(0)) continue;
+    const packagePrice = money(unitPrice.mul(weight));
+    const currentUnit = unitCost(material.packagePrice, material.packageWeight);
+    if (currentUnit && money(currentUnit) === money(unitPrice)) continue;
+
+    await prisma.material.update({
+      where: { id: materialId },
+      data: {
+        packagePrice,
+        lastPurchasePrice: money(unitPrice),
+        averagePurchasePrice: money(unitPrice),
+      },
+    });
+    await prisma.materialPriceHistory.updateMany({
+      where: { materialId, validTo: null },
+      data: { validTo: new Date() },
+    });
+    await prisma.materialPriceHistory.create({
+      data: {
+        materialId,
+        packageWeight: money(weight),
+        packagePrice,
+        unitPrice: money(unitPrice),
+        createdById: userId,
+      },
+    });
+    revalidatePath("/materials");
+    revalidatePath(`/materials/${materialId}`);
+  }
+}
 
 /** Step 2: save recipe + client prices after material cost is known. */
 export async function finishProductSetup(formData: FormData) {
@@ -30,6 +77,10 @@ export async function finishProductSetup(formData: FormData) {
     minPrice: formData.get("minPrice") || "0",
   });
   if (!prices.success) return { error: "Проверьте цены." };
+
+  const materialIds = formData.getAll("materialId").map(String);
+  const unitPrices = formData.getAll("unitPrice").map(String);
+  await applyMaterialUnitPrices(materialIds, unitPrices, session.user.id);
 
   const recipeResult = await publishRecipeVersion(formData);
   if (recipeResult?.error) return recipeResult;
