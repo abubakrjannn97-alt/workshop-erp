@@ -31,6 +31,37 @@ export type DomainSettings = {
   productDefaultOutputPerBase: string;
 };
 
+/** Preset shape used to persist / merge domain settings (no domain package imports). */
+export type DomainSettingsSource = {
+  domain: string;
+  warehouses: {
+    rawCode: string;
+    fgCode: string;
+  };
+  payroll: {
+    productionScheme: string;
+  };
+  product: {
+    defaultSaleUnit: string;
+    defaultOutputUnit: string;
+    defaultCategory: string;
+    defaultOutputPerBase: number;
+  };
+};
+
+export function domainSettingsFromPreset(preset: DomainSettingsSource): Record<string, string> {
+  return {
+    [DOMAIN_SETTING_KEYS.workshopDomain]: preset.domain,
+    [DOMAIN_SETTING_KEYS.warehouseRawCode]: preset.warehouses.rawCode,
+    [DOMAIN_SETTING_KEYS.warehouseFgCode]: preset.warehouses.fgCode,
+    [DOMAIN_SETTING_KEYS.payrollProductionScheme]: preset.payroll.productionScheme,
+    [DOMAIN_SETTING_KEYS.productDefaultSaleUnit]: preset.product.defaultSaleUnit,
+    [DOMAIN_SETTING_KEYS.productDefaultOutputUnit]: preset.product.defaultOutputUnit,
+    [DOMAIN_SETTING_KEYS.productDefaultCategory]: preset.product.defaultCategory,
+    [DOMAIN_SETTING_KEYS.productDefaultOutputPerBase]: String(preset.product.defaultOutputPerBase),
+  };
+}
+
 export type BusinessSettings = {
   companyName: string;
   logoUrl: string;

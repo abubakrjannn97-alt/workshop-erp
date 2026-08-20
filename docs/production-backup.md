@@ -6,7 +6,7 @@ Required env variables:
 
 - `DATABASE_URL` — primary production DB URL
 - `BACKUP_DATABASE_URL` — optional dedicated URL for backup user
-- `BACKUP_DIR` — local backup directory (default `.data/backups`)
+- `BACKUP_DIR` / `BACKUP_DESTINATION` — local backup directory (default `.data/backups`)
 - `BACKUP_RETENTION_DAYS` — retention window (default `14`)
 - `BACKUP_OFFSITE_CMD` — off-site copy command (optional), supports:
   - `{FILE}` full path

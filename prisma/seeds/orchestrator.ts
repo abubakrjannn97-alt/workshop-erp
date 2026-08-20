@@ -6,6 +6,7 @@ import {
   type DomainRegistryEntry,
 } from "../../src/domains/registry";
 import { seedCore } from "./core";
+import { runRegistryDemo, type DemoSeedArgs } from "./demo-loader";
 
 export type SeedWorkshopOptions = {
   /** When true, run optional demo/history seed if configured for the domain. Default: SEED_DEMO !== "0". */
@@ -23,12 +24,6 @@ export type SeedWorkshopResult = {
 
 type DomainSeedResult = {
   productionSchemeId: string;
-};
-
-type DemoSeedArgs = {
-  productionSchemeId: string;
-  salesSchemeId: string;
-  forceHistory?: boolean;
 };
 
 /** Resolve WORKSHOP_DOMAIN for CLI seeds (mirrors runtime default). */
@@ -59,18 +54,6 @@ async function runDomainSeed(
     (client: PrismaClient) => Promise<DomainSeedResult>
   >(entry.seed.seedModule, entry.seed.seedExport);
   return seedFn(prisma);
-}
-
-async function runDemoSeed(
-  prisma: PrismaClient,
-  entry: DomainRegistryEntry,
-  args: DemoSeedArgs,
-): Promise<void> {
-  if (!entry.seed.demoModule || !entry.seed.demoExport) return;
-  const demoFn = await importSeedModule<
-    (client: PrismaClient, opts: DemoSeedArgs) => Promise<void>
-  >(entry.seed.demoModule, entry.seed.demoExport);
-  await demoFn(prisma, args);
 }
 
 function requireRegistryEntry(domainId: string) {
@@ -128,9 +111,8 @@ export async function seedWorkshop(
   const { productionSchemeId } = await runDomainSeed(prisma, entry);
 
   let demoSeeded = false;
-  if (includeDemo && entry.seed.demoModule && entry.seed.demoExport) {
-    await runDemoSeed(prisma, entry, { productionSchemeId, salesSchemeId });
-    demoSeeded = true;
+  if (includeDemo) {
+    demoSeeded = await runRegistryDemo(prisma, entry, { productionSchemeId, salesSchemeId });
   }
 
   return { domainId, salesSchemeId, productionSchemeId, demoSeeded };

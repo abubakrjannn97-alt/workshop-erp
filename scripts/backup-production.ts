@@ -14,6 +14,9 @@
 import { execSync } from "node:child_process";
 import { mkdirSync, statSync, readdirSync, unlinkSync, appendFileSync, existsSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { loadLocalEnvFiles } from "./load-env";
+
+loadLocalEnvFiles();
 
 function env(key: string, fallback?: string): string {
   const val = process.env[key]?.trim();
@@ -38,7 +41,9 @@ const dbUrl = env("BACKUP_DATABASE_URL", process.env.DATABASE_URL ?? "");
 if (!dbUrl) { console.error("FATAL: No DATABASE_URL or BACKUP_DATABASE_URL set."); process.exit(1); }
 
 const conn = parseConnectionUrl(dbUrl);
-const backupDir = resolve(env("BACKUP_DIR", join(process.cwd(), ".data", "backups")));
+const backupDir = resolve(
+  env("BACKUP_DIR", process.env.BACKUP_DESTINATION || join(process.cwd(), ".data", "backups")),
+);
 const retentionDays = parseInt(env("BACKUP_RETENTION_DAYS", "14"), 10);
 const offsiteCmd = process.env.BACKUP_OFFSITE_CMD?.trim() || null;
 const pgDumpBin =

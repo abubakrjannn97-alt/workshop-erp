@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import Decimal from "decimal.js";
-import { DOMAIN_SETTING_KEYS } from "../../../src/core/config/settings";
+import { persistDomainSettings } from "../persist-domain-settings";
 import { FACADE_DOMAIN_CONFIG } from "../../../src/domains/facade/config";
 import { receiveMaterial } from "../../../src/core/inventory/stock";
 
@@ -12,26 +12,7 @@ export type FacadeDomainSeedResult = {
 
 /** Facade domain catalog, payroll scheme, domain settings, opening stock. */
 export async function seedFacadeDomain(prisma: PrismaClient): Promise<FacadeDomainSeedResult> {
-  const domainSettings: Record<string, string> = {
-    [DOMAIN_SETTING_KEYS.workshopDomain]: FACADE_DOMAIN_CONFIG.domain,
-    [DOMAIN_SETTING_KEYS.warehouseRawCode]: FACADE_DOMAIN_CONFIG.warehouses.rawCode,
-    [DOMAIN_SETTING_KEYS.warehouseFgCode]: FACADE_DOMAIN_CONFIG.warehouses.fgCode,
-    [DOMAIN_SETTING_KEYS.payrollProductionScheme]: FACADE_DOMAIN_CONFIG.payroll.productionScheme,
-    [DOMAIN_SETTING_KEYS.productDefaultSaleUnit]: FACADE_DOMAIN_CONFIG.product.defaultSaleUnit,
-    [DOMAIN_SETTING_KEYS.productDefaultOutputUnit]: FACADE_DOMAIN_CONFIG.product.defaultOutputUnit,
-    [DOMAIN_SETTING_KEYS.productDefaultCategory]: FACADE_DOMAIN_CONFIG.product.defaultCategory,
-    [DOMAIN_SETTING_KEYS.productDefaultOutputPerBase]: String(
-      FACADE_DOMAIN_CONFIG.product.defaultOutputPerBase,
-    ),
-  };
-
-  for (const [key, value] of Object.entries(domainSettings)) {
-    await prisma.setting.upsert({
-      where: { key },
-      update: {},
-      create: { key, value },
-    });
-  }
+  await persistDomainSettings(prisma, FACADE_DOMAIN_CONFIG);
 
   const prodScheme = await prisma.payScheme.upsert({
     where: { code: FACADE_DOMAIN_CONFIG.payroll.productionScheme },

@@ -9,6 +9,7 @@ import { FACADE_HELP_OVERRIDES } from "./facade/help-overrides";
 /** Runtime domain preset — mirrors persisted DOMAIN_SETTING_KEYS. */
 export type DomainPreset = {
   domain: string;
+  label: string;
   warehouses: {
     rawCode: string;
     fgCode: string;
@@ -50,6 +51,7 @@ export type DomainRegistryEntry = {
 function facadePreset(): DomainPreset {
   return {
     domain: FACADE_DOMAIN_CONFIG.domain,
+    label: "Facade Production",
     warehouses: { ...FACADE_DOMAIN_CONFIG.warehouses },
     payroll: { ...FACADE_DOMAIN_CONFIG.payroll },
     product: { ...FACADE_DOMAIN_CONFIG.product },
@@ -59,6 +61,7 @@ function facadePreset(): DomainPreset {
 function bakeryPreset(): DomainPreset {
   return {
     domain: BAKERY_DOMAIN_CONFIG.domain,
+    label: "Bakery Production",
     warehouses: { ...BAKERY_DOMAIN_CONFIG.warehouses },
     payroll: { ...BAKERY_DOMAIN_CONFIG.payroll },
     product: { ...BAKERY_DOMAIN_CONFIG.product },

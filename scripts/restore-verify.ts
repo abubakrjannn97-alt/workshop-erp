@@ -10,6 +10,9 @@
  */
 import { execSync } from "node:child_process";
 import { existsSync, statSync } from "node:fs";
+import { loadLocalEnvFiles } from "./load-env";
+
+loadLocalEnvFiles();
 
 const dumpFile = process.argv[2];
 if (!dumpFile) {
@@ -145,6 +148,7 @@ check("Ledger entries", () => psql("SELECT count(*) FROM ledger_entries") + " ro
 check("Production orders", () => psql("SELECT count(*) FROM production_orders") + " rows");
 check("Production batches", () => psql("SELECT count(*) FROM production_batches") + " rows");
 check("Audit logs", () => psql("SELECT count(*) FROM audit_logs") + " rows");
+check("Employees (users)", () => psql("SELECT count(*) FROM users") + " rows");
 check("Warehouses", () => {
   const count = psql("SELECT count(*) FROM warehouses");
   if (parseInt(count) < 2) throw new Error("Expected at least RAW + FG warehouses");

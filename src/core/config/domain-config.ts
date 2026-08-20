@@ -13,7 +13,14 @@ export { getWorkshopDomain };
 export type DomainConfig = DomainPreset;
 
 const DOMAIN_PRESETS: Record<string, DomainConfig> = Object.fromEntries(
-  Object.entries(DOMAIN_REGISTRY).map(([id, entry]) => [id, { ...entry.preset, domain: entry.preset.domain || id }]),
+  Object.entries(DOMAIN_REGISTRY).map(([id, entry]) => [
+    id,
+    {
+      ...entry.preset,
+      domain: entry.preset.domain || id,
+      label: entry.preset.label || entry.label,
+    },
+  ]),
 );
 
 export { SUPPORTED_WORKSHOP_DOMAINS };
@@ -33,8 +40,13 @@ export function getDomainPreset(): DomainConfig {
       `Unknown WORKSHOP_DOMAIN "${domain}". Supported: ${SUPPORTED_WORKSHOP_DOMAINS.join(", ")}.`,
     );
   }
+  return clonePreset(preset);
+}
+
+function clonePreset(preset: DomainConfig): DomainConfig {
   return {
     domain: preset.domain,
+    label: preset.label,
     warehouses: { ...preset.warehouses },
     payroll: { ...preset.payroll },
     product: { ...preset.product },
@@ -48,19 +60,27 @@ function parseSettingNumber(value: unknown, fallback: number): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-export const getDomainConfig = cache(async (): Promise<DomainConfig> => {
-  const preset = getDomainPreset();
-  const keys = Object.values(DOMAIN_SETTING_KEYS);
-  const rows = await prisma.setting.findMany({ where: { key: { in: keys } } });
-  const byKey = new Map(rows.map((row) => [row.key, parseSettingValue(row.value)]));
+/**
+ * Apply persisted DOMAIN_SETTING_KEYS only when they belong to the active preset.
+ * Leftover rows from another clone must not override WORKSHOP_DOMAIN.
+ */
+export function mergeDomainConfig(
+  preset: DomainConfig,
+  stored: Map<string, string>,
+): DomainConfig {
+  const storedDomain = stored.get(DOMAIN_SETTING_KEYS.workshopDomain)?.trim();
+  if (storedDomain && storedDomain !== preset.domain) {
+    return clonePreset(preset);
+  }
 
   const pick = (key: string, fallback: string) => {
-    const value = byKey.get(key)?.trim();
+    const value = stored.get(key)?.trim();
     return value ? value : fallback;
   };
 
   return {
     domain: pick(DOMAIN_SETTING_KEYS.workshopDomain, preset.domain),
+    label: preset.label,
     warehouses: {
       rawCode: pick(DOMAIN_SETTING_KEYS.warehouseRawCode, preset.warehouses.rawCode),
       fgCode: pick(DOMAIN_SETTING_KEYS.warehouseFgCode, preset.warehouses.fgCode),
@@ -79,11 +99,19 @@ export const getDomainConfig = cache(async (): Promise<DomainConfig> => {
       ),
       defaultCategory: pick(DOMAIN_SETTING_KEYS.productDefaultCategory, preset.product.defaultCategory),
       defaultOutputPerBase: parseSettingNumber(
-        byKey.get(DOMAIN_SETTING_KEYS.productDefaultOutputPerBase),
+        stored.get(DOMAIN_SETTING_KEYS.productDefaultOutputPerBase),
         preset.product.defaultOutputPerBase,
       ),
     },
   };
+}
+
+export const getDomainConfig = cache(async (): Promise<DomainConfig> => {
+  const preset = getDomainPreset();
+  const keys = Object.values(DOMAIN_SETTING_KEYS);
+  const rows = await prisma.setting.findMany({ where: { key: { in: keys } } });
+  const byKey = new Map(rows.map((row) => [row.key, parseSettingValue(row.value)]));
+  return mergeDomainConfig(preset, byKey);
 });
 
 export function resolveProductionPaySchemeCodeSync(): string {

@@ -3,9 +3,8 @@ param(
   [string]$DumpFile
 )
 $ErrorActionPreference = "Stop"
-$bin = "C:\Program Files\PostgreSQL\16\bin"
-$env:PGPASSWORD = "workshop"
-if (-not (Test-Path $DumpFile)) { throw "Файл дампа не найден: $DumpFile" }
-& "$bin\pg_restore.exe" -h localhost -p 5433 -U workshop -d workshop --clean --if-exists $DumpFile
-if ($LASTEXITCODE -ne 0) { throw "pg_restore exit $LASTEXITCODE" }
-Write-Output "Restored $DumpFile"
+Write-Output "This script does not restore into production."
+Write-Output "Use clone verification:"
+Write-Output "  npm run db:restore:verify -- `"$DumpFile`""
+Write-Output "Set RESTORE_DATABASE_URL to a non-production database first."
+exit 1

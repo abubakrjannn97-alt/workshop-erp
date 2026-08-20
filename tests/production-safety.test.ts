@@ -8,6 +8,7 @@ describe("production safety configuration", () => {
     assert.match(src, /BACKUP_DATABASE_URL/);
     assert.match(src, /DATABASE_URL/);
     assert.match(src, /BACKUP_DIR/);
+    assert.match(src, /BACKUP_DESTINATION/);
     assert.match(src, /BACKUP_RETENTION_DAYS/);
     assert.match(src, /BACKUP_OFFSITE_CMD/);
     assert.doesNotMatch(src, /localhost:5433/);
