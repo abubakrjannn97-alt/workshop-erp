@@ -80,7 +80,7 @@ export async function createMaterial(formData: FormData) {
     newValue: { name: material.name, packagePrice: parsed.data.packagePrice },
   });
   revalidatePath("/materials");
-  return { ok: true };
+  return { ok: true, id: material.id };
 }
 
 export async function updateMaterial(formData: FormData) {

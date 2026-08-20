@@ -4,6 +4,7 @@ import { getDomainHelpOverrides } from "@core/config/i18n-domain";
 export type HelpPageId =
   | "home"
   | "products"
+  | "materials"
   | "sales"
   | "crm"
   | "orders"
@@ -25,11 +26,12 @@ export const HELP_RESTORE = "workshop:help-restore";
 export function pageIdFromPath(path: string): HelpPageId | null {
   if (path === "/") return "home";
   if (path.startsWith("/products")) return "products";
+  if (path.startsWith("/materials")) return "materials";
   if (path.startsWith("/sales")) return "sales";
   if (path.startsWith("/crm")) return "crm";
   if (path.startsWith("/orders")) return "orders";
   if (path.startsWith("/production")) return "production";
-  if (path.startsWith("/warehouse") || path.startsWith("/materials")) return "warehouse";
+  if (path.startsWith("/warehouse")) return "warehouse";
   if (path.startsWith("/purchasing")) return "purchasing";
   if (path.startsWith("/finance")) return "finance";
   if (path.startsWith("/employees")) return "employees";
@@ -108,9 +110,36 @@ const ruTour: Record<HelpPageId, TourStep[]> = {
       text: "Создайте изделие: имя, единицы, цена. Потом откройте карточку и заполните рецепт.",
     },
     {
+      targets: ["products-form"],
+      title: "Параметры изделия",
+      text: "Ед. продажи — как продаёте клиенту. Ед. ГП — как считаете на складе. База рецепта обычно 1. Выход — сколько штук получается с этой базы.",
+    },
+    {
       targets: ["products-list"],
       title: "Список",
       text: "Цена продажи и себестоимость сырья. Если рецепта нет — себестоимость неполная.",
+    },
+  ],
+  materials: [
+    {
+      targets: ["catalog-nav"],
+      title: "Сырьё",
+      text: "Материалы для рецептов: цемент, пигмент и т.д. Цена за 1 ед. считается из цены и веса упаковки.",
+    },
+    {
+      targets: ["materials-new"],
+      title: "Новый материал",
+      text: "Добавьте сырьё: имя, единицы, вес и цену упаковки. Потом его можно взять в рецепт изделия.",
+    },
+    {
+      targets: ["materials-form"],
+      title: "Параметры сырья",
+      text: "Ед. склада — как считаете остаток. Ед. закупки — как покупаете. Вес и цена упаковки нужны для расчёта стоимости.",
+    },
+    {
+      targets: ["materials-list"],
+      title: "Список",
+      text: "Все материалы. Откройте карточку, чтобы изменить цену — старая останется в истории.",
     },
   ],
   sales: [
@@ -375,9 +404,36 @@ const tjTour: Record<HelpPageId, TourStep[]> = {
       text: "Ном, воҳид, нарх. Баъд дар корт рецептро пур кунед.",
     },
     {
+      targets: ["products-form"],
+      title: "Параметрҳои мол",
+      text: "Воҳиди фурӯш — чӣ тавр ба мизоҷ. Воҳиди ГП — дар анбор. Базаи рецепт одатан 1. Баромад — чанд дона аз ин база.",
+    },
+    {
       targets: ["products-list"],
       title: "Рӯйхат",
       text: "Нархи фурӯш ва арзиши ашё. Бе рецепт арзиш нопурра аст.",
+    },
+  ],
+  materials: [
+    {
+      targets: ["catalog-nav"],
+      title: "Ашё",
+      text: "Мавод барои рецепт. Нархи 1 воҳид аз нархи баста ва вазн ҳисоб мешавад.",
+    },
+    {
+      targets: ["materials-new"],
+      title: "Ашёи нав",
+      text: "Ном, воҳид, вазн ва нархи баста. Баъд дар рецепти мол истифода мешавад.",
+    },
+    {
+      targets: ["materials-form"],
+      title: "Параметрҳои ашё",
+      text: "Воҳиди анбор — бақия. Воҳиди харид — харид. Вазн ва нархи баста барои ҳисоби арзиш лозим.",
+    },
+    {
+      targets: ["materials-list"],
+      title: "Рӯйхат",
+      text: "Ҳамаи ашё. Кортро кушоед — нархи кӯҳна дар таърих мемонад.",
     },
   ],
   sales: [

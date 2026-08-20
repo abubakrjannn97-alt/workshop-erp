@@ -6,7 +6,6 @@ import { requirePermission } from "@core/auth/authz";
 import { createProduct } from "@/app/actions/products";
 import { CatalogNav } from "@/components/catalog-nav";
 import { AppSelect } from "@/components/app-select";
-import { FirstVisitTips } from "@/components/first-visit-tips";
 import { getDomainConfig } from "@core/config/domain-config";
 import styles from "@/styles/premium.module.css";
 import catalogStyles from "@/components/catalog-form.module.css";
@@ -35,16 +34,11 @@ export default async function NewProductPage() {
         </div>
       </header>
       <CatalogNav current="products" locale={locale} />
-      <section className={styles.section}>
+      <section className={styles.section} data-tour="products-form">
         <div className={`${styles.sectionHead} ${catalogStyles.sectionTightHead}`}>
           <h2 className={styles.sectionTitle}>{t("products.newTitle")}</h2>
         </div>
         <div className={`${styles.sectionBody} ${catalogStyles.sectionTightBody}`}>
-          <FirstVisitTips
-            locale={locale}
-            storageKey="tips:products-new"
-            tips={[t("products.tipRecipe"), t("products.tipOutput"), t("products.tipUnits")]}
-          />
           <form action={action} className={catalogStyles.formGrid}>
             <FormField label={t("common.name")} required>
               <input name="name" required className="ui-input" />

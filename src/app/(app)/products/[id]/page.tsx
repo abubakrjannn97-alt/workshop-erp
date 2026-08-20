@@ -11,7 +11,6 @@ import { NeedPreview } from "./need-preview";
 import { FormField } from "@/components/form-field";
 import { HeaderBackButton } from "@/components/header-back-button";
 import { AppSelect } from "@/components/app-select";
-import { FirstVisitTips } from "@/components/first-visit-tips";
 import Link from "next/link";
 import styles from "@/styles/premium.module.css";
 import catalogStyles from "@/components/catalog-form.module.css";
@@ -61,12 +60,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       <section className={styles.section}>
         <div className={`${styles.sectionHead} ${catalogStyles.sectionTightHead}`}><h2 className={styles.sectionTitle}>{t("common.settings")}</h2></div>
         <div className={`${styles.sectionBody} ${catalogStyles.sectionTightBody}`}>
-          <FirstVisitTips
-            locale={locale}
-            storageKey="tips:products-edit"
-            tips={[t("products.tipRecipe"), t("products.tipOutput"), t("products.tipUnits")]}
-          />
-          <form action={updateProduct} className={catalogStyles.formGrid}>
+          <form action={updateProduct} className={catalogStyles.formGrid} data-tour="products-form">
             <input type="hidden" name="id" value={product.id} />
             <FormField label={t("common.name")}><input name="name" defaultValue={product.name} disabled={!canManage} className="ui-input" /></FormField>
             <FormField label={t("common.category")}><input name="category" defaultValue={product.category} disabled={!canManage} className="ui-input" /></FormField>

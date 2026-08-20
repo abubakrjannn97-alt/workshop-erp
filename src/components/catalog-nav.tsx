@@ -11,7 +11,7 @@ export function CatalogNav({
 }) {
   const t = createT(locale);
   return (
-    <div className={catalogStyles.navCenter}>
+    <div className={catalogStyles.navCenter} data-tour="catalog-nav">
       <Segmented
         aria-label={t("catalog.products")}
         items={[
