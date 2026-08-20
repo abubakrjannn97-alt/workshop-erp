@@ -55,6 +55,11 @@
 .sectionHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px 12px; border-bottom: 1px solid var(--line); }
 .sectionTitle { margin: 0; font-size: 15px; font-weight: 600; line-height: 22px; color: var(--ink); }
 .sectionTitleAccent { composes: sectionTitle; color: var(--accent, #A68649); }
+.sectionTitleWarn { composes: sectionTitle; color: var(--bad, #B42318); }
+.sectionWarn {
+  border-color: color-mix(in srgb, var(--bad, #B42318) 28%, var(--line));
+  background: linear-gradient(180deg, rgba(254, 242, 242, 0.55) 0%, var(--surface) 42%);
+}
 .sectionBody { padding: 16px 18px; }
 
 /* ─── Desktop table ─── */
@@ -98,9 +103,11 @@
 .tdBold { font-weight: 600; color: var(--ink); }
 .tdLink { font-weight: 600; color: var(--accent, #A68649); text-decoration: none; transition: color .12s; }
 .tdLink:hover { color: var(--ink); text-decoration: underline; }
+.rowLink { font-weight: 600; color: var(--ink); text-decoration: none; transition: color .12s; }
+.rowLink:hover { color: var(--bad, #B42318); text-decoration: underline; }
 .tdMuted { font-size: 12px; color: var(--ink-3); }
 .tdWarn { font-size: 12px; color: var(--warn); }
-.tdBad { color: var(--bad, #B42318); font-weight: 600; }
+.tdBad { color: var(--bad, #B42318); font-weight: 600; font-variant-numeric: tabular-nums; }
 
 /* ─── Mobile cards ─── */
 .mobileList { display: none; margin: 0; padding: 12px; list-style: none; }

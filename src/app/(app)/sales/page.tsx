@@ -125,9 +125,9 @@ export default async function SalesPage() {
       </Link>
 
       {overdue.length > 0 ? (
-        <section className={premium.section}>
+        <section className={`${premium.section} ${premium.sectionWarn}`}>
           <div className={premium.sectionHead}>
-            <h2 className={premium.sectionTitleAccent}>{t("sales.overdueOrders")}</h2>
+            <h2 className={premium.sectionTitleWarn}>{t("sales.overdueOrders")}</h2>
           </div>
           <div className={premium.tableWrap}>
             <table className={premium.table}>
@@ -142,11 +142,11 @@ export default async function SalesPage() {
                 {overdue.map((o) => (
                   <tr key={o.id}>
                     <td>
-                      <Link href={`/orders/${o.id}`} className={premium.tdLink}>
+                      <Link href={`/orders/${o.id}`} className={premium.rowLink}>
                         {o.customer.name}
                       </Link>
                     </td>
-                    <td className={premium.tdMuted}>{o.dueAt?.toLocaleDateString(intlLocale(locale))}</td>
+                    <td className={premium.tdBad}>{o.dueAt?.toLocaleDateString(intlLocale(locale))}</td>
                     <td>
                       <StatusBadge label={n("ostatus", o.status.code, o.status.name)} tone={orderTone(o.status.code)} />
                     </td>
@@ -160,8 +160,8 @@ export default async function SalesPage() {
               <li key={o.id} className={premium.mobileCard}>
                 <Link href={`/orders/${o.id}`} style={{ textDecoration: "none", color: "inherit" }}>
                   <span className={premium.mobileName}>{o.customer.name}</span>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-                    <span className={premium.mobileMeta}>{o.dueAt?.toLocaleDateString(intlLocale(locale))}</span>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, gap: 8 }}>
+                    <span className={premium.tdBad}>{o.dueAt?.toLocaleDateString(intlLocale(locale))}</span>
                     <StatusBadge label={n("ostatus", o.status.code, o.status.name)} tone={orderTone(o.status.code)} />
                   </div>
                 </Link>
