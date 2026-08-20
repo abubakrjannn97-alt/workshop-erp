@@ -18,7 +18,7 @@ function requireOwner() {
   });
 }
 
-const passwordSchema = z.string().trim().min(6, "Пароль — минимум 6 символов.").max(100);
+const passwordSchema = z.string().trim().min(1, "Укажите пароль.");
 
 const createSchema = z.object({
   name: z.string().trim().min(1).max(120),

@@ -2,16 +2,21 @@
   position: relative;
   display: flex;
   min-height: 100dvh;
+  min-height: 100svh;
   align-items: center;
   justify-content: center;
   padding: 24px 16px;
   background: var(--bg);
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: padding-top 0.22s ease;
 }
 
 .lang {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
   padding-top: env(safe-area-inset-top);
 }
 
@@ -19,10 +24,37 @@
   position: relative;
   width: 100%;
   max-width: 22rem;
+  transition: transform 0.22s ease, margin-top 0.22s ease;
 }
 
 .brand {
   display: flex;
   justify-content: center;
   margin-bottom: 20px;
+  transition: margin-bottom 0.22s ease, transform 0.22s ease, opacity 0.22s ease;
+}
+
+/* Phone: keep form readable when the keyboard opens */
+@media (max-width: 639px) {
+  .screen {
+    align-items: center;
+    padding-top: max(24px, env(safe-area-inset-top));
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+  }
+
+  .screen:focus-within {
+    align-items: flex-start;
+    padding-top: max(52px, calc(env(safe-area-inset-top) + 36px));
+    padding-bottom: 12px;
+  }
+
+  .screen:focus-within .brand {
+    margin-bottom: 10px;
+    transform: scale(0.82);
+    opacity: 0.9;
+  }
+
+  .screen:focus-within .column {
+    transform: translateY(0);
+  }
 }

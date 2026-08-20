@@ -1,4 +1,5 @@
 import { OwnerLoginForm } from "./login-form";
+import { LoginScreen } from "./login-screen";
 import { DevRolePicker } from "./dev-role-picker";
 import { getDemoUsersForLogin } from "@core/auth/demo-users";
 import { getLocale } from "@core/shared/i18n/locale";
@@ -13,9 +14,9 @@ export default async function LoginPage() {
   const demoUsers = getDemoUsersForLogin();
 
   return (
-    <div className={styles.screen}>
+    <LoginScreen>
       <div className={styles.lang}>
-        <LanguageSwitcher locale={locale} />
+        <LanguageSwitcher locale={locale} size="sm" />
       </div>
       <div className={styles.column}>
         <div className={styles.brand}>
@@ -24,6 +25,6 @@ export default async function LoginPage() {
         <OwnerLoginForm locale={locale} />
         <DevRolePicker locale={locale} users={demoUsers} />
       </div>
-    </div>
+    </LoginScreen>
   );
 }

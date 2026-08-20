@@ -51,8 +51,21 @@
 }
 
 .opt:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--line-strong);
   outline-offset: 1px;
+}
+
+.groupSm {
+  height: 28px;
+  padding: 2px;
+  gap: 1px;
+}
+
+.groupSm .opt {
+  min-width: 30px;
+  min-height: 24px;
+  padding: 0 8px;
+  font-size: 11px;
 }
 
 @media (max-width: 1023px) {
@@ -63,5 +76,14 @@
   .opt {
     min-height: 34px;
     min-width: 48px;
+  }
+
+  .groupSm {
+    height: 28px;
+  }
+
+  .groupSm .opt {
+    min-width: 30px;
+    min-height: 24px;
   }
 }

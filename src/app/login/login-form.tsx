@@ -42,8 +42,6 @@ export function OwnerLoginForm({ locale }: { locale: Locale }) {
           <input
             name="password"
             type="password"
-            required
-            minLength={6}
             autoComplete="current-password"
             className="ui-input"
           />

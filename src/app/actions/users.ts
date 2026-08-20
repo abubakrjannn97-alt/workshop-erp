@@ -11,7 +11,7 @@ import { isValidPhone, normalizePhone, staffEmailFromPhone } from "@core/shared/
 const createSchema = z.object({
   name: z.string().trim().min(1).max(120),
   phone: z.string().trim().min(1),
-  password: z.string().min(6).max(100),
+  password: z.string().min(1),
   roleId: z.string().min(1),
 });
 
@@ -90,7 +90,7 @@ export async function updateUser(formData: FormData) {
       phone: z.string().trim().min(1),
       roleId: z.string().min(1),
       isActive: z.boolean(),
-      password: z.string().min(6).max(100).optional().or(z.literal("")),
+      password: z.string(),
     })
     .safeParse({
       name: formData.get("name"),

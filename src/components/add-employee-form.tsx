@@ -56,7 +56,7 @@ export function AddEmployeeForm({ locale, permissions, modules }: Props) {
   }
 
   function goToStep2() {
-    if (!name.trim() || !phone.trim() || password.trim().length < 6) return;
+    if (!name.trim() || !phone.trim() || !password.trim()) return;
     setStep(2);
   }
 
@@ -122,7 +122,6 @@ export function AddEmployeeForm({ locale, permissions, modules }: Props) {
                 onChange={(e) => setPassword(e.target.value)}
                 type="password"
                 required
-                minLength={6}
                 autoComplete="new-password"
                 className="ui-input"
               />

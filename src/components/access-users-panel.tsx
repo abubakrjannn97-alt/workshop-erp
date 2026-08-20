@@ -74,7 +74,7 @@ export function AccessUsersPanel({
                   />
                 </FormField>
                 <FormField label={t("set.userPassword")}>
-                  <input name="password" type="password" required minLength={6} className="ui-input" />
+                  <input name="password" type="password" required className="ui-input" />
                 </FormField>
                 <button type="submit" className={`${styles.softBtn} sm:col-span-2 w-full`}>
                   {t("set.createUser")}
@@ -146,7 +146,7 @@ export function AccessUsersPanel({
                     </FormField>
                     {canEdit ? (
                       <FormField label={t("set.newPassword")} hint={t("set.newPasswordHint")} className="sm:col-span-2">
-                        <input name="password" type="password" minLength={6} className="ui-input" />
+                        <input name="password" type="password" className="ui-input" />
                       </FormField>
                     ) : null}
                     <div className="sm:col-span-2 flex flex-wrap gap-3">

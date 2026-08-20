@@ -31,7 +31,6 @@ export function EmployeeAccessForm({ locale, userId, permissions, modules, selec
         <input
           name="password"
           type="password"
-          minLength={6}
           autoComplete="new-password"
           className="ui-input"
         />

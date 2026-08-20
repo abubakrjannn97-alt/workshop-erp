@@ -25,9 +25,6 @@ export async function loginAction(_prev: { error?: string } | undefined, formDat
   if (!isValidPhone(phoneRaw)) {
     return { error: "Некорректный номер телефона." };
   }
-  if (password.length < 6) {
-    return { error: "Пароль — минимум 6 символов." };
-  }
 
   const phone = normalizePhone(phoneRaw);
   const guard = assertLoginAllowed(ip, phone);

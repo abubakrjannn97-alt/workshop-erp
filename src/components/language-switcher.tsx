@@ -11,9 +11,11 @@ function switchHref(locale: Locale, pathname: string) {
 
 export function LanguageSwitcher({
   locale,
+  size = "md",
 }: {
   locale: Locale;
   variant?: "light" | "dark";
+  size?: "sm" | "md";
 }) {
   const pathname = usePathname();
   const t = createT(locale);
@@ -35,7 +37,12 @@ export function LanguageSwitcher({
   }
 
   return (
-    <div data-tour="tour-lang" className={styles.group} role="group" aria-label={t("lang.switch")}>
+    <div
+      data-tour="tour-lang"
+      className={`${styles.group} ${size === "sm" ? styles.groupSm : ""}`}
+      role="group"
+      aria-label={t("lang.switch")}
+    >
       {renderOption("ru", "RU", t("lang.ru"))}
       {renderOption("tj", "TJ", t("lang.tj"))}
     </div>
