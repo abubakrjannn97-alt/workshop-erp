@@ -29,6 +29,10 @@ type OrderLine = {
 
 type InitialPayStatus = "unpaid" | "partial" | "paid";
 
+function daysInMonth(year: number, month: number) {
+  return new Date(year, month, 0).getDate();
+}
+
 export function OrderForm({
   action,
   customers,
@@ -57,6 +61,7 @@ export function OrderForm({
   locale: Locale;
 }) {
   const t = createT(locale);
+  const now = new Date();
   const [lines, setLines] = useState<OrderLine[]>([
     { key: 1, productId: products[0]?.id ?? "", quantity: "1", unitPrice: products[0]?.price ?? "0" },
   ]);
@@ -67,6 +72,8 @@ export function OrderForm({
   const [partialPaid, setPartialPaid] = useState("");
   const [sellerId, setSellerId] = useState(defaultSellerId);
   const [nextKey, setNextKey] = useState(2);
+  const [dueDay, setDueDay] = useState(String(Math.min(now.getDate() + 7, daysInMonth(now.getFullYear(), now.getMonth() + 1))));
+  const [dueMonth, setDueMonth] = useState(String(now.getMonth() + 1));
 
   useEffect(() => {
     if (defaultCustomerId) setCustomerId(defaultCustomerId);
@@ -111,11 +118,11 @@ export function OrderForm({
   }, [lines, discount]);
 
   const isMulti = lines.length > 1;
-  const payOptions = [
-    { value: "unpaid", label: t("pay.unpaid") },
-    { value: "partial", label: t("pay.partial") },
-    { value: "paid", label: t("pay.paid") },
-  ];
+  const year = now.getFullYear();
+  const monthNum = Number(dueMonth) || now.getMonth() + 1;
+  const maxDay = daysInMonth(year, monthNum);
+  const dayNum = Math.min(Number(dueDay) || 1, maxDay);
+  const dueAtValue = `${year}-${String(monthNum).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
 
   const initialPaidAmount =
     payStatus === "paid" ? moneyDisplay(totals.total) : payStatus === "partial" ? partialPaid : "0";
@@ -145,6 +152,7 @@ export function OrderForm({
       <input type="hidden" name="_multi" value={isMulti ? "1" : "0"} />
       <input type="hidden" name="initialPaymentStatus" value={payStatus} />
       <input type="hidden" name="initialPaidAmount" value={initialPaidAmount} />
+      <input type="hidden" name="dueAt" value={dueAtValue} />
 
       <FormField
         label={t("common.customer")}
@@ -173,18 +181,19 @@ export function OrderForm({
 
       {lines.map((line, idx) => {
         const product = products.find((p) => p.id === line.productId);
+        const unit = product?.saleSymbol ?? t("orders.unitFallback");
         return (
           <div key={line.key} className={styles.lineBlock}>
-            <div className={styles.lineHead}>
-              <p className={styles.lineTitle}>
-                {t("common.product")} {lines.length > 1 ? `#${idx + 1}` : ""}
-              </p>
-              {lines.length > 1 ? (
+            {lines.length > 1 ? (
+              <div className={styles.lineHead}>
+                <p className={styles.lineTitle}>
+                  {t("common.product")} #{idx + 1}
+                </p>
                 <button type="button" onClick={() => removeLine(line.key)} className={styles.removeBtn}>
                   {t("common.remove")}
                 </button>
-              ) : null}
-            </div>
+              </div>
+            ) : null}
 
             <FormField label={t("common.product")} required className={styles.compactField}>
               <AppSelect
@@ -198,7 +207,7 @@ export function OrderForm({
             </FormField>
 
             <div className={styles.qtyPriceRow}>
-              <FormField label={`${t("common.qty")}, ${product?.saleSymbol ?? ""}`} required className={styles.compactField}>
+              <FormField label={`${t("orders.qtyHowMuch")} (${unit})`} required className={styles.compactField}>
                 <input
                   name={isMulti ? "quantity[]" : "quantity"}
                   value={line.quantity}
@@ -208,7 +217,7 @@ export function OrderForm({
                   inputMode="decimal"
                 />
               </FormField>
-              <FormField label={t("orders.unitPrice")} hint={product ? `min: ${moneyDisplay(product.minPrice)}` : undefined} required className={styles.compactField}>
+              <FormField label={t("orders.unitPrice")} required className={styles.compactField}>
                 <input
                   name={isMulti ? "unitPrice[]" : "unitPrice"}
                   value={line.unitPrice}
@@ -238,7 +247,7 @@ export function OrderForm({
             </>
           ) : (
             <div className={styles.discountPanel}>
-              <FormField label={t("orders.discountPct")} hint={`${t("orders.discountLimit")}: ${discountLimit}%`} className={styles.compactField}>
+              <FormField label={t("orders.discountPct")} className={styles.compactField}>
                 <input
                   name="discountPercent"
                   value={discount}
@@ -268,13 +277,29 @@ export function OrderForm({
         <input type="hidden" name="sellerId" value={defaultSellerId} />
       )}
 
-      <FormField label={t("orders.payStatus")} className={styles.compactField}>
-        <AppSelect
-          value={payStatus}
-          onChange={(value) => setPayStatus(value as InitialPayStatus)}
-          options={payOptions}
-        />
-      </FormField>
+      <div className={styles.payChoice}>
+        <button
+          type="button"
+          className={payStatus === "paid" ? styles.payChipOn : styles.payChip}
+          onClick={() => setPayStatus("paid")}
+        >
+          {t("pay.paid")}
+        </button>
+        <button
+          type="button"
+          className={payStatus === "partial" ? styles.payChipOn : styles.payChip}
+          onClick={() => setPayStatus("partial")}
+        >
+          {t("pay.partial")}
+        </button>
+        <button
+          type="button"
+          className={payStatus === "unpaid" ? styles.payChipOn : styles.payChip}
+          onClick={() => setPayStatus("unpaid")}
+        >
+          {t("orders.payLater")}
+        </button>
+      </div>
 
       {payStatus === "partial" ? (
         <FormField label={t("orders.partialPayAmount")} className={styles.compactField}>
@@ -289,9 +314,30 @@ export function OrderForm({
         </FormField>
       ) : null}
 
-      <FormField label={t("orders.dueReady")} className={styles.compactField}>
-        <input name="dueAt" type="date" className="ui-input" />
-      </FormField>
+      <div className={styles.dueRow}>
+        <FormField label={t("orders.dueDay")} className={styles.compactField}>
+          <select
+            className="ui-input"
+            value={String(dayNum)}
+            onChange={(e) => setDueDay(e.target.value)}
+          >
+            {Array.from({ length: maxDay }, (_, i) => i + 1).map((d) => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
+        </FormField>
+        <FormField label={t("orders.dueMonth")} className={styles.compactField}>
+          <select
+            className="ui-input"
+            value={String(monthNum)}
+            onChange={(e) => setDueMonth(e.target.value)}
+          >
+            {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+        </FormField>
+      </div>
 
       <div className={styles.footerRow}>
         <p className={styles.total}>

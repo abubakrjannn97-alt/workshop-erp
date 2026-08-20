@@ -420,6 +420,42 @@ export async function updateOrderStatus(formData: FormData) {
   return { ok: true };
 }
 
+export async function schedulePayLater(formData: FormData) {
+  const session = await requirePermission("orders.create");
+  const id = String(formData.get("id") ?? "");
+  const day = Number(formData.get("day") ?? "");
+  const month = Number(formData.get("month") ?? "");
+  if (!id || !day || !month || day < 1 || day > 31 || month < 1 || month > 12) {
+    return { error: "Укажите день и месяц оплаты." };
+  }
+  const order = await prisma.order.findUnique({ where: { id }, include: { status: true } });
+  if (!order) return { error: "Заказ не найден." };
+  if (!(await canSeeOrder(session.user.id, session.user.roleCode, order.sellerId))) {
+    return { error: "Нет доступа." };
+  }
+  if (order.status.code !== ORDER_STATUS.NEW && order.status.code !== ORDER_STATUS.AWAITING_PAYMENT) {
+    return { error: "Дата оплаты уже не нужна для этого этапа." };
+  }
+
+  const year = new Date().getFullYear();
+  const dueAt = new Date(year, month - 1, day, 12, 0, 0, 0);
+  const awaiting = await prisma.orderStatus.findUniqueOrThrow({ where: { code: ORDER_STATUS.AWAITING_PAYMENT } });
+  await prisma.order.update({
+    where: { id },
+    data: { statusId: awaiting.id, dueAt },
+  });
+  await writeAudit({
+    userId: session.user.id,
+    action: "order.pay_later",
+    entityType: "order",
+    entityId: id,
+    newValue: { dueAt: dueAt.toISOString() },
+  });
+  revalidatePath("/orders");
+  revalidatePath(`/orders/${id}`);
+  return { ok: true };
+}
+
 export async function addPayment(formData: FormData) {
   const session = await requirePermission("payments.create");
   const orderId = String(formData.get("orderId") ?? "");

@@ -2,15 +2,15 @@
   display: flex;
   max-width: 36rem;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 14px;
+  gap: 8px;
+  padding: 10px 12px;
 }
 
 .lineBlock {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding-top: 8px;
+  gap: 6px;
+  padding-top: 6px;
   border-top: 1px solid var(--line);
 }
 
@@ -43,20 +43,49 @@
   cursor: pointer;
 }
 
-.qtyPriceRow {
+.qtyPriceRow,
+.dueRow {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
-.addItemBtn {
+.payChoice {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.payChip,
+.payChipOn {
   display: inline-flex;
   min-height: 40px;
   align-items: center;
   justify-content: center;
+  padding: 0 8px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.payChipOn {
+  border-color: rgba(154, 115, 56, 0.55);
+  background: linear-gradient(180deg, #fffaf2 0%, #fff3df 100%);
+  color: #8b6e2f;
+}
+
+.addItemBtn {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
   align-self: flex-start;
   gap: 4px;
-  padding: 0 14px;
+  padding: 0 12px;
   border: 1px dashed rgba(154, 115, 56, 0.45);
   border-radius: 10px;
   background: linear-gradient(180deg, #fffaf2 0%, #fff7e8 100%);
@@ -64,7 +93,6 @@
   font-weight: 600;
   color: #8b6e2f;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
 }
 
 .addItemBtn:hover {
@@ -118,8 +146,8 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding-top: 4px;
+  gap: 8px;
+  padding-top: 2px;
 }
 
 .total {

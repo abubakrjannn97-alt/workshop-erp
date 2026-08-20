@@ -15,14 +15,15 @@ import { StatusBadge, orderTone } from "@/components/status-badge";
 import { OrderDetailMetrics } from "../order-detail-metrics";
 import { OrderStageProgress } from "../order-stage-progress";
 import { OrderPaymentPanel } from "../order-payment-panel";
+import { OrderPayStepPanel } from "../order-pay-step-panel";
 import detailStyles from "../order-detail.module.css";
 import {
   addPayment,
   cancelOrder,
-  confirmOrder,
   createPurchaseFromDeficit,
   issueOrderToCustomer,
   reversePayment,
+  schedulePayLater,
   updateOrderStatus,
 } from "@/app/actions/orders";
 
@@ -74,11 +75,17 @@ export default async function OrderPage({
   const canSeeCost = hasPermission(session.user.permissions, session.user.roleCode, "materials.view");
   const canPurchase = hasPermission(session.user.permissions, session.user.roleCode, "purchasing.manage");
   const canIssue = hasPermission(session.user.permissions, session.user.roleCode, "inventory.receive");
-  const nextCodes = STATUS_FLOW[order.status.code] ?? [];
+  const nextCodes = (STATUS_FLOW[order.status.code] ?? []).filter(
+    (code) => code !== "AWAITING_PAYMENT" && code !== "ON_HOLD",
+  );
   const nextStatuses = await prisma.orderStatus.findMany({
     where: { code: { in: nextCodes } },
     orderBy: { sortOrder: "asc" },
   });
+  const showPayStep =
+    canCreate &&
+    (order.status.code === "NEW" || order.status.code === "AWAITING_PAYMENT");
+  const showStatusSteps = canCreate && nextStatuses.length > 0 && !showPayStep;
 
   const raw = await findRawWarehouse();
   const stock = raw
@@ -158,16 +165,6 @@ export default async function OrderPage({
 
   const currentStatusName = n("ostatus", order.status.code, order.status.name);
 
-  function statusHint(code: string) {
-    const key = `orders.statusHint.${code}` as const;
-    const text = t(key);
-    return text === key ? t("orders.statusHintDefault") : text;
-  }
-
-  async function confirmAction(formData: FormData) {
-    "use server";
-    await confirmOrder(formData);
-  }
   async function cancelAction(formData: FormData) {
     "use server";
     await cancelOrder(formData);
@@ -194,6 +191,10 @@ export default async function OrderPage({
     "use server";
     const result = await createPurchaseFromDeficit(formData);
     if (result.ok && result.id) redirect(`/purchasing/${result.id}`);
+  }
+  async function payLaterAction(formData: FormData) {
+    "use server";
+    await schedulePayLater(formData);
   }
   async function issueAction(formData: FormData) {
     "use server";
@@ -224,35 +225,48 @@ export default async function OrderPage({
 
       <OrderDetailMetrics items={metricItems} />
 
-      {canCreate && nextStatuses.length > 0 ? (
+      {showPayStep || showStatusSteps ? (
         <section className={detailStyles.statusPanel}>
           <div className={detailStyles.statusPanelHead}>
             <h2 className={detailStyles.sectionTitle}>{t("orders.changeStatus")}</h2>
             <StatusBadge label={currentStatusName} tone={orderTone(order.status.code)} />
           </div>
           <OrderStageProgress currentCode={order.status.code} t={t} />
-          <p className={detailStyles.statusNextTitle}>{t("orders.nextStep")}</p>
-          <ul className={detailStyles.statusOptions}>
-            {nextStatuses.map((s, index) => (
-              <li key={s.id}>
-                <form action={statusAction}>
-                  <input type="hidden" name="id" value={order.id} />
-                  <input type="hidden" name="statusCode" value={s.code} />
-                  <button type="submit" className={detailStyles.statusOptionBtn}>
-                    <span className={detailStyles.statusOptionRow}>
-                      <span className={detailStyles.statusOptionNumber}>{index + 1}</span>
-                      <span className={detailStyles.statusOptionText}>
-                        <span className={detailStyles.statusOptionLabel}>
-                          {n("ostatus", s.code, s.name)}
+          {showPayStep ? (
+            <OrderPayStepPanel
+              locale={locale}
+              orderId={order.id}
+              debtDefault={debt.gt(0) ? moneyDisplay(debt) : moneyDisplay(order.total)}
+              payAction={payAction}
+              payLaterAction={payLaterAction}
+              canPay={canPay}
+            />
+          ) : null}
+          {showStatusSteps ? (
+            <>
+              <p className={detailStyles.statusNextTitle}>{t("orders.nextStep")}</p>
+              <ul className={detailStyles.statusOptions}>
+                {nextStatuses.map((s, index) => (
+                  <li key={s.id}>
+                    <form action={statusAction}>
+                      <input type="hidden" name="id" value={order.id} />
+                      <input type="hidden" name="statusCode" value={s.code} />
+                      <button type="submit" className={detailStyles.statusOptionBtn}>
+                        <span className={detailStyles.statusOptionRow}>
+                          <span className={detailStyles.statusOptionNumber}>{index + 1}</span>
+                          <span className={detailStyles.statusOptionText}>
+                            <span className={detailStyles.statusOptionLabel}>
+                              {n("ostatus", s.code, s.name)}
+                            </span>
+                          </span>
                         </span>
-                        <span className={detailStyles.statusOptionHint}>{statusHint(s.code)}</span>
-                      </span>
-                    </span>
-                  </button>
-                </form>
-              </li>
-            ))}
-          </ul>
+                      </button>
+                    </form>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
         </section>
       ) : null}
 
@@ -359,22 +373,10 @@ export default async function OrderPage({
         ) : null}
       </section>
 
-      {(canCreate && (order.status.code === "NEW" || order.status.code === "AWAITING_PAYMENT")) ||
-      (canIssue && (order.status.code === "IN_FG" || order.status.code === "READY")) ||
+      {(canIssue && (order.status.code === "IN_FG" || order.status.code === "READY")) ||
       (canCancel && order.status.code !== "CANCELLED") ? (
         <section className={detailStyles.actionsPanel}>
           <h2 className={detailStyles.sectionTitle}>{t("orders.whatToDo")}</h2>
-          {canCreate && (order.status.code === "NEW" || order.status.code === "AWAITING_PAYMENT") ? (
-            <div className={detailStyles.primaryAction}>
-              <form action={confirmAction}>
-                <input type="hidden" name="id" value={order.id} />
-                <PendingButton className="ui-btn-primary min-h-[44px] w-full" pendingLabel={t("common.sending")}>
-                  {t("orders.confirmOrderBtn")}
-                </PendingButton>
-              </form>
-              <p className={detailStyles.actionHint}>{t("orders.confirmOrderHint")}</p>
-            </div>
-          ) : null}
           {canIssue && (order.status.code === "IN_FG" || order.status.code === "READY") ? (
             <div className={detailStyles.primaryAction}>
               <form action={issueAction}>
@@ -383,7 +385,6 @@ export default async function OrderPage({
                   {t("orders.issueToCustomer")}
                 </PendingButton>
               </form>
-              <p className={detailStyles.actionHint}>{t("orders.issueOrderHint")}</p>
             </div>
           ) : null}
           {canCancel && order.status.code !== "CANCELLED" ? (

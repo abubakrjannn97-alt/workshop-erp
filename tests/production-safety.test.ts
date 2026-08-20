@@ -28,6 +28,11 @@ describe("production safety configuration", () => {
     assert.ok(src.includes("503"));
   });
 
+  it("health endpoint is excluded from auth middleware matcher", async () => {
+    const src = await readFile(new URL("../src/middleware.ts", import.meta.url), "utf8");
+    assert.match(src, /api\/health/);
+  });
+
   it("error page masks technical errors in production", async () => {
     const src = await readFile(new URL("../src/app/(app)/error.tsx", import.meta.url), "utf8");
     assert.ok(src.includes('process.env.NODE_ENV === "development" ? error.message : t("error.generic")'));

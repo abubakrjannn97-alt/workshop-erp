@@ -150,8 +150,8 @@
 .statusPanel {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px;
+  gap: 6px;
+  padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
   background: var(--surface);
@@ -215,6 +215,103 @@
   font-size: 12px;
   line-height: 16px;
   color: var(--ink-3);
+}
+
+.payStep {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.payStepTabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.payStepTab,
+.payStepTabOn {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.payStepTabOn {
+  border-color: rgba(154, 115, 56, 0.55);
+  background: linear-gradient(180deg, #fffaf2 0%, #fff3df 100%);
+  color: #8b6e2f;
+}
+
+.payFormCompact {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.payFormRow {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 6px;
+}
+
+.payLaterLabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.sectionPanelCompact {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.payPanelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.payList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.payListItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 36px;
+  padding: 4px 0;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.payListItem:first-child {
+  border-top: 0;
+}
+
+.compactField :global(.ui-label) {
+  margin-bottom: 0;
 }
 
 .stageTrack {
