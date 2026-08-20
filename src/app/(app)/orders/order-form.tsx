@@ -7,6 +7,7 @@ import { FormField } from "@/components/form-field";
 import { AppSelect } from "@/components/app-select";
 import { PendingButton } from "@/components/pending-button";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
+import { PayDueCalendar } from "./pay-due-calendar";
 import styles from "./order-form.module.css";
 
 type Product = {
@@ -72,8 +73,8 @@ export function OrderForm({
   const [partialPaid, setPartialPaid] = useState("");
   const [sellerId, setSellerId] = useState(defaultSellerId);
   const [nextKey, setNextKey] = useState(2);
-  const [dueDay, setDueDay] = useState(String(Math.min(now.getDate() + 7, daysInMonth(now.getFullYear(), now.getMonth() + 1))));
-  const [dueMonth, setDueMonth] = useState(String(now.getMonth() + 1));
+  const [dueDay, setDueDay] = useState(Math.min(now.getDate() + 7, daysInMonth(now.getFullYear(), now.getMonth() + 1)));
+  const [dueMonth, setDueMonth] = useState(now.getMonth() + 1);
 
   useEffect(() => {
     if (defaultCustomerId) setCustomerId(defaultCustomerId);
@@ -119,9 +120,8 @@ export function OrderForm({
 
   const isMulti = lines.length > 1;
   const year = now.getFullYear();
-  const monthNum = Number(dueMonth) || now.getMonth() + 1;
-  const maxDay = daysInMonth(year, monthNum);
-  const dayNum = Math.min(Number(dueDay) || 1, maxDay);
+  const monthNum = dueMonth;
+  const dayNum = Math.min(dueDay, daysInMonth(year, monthNum));
   const dueAtValue = `${year}-${String(monthNum).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
 
   const initialPaidAmount =
@@ -314,29 +314,17 @@ export function OrderForm({
         </FormField>
       ) : null}
 
-      <div className={styles.dueRow}>
-        <FormField label={t("orders.dueDay")} className={styles.compactField}>
-          <select
-            className="ui-input"
-            value={String(dayNum)}
-            onChange={(e) => setDueDay(e.target.value)}
-          >
-            {Array.from({ length: maxDay }, (_, i) => i + 1).map((d) => (
-              <option key={d} value={d}>{d}</option>
-            ))}
-          </select>
-        </FormField>
-        <FormField label={t("orders.dueMonth")} className={styles.compactField}>
-          <select
-            className="ui-input"
-            value={String(monthNum)}
-            onChange={(e) => setDueMonth(e.target.value)}
-          >
-            {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
-        </FormField>
+      <div>
+        <p className={styles.dueLabel}>{t("orders.dueReady")}</p>
+        <PayDueCalendar
+          locale={locale}
+          day={dayNum}
+          month={monthNum}
+          onChange={(d, m) => {
+            setDueDay(d);
+            setDueMonth(m);
+          }}
+        />
       </div>
 
       <div className={styles.footerRow}>

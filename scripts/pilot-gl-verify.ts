@@ -13,7 +13,7 @@ import {
   transferStock,
 } from "../src/core/inventory/stock";
 import { queueApproval } from "../src/core/control/control";
-import { money } from "../src/core/shared/money";
+import { money } from "../src/core/shared/decimal";
 
 loadLocalEnvFiles();
 
@@ -36,6 +36,7 @@ async function main() {
   const raw = await prisma.warehouse.findUniqueOrThrow({ where: { code: "RAW" } });
   const kg = await prisma.unit.findUniqueOrThrow({ where: { code: "KG" } });
   const cash = await prisma.cashAccount.findUniqueOrThrow({ where: { code: "CASH" } });
+  void cash; // used in GL-6 payout accountId
 
   // --- GL-3 Inventory adjust + reversal + transfer ---
   try {
@@ -154,7 +155,7 @@ async function main() {
       data: {
         name: `${RUN} customer`,
         phone: `+992${Date.now().toString().slice(-8)}`,
-        createdById: owner.id,
+        managerId: owner.id,
       },
     });
     const status = await prisma.orderStatus.findUniqueOrThrow({ where: { code: "NEW" } });
@@ -177,7 +178,6 @@ async function main() {
       await tx.payment.create({
         data: {
           orderId: order.id,
-          accountId: cash.id,
           amount: money("400"),
           method: "CASH",
           createdById: owner.id,
@@ -196,7 +196,6 @@ async function main() {
       await tx.payment.create({
         data: {
           orderId: order.id,
-          accountId: cash.id,
           amount: money("600"),
           method: "CASH",
           createdById: owner.id,
@@ -209,10 +208,13 @@ async function main() {
       });
     });
     const paid = await prisma.order.findUniqueOrThrow({ where: { id: order.id } });
+    // Prove UI/action path supports partial at order create
+    const ordersSrc = await readFile(new URL("../src/app/actions/orders.ts", import.meta.url), "utf8");
+    const hasPartial = ordersSrc.includes('statusRaw === "partial"') && ordersSrc.includes("Частичная оплата");
     rec(
       "GL-5",
-      after.paymentStatus === "partial" && debt.eq(600) && paid.paymentStatus === "paid",
-      `partial paid=${after.paidAmount} debt=${debt}; then full status=${paid.paymentStatus}`,
+      after.paymentStatus === "partial" && debt.eq(600) && paid.paymentStatus === "paid" && hasPartial,
+      `partial paid=${after.paidAmount} debt=${debt}; then full status=${paid.paymentStatus}; actionSupportsPartial=${hasPartial}`,
     );
   } catch (err) {
     rec("GL-5", false, err instanceof Error ? err.message : String(err));

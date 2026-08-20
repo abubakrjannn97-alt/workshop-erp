@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { AppSelect } from "@/components/app-select";
-import { FormField } from "@/components/form-field";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
 import { PAYMENT_METHODS } from "@core/orders/order-constants";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
+import { PayDueCalendar } from "./pay-due-calendar";
 import detailStyles from "./order-detail.module.css";
 
 function daysInMonth(year: number, month: number) {
@@ -32,13 +32,10 @@ export function OrderPayStepPanel({
   const now = new Date();
   const [mode, setMode] = useState<"pay" | "later" | null>(null);
   const [method, setMethod] = useState("cash");
-  const [dueDay, setDueDay] = useState(String(Math.min(now.getDate() + 3, daysInMonth(now.getFullYear(), now.getMonth() + 1))));
-  const [dueMonth, setDueMonth] = useState(String(now.getMonth() + 1));
-
-  const year = now.getFullYear();
-  const monthNum = Number(dueMonth) || now.getMonth() + 1;
-  const maxDay = daysInMonth(year, monthNum);
-  const dayNum = Math.min(Number(dueDay) || 1, maxDay);
+  const [dueDay, setDueDay] = useState(
+    Math.min(now.getDate() + 3, daysInMonth(now.getFullYear(), now.getMonth() + 1)),
+  );
+  const [dueMonth, setDueMonth] = useState(now.getMonth() + 1);
 
   return (
     <div className={detailStyles.payStep}>
@@ -91,25 +88,18 @@ export function OrderPayStepPanel({
       {mode === "later" ? (
         <form action={payLaterAction} className={detailStyles.payFormCompact}>
           <input type="hidden" name="id" value={orderId} />
-          <input type="hidden" name="day" value={String(dayNum)} />
-          <input type="hidden" name="month" value={String(monthNum)} />
+          <input type="hidden" name="day" value={String(dueDay)} />
+          <input type="hidden" name="month" value={String(dueMonth)} />
           <p className={detailStyles.payLaterLabel}>{t("orders.payLaterDate")}</p>
-          <div className={detailStyles.payFormRow}>
-            <FormField label={t("orders.dueDay")} className={detailStyles.compactField}>
-              <select className="ui-input" value={String(dayNum)} onChange={(e) => setDueDay(e.target.value)}>
-                {Array.from({ length: maxDay }, (_, i) => i + 1).map((d) => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
-            </FormField>
-            <FormField label={t("orders.dueMonth")} className={detailStyles.compactField}>
-              <select className="ui-input" value={String(monthNum)} onChange={(e) => setDueMonth(e.target.value)}>
-                {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                  <option key={m} value={m}>{m}</option>
-                ))}
-              </select>
-            </FormField>
-          </div>
+          <PayDueCalendar
+            locale={locale}
+            day={dueDay}
+            month={dueMonth}
+            onChange={(d, m) => {
+              setDueDay(d);
+              setDueMonth(m);
+            }}
+          />
           <PendingButton className="ui-btn-secondary min-h-[40px] w-full" pendingLabel={t("common.sending")}>
             {t("orders.payLaterSave")}
           </PendingButton>
