@@ -4,6 +4,7 @@ import { requirePermission } from "@core/auth/authz";
 import { createInventoryCount } from "@/app/actions/inventory";
 import { PendingButton } from "@/components/pending-button";
 import { FormField } from "@/components/form-field";
+import { AppSelect } from "@/components/app-select";
 import { StatusBadge, type BadgeTone } from "@/components/status-badge";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
@@ -41,9 +42,11 @@ export default async function InventoryListPage() {
         <div className={styles.sectionBody}>
           <form action={createInventoryCount} className="flex flex-wrap items-end gap-3">
             <FormField label={t("page.warehouse")} className="min-w-[12rem] flex-1">
-              <select name="warehouseId" className="ui-input">
-                {warehouses.map((w) => (<option key={w.id} value={w.id}>{w.name}</option>))}
-              </select>
+              <AppSelect
+                name="warehouseId"
+                defaultValue={warehouses[0]?.id ?? ""}
+                options={warehouses.map((w) => ({ value: w.id, label: w.name }))}
+              />
             </FormField>
             <PendingButton className="ui-btn-primary min-h-[44px]" pendingLabel={t("common.sending")}>{t("wh.startCount")}</PendingButton>
           </form>

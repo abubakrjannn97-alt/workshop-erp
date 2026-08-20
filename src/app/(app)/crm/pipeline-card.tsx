@@ -2,6 +2,7 @@
 
 import { LOST_REASONS } from "@core/orders/order-constants";
 import { createT, named, type Locale } from "@core/shared/i18n/i18n";
+import { AppSelect } from "@/components/app-select";
 
 type Stage = { id: string; code: string; name: string; isLost: boolean };
 
@@ -33,25 +34,22 @@ export function PipelineCard({
     >
       <input type="hidden" name="id" value={lead.id} />
       <p className="font-medium">{lead.name}</p>
-      <select
+      <AppSelect
         name="stageId"
         defaultValue={lead.stageId}
-        className="mt-2 w-full rounded border border-[var(--border)] bg-white px-2 py-1 text-xs"
-      >
-        {stages.map((s) => (
-          <option key={s.id} value={s.id}>
-            {named(locale, "lead", s.code, s.name)}
-          </option>
-        ))}
-      </select>
-      <select name="lostReason" className="mt-1 w-full rounded border border-[var(--border)] bg-white px-2 py-1 text-xs">
-        <option value="">{t("crm.lostReason")}</option>
-        {LOST_REASONS.map((r) => (
-          <option key={r.code} value={r.code}>
-            {t(`lost.${r.code}`)}
-          </option>
-        ))}
-      </select>
+        className="mt-2"
+        options={stages.map((s) => ({ value: s.id, label: named(locale, "lead", s.code, s.name) }))}
+      />
+      <AppSelect
+        name="lostReason"
+        defaultValue=""
+        className="mt-1"
+        placeholder={t("crm.lostReason")}
+        options={[
+          { value: "", label: t("crm.lostReason") },
+          ...LOST_REASONS.map((r) => ({ value: r.code, label: t(`lost.${r.code}`) })),
+        ]}
+      />
       <button type="submit" className="mt-2 text-xs font-medium hover:underline" style={{ color: accent }}>
         {t("crm.move")}
       </button>

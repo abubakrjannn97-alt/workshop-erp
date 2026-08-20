@@ -3,6 +3,7 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { archiveUnit, createUnit, updateUnit } from "@/app/actions/units";
 import { FormField } from "@/components/form-field";
+import { AppSelect } from "@/components/app-select";
 import { SettingsNav } from "@/components/settings-nav";
 import styles from "@/styles/premium.module.css";
 
@@ -33,7 +34,13 @@ export default async function UnitsPage() {
               <FormField label={t("set.unitCode")} className="min-w-[6rem] flex-1"><input name="code" placeholder={t("set.unitCodePh")} className="ui-input" required /></FormField>
               <FormField label={t("set.unitName")} className="min-w-[8rem] flex-1"><input name="name" placeholder={t("common.name")} className="ui-input" required /></FormField>
               <FormField label={t("set.unitSymbol")} className="min-w-[5rem]"><input name="symbol" placeholder="кг" className="ui-input" required /></FormField>
-              <FormField label={t("set.unitCategory")} className="min-w-[8rem]"><select name="category" className="ui-input">{unitCategories(t).map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}</select></FormField>
+              <FormField label={t("set.unitCategory")} className="min-w-[8rem]">
+                <AppSelect
+                  name="category"
+                  defaultValue={unitCategories(t)[0]?.value ?? ""}
+                  options={unitCategories(t)}
+                />
+              </FormField>
               <FormField label={t("set.toBase")} hint={t("set.toBaseHint")} className="min-w-[6rem]"><input name="toBaseFactor" defaultValue="1" inputMode="decimal" className="ui-input" /></FormField>
               <div className="flex items-end"><button type="submit" className="ui-btn-primary min-h-[44px]">{t("common.add")}</button></div>
               <FormField label={t("set.baseUnit")} className="w-full"><input type="checkbox" name="isBase" className="mt-1" /></FormField>

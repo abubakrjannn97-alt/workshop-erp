@@ -60,7 +60,7 @@
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  z-index: 40;
+  z-index: 80;
   margin: 0;
   max-height: min(240px, 42vh);
   overflow-y: auto;

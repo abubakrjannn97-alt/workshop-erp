@@ -9,6 +9,7 @@ import { closeBatch, createBatch, assignProductionStage } from "@/app/actions/pr
 import { PendingButton } from "@/components/pending-button";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { FormField } from "@/components/form-field";
+import { AppSelect } from "@/components/app-select";
 import { StatusBadge, jobTone } from "@/components/status-badge";
 import { Plus } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
@@ -112,10 +113,15 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
             <form action={stageAction} className="flex flex-wrap items-end gap-3">
               <input type="hidden" name="productionOrderId" value={job.id} />
               <FormField label={t("prod.stage")}>
-                <select name="stageId" defaultValue={job.stageId ?? ""} className="ui-input">
-                  <option value="">—</option>
-                  {stages.map((s) => (<option key={s.id} value={s.id}>{s.name}</option>))}
-                </select>
+                <AppSelect
+                  name="stageId"
+                  defaultValue={job.stageId ?? ""}
+                  placeholder="—"
+                  options={[
+                    { value: "", label: "—" },
+                    ...stages.map((s) => ({ value: s.id, label: s.name })),
+                  ]}
+                />
               </FormField>
               <PendingButton className="ui-btn-secondary min-h-[44px]" pendingLabel={t("common.sending")}>{t("common.save")}</PendingButton>
             </form>
@@ -148,10 +154,15 @@ export default async function ProductionJobPage({ params }: { params: Promise<{ 
                 <input name="plannedQty" defaultValue={qtyDisplay(remaining)} className="ui-input" inputMode="decimal" />
               </FormField>
               <FormField label={t("prod.responsible")} className="sm:col-span-2">
-                <select name="responsibleUserId" className="ui-input">
-                  <option value="">—</option>
-                  {workers.map((u) => (<option key={u.id} value={u.id}>{u.name}</option>))}
-                </select>
+                <AppSelect
+                  name="responsibleUserId"
+                  defaultValue=""
+                  placeholder="—"
+                  options={[
+                    { value: "", label: "—" },
+                    ...workers.map((u) => ({ value: u.id, label: u.name })),
+                  ]}
+                />
               </FormField>
               <FormField label={t("common.comment")} className="sm:col-span-2">
                 <input name="comment" placeholder={t("common.comment")} className="ui-input" />

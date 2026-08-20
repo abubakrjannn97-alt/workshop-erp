@@ -9,6 +9,7 @@ import { moneyDisplay, qtyDisplay, D } from "@core/shared/decimal";
 import { PendingButton } from "@/components/pending-button";
 import { StatusBadge, type BadgeTone } from "@/components/status-badge";
 import { FormField } from "@/components/form-field";
+import { AppSelect } from "@/components/app-select";
 import styles from "@/styles/premium.module.css";
 
 function poStatus(t: (k: string) => string, s: string) {
@@ -99,10 +100,14 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
               <input type="hidden" name="id" value={order.id} />
               <FormField label={t("po.payPh")} className="min-w-0 flex-1"><input name="amount" className="ui-input" /></FormField>
               <FormField label={t("common.method")} className="min-w-[8rem]">
-                <select name="method" className="ui-input">
-                  <option value="cash">{t("pay.method.cash")}</option>
-                  <option value="bank">{t("pay.method.bank")}</option>
-                </select>
+                <AppSelect
+                  name="method"
+                  defaultValue="cash"
+                  options={[
+                    { value: "cash", label: t("pay.method.cash") },
+                    { value: "bank", label: t("pay.method.bank") },
+                  ]}
+                />
               </FormField>
               <PendingButton className="ui-btn-primary min-h-[44px]" pendingLabel={t("common.sending")}>{t("common.payment")}</PendingButton>
             </form>

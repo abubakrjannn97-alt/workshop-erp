@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { publishRecipeVersion } from "@/app/actions/recipes";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
+import { AppSelect } from "@/components/app-select";
 
 type Option = { id: string; name: string; extra?: string };
 
@@ -36,28 +37,31 @@ export function RecipeEditor({
     if (result?.error) setError(result.error);
   }
 
+  const materialOptions = [
+    { value: "", label: t("common.material") },
+    ...materials.map((m) => ({ value: m.id, label: m.name })),
+  ];
+  const unitOptions = units.map((u) => ({
+    value: u.id,
+    label: u.extra ? `${u.name} (${u.extra})` : u.name,
+  }));
+
   return (
     <form action={submit} className="space-y-3">
       <input type="hidden" name="productId" value={productId} />
       {rows.map((row, index) => (
         <div key={index} className="grid gap-2 sm:grid-cols-3">
-          <select
+          <AppSelect
             name="materialId"
             value={row.materialId}
-            onChange={(e) => {
+            onChange={(value) => {
               const next = [...rows];
-              next[index] = { ...row, materialId: e.target.value };
+              next[index] = { ...row, materialId: value };
               setRows(next);
             }}
-            className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
-          >
-            <option value="">{t("common.material")}</option>
-            {materials.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
+            options={materialOptions}
+            placeholder={t("common.material")}
+          />
           <input
             name="quantity"
             value={row.quantity}
@@ -67,25 +71,18 @@ export function RecipeEditor({
               setRows(next);
             }}
             placeholder={t("common.qty")}
-            className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
+            className="ui-input"
           />
-          <select
+          <AppSelect
             name="unitId"
             value={row.unitId}
-            onChange={(e) => {
+            onChange={(value) => {
               const next = [...rows];
-              next[index] = { ...row, unitId: e.target.value };
+              next[index] = { ...row, unitId: value };
               setRows(next);
             }}
-            className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
-          >
-            {units.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
-                {u.extra ? ` (${u.extra})` : ""}
-              </option>
-            ))}
-          </select>
+            options={unitOptions}
+          />
         </div>
       ))}
       <button
@@ -98,7 +95,7 @@ export function RecipeEditor({
       <input
         name="comment"
         placeholder={t("recipe.commentPhShort")}
-        className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
+        className="w-full ui-input"
       />
       {error ? <p className="text-sm text-[var(--danger)]">{error}</p> : null}
       <button type="submit" disabled={pending} className="ui-btn-primary disabled:opacity-60">

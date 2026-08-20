@@ -9,6 +9,7 @@ import { unitCost } from "@core/costing/costing";
 import { PendingButton } from "@/components/pending-button";
 import { FormField } from "@/components/form-field";
 import { HeaderBackButton } from "@/components/header-back-button";
+import { AppSelect } from "@/components/app-select";
 import Link from "next/link";
 import styles from "@/styles/premium.module.css";
 
@@ -51,10 +52,20 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
             <FormField label={t("common.category")}><input name="category" defaultValue={material.category} disabled={!canManage} className="ui-input" /></FormField>
             <FormField label={t("common.supplier")}><input name="supplierName" defaultValue={material.supplierName ?? ""} disabled={!canManage} className="ui-input" /></FormField>
             <FormField label={t("materials.storageUnit")}>
-              <select name="storageUnitId" defaultValue={material.storageUnitId} disabled={!canManage} className="ui-input">{units.map((u) => <option key={u.id} value={u.id}>{u.name} ({u.symbol})</option>)}</select>
+              <AppSelect
+                name="storageUnitId"
+                defaultValue={material.storageUnitId}
+                disabled={!canManage}
+                options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
+              />
             </FormField>
             <FormField label={t("materials.purchaseUnit")}>
-              <select name="purchaseUnitId" defaultValue={material.purchaseUnitId} disabled={!canManage} className="ui-input">{units.map((u) => <option key={u.id} value={u.id}>{u.name} ({u.symbol})</option>)}</select>
+              <AppSelect
+                name="purchaseUnitId"
+                defaultValue={material.purchaseUnitId}
+                disabled={!canManage}
+                options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
+              />
             </FormField>
             <FormField label={t("materials.packVolume")}><input name="packageWeight" defaultValue={material.packageWeight.toString()} disabled={!canManage} className="ui-input" /></FormField>
             <FormField label={t("materials.packPriceSom")}><input name="packagePrice" defaultValue={material.packagePrice.toString()} disabled={!canManage} className="ui-input" /></FormField>

@@ -10,6 +10,7 @@ import { RecipeEditor } from "./recipe-editor";
 import { NeedPreview } from "./need-preview";
 import { FormField } from "@/components/form-field";
 import { HeaderBackButton } from "@/components/header-back-button";
+import { AppSelect } from "@/components/app-select";
 import Link from "next/link";
 import styles from "@/styles/premium.module.css";
 
@@ -63,10 +64,20 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <FormField label={t("common.name")}><input name="name" defaultValue={product.name} disabled={!canManage} className="ui-input" /></FormField>
             <FormField label={t("common.category")}><input name="category" defaultValue={product.category} disabled={!canManage} className="ui-input" /></FormField>
             <FormField label={t("products.saleUnit")}>
-              <select name="saleUnitId" defaultValue={product.saleUnitId} disabled={!canManage} className="ui-input">{units.map((u) => <option key={u.id} value={u.id}>{u.name} ({u.symbol})</option>)}</select>
+              <AppSelect
+                name="saleUnitId"
+                defaultValue={product.saleUnitId}
+                disabled={!canManage}
+                options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
+              />
             </FormField>
             <FormField label={t("products.fgUnit")}>
-              <select name="outputUnitId" defaultValue={product.outputUnitId} disabled={!canManage} className="ui-input">{units.map((u) => <option key={u.id} value={u.id}>{u.name} ({u.symbol})</option>)}</select>
+              <AppSelect
+                name="outputUnitId"
+                defaultValue={product.outputUnitId}
+                disabled={!canManage}
+                options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
+              />
             </FormField>
             <FormField label={t("products.recipeBaseShort")}><input name="recipeBaseQty" defaultValue={product.recipeBaseQty.toString()} disabled={!canManage} className="ui-input" /></FormField>
             <FormField label={t("products.outputBaseShort")}><input name="outputPerBase" defaultValue={product.outputPerBase.toString()} disabled={!canManage} className="ui-input" /></FormField>

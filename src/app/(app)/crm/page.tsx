@@ -10,6 +10,7 @@ import { D, moneyDisplay } from "@core/shared/decimal";
 import { RevealList } from "@/components/reveal-list";
 import { pipelineStageStyle } from "@core/shared/pipeline-stage-style";
 import { FormField } from "@/components/form-field";
+import { AppSelect } from "@/components/app-select";
 import { PendingButton } from "@/components/pending-button";
 import { ChevronRight, Plus, Users } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
@@ -132,14 +133,15 @@ export default async function CrmPage() {
                   <input name="phone" placeholder={t("common.phone")} className="ui-input" />
                 </FormField>
                 <FormField label={t("crm.noCustomerCard")}>
-                  <select name="customerId" className="ui-input">
-                    <option value="">{t("crm.noCustomerCard")}</option>
-                    {customers.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
+                  <AppSelect
+                    name="customerId"
+                    defaultValue=""
+                    placeholder={t("crm.noCustomerCard")}
+                    options={[
+                      { value: "", label: t("crm.noCustomerCard") },
+                      ...customers.map((c) => ({ value: c.id, label: c.name })),
+                    ]}
+                  />
                 </FormField>
                 <FormField label={t("common.comment")}>
                   <textarea name="comment" placeholder={t("common.comment")} className="ui-input min-h-[4rem]" />
@@ -164,19 +166,22 @@ export default async function CrmPage() {
           <div className={styles.sectionBody}>
             <form action={docAction} className={styles.docForm}>
               <FormField label={t("crm.newLead")}>
-                <select name="leadId" className="ui-input" required>
-                  {leads.map((l) => (
-                    <option key={l.id} value={l.id}>
-                      {l.name}
-                    </option>
-                  ))}
-                </select>
+                <AppSelect
+                  name="leadId"
+                  required
+                  defaultValue={leads[0]?.id ?? ""}
+                  options={leads.map((l) => ({ value: l.id, label: l.name }))}
+                />
               </FormField>
               <FormField label={t("common.type")}>
-                <select name="type" className="ui-input">
-                  <option value="CALCULATION">{t("crm.docCalc")}</option>
-                  <option value="OFFER">{t("crm.docOffer")}</option>
-                </select>
+                <AppSelect
+                  name="type"
+                  defaultValue="CALCULATION"
+                  options={[
+                    { value: "CALCULATION", label: t("crm.docCalc") },
+                    { value: "OFFER", label: t("crm.docOffer") },
+                  ]}
+                />
               </FormField>
               <FormField label={t("common.name")}>
                 <input name="title" required className="ui-input" />

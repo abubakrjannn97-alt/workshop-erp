@@ -5,6 +5,7 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { createProduct } from "@/app/actions/products";
 import { CatalogNav } from "@/components/catalog-nav";
+import { AppSelect } from "@/components/app-select";
 import { getDomainConfig } from "@core/config/domain-config";
 import styles from "@/styles/premium.module.css";
 
@@ -33,10 +34,20 @@ export default async function NewProductPage() {
             <FormField label={t("common.name")} required><input name="name" required className="ui-input" /></FormField>
             <FormField label={t("common.category")}><input name="category" defaultValue={domainConfig.product.defaultCategory} className="ui-input" /></FormField>
             <FormField label={t("products.saleUnit")} required>
-              <select name="saleUnitId" defaultValue={defaultSaleUnitId} className="ui-input" required>{units.map((u) => <option key={u.id} value={u.id}>{u.name} ({u.symbol})</option>)}</select>
+              <AppSelect
+                name="saleUnitId"
+                defaultValue={defaultSaleUnitId ?? units[0]?.id ?? ""}
+                required
+                options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
+              />
             </FormField>
             <FormField label={t("products.fgUnit")} required>
-              <select name="outputUnitId" defaultValue={defaultOutputUnitId} className="ui-input" required>{units.map((u) => <option key={u.id} value={u.id}>{u.name} ({u.symbol})</option>)}</select>
+              <AppSelect
+                name="outputUnitId"
+                defaultValue={defaultOutputUnitId ?? units[0]?.id ?? ""}
+                required
+                options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
+              />
             </FormField>
             <FormField label={t("products.recipeBase")}><input name="recipeBaseQty" defaultValue="1" className="ui-input" /></FormField>
             <FormField label={t("products.outputBase")}><input name="outputPerBase" defaultValue={String(domainConfig.product.defaultOutputPerBase)} className="ui-input" /></FormField>

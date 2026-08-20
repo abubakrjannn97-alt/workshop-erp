@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createPurchaseOrder } from "@/app/actions/purchasing";
 import { FormField } from "@/components/form-field";
+import { AppSelect } from "@/components/app-select";
 import { PendingButton } from "@/components/pending-button";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
 
@@ -32,36 +33,29 @@ export function PurchaseOrderForm({
   return (
     <form action={submit} className="space-y-4">
       <FormField label={t("common.supplier")} required>
-        <select name="supplierId" className="ui-input" required defaultValue={suppliers[0]?.id}>
-          {suppliers.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
+        <AppSelect
+          name="supplierId"
+          required
+          defaultValue={suppliers[0]?.id ?? ""}
+          options={suppliers.map((s) => ({ value: s.id, label: s.name }))}
+        />
       </FormField>
 
       <div className="space-y-3">
         {rows.map((row, i) => (
           <div key={i} className="grid gap-3 sm:grid-cols-3">
             <FormField label={i === 0 ? t("common.material") : `${t("common.material")} ${i + 1}`} required>
-              <select
+              <AppSelect
                 name="materialId"
                 value={row.materialId}
-                onChange={(e) => {
+                onChange={(v) => {
                   const next = [...rows];
-                  next[i] = { ...row, materialId: e.target.value };
+                  next[i] = { ...row, materialId: v };
                   setRows(next);
                 }}
-                className="ui-input"
                 required
-              >
-                {materials.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
+                options={materials.map((m) => ({ value: m.id, label: m.name }))}
+              />
             </FormField>
             <FormField label={i === 0 ? t("po.qtyStorage") : `${t("po.qtyStorage")} ${i + 1}`} required>
               <input

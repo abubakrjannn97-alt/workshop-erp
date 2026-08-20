@@ -8,6 +8,7 @@ import { receiveOpening } from "@/app/actions/inventory";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
 import { FormField } from "@/components/form-field";
+import { AppSelect } from "@/components/app-select";
 import { getFgWarehouse } from "@/core/config/resolve-warehouse";
 import { saleToOutputQty } from "@core/inventory/finished-goods";
 import styles from "../warehouse.module.css";
@@ -110,9 +111,11 @@ export default async function FinishedWarehousePage() {
               <input type="hidden" name="warehouseId" value={fg.id} />
               <IdempotencyField prefix="fg-receive" />
               <FormField label={t("common.product")}>
-                <select name="productId" className="ui-input">
-                  {products.map((p) => (<option key={p.id} value={p.id}>{p.name}</option>))}
-                </select>
+                <AppSelect
+                  name="productId"
+                  defaultValue={products[0]?.id ?? ""}
+                  options={products.map((p) => ({ value: p.id, label: p.name }))}
+                />
               </FormField>
               <FormField label={t("common.quantity")} required>
                 <input name="quantity" required className="ui-input" />

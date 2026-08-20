@@ -9,6 +9,7 @@ import { AddEmployeeForm } from "@/components/add-employee-form";
 import { EMPLOYEE_ASSIGNABLE, type PermissionCode } from "@core/rbac/permissions";
 import { formatPhoneDisplay } from "@core/shared/phone";
 import { FormField } from "@/components/form-field";
+import { AppSelect } from "@/components/app-select";
 import { ChevronRight } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import styles from "./employees.module.css";
@@ -146,10 +147,14 @@ export default async function EmployeesPage() {
                   {isCommission ? (
                     <>
                       <FormField label={t("emp.model")} className="max-w-xl">
-                        <select name="commissionMode" defaultValue={scheme.commissionMode ?? "PROGRESSIVE"} className="ui-input">
-                          <option value="PROGRESSIVE">{t("emp.progressive")}</option>
-                          <option value="TIERED">{t("emp.tiered")}</option>
-                        </select>
+                        <AppSelect
+                          name="commissionMode"
+                          defaultValue={scheme.commissionMode ?? "PROGRESSIVE"}
+                          options={[
+                            { value: "PROGRESSIVE", label: t("emp.progressive") },
+                            { value: "TIERED", label: t("emp.tiered") },
+                          ]}
+                        />
                       </FormField>
                       <input type="hidden" name="commissionBase" value={scheme.commissionBase ?? "PAID"} />
                       <p style={{ fontSize: 13, color: "var(--ink-2)" }}>{t("emp.basePaid")}</p>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { publishRecipeVersion } from "@/app/actions/recipes";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
+import { AppSelect } from "@/components/app-select";
 
 type Option = { id: string; name: string; extra?: string };
 
@@ -36,26 +37,31 @@ export function RecipeEditor({
     if (result?.error) setError(result.error);
   }
 
+  const materialOptions = [
+    { value: "", label: t("recipe.material") },
+    ...materials.map((m) => ({ value: m.id, label: m.name })),
+  ];
+  const unitOptions = units.map((u) => ({
+    value: u.id,
+    label: u.extra ? `${u.name} (${u.extra})` : u.name,
+  }));
+
   return (
     <form action={onSubmit} className="space-y-3">
       <input type="hidden" name="productId" value={productId} />
       {rows.map((row, index) => (
         <div key={index} className="grid gap-2 sm:grid-cols-7">
-          <select
-            name="materialId"
-            value={row.materialId}
-            onChange={(e) =>
-              setRows((prev) => prev.map((r, i) => (i === index ? { ...r, materialId: e.target.value } : r)))
-            }
-            className="sm:col-span-3 rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
-          >
-            <option value="">{t("recipe.material")}</option>
-            {materials.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
+          <div className="sm:col-span-3">
+            <AppSelect
+              name="materialId"
+              value={row.materialId}
+              onChange={(value) =>
+                setRows((prev) => prev.map((r, i) => (i === index ? { ...r, materialId: value } : r)))
+              }
+              options={materialOptions}
+              placeholder={t("recipe.material")}
+            />
+          </div>
           <input
             name="quantity"
             value={row.quantity}
@@ -63,22 +69,16 @@ export function RecipeEditor({
               setRows((prev) => prev.map((r, i) => (i === index ? { ...r, quantity: e.target.value } : r)))
             }
             placeholder={t("recipe.qty")}
-            className="sm:col-span-2 rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
+            className="sm:col-span-2 ui-input"
           />
-          <select
+          <AppSelect
             name="unitId"
             value={row.unitId}
-            onChange={(e) =>
-              setRows((prev) => prev.map((r, i) => (i === index ? { ...r, unitId: e.target.value } : r)))
+            onChange={(value) =>
+              setRows((prev) => prev.map((r, i) => (i === index ? { ...r, unitId: value } : r)))
             }
-            className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
-          >
-            {units.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.extra ? `${u.name} (${u.extra})` : u.name}
-              </option>
-            ))}
-          </select>
+            options={unitOptions}
+          />
           <button
             type="button"
             onClick={() => setRows((prev) => prev.filter((_, i) => i !== index))}
@@ -98,7 +98,7 @@ export function RecipeEditor({
       <input
         name="comment"
         placeholder={t("recipe.commentPh")}
-        className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
+        className="w-full ui-input"
       />
       {error ? <p className="text-sm text-[var(--danger)]">{error}</p> : null}
       <button

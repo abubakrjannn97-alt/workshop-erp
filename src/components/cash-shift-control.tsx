@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { Wallet } from "lucide-react";
 import { closeCashShift, openCashShift } from "@/app/actions/control";
 import { PendingButton } from "@/components/pending-button";
+import { AppSelect } from "@/components/app-select";
 import type { Locale } from "@core/shared/i18n/i18n";
 import { createT, intlLocale } from "@core/shared/i18n/i18n";
 import styles from "./cash-shift-control.module.css";
@@ -134,13 +135,14 @@ export function CashShiftControl({
           </>
         ) : (
           <form action={openCashShift} className={styles.form} onSubmit={() => setOpen(false)}>
-            <select name="accountId" className={styles.field} defaultValue={data.accounts[0]?.id}>
-              {data.accounts.map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.name} · {account.balance} с
-                </option>
-              ))}
-            </select>
+            <AppSelect
+              name="accountId"
+              defaultValue={data.accounts[0]?.id ?? ""}
+              options={data.accounts.map((account) => ({
+                value: account.id,
+                label: `${account.name} · ${account.balance} с`,
+              }))}
+            />
             <input
               name="openingAmount"
               placeholder={t("fin.openBalance")}

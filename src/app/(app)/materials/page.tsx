@@ -8,6 +8,7 @@ import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { unitCost } from "@core/costing/costing";
 import { PendingButton } from "@/components/pending-button";
 import { FormField } from "@/components/form-field";
+import { AppSelect } from "@/components/app-select";
 import { ChevronRight } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import styles from "@/styles/premium.module.css";
@@ -42,10 +43,18 @@ export default async function MaterialsPage() {
               <FormField label={t("common.category")}><input name="category" required placeholder={t("materials.categoryPh")} className="ui-input" /></FormField>
               <FormField label={t("common.supplier")} hint={t("materials.supplierPh")}><input name="supplierName" placeholder={t("materials.supplierPh")} className="ui-input" /></FormField>
               <FormField label={t("materials.storageUnit")} hint={t("materials.storageHint")}>
-                <select name="storageUnitId" className="ui-input">{units.map((u) => <option key={u.id} value={u.id}>{u.name} ({u.symbol})</option>)}</select>
+                <AppSelect
+                  name="storageUnitId"
+                  defaultValue={units[0]?.id ?? ""}
+                  options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
+                />
               </FormField>
               <FormField label={t("materials.purchaseUnit")} hint={t("materials.purchaseHint")}>
-                <select name="purchaseUnitId" className="ui-input">{units.map((u) => <option key={u.id} value={u.id}>{u.name} ({u.symbol})</option>)}</select>
+                <AppSelect
+                  name="purchaseUnitId"
+                  defaultValue={units[0]?.id ?? ""}
+                  options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
+                />
               </FormField>
               <FormField label={t("materials.packWeight")} hint={t("materials.packWeightHint")}><input name="packageWeight" required inputMode="decimal" placeholder="25" className="ui-input" /></FormField>
               <FormField label={t("materials.packPrice")} hint={t("materials.packPriceHint")}><input name="packagePrice" required inputMode="decimal" placeholder="180" className="ui-input" /></FormField>

@@ -5,6 +5,7 @@ import { LEDGER } from "@core/finance/finance";
 import { createExpense } from "@/app/actions/finance";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import { FormField } from "@/components/form-field";
+import { AppSelect } from "@/components/app-select";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
 import Link from "next/link";
@@ -49,14 +50,18 @@ export default async function ExpensesPage() {
             <form action={createExpense} className="grid gap-3">
               <IdempotencyField prefix="expense" />
               <FormField label={t("fin.accounts")}>
-                <select name="accountId" className="ui-input">
-                  {accounts.map((a) => (<option key={a.id} value={a.id}>{n("cash", a.code, a.name)}</option>))}
-                </select>
+                <AppSelect
+                  name="accountId"
+                  defaultValue={accounts[0]?.id ?? ""}
+                  options={accounts.map((a) => ({ value: a.id, label: n("cash", a.code, a.name) }))}
+                />
               </FormField>
               <FormField label={t("fin.expenseCat")}>
-                <select name="categoryId" className="ui-input">
-                  {categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
-                </select>
+                <AppSelect
+                  name="categoryId"
+                  defaultValue={categories[0]?.id ?? ""}
+                  options={categories.map((c) => ({ value: c.id, label: c.name }))}
+                />
               </FormField>
               <FormField label={`${t("common.amount")}, с`}>
                 <input name="amount" required inputMode="decimal" className="ui-input" />

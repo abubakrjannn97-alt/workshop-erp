@@ -14,6 +14,7 @@ import { formatPhoneDisplay } from "@core/shared/phone";
 import { archiveEmployee } from "@/app/actions/employees";
 import { getDomainConfig } from "@core/config/domain-config";
 import { FormField } from "@/components/form-field";
+import { AppSelect } from "@/components/app-select";
 import { StatusBadge } from "@/components/status-badge";
 import styles from "../employees.module.css";
 
@@ -133,14 +134,18 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
             <form action={assign} className="grid max-w-xl gap-3">
               <input type="hidden" name="userId" value={user.id} />
               <FormField label={t("emp.payScheme")}>
-                <select name="paySchemeId" defaultValue={user.paySchemeId ?? ""} className="ui-input">
-                  <option value="">{t("emp.noScheme")}</option>
-                  {schemes.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.kind === "SALES_COMMISSION" ? t("emp.commissionTitle") : s.productionRate != null ? t("emp.laborTitle") : s.name}
-                    </option>
-                  ))}
-                </select>
+                <AppSelect
+                  name="paySchemeId"
+                  defaultValue={user.paySchemeId ?? ""}
+                  placeholder={t("emp.noScheme")}
+                  options={[
+                    { value: "", label: t("emp.noScheme") },
+                    ...schemes.map((s) => ({
+                      value: s.id,
+                      label: s.kind === "SALES_COMMISSION" ? t("emp.commissionTitle") : s.productionRate != null ? t("emp.laborTitle") : s.name,
+                    })),
+                  ]}
+                />
               </FormField>
               <FormField label={t("emp.hiredAt")}>
                 <input name="hiredAt" type="date" defaultValue={user.hiredAt ? user.hiredAt.toISOString().slice(0, 10) : ""} className="ui-input" />
@@ -163,9 +168,11 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
                 <input name="amount" defaultValue={moneyDisplay(debt)} className="ui-input" inputMode="decimal" />
               </FormField>
               <FormField label={t("fin.accounts")}>
-                <select name="accountId" className="ui-input">
-                  {accounts.map((a) => (<option key={a.id} value={a.id}>{n("cash", a.code, a.name)}</option>))}
-                </select>
+                <AppSelect
+                  name="accountId"
+                  defaultValue={accounts[0]?.id ?? ""}
+                  options={accounts.map((a) => ({ value: a.id, label: n("cash", a.code, a.name) }))}
+                />
               </FormField>
               <FormField label={t("common.comment")}>
                 <input name="comment" placeholder={t("common.comment")} className="ui-input" />

@@ -9,6 +9,7 @@ import { RevealList } from "@/components/reveal-list";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
 import { FormField } from "@/components/form-field";
+import { AppSelect } from "@/components/app-select";
 import Link from "next/link";
 import styles from "./finance.module.css";
 
@@ -115,9 +116,11 @@ export default async function FinancePage() {
         <div className={styles.sectionBody}>
           <form action={openShift} className="flex flex-wrap items-end gap-3 mb-4">
             <FormField label={t("fin.accounts")} className="min-w-[10rem] flex-1">
-              <select name="accountId" className="ui-input">
-                {accounts.map((a) => (<option key={a.id} value={a.id}>{n("cash", a.code, a.name)}</option>))}
-              </select>
+              <AppSelect
+                name="accountId"
+                defaultValue={accounts[0]?.id ?? ""}
+                options={accounts.map((a) => ({ value: a.id, label: n("cash", a.code, a.name) }))}
+              />
             </FormField>
             <FormField label={t("fin.openBalance")} className="min-w-[8rem]">
               <input name="openingAmount" placeholder={t("fin.openBalance")} className="ui-input" />
@@ -163,14 +166,18 @@ export default async function FinancePage() {
                 <form action={expenseAction} className="grid gap-3">
                   <IdempotencyField prefix="expense" />
                   <FormField label={t("fin.accounts")}>
-                    <select name="accountId" className="ui-input">
-                      {accounts.map((a) => (<option key={a.id} value={a.id}>{n("cash", a.code, a.name)}</option>))}
-                    </select>
+                    <AppSelect
+                      name="accountId"
+                      defaultValue={accounts[0]?.id ?? ""}
+                      options={accounts.map((a) => ({ value: a.id, label: n("cash", a.code, a.name) }))}
+                    />
                   </FormField>
                   <FormField label={t("fin.expenseCat")}>
-                    <select name="categoryId" className="ui-input">
-                      {categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
-                    </select>
+                    <AppSelect
+                      name="categoryId"
+                      defaultValue={categories[0]?.id ?? ""}
+                      options={categories.map((c) => ({ value: c.id, label: c.name }))}
+                    />
                   </FormField>
                   <FormField label={`${t("common.amount")}, с`}>
                     <input name="amount" placeholder={t("common.amount")} className="ui-input" inputMode="decimal" />
@@ -191,14 +198,18 @@ export default async function FinancePage() {
               <div className={styles.sectionBody}>
                 <form action={transferAction} className="grid gap-3">
                   <FormField label={t("fin.from")}>
-                    <select name="fromAccountId" className="ui-input">
-                      {accounts.map((a) => (<option key={a.id} value={a.id}>{n("cash", a.code, a.name)}</option>))}
-                    </select>
+                    <AppSelect
+                      name="fromAccountId"
+                      defaultValue={accounts[0]?.id ?? ""}
+                      options={accounts.map((a) => ({ value: a.id, label: n("cash", a.code, a.name) }))}
+                    />
                   </FormField>
                   <FormField label={t("fin.to")}>
-                    <select name="toAccountId" className="ui-input">
-                      {accounts.map((a) => (<option key={a.id} value={a.id}>{n("cash", a.code, a.name)}</option>))}
-                    </select>
+                    <AppSelect
+                      name="toAccountId"
+                      defaultValue={accounts[0]?.id ?? ""}
+                      options={accounts.map((a) => ({ value: a.id, label: n("cash", a.code, a.name) }))}
+                    />
                   </FormField>
                   <FormField label={`${t("common.amount")}, с`}>
                     <input name="amount" placeholder={t("common.amount")} className="ui-input" inputMode="decimal" />
@@ -226,18 +237,29 @@ export default async function FinancePage() {
                 <FormField label={t("common.name")}>
                   <input name="name" placeholder={t("common.name")} className="ui-input" />
                 </FormField>
-                <select name="kind" className="ui-input" aria-label={t("fin.obligation")}>
-                  <option value="other">{t("fin.other")}</option>
-                  <option value="supplier">{t("common.supplier")}</option>
-                  <option value="tax">{t("fin.tax")}</option>
-                </select>
+                <AppSelect
+                  name="kind"
+                  defaultValue="other"
+                  aria-label={t("fin.obligation")}
+                  options={[
+                    { value: "other", label: t("fin.other") },
+                    { value: "supplier", label: t("common.supplier") },
+                    { value: "tax", label: t("fin.tax") },
+                  ]}
+                />
                 <FormField label={`${t("common.amount")}, с`}>
                   <input name="amount" placeholder={t("common.amount")} className="ui-input" inputMode="decimal" />
                 </FormField>
-                <select name="interval" className="ui-input" aria-label={t("fin.interval")}>
-                  <option value="">{t("fin.oneOff")}</option>
-                  <option value="MONTHLY">{t("fin.monthly")}</option>
-                </select>
+                <AppSelect
+                  name="interval"
+                  defaultValue=""
+                  aria-label={t("fin.interval")}
+                  placeholder={t("fin.oneOff")}
+                  options={[
+                    { value: "", label: t("fin.oneOff") },
+                    { value: "MONTHLY", label: t("fin.monthly") },
+                  ]}
+                />
                 <button type="submit" className="ui-btn-primary min-h-[44px]">{t("common.add")}</button>
               </form>
               <form action={recurringAction} className="mt-3">
@@ -258,9 +280,11 @@ export default async function FinancePage() {
                   <input name="name" placeholder={t("common.name")} className="ui-input" />
                 </FormField>
                 <FormField label={t("home.col.fund")}>
-                  <select name="fundCode" className="ui-input">
-                    {funds.map((f) => (<option key={f.code} value={f.code}>{n("fund", f.code, f.name)}</option>))}
-                  </select>
+                  <AppSelect
+                    name="fundCode"
+                    defaultValue={funds[0]?.code ?? ""}
+                    options={funds.map((f) => ({ value: f.code, label: n("fund", f.code, f.name) }))}
+                  />
                 </FormField>
                 <button type="submit" className="ui-btn-primary min-h-[44px]">{t("fin.saveCat")}</button>
               </form>
