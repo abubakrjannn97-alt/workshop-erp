@@ -5,38 +5,141 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requireSession } from "@core/auth/authz";
 import { markNotificationsRead } from "@/app/actions/control";
 import { RevealList } from "@/components/reveal-list";
+import { Segmented } from "@/components/segmented";
+import {
+  NOTIF_CATEGORIES,
+  notificationCategory,
+  notificationHref,
+  resolveNotifCategory,
+  type NotifCategory,
+} from "@core/control/notification-categories";
 import styles from "@/styles/premium.module.css";
 
-export default async function NotificationsPage() {
+export default async function NotificationsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ cat?: string }>;
+}) {
   const { t, locale } = await getTranslator();
   const session = await requireSession();
-  const items = await prisma.notification.findMany({ where: { userId: session.user.id }, orderBy: { createdAt: "desc" }, take: 50 });
+  const params = await searchParams;
+  const active = resolveNotifCategory(params.cat);
 
-  async function readAll() { "use server"; await markNotificationsRead(); }
+  const items = await prisma.notification.findMany({
+    where: { userId: session.user.id },
+    orderBy: { createdAt: "desc" },
+    take: 100,
+  });
+
+  const counts = Object.fromEntries(NOTIF_CATEGORIES.map((c) => [c, 0])) as Record<NotifCategory, number>;
+  const unread = Object.fromEntries(NOTIF_CATEGORIES.map((c) => [c, 0])) as Record<NotifCategory, number>;
+  for (const n of items) {
+    const cat = notificationCategory(n.type);
+    counts.all += 1;
+    counts[cat] += 1;
+    if (!n.readAt) {
+      unread.all += 1;
+      unread[cat] += 1;
+    }
+  }
+
+  const visibleCats = NOTIF_CATEGORIES.filter((cat) => cat === "all" || counts[cat] > 0 || ["warehouse", "debts", "orders"].includes(cat));
+
+  const filtered =
+    active === "all" ? items : items.filter((n) => notificationCategory(n.type) === active);
+
+  async function readAll() {
+    "use server";
+    await markNotificationsRead();
+  }
+
+  function catLabel(cat: NotifCategory) {
+    const base = t(`notif.cat.${cat}`);
+    const n = unread[cat];
+    return n > 0 ? `${base} ${n}` : base;
+  }
 
   return (
     <div className={styles.page}>
       <header className={styles.header} data-tour="page-notifications">
-        <div className={styles.headerText}><h1 className={styles.title}>{t("page.notifications")}</h1></div>
+        <div className={styles.headerText}>
+          <h1 className={styles.title}>{t("page.notifications")}</h1>
+          <p className={styles.subtitle}>{t("notif.hint")}</p>
+        </div>
         <div className={styles.headerActions}>
-          <form action={readAll}><button type="submit" className="ui-btn-primary min-h-[44px]">{t("notif.markRead")}</button></form>
+          <form action={readAll}>
+            <button type="submit" className="ui-btn-primary min-h-[44px]">
+              {t("notif.markRead")}
+            </button>
+          </form>
         </div>
       </header>
 
+      <Segmented
+        scroll
+        tour="notif-cats"
+        aria-label={t("page.notifications")}
+        items={visibleCats.map((cat) => ({
+          href: cat === "all" ? "/notifications" : `/notifications?cat=${cat}`,
+          label: catLabel(cat),
+          active: active === cat,
+        }))}
+      />
+
       <section className={styles.section} data-tour="notif-list">
-        {items.length === 0 ? (
-          <div className={styles.empty}>{t("notif.empty")}</div>
+        {filtered.length === 0 ? (
+          <div className={styles.empty}>{t("notif.emptyCat")}</div>
         ) : (
           <div className={styles.sectionBody} style={{ padding: 0 }}>
-            <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={10}>
-              {items.map((n) => (
-                <li key={n.id} style={{ padding: "10px 18px", borderBottom: "1px solid var(--line)", opacity: n.readAt ? 0.6 : 1 }}>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>{n.title}</p>
-                  <p style={{ fontSize: 13, color: "var(--ink-2)", marginTop: 2 }}>{n.body}</p>
-                  <p style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>{n.createdAt.toLocaleString(intlLocale(locale))}</p>
-                  {n.entityType === "approval" && n.entityId ? <Link href="/settings/approvals" style={{ fontSize: 12, fontWeight: 500, color: "var(--accent)" }}>{t("notif.openApprovals")}</Link> : null}
-                </li>
-              ))}
+            <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={12}>
+              {filtered.map((n) => {
+                const href = notificationHref(n.entityType, n.entityId);
+                const cat = notificationCategory(n.type);
+                return (
+                  <li
+                    key={n.id}
+                    style={{
+                      padding: "12px 18px",
+                      borderBottom: "1px solid var(--line)",
+                      opacity: n.readAt ? 0.62 : 1,
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                      <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>{n.title}</p>
+                      <span
+                        style={{
+                          flexShrink: 0,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: "var(--ink-3)",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.03em",
+                        }}
+                      >
+                        {t(`notif.cat.${cat}`)}
+                      </span>
+                    </div>
+                    <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--ink-2)" }}>{n.body}</p>
+                    <p style={{ margin: "6px 0 0", fontSize: 11, color: "var(--ink-3)" }}>
+                      {n.createdAt.toLocaleString(intlLocale(locale), {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                    {href ? (
+                      <Link
+                        href={href}
+                        style={{ display: "inline-block", marginTop: 6, fontSize: 12, fontWeight: 600, color: "var(--accent)" }}
+                      >
+                        {t("notif.open")}
+                      </Link>
+                    ) : null}
+                  </li>
+                );
+              })}
             </RevealList>
           </div>
         )}

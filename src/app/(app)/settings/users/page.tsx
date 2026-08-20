@@ -75,7 +75,7 @@ export default async function UsersPage() {
                 <div className={styles.sectionHead}>
                   <h2 className={styles.sectionTitle}>{n("role", role.code, role.name)}</h2>
                   {canManageRoles ? (
-                    <button form={`role-${role.id}`} type="submit" className="ui-btn-primary min-h-[44px] px-3 text-xs">
+                    <button form={`role-${role.id}`} type="submit" className="ui-btn-soft min-h-[44px] px-3 text-xs">
                       {t("set.savePerms")}
                     </button>
                   ) : null}

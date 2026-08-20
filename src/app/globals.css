@@ -638,6 +638,17 @@ main::-webkit-scrollbar-corner,
   .ui-btn-secondary:hover:not(:disabled) {
     background: var(--surface-2);
   }
+  .ui-btn-soft {
+    @apply ui-btn;
+    border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+    background: linear-gradient(180deg, #fffaf2 0%, var(--accent-soft) 100%);
+    color: var(--ink);
+    box-shadow: none;
+  }
+  .ui-btn-soft:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+    box-shadow: 0 2px 8px rgba(184, 149, 74, 0.15);
+  }
   .ui-btn-ghost {
     @apply ui-btn;
     border: 1px solid transparent;

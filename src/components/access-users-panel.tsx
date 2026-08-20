@@ -7,7 +7,7 @@ import { FormField } from "@/components/form-field";
 import { AppSelect } from "@/components/app-select";
 import { ICON_STROKE } from "@/components/nav-icons";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
-import styles from "@/styles/premium.module.css";
+import styles from "./access-users-panel.module.css";
 
 type RoleOption = { id: string; label: string };
 
@@ -47,18 +47,18 @@ export function AccessUsersPanel({
     <>
       {canCreate ? (
         createOpen ? (
-          <section className={styles.section}>
-            <div className={styles.sectionHead}>
-              <h2 className={styles.sectionTitle}>{t("set.createUser")}</h2>
+          <section className={styles.createPanel}>
+            <div className={styles.createHead}>
+              <h2 className={styles.createTitle}>{t("set.createUser")}</h2>
               <button
                 type="button"
                 onClick={() => setCreateOpen(false)}
-                className="text-sm text-[var(--ink-3)]"
+                className="text-sm font-medium text-[var(--ink-3)]"
               >
                 {t("common.cancel")}
               </button>
             </div>
-            <div className={styles.sectionBody}>
+            <div className={styles.createBody}>
               <form action={createUser} className="grid gap-3 sm:grid-cols-2">
                 <FormField label={t("set.userName")}>
                   <input name="name" required placeholder={t("set.userName")} className="ui-input" />
@@ -76,41 +76,39 @@ export function AccessUsersPanel({
                 <FormField label={t("set.userPassword")}>
                   <input name="password" type="password" required minLength={6} className="ui-input" />
                 </FormField>
-                <button type="submit" className="ui-btn-primary min-h-[44px] sm:col-span-2">
+                <button type="submit" className={`${styles.softBtn} sm:col-span-2 w-full`}>
                   {t("set.createUser")}
                 </button>
               </form>
             </div>
           </section>
         ) : (
-          <button type="button" onClick={() => setCreateOpen(true)} className="ui-btn-primary min-h-[44px] w-fit">
+          <button type="button" onClick={() => setCreateOpen(true)} className={styles.softBtn}>
             {t("set.createUser")}
           </button>
         )
       ) : null}
 
-      <section className={styles.section}>
-        <div className={styles.sectionHead}>
-          <h2 className={styles.sectionTitle}>{t("set.users")}</h2>
-        </div>
-      </section>
+      <div className={styles.usersBanner}>
+        <h2 className={styles.usersBannerTitle}>{t("set.users")}</h2>
+      </div>
 
       {users.length === 0 ? (
-        <p className={styles.empty}>{t("common.empty")}</p>
+        <p className="text-sm text-[var(--ink-3)]">{t("common.empty")}</p>
       ) : (
         users.map((user) => {
           const open = openUserId === user.id;
           return (
-            <section key={user.id} className={styles.section}>
+            <section key={user.id} className={styles.userCard}>
               <button
                 type="button"
-                className={`${styles.sectionHead} w-full cursor-pointer border-0 bg-transparent text-left`}
+                className={styles.userCardHead}
                 onClick={() => setOpenUserId(open ? null : user.id)}
                 aria-expanded={open}
               >
                 <div className="min-w-0">
-                  <h2 className={styles.sectionTitle}>{user.name}</h2>
-                  <p className="mt-0.5 text-xs text-[var(--ink-3)]">{user.roleLabel}</p>
+                  <h2 className={styles.userCardTitle}>{user.name}</h2>
+                  <p className={styles.userCardMeta}>{user.roleLabel}</p>
                 </div>
                 {open ? (
                   <ChevronDown size={18} strokeWidth={ICON_STROKE} className="shrink-0 text-[var(--ink-3)]" />
@@ -119,8 +117,8 @@ export function AccessUsersPanel({
                 )}
               </button>
               {open ? (
-                <div className={styles.sectionBody}>
-                  <form action={updateUser} className="grid gap-3 sm:grid-cols-2">
+                <div className={styles.userCardBody}>
+                  <form action={updateUser} className="grid gap-3 pt-4 sm:grid-cols-2">
                     <input type="hidden" name="id" value={user.id} />
                     <FormField label={t("set.userName")}>
                       <input name="name" defaultValue={user.name} disabled={!canEdit} className="ui-input" />
@@ -153,7 +151,7 @@ export function AccessUsersPanel({
                     ) : null}
                     <div className="sm:col-span-2 flex flex-wrap gap-3">
                       {canEdit ? (
-                        <button type="submit" className="ui-btn-primary min-h-[44px]">
+                        <button type="submit" className={styles.softBtn}>
                           {t("common.save")}
                         </button>
                       ) : null}

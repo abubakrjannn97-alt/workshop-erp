@@ -1,0 +1,121 @@
+/* Soft cream / gold controls — matches orders & select accents */
+
+.usersBanner {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 12px 18px;
+  border: 1px solid color-mix(in srgb, var(--accent, #b8954a) 45%, var(--line));
+  border-radius: 14px;
+  background: var(--accent-gradient, linear-gradient(135deg, #d4bc7a 0%, #a68440 100%));
+  box-shadow: 0 2px 10px rgba(166, 132, 64, 0.18);
+}
+
+.usersBannerTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 22px;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+
+.softBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent, #b8954a) 28%, var(--line));
+  background: linear-gradient(180deg, #fffaf2 0%, #f3ead8 100%);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.softBtn:hover {
+  border-color: color-mix(in srgb, var(--accent, #b8954a) 55%, var(--line));
+  box-shadow: 0 2px 8px rgba(184, 149, 74, 0.15);
+}
+
+.softBtnWide {
+  composes: softBtn;
+  width: 100%;
+}
+
+.userCard {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent, #b8954a) 22%, var(--line));
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fffaf2 0%, #f3ead8 100%);
+  box-shadow: 0 2px 10px rgba(28, 35, 43, 0.03);
+}
+
+.userCardHead {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.userCardHead:hover {
+  background: color-mix(in srgb, #fff 55%, transparent);
+}
+
+.userCardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 22px;
+  color: var(--ink);
+}
+
+.userCardMeta {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.userCardBody {
+  padding: 0 18px 16px;
+  border-top: 1px solid color-mix(in srgb, var(--accent, #b8954a) 18%, var(--line));
+  background: var(--surface);
+}
+
+.createPanel {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent, #b8954a) 22%, var(--line));
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fffaf2 0%, #f3ead8 100%);
+  box-shadow: 0 2px 10px rgba(28, 35, 43, 0.03);
+}
+
+.createHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+}
+
+.createTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.createBody {
+  padding: 0 18px 16px;
+  border-top: 1px solid color-mix(in srgb, var(--accent, #b8954a) 18%, var(--line));
+  background: var(--surface);
+}
