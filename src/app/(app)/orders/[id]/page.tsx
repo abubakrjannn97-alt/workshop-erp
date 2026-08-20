@@ -9,6 +9,7 @@ import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { available } from "@core/inventory/stock";
 import { findRawWarehouse } from "@/core/config/resolve-warehouse";
 import { STATUS_FLOW } from "@core/orders/orders";
+import { confirmOrderCore } from "@core/orders/confirm-order";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge, orderTone } from "@/components/status-badge";
 import { OrderDetailMetrics } from "../order-detail-metrics";
@@ -54,6 +55,20 @@ export default async function OrderPage({
   }
 
   const canCreate = hasPermission(session.user.permissions, session.user.roleCode, "orders.create");
+  const paidNow = D(String(order.paidAmount));
+  const totalNow = D(String(order.total));
+  const isFullyPaid = paidNow.gte(totalNow) && paidNow.gt(0);
+  if (
+    canCreate &&
+    isFullyPaid &&
+    (order.status.code === "NEW" || order.status.code === "AWAITING_PAYMENT")
+  ) {
+    const autoConfirm = await confirmOrderCore(order.id, session.user.id);
+    if (autoConfirm.ok) {
+      redirect(`/orders/${id}`);
+    }
+  }
+
   const canCancel = hasPermission(session.user.permissions, session.user.roleCode, "orders.cancel");
   const canPay = hasPermission(session.user.permissions, session.user.roleCode, "payments.create");
   const canSeeCost = hasPermission(session.user.permissions, session.user.roleCode, "materials.view");
@@ -256,6 +271,38 @@ export default async function OrderPage({
         ) : null}
       </section>
 
+      {payError ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900">
+          <p>{decodeURIComponent(payError)}</p>
+          {paymentBlocked ? (
+            <p className="mt-1 text-xs">
+              {t("orders.periodClosedHint")}{" "}
+              <Link href="/settings/approvals" className="font-medium underline">
+                {t("set.approvalsTitle")}
+              </Link>
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      <OrderPaymentPanel
+        locale={locale}
+        orderId={order.id}
+        customerName={order.customer.name}
+        debtDefault={debt.gt(0) ? moneyDisplay(debt) : ""}
+        payAction={payAction}
+        reverseAction={reverseAction}
+        canPay={canPay}
+        payments={order.payments.map((p) => ({
+          id: p.id,
+          amount: String(p.amount),
+          method: p.method,
+          createdAt: p.createdAt.toISOString(),
+          reversesId: p.reversesId,
+        }))}
+        loc={loc}
+      />
+
       <section className={detailStyles.sectionPanel}>
         <h2 className={detailStyles.sectionTitle}>{t("orders.materialsForOrder")}</h2>
         <ul className="ui-list">
@@ -300,38 +347,6 @@ export default async function OrderPage({
           </div>
         ) : null}
       </section>
-
-      {payError ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900">
-          <p>{decodeURIComponent(payError)}</p>
-          {paymentBlocked ? (
-            <p className="mt-1 text-xs">
-              {t("orders.periodClosedHint")}{" "}
-              <Link href="/settings/approvals" className="font-medium underline">
-                {t("set.approvalsTitle")}
-              </Link>
-            </p>
-          ) : null}
-        </div>
-      ) : null}
-
-      <OrderPaymentPanel
-        locale={locale}
-        orderId={order.id}
-        customerName={order.customer.name}
-        debtDefault={debt.gt(0) ? moneyDisplay(debt) : ""}
-        payAction={payAction}
-        reverseAction={reverseAction}
-        canPay={canPay}
-        payments={order.payments.map((p) => ({
-          id: p.id,
-          amount: String(p.amount),
-          method: p.method,
-          createdAt: p.createdAt.toISOString(),
-          reversesId: p.reversesId,
-        }))}
-        loc={loc}
-      />
 
       {(canCreate && (order.status.code === "NEW" || order.status.code === "AWAITING_PAYMENT")) ||
       (canIssue && (order.status.code === "IN_FG" || order.status.code === "READY")) ||

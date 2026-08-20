@@ -26,6 +26,7 @@ import {
   STATUS_FLOW,
 } from "@core/orders/orders";
 import { issueOrderStockAndMarkIssued, completeIssuedOrder } from "@core/orders/issue-complete";
+import { confirmOrderCore } from "@core/orders/confirm-order";
 import { canSelfApprove, pendingFor, queueApproval } from "@core/control/control";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
 import { resolveProductionPaySchemeCode } from "@core/config/domain-config";
@@ -294,7 +295,7 @@ export async function confirmOrder(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const order = await prisma.order.findUnique({
     where: { id },
-    include: { status: true, materials: true, seller: true, items: true, production: true },
+    include: { status: true },
   });
   if (!order) return { error: "Заказ не найден." };
   if (!(await canSeeOrder(session.user.id, session.user.roleCode, order.sellerId))) {
@@ -303,67 +304,10 @@ export async function confirmOrder(formData: FormData) {
   if (order.status.code !== ORDER_STATUS.NEW && order.status.code !== ORDER_STATUS.AWAITING_PAYMENT) {
     return { error: "Заказ уже подтверждён или закрыт." };
   }
-  if (await pendingFor("order", id, "DISCOUNT")) {
-    return { error: "Скидка на согласовании у руководителя." };
-  }
 
-  const raw = await findRawWarehouse();
-  if (!raw) return { error: "Склад сырья не найден." };
-  const confirmed = await prisma.orderStatus.findUniqueOrThrow({ where: { code: ORDER_STATUS.CONFIRMED } });
+  const result = await confirmOrderCore(id, session.user.id);
+  if (result.error) return result;
 
-  try {
-    await prisma.$transaction(async (tx) => {
-      let canProduceFully = true;
-      for (const need of order.materials) {
-        const result = await reserveMaterial(
-          {
-            warehouseId: raw.id,
-            materialId: need.materialId,
-            quantity: qty(need.plannedQty),
-            userId: session.user.id,
-            relatedType: "order",
-            relatedId: order.id,
-            idempotencyKey: `order-reserve-${order.id}-${need.materialId}`,
-            partial: true,
-          },
-          tx,
-        );
-        if (D(result.shortage).gt(0)) canProduceFully = false;
-        await tx.orderMaterialNeed.update({
-          where: { id: need.id },
-          data: { reservedQty: result.reserved },
-        });
-      }
-      await tx.order.update({
-        where: { id },
-        data: {
-          statusId: confirmed.id,
-          confirmedAt: new Date(),
-          canProduceFully,
-        },
-      });
-      if (!order.production) {
-        const plannedQty = order.items.reduce((s, item) => s.add(String(item.quantity)), D(0));
-        await tx.productionOrder.create({
-          data: {
-            orderId: order.id,
-            status: "OPEN",
-            plannedQty: qty(plannedQty),
-            dueAt: order.dueAt,
-          },
-        });
-      }
-    });
-  } catch (e) {
-    return { error: e instanceof Error ? e.message : "Не удалось подтвердить." };
-  }
-
-  await writeAudit({
-    userId: session.user.id,
-    action: "order.confirm",
-    entityType: "order",
-    entityId: id,
-  });
   revalidatePath("/orders");
   revalidatePath(`/orders/${id}`);
   revalidatePath("/warehouse");
@@ -449,7 +393,15 @@ export async function updateOrderStatus(formData: FormData) {
   const code = String(formData.get("statusCode") ?? "");
   const order = await prisma.order.findUnique({ where: { id }, include: { status: true } });
   if (!order) return { error: "Заказ не найден." };
-  if (code === ORDER_STATUS.CONFIRMED) return { error: "Подтверждение — отдельным действием (резерв сырья)." };
+  if (code === ORDER_STATUS.CONFIRMED) {
+    const result = await confirmOrderCore(id, session.user.id);
+    if (result.error) return result;
+    revalidatePath("/orders");
+    revalidatePath(`/orders/${id}`);
+    revalidatePath("/warehouse");
+    revalidatePath("/production");
+    return { ok: true };
+  }
   if (code === ORDER_STATUS.CANCELLED) return { error: "Отмена — отдельным действием." };
   const allowed = STATUS_FLOW[order.status.code] ?? [];
   if (!allowed.includes(code)) return { error: "Недопустимый переход статуса." };
@@ -483,6 +435,7 @@ export async function addPayment(formData: FormData) {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: {
+      status: true,
       items: true,
       payments: true,
       seller: { include: { payScheme: { include: { tiers: true } } } },
@@ -587,6 +540,22 @@ export async function addPayment(formData: FormData) {
     entityId: orderId,
     newValue: { amount: money(amount) },
   });
+
+  const refreshed = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { status: true },
+  });
+  const fullyPaid =
+    refreshed &&
+    (refreshed.paymentStatus === "paid" || refreshed.paymentStatus === "overpaid") &&
+    (refreshed.status.code === ORDER_STATUS.NEW || refreshed.status.code === ORDER_STATUS.AWAITING_PAYMENT);
+  if (
+    fullyPaid &&
+    hasPermission(session.user.permissions, session.user.roleCode, "orders.create")
+  ) {
+    await confirmOrderCore(orderId, session.user.id);
+  }
+
   revalidatePath("/orders");
   revalidatePath(`/orders/${orderId}`);
   revalidatePath("/sales");
