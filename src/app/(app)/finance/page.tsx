@@ -3,7 +3,7 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { cashDelta, fundDelta, FUND } from "@core/finance/finance";
-import { createExpense, createExpenseCategory, createObligation, postRecurringObligations } from "@/app/actions/finance";
+import { createExpense, createExpenseCategory } from "@/app/actions/finance";
 import { RevealList } from "@/components/reveal-list";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
@@ -18,12 +18,11 @@ export default async function FinancePage() {
   const session = await requirePermission("finance.view");
   const canExpense = hasPermission(session.user.permissions, session.user.roleCode, "finance.expense.create");
 
-  const [accounts, funds, categories, entries, obligations, purchaseDebts] = await Promise.all([
+  const [accounts, funds, categories, entries, purchaseDebts] = await Promise.all([
     prisma.cashAccount.findMany({ where: { archivedAt: null }, orderBy: { code: "asc" } }),
     prisma.financialFund.findMany({ orderBy: { sortOrder: "asc" } }),
     prisma.expenseCategory.findMany({ where: { archivedAt: null }, orderBy: { name: "asc" } }),
     prisma.ledgerEntry.findMany({ where: { status: "POSTED" }, orderBy: { createdAt: "desc" } }),
-    prisma.obligation.findMany({ where: { status: "OPEN" }, orderBy: { createdAt: "desc" } }),
     prisma.purchaseOrder.findMany({ where: { status: { not: "CANCELLED" } }, include: { supplier: true } }),
   ]);
 
@@ -32,12 +31,8 @@ export default async function FinancePage() {
   const physical = cashBalances.reduce((s, a) => s.add(a.balance), D(0));
   const allocated = fundBalances.reduce((s, f) => s.add(f.balance), D(0));
   const supplierDebt = purchaseDebts.reduce((s, o) => s.add(D(String(o.total)).sub(o.paidAmount)), D(0));
-  const otherDebt = obligations.reduce((s, o) => s.add(D(String(o.amount)).sub(o.paidAmount)), D(0));
-  const totalDebt = supplierDebt.add(otherDebt);
 
   async function expenseAction(formData: FormData) { "use server"; await createExpense(formData); }
-  async function obligationAction(formData: FormData) { "use server"; await createObligation(formData); }
-  async function recurringAction() { "use server"; await postRecurringObligations(); }
   async function categoryAction(formData: FormData) { "use server"; await createExpenseCategory(formData); }
 
   return (
@@ -79,11 +74,11 @@ export default async function FinancePage() {
             <span className={`${styles.kpiIcon} ${styles.kpiIconWarn}`}>
               <Banknote size={20} strokeWidth={ICON_STROKE} aria-hidden />
             </span>
-            <span className={styles.kpiSource}>{t("fin.obligations")}</span>
+            <span className={styles.kpiSource}>{t("common.debt")}</span>
           </div>
           <p className={styles.kpiLabel}>{t("fin.supplierDebt")}</p>
-          <p className={totalDebt.gt(0) ? `${styles.kpiValue} ${styles.kpiValueWarn}` : styles.kpiValue}>
-            {moneyDisplay(totalDebt)} с
+          <p className={supplierDebt.gt(0) ? `${styles.kpiValue} ${styles.kpiValueWarn}` : styles.kpiValue}>
+            {moneyDisplay(supplierDebt)} с
           </p>
           <p className={styles.kpiHint}>{t("fin.supplierDebtHint")}</p>
         </article>
@@ -157,84 +152,45 @@ export default async function FinancePage() {
         </section>
       ) : null}
 
-      {/* Obligation + Category */}
       {canExpense ? (
-        <div className={styles.twoCol}>
-          <section className={styles.section}>
-            <div className={styles.sectionHead}>
-              <h2 className={styles.sectionTitle}>{t("fin.obligation")}</h2>
-            </div>
-            <div className={styles.sectionBody}>
-              <form action={obligationAction} className="grid gap-3">
-                <FormField label={t("common.name")}>
-                  <input name="name" placeholder={t("common.name")} className="ui-input" />
-                </FormField>
+        <section className={styles.section}>
+          <div className={styles.sectionHead}>
+            <h2 className={styles.sectionTitle}>{t("fin.expenseCat")}</h2>
+          </div>
+          <div className={styles.sectionBody}>
+            <form action={categoryAction} className="grid gap-3">
+              <FormField label={t("common.code")}>
+                <input name="code" placeholder={t("common.code")} className="ui-input" />
+              </FormField>
+              <FormField label={t("common.name")}>
+                <input name="name" placeholder={t("common.name")} className="ui-input" />
+              </FormField>
+              <FormField label={t("home.col.fund")}>
                 <AppSelect
-                  name="kind"
-                  defaultValue="other"
-                  aria-label={t("fin.obligation")}
-                  options={[
-                    { value: "other", label: t("fin.other") },
-                    { value: "supplier", label: t("common.supplier") },
-                    { value: "tax", label: t("fin.tax") },
-                  ]}
+                  name="fundCode"
+                  defaultValue={funds[0]?.code ?? ""}
+                  options={funds.map((f) => ({ value: f.code, label: n("fund", f.code, f.name) }))}
                 />
-                <FormField label={`${t("common.amount")}, с`}>
-                  <input name="amount" placeholder={t("common.amount")} className="ui-input" inputMode="decimal" />
-                </FormField>
-                <AppSelect
-                  name="interval"
-                  defaultValue=""
-                  aria-label={t("fin.interval")}
-                  placeholder={t("fin.oneOff")}
-                  options={[
-                    { value: "", label: t("fin.oneOff") },
-                    { value: "MONTHLY", label: t("fin.monthly") },
-                  ]}
-                />
-                <button type="submit" className="ui-btn-primary min-h-[44px]">{t("common.add")}</button>
-              </form>
-              <form action={recurringAction} className="mt-3">
-                <button type="submit" className="ui-btn-secondary min-h-[44px]">{t("fin.postRecurring")}</button>
-              </form>
-            </div>
-          </section>
-          <section className={styles.section}>
-            <div className={styles.sectionHead}>
-              <h2 className={styles.sectionTitle}>{t("fin.expenseCat")}</h2>
-            </div>
-            <div className={styles.sectionBody}>
-              <form action={categoryAction} className="grid gap-3">
-                <FormField label={t("common.code")}>
-                  <input name="code" placeholder={t("common.code")} className="ui-input" />
-                </FormField>
-                <FormField label={t("common.name")}>
-                  <input name="name" placeholder={t("common.name")} className="ui-input" />
-                </FormField>
-                <FormField label={t("home.col.fund")}>
-                  <AppSelect
-                    name="fundCode"
-                    defaultValue={funds[0]?.code ?? ""}
-                    options={funds.map((f) => ({ value: f.code, label: n("fund", f.code, f.name) }))}
-                  />
-                </FormField>
-                <button type="submit" className="ui-btn-primary min-h-[44px]">{t("fin.saveCat")}</button>
-              </form>
-            </div>
-          </section>
-        </div>
+              </FormField>
+              <button type="submit" className="ui-btn-primary min-h-[44px]">{t("fin.saveCat")}</button>
+            </form>
+          </div>
+        </section>
       ) : null}
 
-      {/* Obligations list */}
       <section className={styles.section}>
         <div className={styles.sectionHead}>
-          <h2 className={styles.sectionTitle}>{t("fin.obligations")}</h2>
+          <h2 className={styles.sectionTitle}>{t("fin.supplierDebt")}</h2>
         </div>
         {(() => {
-          const debtItems = [
-            ...purchaseDebts.filter((o) => D(String(o.total)).sub(o.paidAmount).gt(0)).map((o) => ({ id: o.id, name: o.supplier.name, sub: `${t("fin.supplierOf")} · ${o.number}`, amount: D(String(o.total)).sub(o.paidAmount) })),
-            ...obligations.map((o) => ({ id: o.id, name: o.name, sub: undefined as string | undefined, amount: D(String(o.amount)).sub(o.paidAmount) })),
-          ];
+          const debtItems = purchaseDebts
+            .filter((o) => D(String(o.total)).sub(o.paidAmount).gt(0))
+            .map((o) => ({
+              id: o.id,
+              name: o.supplier.name,
+              sub: `${t("fin.supplierOf")} · ${o.number}`,
+              amount: D(String(o.total)).sub(o.paidAmount),
+            }));
           if (debtItems.length === 0) return <div className={styles.empty}>{t("common.empty")}</div>;
           return (
             <>
@@ -251,7 +207,7 @@ export default async function FinancePage() {
                       <tr key={item.id}>
                         <td>
                           <span className={styles.tdBold}>{item.name}</span>
-                          {item.sub ? <p className={styles.tdMuted}>{item.sub}</p> : null}
+                          <p className={styles.tdMuted}>{item.sub}</p>
                         </td>
                         <td className={`${styles.tdRight} ${styles.tdBad}`}>{moneyDisplay(item.amount)} с</td>
                       </tr>
@@ -263,7 +219,7 @@ export default async function FinancePage() {
                 {debtItems.map((item) => (
                   <li key={item.id} className={styles.mobileCard}>
                     <p className={styles.mobileName}>{item.name}</p>
-                    {item.sub ? <p className={styles.mobileMeta}>{item.sub}</p> : null}
+                    <p className={styles.mobileMeta}>{item.sub}</p>
                     <p className={styles.mobileValueBad}>{moneyDisplay(item.amount)} с</p>
                   </li>
                 ))}

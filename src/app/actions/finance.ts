@@ -7,7 +7,6 @@ import { requirePermission } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money } from "@core/shared/decimal";
 import { LEDGER, postLedger } from "@core/finance/finance";
-import { canSelfApprove, queueApproval } from "@core/control/control";
 
 function moneyStr(value: string) {
   return z.string().regex(/^\d+(\.\d{1,4})?$/).safeParse(value).success;

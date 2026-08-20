@@ -2,22 +2,20 @@ import { Receipt, Wallet } from "lucide-react";
 import { prisma } from "@core/infrastructure/prisma";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { FUND, fundDelta, LEDGER } from "@core/finance/finance";
-import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
+import { getTranslator } from "@core/shared/i18n/locale";
 import { PageHeader } from "@/components/page-header";
 import { DashPanel } from "@/components/dash-panel";
 import { DashMetricStrip } from "@/components/dashboard/dashboard-system";
-import { RevealList } from "@/components/reveal-list";
 
 export async function AccountantHome() {
-  const { t, n, locale } = await getTranslator();
+  const { t, n } = await getTranslator();
   const start = new Date();
   start.setDate(1);
   start.setHours(0, 0, 0, 0);
 
-  const [funds, entries, obligations, purchases] = await Promise.all([
+  const [funds, entries, purchases] = await Promise.all([
     prisma.financialFund.findMany({ where: { code: { in: [FUND.MATERIALS, FUND.OPEX, FUND.PROFIT] } }, orderBy: { sortOrder: "asc" } }),
     prisma.ledgerEntry.findMany({ where: { status: "POSTED" } }),
-    prisma.obligation.findMany({ where: { status: "OPEN" }, orderBy: { dueAt: "asc" } }),
     prisma.purchaseOrder.findMany({
       where: { status: { not: "CANCELLED" } },
       include: { supplier: true },
@@ -67,23 +65,6 @@ export async function AccountantHome() {
             </li>
           ))}
         </ul>
-      </DashPanel>
-      <DashPanel title={t("dash.calendar")}>
-        {obligations.length === 0 ? (
-          <p className="text-sm text-[var(--color-text-muted)]">{t("common.empty")}</p>
-        ) : (
-          <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={6} className="ui-list">
-            {obligations.map((o) => (
-              <li key={o.id} className="ui-list-row flex min-h-[44px] items-center justify-between gap-2 text-sm">
-                <span className="truncate">{o.name}</span>
-                <span className="shrink-0 font-mono text-xs tabular-nums">
-                  {moneyDisplay(D(String(o.amount)).sub(o.paidAmount))} с
-                  {o.dueAt ? ` · ${o.dueAt.toLocaleDateString(intlLocale(locale))}` : ""}
-                </span>
-              </li>
-            ))}
-          </RevealList>
-        )}
       </DashPanel>
       <DashPanel title={t("dash.openExp")}>
         <ul className="ui-list">
