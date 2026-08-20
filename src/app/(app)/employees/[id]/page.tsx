@@ -32,7 +32,7 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
       permissions: { include: { permission: true } },
     },
   });
-  if (!user || user.archivedAt) notFound();
+  if (!user || user.archivedAt || user.role.code === "owner") notFound();
 
   const canEdit = hasPermission(session.user.permissions, session.user.roleCode, "users.edit");
   const canPay = hasPermission(session.user.permissions, session.user.roleCode, "salary.approve");

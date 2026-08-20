@@ -1,10 +1,8 @@
 import { getTranslator } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
-import { archiveUser, createUser, updateUser } from "@/app/actions/users";
 import { updateRolePermissions } from "@/app/actions/roles";
-import { FormField } from "@/components/form-field";
-import { AppSelect } from "@/components/app-select";
+import { AccessUsersPanel } from "@/components/access-users-panel";
 import { SettingsNav } from "@/components/settings-nav";
 import styles from "@/styles/premium.module.css";
 
@@ -18,7 +16,11 @@ export default async function UsersPage() {
   const canManageRoles = session.user.roleCode === "owner" || session.user.permissions.includes("roles.manage");
 
   const [users, roles, permissions] = await Promise.all([
-    prisma.user.findMany({ where: { archivedAt: null }, include: { role: true }, orderBy: { createdAt: "asc" } }),
+    prisma.user.findMany({
+      where: { archivedAt: null, role: { code: { not: "owner" } } },
+      include: { role: true },
+      orderBy: { createdAt: "asc" },
+    }),
     prisma.role.findMany({
       where: { archivedAt: null },
       include: { permissions: true },
@@ -27,6 +29,10 @@ export default async function UsersPage() {
     canSeeRoles ? prisma.permission.findMany({ orderBy: [{ module: "asc" }, { code: "asc" }] }) : Promise.resolve([]),
   ]);
   const modules = [...new Set(permissions.map((p) => p.module))];
+  const assignableRoles = roles
+    .filter((role) => role.code !== "owner")
+    .map((role) => ({ id: role.id, label: n("role", role.code, role.name) }));
+  const visibleRoles = roles.filter((role) => role.code !== "owner");
 
   return (
     <div className={styles.page}>
@@ -38,96 +44,22 @@ export default async function UsersPage() {
       </header>
       <SettingsNav current="access" locale={locale} />
 
-      {canCreate ? (
-        <section className={styles.section}>
-          <div className={styles.sectionHead}>
-            <h2 className={styles.sectionTitle}>{t("set.createUser")}</h2>
-          </div>
-          <div className={styles.sectionBody}>
-            <form action={createUser} className="grid gap-3 sm:grid-cols-2">
-              <FormField label={t("set.userName")}>
-                <input name="name" required placeholder={t("set.userName")} className="ui-input" />
-              </FormField>
-              <FormField label={t("set.userPhone")}>
-                <input name="phone" type="tel" required placeholder="+992 …" className="ui-input" />
-              </FormField>
-              <FormField label={t("set.userRole")}>
-                <AppSelect
-                  name="roleId"
-                  defaultValue={roles[0]?.id ?? ""}
-                  options={roles.map((role) => ({ value: role.id, label: n("role", role.code, role.name) }))}
-                />
-              </FormField>
-              <FormField label={t("set.userPassword")}>
-                <input name="password" type="password" required minLength={6} className="ui-input" />
-              </FormField>
-              <button type="submit" className="ui-btn-primary min-h-[44px] sm:col-span-2">
-                {t("set.createUser")}
-              </button>
-            </form>
-          </div>
-        </section>
-      ) : null}
-
-      <section className={styles.section}>
-        <div className={styles.sectionHead}>
-          <h2 className={styles.sectionTitle}>{t("set.users")}</h2>
-        </div>
-      </section>
-
-      {users.map((user) => (
-        <section key={user.id} className={styles.section}>
-          <div className={styles.sectionHead}>
-            <h2 className={styles.sectionTitle}>{user.name}</h2>
-          </div>
-          <div className={styles.sectionBody}>
-            <form action={updateUser} className="grid gap-3 sm:grid-cols-2">
-              <input type="hidden" name="id" value={user.id} />
-              <FormField label={t("set.userName")}>
-                <input name="name" defaultValue={user.name} disabled={!canEdit} className="ui-input" />
-              </FormField>
-              <FormField label={t("set.userPhone")}>
-                <input
-                  name="phone"
-                  type="tel"
-                  defaultValue={user.phone ?? ""}
-                  required
-                  disabled={!canEdit}
-                  className="ui-input"
-                />
-              </FormField>
-              <FormField label={t("set.userRole")}>
-                <AppSelect
-                  name="roleId"
-                  defaultValue={user.roleId}
-                  disabled={!canEdit}
-                  options={roles.map((role) => ({ value: role.id, label: n("role", role.code, role.name) }))}
-                />
-              </FormField>
-              <FormField label={t("set.active")} className="pb-2">
-                <input type="checkbox" name="isActive" defaultChecked={user.isActive} disabled={!canEdit} />
-              </FormField>
-              {canEdit ? (
-                <FormField label={t("set.newPassword")} hint={t("set.newPasswordHint")} className="sm:col-span-2">
-                  <input name="password" type="password" minLength={6} className="ui-input" />
-                </FormField>
-              ) : null}
-              <div className="sm:col-span-2 flex flex-wrap gap-3">
-                {canEdit ? (
-                  <button type="submit" className="ui-btn-primary min-h-[44px]">
-                    {t("common.save")}
-                  </button>
-                ) : null}
-                {canArchive && user.id !== session.user.id ? (
-                  <button formAction={archiveUser} type="submit" className="ui-btn-danger min-h-[44px]">
-                    {t("common.archive")}
-                  </button>
-                ) : null}
-              </div>
-            </form>
-          </div>
-        </section>
-      ))}
+      <AccessUsersPanel
+        locale={locale}
+        canCreate={canCreate}
+        canEdit={canEdit}
+        canArchive={canArchive}
+        currentUserId={session.user.id}
+        roles={assignableRoles}
+        users={users.map((user) => ({
+          id: user.id,
+          name: user.name,
+          phone: user.phone,
+          roleId: user.roleId,
+          isActive: user.isActive,
+          roleLabel: n("role", user.role.code, user.role.name),
+        }))}
+      />
 
       {canSeeRoles ? (
         <>
@@ -136,15 +68,13 @@ export default async function UsersPage() {
               <h2 className={styles.sectionTitle}>{t("set.rolesTitle")}</h2>
             </div>
           </section>
-          {roles.map((role) => {
+          {visibleRoles.map((role) => {
             const selected = new Set(role.permissions.map((p) => p.permissionId));
             return (
               <section key={role.id} className={styles.section}>
                 <div className={styles.sectionHead}>
                   <h2 className={styles.sectionTitle}>{n("role", role.code, role.name)}</h2>
-                  {role.code === "owner" ? (
-                    <span style={{ fontSize: 12, color: "var(--ink-3)" }}>{t("common.fullAccess")}</span>
-                  ) : canManageRoles ? (
+                  {canManageRoles ? (
                     <button form={`role-${role.id}`} type="submit" className="ui-btn-primary min-h-[44px] px-3 text-xs">
                       {t("set.savePerms")}
                     </button>
@@ -179,8 +109,8 @@ export default async function UsersPage() {
                                   type="checkbox"
                                   name="permissionId"
                                   value={permission.id}
-                                  defaultChecked={role.code === "owner" || selected.has(permission.id)}
-                                  disabled={!canManageRoles || role.code === "owner"}
+                                  defaultChecked={selected.has(permission.id)}
+                                  disabled={!canManageRoles}
                                 />
                                 <span>{t(`perm.${permission.code}`)}</span>
                               </label>

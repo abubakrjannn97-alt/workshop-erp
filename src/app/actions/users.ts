@@ -35,6 +35,11 @@ export async function createUser(formData: FormData) {
     return { error: parsed.error.issues[0]?.message ?? "Проверьте поля." };
   }
 
+  const role = await prisma.role.findUnique({ where: { id: parsed.data.roleId } });
+  if (!role || role.code === "owner") {
+    return { error: "Нельзя назначить роль владельца." };
+  }
+
   const phoneTaken = await prisma.user.findFirst({ where: { phone, archivedAt: null } });
   if (phoneTaken) return { error: "Пользователь с таким телефоном уже есть." };
 
@@ -99,8 +104,14 @@ export async function updateUser(formData: FormData) {
     return { error: parsed.success ? "Нет идентификатора." : parsed.error.issues[0]?.message };
   }
 
-  const before = await prisma.user.findUnique({ where: { id } });
+  const before = await prisma.user.findUnique({ where: { id }, include: { role: true } });
   if (!before || before.archivedAt) return { error: "Пользователь не найден." };
+  if (before.role.code === "owner") return { error: "Аккаунт владельца нельзя изменять." };
+
+  const nextRole = await prisma.role.findUnique({ where: { id: parsed.data.roleId } });
+  if (!nextRole || nextRole.code === "owner") {
+    return { error: "Нельзя назначить роль владельца." };
+  }
 
   const phoneTaken = await prisma.user.findFirst({
     where: { phone, archivedAt: null, NOT: { id } },
@@ -155,8 +166,9 @@ export async function archiveUser(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   if (id === session.user.id) return { error: "Нельзя архивировать собственную учётную запись." };
 
-  const before = await prisma.user.findUnique({ where: { id } });
+  const before = await prisma.user.findUnique({ where: { id }, include: { role: true } });
   if (!before) return { error: "Пользователь не найден." };
+  if (before.role.code === "owner") return { error: "Аккаунт владельца нельзя архивировать." };
 
   await prisma.user.update({
     where: { id },

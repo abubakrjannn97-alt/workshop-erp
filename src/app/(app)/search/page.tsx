@@ -42,7 +42,12 @@ export default async function SearchPage({
         prisma.user.findMany({
           where: {
             archivedAt: null,
-            OR: [{ name: { contains: term, mode: "insensitive" } }, { email: { contains: term, mode: "insensitive" } }],
+            role: { code: { not: "owner" } },
+            OR: [
+              { name: { contains: term, mode: "insensitive" } },
+              { email: { contains: term, mode: "insensitive" } },
+              { phone: { contains: term } },
+            ],
           },
           take: 10,
         }),

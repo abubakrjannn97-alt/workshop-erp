@@ -22,7 +22,7 @@ export default async function EmployeesPage() {
 
   const [users, schemes, accruals, payouts, assignablePerms] = await Promise.all([
     prisma.user.findMany({
-      where: { archivedAt: null },
+      where: { archivedAt: null, role: { code: { not: "owner" } } },
       include: { role: true, payScheme: true },
       orderBy: { name: "asc" },
     }),
