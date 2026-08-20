@@ -163,6 +163,37 @@
 .sectionTitle { margin: 0; font-size: 15px; font-weight: 600; line-height: 22px; color: var(--ink); }
 .sectionTitleAccent { composes: sectionTitle; color: var(--accent, #A68649); }
 .sectionBody { padding: 16px 18px; }
+.debtHeadText { min-width: 0; }
+.debtHeadHint { margin: 4px 0 0; font-size: 13px; line-height: 18px; color: var(--ink-2); }
+.toggleListBtn {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.toggleListBtn:hover { color: var(--ink); background: var(--surface); }
+.debtCollapsed {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.debtCollapsed:hover { background: var(--surface-2); }
+.debtCollapsedLabel { font-size: 14px; line-height: 20px; color: var(--ink-2); }
+.debtCollapsedSum { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--bad, #B42318); }
 
 /* ─── Account / Fund rows ─── */
 .balanceList { margin: 0; padding: 0; list-style: none; }

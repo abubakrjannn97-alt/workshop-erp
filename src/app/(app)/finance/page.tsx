@@ -11,6 +11,7 @@ import { FormField } from "@/components/form-field";
 import { AppSelect } from "@/components/app-select";
 import { Banknote, Layers, Wallet } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
+import { FinanceDebts } from "./finance-debts";
 import styles from "./finance.module.css";
 
 export default async function FinancePage() {
@@ -178,56 +179,17 @@ export default async function FinancePage() {
         </section>
       ) : null}
 
-      <section className={styles.section}>
-        <div className={styles.sectionHead}>
-          <h2 className={styles.sectionTitle}>{t("fin.supplierDebt")}</h2>
-        </div>
-        {(() => {
-          const debtItems = purchaseDebts
-            .filter((o) => D(String(o.total)).sub(o.paidAmount).gt(0))
-            .map((o) => ({
-              id: o.id,
-              name: o.supplier.name,
-              sub: `${t("fin.supplierOf")} · ${o.number}`,
-              amount: D(String(o.total)).sub(o.paidAmount),
-            }));
-          if (debtItems.length === 0) return <div className={styles.empty}>{t("common.empty")}</div>;
-          return (
-            <>
-              <div className={styles.tableWrap}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th>{t("list.col.what")}</th>
-                      <th className={styles.thRight}>{t("common.debt")}</th>
-                    </tr>
-                  </thead>
-                  <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={8}>
-                    {debtItems.map((item) => (
-                      <tr key={item.id}>
-                        <td>
-                          <span className={styles.tdBold}>{item.name}</span>
-                          <p className={styles.tdMuted}>{item.sub}</p>
-                        </td>
-                        <td className={`${styles.tdRight} ${styles.tdBad}`}>{moneyDisplay(item.amount)} с</td>
-                      </tr>
-                    ))}
-                  </RevealList>
-                </table>
-              </div>
-              <ul className={styles.mobileList}>
-                {debtItems.map((item) => (
-                  <li key={item.id} className={styles.mobileCard}>
-                    <p className={styles.mobileName}>{item.name}</p>
-                    <p className={styles.mobileMeta}>{item.sub}</p>
-                    <p className={styles.mobileValueBad}>{moneyDisplay(item.amount)} с</p>
-                  </li>
-                ))}
-              </ul>
-            </>
-          );
-        })()}
-      </section>
+      <FinanceDebts
+        locale={locale}
+        items={purchaseDebts
+          .filter((o) => D(String(o.total)).sub(o.paidAmount).gt(0))
+          .map((o) => ({
+            id: o.id,
+            supplierName: o.supplier.name,
+            orderNumber: o.number,
+            amount: D(String(o.total)).sub(o.paidAmount).toString(),
+          }))}
+      />
 
       {/* Ledger entries */}
       <section className={styles.section}>
