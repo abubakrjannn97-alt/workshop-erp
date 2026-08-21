@@ -56,11 +56,12 @@ describe("mobile nav by role", () => {
     assert.equal(isTabActive("/warehouse", warehouse, tabs), true);
   });
 
-  it("owner more menu still lists production and settings", () => {
+  it("owner more menu lists products and settings, not production", () => {
     const more = moreGroupsForRole("owner", ROLE_PERMISSIONS.owner);
     const hrefs = more.flatMap((g) => g.items.map((i) => i.href));
-    assert.ok(hrefs.includes("/production"));
+    assert.ok(hrefs.includes("/products"));
     assert.ok(hrefs.includes("/settings"));
+    assert.equal(hrefs.includes("/production"), false);
     assert.equal(hrefs.includes("/orders"), false);
     assert.equal(hrefs.includes("/warehouse"), false);
   });

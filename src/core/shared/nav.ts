@@ -267,7 +267,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     id: "shop",
     labelKey: "nav.shopShort",
-    items: [PRODUCTS_ITEM, PRODUCTION_ITEM, WAREHOUSE_ITEM],
+    items: [PRODUCTS_ITEM, WAREHOUSE_ITEM],
   },
   {
     id: "money",
