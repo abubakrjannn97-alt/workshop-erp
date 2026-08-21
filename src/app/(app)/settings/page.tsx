@@ -6,6 +6,7 @@ import { renameLeadStage, renameOrderStatus, updateBusinessSettings } from "@/ap
 import { LogoutButton } from "@/components/logout-button";
 import { SettingsNav } from "@/components/settings-nav";
 import { FormField } from "@/components/form-field";
+import { wipeCustomersAndEmployees } from "@/app/actions/wipe-test-data";
 import styles from "@/styles/premium.module.css";
 
 function asString(value: unknown, fallback: string) {
@@ -131,10 +132,26 @@ export default async function SettingsPage() {
           <h2 className={styles.sectionTitle}>{session.user.name}</h2>
         </div>
         <div className={styles.sectionBody}>
-          <p style={{ fontSize: 12, color: "var(--ink-3)" }}>{session.user.roleName}</p>
+          <p style={{ fontSize: 12, color: "var(--ink-2)" }}>{session.user.roleName}</p>
           <LogoutButton label={t("nav.logout")} className="mt-4 min-h-[44px]" />
         </div>
       </section>
+
+      {session.user.roleCode === "owner" ? (
+        <section className={styles.section}>
+          <div className={styles.sectionHead}>
+            <h2 className={styles.sectionTitleWarn}>{t("set.wipeTitle")}</h2>
+          </div>
+          <div className={styles.sectionBody}>
+            <p style={{ fontSize: 13, color: "var(--ink-2)", marginBottom: 12 }}>{t("set.wipeHint")}</p>
+            <form action={wipeCustomersAndEmployees}>
+              <button type="submit" className={styles.dangerBtn}>
+                {t("set.wipeAction")}
+              </button>
+            </form>
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }
