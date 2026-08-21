@@ -27,6 +27,22 @@ function parseDec(raw: string) {
   }
 }
 
+/** «Скала» from long catalog titles; else first meaningful chunk. */
+function shortProductName(name: string) {
+  const quoted = name.match(/[«"]([^»"]+)[»"]/);
+  if (quoted?.[1]?.trim()) return quoted[1].trim();
+  const cleaned = name
+    .replace(/^(декоративный\s+камень|цоколь|плитка)\s*/i, "")
+    .trim();
+  const base = cleaned || name.trim();
+  return base.length > 22 ? `${base.slice(0, 20)}…` : base;
+}
+
+function shortPersonName(name: string) {
+  const first = name.trim().split(/\s+/)[0] ?? "";
+  return first.length > 14 ? `${first.slice(0, 12)}…` : first || "—";
+}
+
 export type QuickSaleCustomer = {
   id: string;
   name: string;
@@ -498,25 +514,25 @@ export function QuickSaleForm({
           <ul className={styles.receiptList}>
             {cart.map((line) => (
               <li key={line.key} className={styles.receiptCard}>
+                <span className={styles.receiptMetrics}>
+                  <span className={styles.receiptQty}>
+                    {qtyDisplay(D(line.quantity))} {line.symbol}
+                  </span>
+                  <span className={styles.receiptSum}>{moneyDisplay(D(line.amount))} с</span>
+                </span>
                 <span className={styles.receiptThumb}>
                   {line.photoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={line.photoUrl} alt="" className={styles.receiptThumbImg} />
                   ) : (
-                    <span className={styles.receiptThumbEmpty}>{line.name.slice(0, 1)}</span>
+                    <span className={styles.receiptThumbEmpty}>
+                      {shortProductName(line.name).slice(0, 1)}
+                    </span>
                   )}
                 </span>
                 <span className={styles.receiptMain}>
-                  <span className={styles.receiptName}>{line.name}</span>
-                  <span className={styles.receiptWho}>
-                    {labels.forCustomer} {customerName.trim() || "—"}
-                  </span>
-                </span>
-                <span className={styles.receiptRight}>
-                  <span className={styles.receiptQty}>
-                    {qtyDisplay(D(line.quantity))} {line.symbol}
-                  </span>
-                  <span className={styles.receiptSum}>{moneyDisplay(D(line.amount))} с</span>
+                  <span className={styles.receiptName}>{shortProductName(line.name)}</span>
+                  <span className={styles.receiptWho}>{shortPersonName(customerName)}</span>
                 </span>
               </li>
             ))}
