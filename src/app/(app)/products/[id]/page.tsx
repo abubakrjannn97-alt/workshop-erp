@@ -123,7 +123,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <div className={`${catalogStyles.paramGroup} ${catalogStyles.paramGroupStock}`}>
               <p className={catalogStyles.paramGroupTitle}>{t("products.groupStock")}</p>
               <div className={`${catalogStyles.paramRow} ${catalogStyles.paramRowOne}`}>
-                <FormField label={t("products.minPriceSimple")} hint={t("products.minPriceHint")}>
+                <FormField label={t("products.minPriceShort")} hint={t("products.minPriceHint")}>
                   <input
                     name="minPrice"
                     defaultValue={product.minPrice.toString()}

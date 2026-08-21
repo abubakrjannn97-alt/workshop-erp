@@ -221,3 +221,53 @@
   font-variant-numeric: tabular-nums;
   color: #1b7a4a;
 }
+
+.priceBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(36, 149, 101, 0.22);
+  background: linear-gradient(165deg, #f4fbf7 0%, #ffffff 60%);
+}
+
+.priceGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.priceField {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.priceField :global(.ui-label) {
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.priceField :global(.ui-input) {
+  width: 100%;
+}
+
+.priceNote {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--ink-3);
+}
+
+.saveBtn {
+  width: 100%;
+  min-height: 44px;
+}
+
+@media (max-width: 389px) {
+  .priceGrid {
+    grid-template-columns: 1fr;
+  }
+}

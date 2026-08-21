@@ -335,10 +335,10 @@ export function ProductCreateWizard({
         </div>
       </div>
 
-      <div className={styles.block}>
+      <div className={styles.priceBlock}>
         <p className={styles.blockTitle}>{t("products.groupStock")}</p>
-        <div className={catalogStyles.formGrid}>
-          <FormField label={t("products.salePrice")} required>
+        <div className={styles.priceGrid}>
+          <FormField label={t("products.salePriceShort")} required className={styles.priceField}>
             <input
               className="ui-input"
               inputMode="decimal"
@@ -348,7 +348,7 @@ export function ProductCreateWizard({
               required
             />
           </FormField>
-          <FormField label={t("products.minPriceSimple")} hint={t("products.minPriceHint")} required>
+          <FormField label={t("products.minPriceShort")} required className={styles.priceField}>
             <input
               className="ui-input"
               inputMode="decimal"
@@ -359,9 +359,10 @@ export function ProductCreateWizard({
             />
           </FormField>
         </div>
+        <p className={styles.priceNote}>{t("products.pricePairHint")}</p>
       </div>
 
-      <button type="submit" className="ui-btn-primary min-h-[44px] w-full" disabled={pending}>
+      <button type="submit" className={`ui-btn-primary ${styles.saveBtn}`} disabled={pending}>
         {pending ? t("common.saving") : t("products.finishCreate")}
       </button>
     </form>
