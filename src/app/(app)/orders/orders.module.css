@@ -360,6 +360,95 @@
   gap: 12px;
 }
 
+.salesKpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.salesKpi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 10px 9px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.salesKpiSales {
+  border-color: rgba(154, 115, 56, 0.22);
+  background: linear-gradient(165deg, #fffaf2 0%, #ffffff 70%);
+}
+
+.salesKpiCost {
+  border-color: rgba(74, 112, 208, 0.18);
+  background: linear-gradient(165deg, #f5f8ff 0%, #ffffff 70%);
+}
+
+.salesKpiMargin {
+  border-color: rgba(36, 149, 101, 0.22);
+  background: linear-gradient(165deg, #f3faf6 0%, #ffffff 70%);
+}
+
+.salesKpiMarginBad {
+  border-color: rgba(180, 35, 24, 0.2);
+  background: linear-gradient(165deg, #fff5f4 0%, #ffffff 70%);
+}
+
+.salesKpiLabel {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.salesKpiValue {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.salesKpiSales .salesKpiValue {
+  color: #8b6e2f;
+}
+
+.salesKpiCost .salesKpiValue {
+  color: #3f63c2;
+}
+
+.salesKpiMargin .salesKpiValue {
+  color: #1b7a4a;
+}
+
+.salesKpiMarginBad .salesKpiValue {
+  color: #b42318;
+}
+
+@media (max-width: 389px) {
+  .salesKpi {
+    padding: 8px 7px;
+  }
+
+  .salesKpiValue {
+    font-size: 13px;
+  }
+}
+
 .segScroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;

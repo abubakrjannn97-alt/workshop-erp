@@ -1,7 +1,11 @@
 import { getTranslator } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
-import { moneyDisplay } from "@core/shared/decimal";
+import { canSeeMaterialCost } from "@core/rbac/permissions";
+import { D, moneyDisplay } from "@core/shared/decimal";
+import { materialCostForRecipe, scaleNeed } from "@core/costing/costing";
+import { resolveProductionPaySchemeCode } from "@core/config/domain-config";
+import { ORDER_STATUS } from "@core/orders/orders";
 import {
   ORDERS_PAGE_SIZE,
   buildOrdersQuery,
@@ -39,6 +43,7 @@ export default async function OrdersPage({
   const period = params.period ?? "today";
   const statusFilter = resolveOrderListBucket(status);
   const canCreate = hasPermission(session.user.permissions, session.user.roleCode, "orders.create");
+  const showCostKpis = canSeeMaterialCost(session.user.permissions, session.user.roleCode);
   const ownOnly = session.user.roleCode === "sales_manager";
   const page = Math.max(1, Number(pageRaw) || 1);
   const number = q && /^\d+$/.test(q.trim()) ? Number(q.trim()) : undefined;
@@ -70,7 +75,14 @@ export default async function OrdersPage({
     ...orderListStatusWhere(status),
   };
 
-  const [orders, total, statuses] = await Promise.all([
+  const statsWhere = {
+    ...periodWhere,
+    status: { code: { not: ORDER_STATUS.CANCELLED } },
+  };
+
+  const productionSchemeCode = await resolveProductionPaySchemeCode();
+
+  const [orders, total, statuses, periodOrders, prodScheme] = await Promise.all([
     prisma.order.findMany({
       where,
       include: {
@@ -89,7 +101,63 @@ export default async function OrdersPage({
     }),
     prisma.order.count({ where }),
     prisma.orderStatus.findMany({ orderBy: { sortOrder: "asc" } }),
+    prisma.order.findMany({
+      where: statsWhere,
+      select: {
+        total: true,
+        items: { select: { productId: true, quantity: true } },
+      },
+    }),
+    prisma.payScheme.findUnique({ where: { code: productionSchemeCode } }),
   ]);
+
+  const laborRate = D(String(prodScheme?.productionRate ?? "0"));
+  const productIds = [...new Set(periodOrders.flatMap((o) => o.items.map((i) => i.productId)))];
+  const productsForCost =
+    showCostKpis && productIds.length > 0
+      ? await prisma.product.findMany({
+          where: { id: { in: productIds } },
+          include: {
+            recipe: {
+              include: {
+                versions: {
+                  where: { validTo: null },
+                  include: {
+                    items: { include: { material: { include: { storageUnit: true } }, unit: true } },
+                  },
+                  take: 1,
+                },
+              },
+            },
+          },
+        })
+      : [];
+
+  const matPerUnit = new Map<string, ReturnType<typeof D>>();
+  for (const p of productsForCost) {
+    const version = p.recipe?.versions[0];
+    if (!version) {
+      matPerUnit.set(p.id, D(0));
+      continue;
+    }
+    const scale = scaleNeed(p.recipeBaseQty, 1);
+    const cost = materialCostForRecipe(version.items, Number(scale.toString()));
+    matPerUnit.set(p.id, cost.total ? D(cost.total) : D(0));
+  }
+
+  let salesSum = D(0);
+  let costSum = D(0);
+  for (const order of periodOrders) {
+    salesSum = salesSum.plus(D(String(order.total)));
+    if (!showCostKpis) continue;
+    for (const item of order.items) {
+      const qty = D(String(item.quantity));
+      const mat = matPerUnit.get(item.productId) ?? D(0);
+      costSum = costSum.plus(mat.mul(qty)).plus(qty.mul(laborRate));
+    }
+  }
+  const marginSum = salesSum.minus(costSum);
+  const marginOk = marginSum.gte(0);
 
   const totalPages = Math.max(1, Math.ceil(total / ORDERS_PAGE_SIZE));
 
@@ -163,6 +231,38 @@ export default async function OrdersPage({
             }))}
           />
         </div>
+      </div>
+
+      <div className={styles.salesKpis}>
+        <div className={`${styles.salesKpi} ${styles.salesKpiSales}`}>
+          <p className={styles.salesKpiLabel}>{t("orders.kpiSalesSum")}</p>
+          <p className={styles.salesKpiValue}>{moneyDisplay(salesSum)} с</p>
+        </div>
+        {showCostKpis ? (
+          <>
+            <div className={`${styles.salesKpi} ${styles.salesKpiCost}`}>
+              <p className={styles.salesKpiLabel}>{t("orders.kpiCostSum")}</p>
+              <p className={styles.salesKpiValue}>{moneyDisplay(costSum)} с</p>
+            </div>
+            <div
+              className={`${styles.salesKpi} ${marginOk ? styles.salesKpiMargin : styles.salesKpiMarginBad}`}
+            >
+              <p className={styles.salesKpiLabel}>{t("orders.kpiMargin")}</p>
+              <p className={styles.salesKpiValue}>{moneyDisplay(marginSum)} с</p>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className={`${styles.salesKpi} ${styles.salesKpiCost}`}>
+              <p className={styles.salesKpiLabel}>{t("orders.kpiCostSum")}</p>
+              <p className={styles.salesKpiValue}>—</p>
+            </div>
+            <div className={`${styles.salesKpi} ${styles.salesKpiMargin}`}>
+              <p className={styles.salesKpiLabel}>{t("orders.kpiMargin")}</p>
+              <p className={styles.salesKpiValue}>—</p>
+            </div>
+          </>
+        )}
       </div>
 
       <OrdersFilterToolbar
