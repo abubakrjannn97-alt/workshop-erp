@@ -194,9 +194,15 @@ export function QuickSaleForm({
 
   function onQuantityChange(value: string) {
     setQuantity(value);
-    if (!priceTouched && selected) {
-      setLineTotal(calcLineTotal(selected, value));
-    }
+    if (priceTouched || !selected) return;
+    const next = calcLineTotal(selected, value);
+    // Don't wipe a filled sum while quantity is being cleared/typed.
+    if (next !== "") setLineTotal(next);
+  }
+
+  function onLineTotalChange(value: string) {
+    setPriceTouched(true);
+    setLineTotal(value);
   }
 
   function remainingStock(product: QuickSaleProduct) {
@@ -473,11 +479,11 @@ export function QuickSaleForm({
               required
               className="ui-input"
               inputMode="decimal"
+              autoComplete="off"
               value={lineTotal}
-              onChange={(e) => {
-                setPriceTouched(true);
-                setLineTotal(e.target.value);
-              }}
+              onFocus={() => setPriceTouched(true)}
+              onChange={(e) => onLineTotalChange(e.target.value)}
+              onInput={(e) => onLineTotalChange((e.target as HTMLInputElement).value)}
             />
           </FormField>
         </div>
