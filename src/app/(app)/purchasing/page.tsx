@@ -6,6 +6,7 @@ import { moneyDisplay, D } from "@core/shared/decimal";
 import { intlLocale } from "@core/shared/i18n/i18n";
 import { Segmented } from "@/components/segmented";
 import { StatusBadge, type BadgeTone } from "@/components/status-badge";
+import { RevealList } from "@/components/reveal-list";
 import { ChevronRight } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import styles from "./purchasing.module.css";
@@ -127,7 +128,7 @@ export default async function PurchasingPage({
         {orders.length === 0 ? (
           <div className={styles.empty}>{t("po.historyEmpty")}</div>
         ) : (
-          <ul className={styles.list}>
+          <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={5} className={styles.list}>
             {orders.map((order) => {
               const lineDebt = D(String(order.total)).sub(order.paidAmount);
               return (
@@ -156,7 +157,7 @@ export default async function PurchasingPage({
                 </li>
               );
             })}
-          </ul>
+          </RevealList>
         )}
       </section>
     </div>
