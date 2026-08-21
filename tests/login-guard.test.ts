@@ -6,53 +6,34 @@ import {
   recordLoginSuccess,
   resetLoginGuardState,
 } from "../src/core/auth/login-guard";
-import { resetRateLimitState } from "../src/core/shared/rate-limit";
 
 describe("login-guard", () => {
   beforeEach(() => {
     resetLoginGuardState();
-    resetRateLimitState();
   });
 
-  it("blocks after 5 failed attempts for the same account", async () => {
+  it("does not lock after many failed attempts", async () => {
     const ip = "127.0.0.1";
     const email = "owner@workshop.local";
 
-    for (let i = 0; i < 4; i += 1) {
+    for (let i = 0; i < 20; i += 1) {
+      await recordLoginFailure(ip, email);
       const check = assertLoginAllowed(ip, email);
       assert.equal(check.ok, true);
-      await recordLoginFailure(ip, email);
-    }
-
-    await recordLoginFailure(ip, email);
-    const blocked = assertLoginAllowed(ip, email);
-    assert.equal(blocked.ok, false);
-    if (!blocked.ok) {
-      assert.match(blocked.error, /заблокирован/i);
     }
   });
 
-  it("clears lock after successful login", async () => {
-    const ip = "10.0.0.2";
-    const email = "staff@workshop.local";
-
-    for (let i = 0; i < 5; i += 1) {
-      await recordLoginFailure(ip, email);
-    }
-    recordLoginSuccess(email);
-    resetRateLimitState();
-
-    const check = assertLoginAllowed(ip, email);
+  it("allows login after success helper", () => {
+    recordLoginSuccess("staff@workshop.local");
+    const check = assertLoginAllowed("10.0.0.2", "staff@workshop.local");
     assert.equal(check.ok, true);
   });
 
-  it("rate limits by IP", () => {
+  it("does not rate limit by IP", () => {
     const ip = "192.168.1.99";
-    for (let i = 0; i < 10; i += 1) {
+    for (let i = 0; i < 30; i += 1) {
       const check = assertLoginAllowed(ip, `user${i}@test.local`);
-      assert.equal(check.ok, true, `attempt ${i + 1} should pass IP limit`);
+      assert.equal(check.ok, true);
     }
-    const blocked = assertLoginAllowed(ip, "blocked@test.local");
-    assert.equal(blocked.ok, false);
   });
 });

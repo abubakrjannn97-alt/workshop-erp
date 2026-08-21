@@ -1,6 +1,5 @@
 import { handlers } from "@/auth";
 import { headers } from "next/headers";
-import { rateLimit } from "@core/shared/rate-limit";
 import { setLoginRequestIp } from "@core/auth/login-context";
 
 function clientIp(h: Headers) {
@@ -11,10 +10,6 @@ async function guardAuthPost(req: Request) {
   const h = await headers();
   const ip = clientIp(h);
   setLoginRequestIp(ip);
-  const limited = rateLimit(`login-ip:${ip}`, 10, 60 * 1000);
-  if (!limited.ok) {
-    return new Response("Too Many Requests", { status: 429 });
-  }
   return handlers.POST(req);
 }
 
