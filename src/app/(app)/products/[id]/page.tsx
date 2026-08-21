@@ -97,7 +97,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 </FormField>
               </div>
               <div className={catalogStyles.paramRow}>
-                <FormField label={t("products.recipeBaseSimple")}>
+                <FormField label={t("products.recipeBaseSimple")} hint={t("products.tipRecipe")}>
                   <input
                     name="recipeBaseQty"
                     defaultValue={product.recipeBaseQty.toString()}
@@ -107,7 +107,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                     inputMode="decimal"
                   />
                 </FormField>
-                <FormField label={t("products.outputSimple")}>
+                <FormField label={t("products.outputSimple")} hint={t("products.tipOutput")}>
                   <input
                     name="outputPerBase"
                     defaultValue={product.outputPerBase.toString()}
@@ -123,7 +123,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <div className={`${catalogStyles.paramGroup} ${catalogStyles.paramGroupStock}`}>
               <p className={catalogStyles.paramGroupTitle}>{t("products.groupStock")}</p>
               <div className={`${catalogStyles.paramRow} ${catalogStyles.paramRowOne}`}>
-                <FormField label={t("products.minPriceSimple")}>
+                <FormField label={t("products.minPriceSimple")} hint={t("products.minPriceHint")}>
                   <input
                     name="minPrice"
                     defaultValue={product.minPrice.toString()}
@@ -135,7 +135,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 </FormField>
               </div>
               <div className={catalogStyles.paramRow}>
-                <FormField label={t("products.minStockSimple")}>
+                <FormField label={t("products.minStockSimple")} hint={t("products.minStockHint")}>
                   <input
                     name="minStock"
                     defaultValue={product.minStock.toString()}
@@ -145,7 +145,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                     inputMode="decimal"
                   />
                 </FormField>
-                <FormField label={t("products.maxStockSimple")}>
+                <FormField label={t("products.maxStockSimple")} hint={t("products.maxStockHint")}>
                   <input
                     name="maxStock"
                     defaultValue={product.maxStock.toString()}
