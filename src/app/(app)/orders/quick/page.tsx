@@ -2,8 +2,10 @@ import { getTranslator } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
 import { getFgWarehouse } from "@core/config/resolve-warehouse";
+import { resolveProductionPaySchemeCode } from "@core/config/domain-config";
 import { available } from "@core/inventory/stock";
-import { D, qtyDisplay } from "@core/shared/decimal";
+import { materialCostForRecipe, scaleNeed } from "@core/costing/costing";
+import { D, money, qtyDisplay } from "@core/shared/decimal";
 import { PageHeader } from "@/components/page-header";
 import { QuickSaleForm } from "./quick-sale-form";
 
@@ -21,7 +23,8 @@ export default async function QuickSalePage() {
   }
 
   const fg = await getFgWarehouse();
-  const [customers, products] = await Promise.all([
+  const productionSchemeCode = await resolveProductionPaySchemeCode();
+  const [customers, products, prodScheme] = await Promise.all([
     prisma.customer.findMany({
       where: {
         archivedAt: null,
@@ -36,10 +39,24 @@ export default async function QuickSalePage() {
         saleUnit: true,
         prices: { where: { validTo: null }, orderBy: { validFrom: "desc" }, take: 1 },
         stockItems: { where: { warehouseId: fg.id } },
+        recipe: {
+          include: {
+            versions: {
+              where: { validTo: null },
+              include: {
+                items: { include: { material: { include: { storageUnit: true } }, unit: true } },
+              },
+              take: 1,
+            },
+          },
+        },
       },
       orderBy: { name: "asc" },
     }),
+    prisma.payScheme.findUnique({ where: { code: productionSchemeCode } }),
   ]);
+
+  const laborPerUnit = D(String(prodScheme?.productionRate ?? "0"));
 
   const sellable = products
     .map((p) => {
@@ -47,12 +64,21 @@ export default async function QuickSalePage() {
         p.stockItems[0]?.qtyOnHand ?? 0,
         p.stockItems[0]?.qtyReserved ?? 0,
       );
+      const salePrice = D(String(p.prices[0]?.price ?? p.minPrice ?? "0"));
+      const version = p.recipe?.versions[0];
+      const scale = scaleNeed(p.recipeBaseQty, 1);
+      const mat = version ? materialCostForRecipe(version.items, Number(scale.toString())) : null;
+      const matPerUnit = mat?.total ? D(mat.total) : D(0);
+      const costPerUnit = matPerUnit.plus(laborPerUnit);
+      const rate = salePrice.gte(costPerUnit) ? salePrice : costPerUnit;
       return {
         id: p.id,
         name: p.name,
         symbol: p.saleUnit.symbol,
-        price: String(p.prices[0]?.price ?? p.minPrice ?? "0"),
+        price: money(salePrice),
         minPrice: String(p.minPrice ?? "0"),
+        costPerUnit: money(costPerUnit),
+        ratePerUnit: money(rate),
         onHand: qtyDisplay(onHand),
         photoUrl: p.photoUrl,
         hasStock: D(String(onHand)).gt(0),
@@ -75,7 +101,7 @@ export default async function QuickSalePage() {
             phone: t("sales.quickPhone"),
             product: t("common.product"),
             quantity: t("common.quantity"),
-            unitPrice: t("sales.quickSalePrice"),
+            unitPrice: t("sales.quickLineTotal"),
             minPrice: t("sales.quickMinPrice"),
             stock: t("common.stock"),
             fgStock: t("sales.quickFgStock"),

@@ -15,6 +15,18 @@ function formatFgStock(template: string, n: string, u: string) {
   return template.replaceAll("{n}", n).replaceAll("{u}", u);
 }
 
+function parseDec(raw: string) {
+  const v = raw.trim().replace(",", ".");
+  if (!v || v === "." || v === "-" || v.endsWith(".")) return null;
+  try {
+    const d = D(v);
+    if (!d.isFinite()) return null;
+    return d;
+  } catch {
+    return null;
+  }
+}
+
 export type QuickSaleCustomer = {
   id: string;
   name: string;
@@ -28,6 +40,10 @@ export type QuickSaleProduct = {
   symbol: string;
   price: string;
   minPrice: string;
+  /** Material + labor per 1 sale unit */
+  costPerUnit: string;
+  /** max(salePrice, costPerUnit) — used to auto line total */
+  ratePerUnit: string;
   onHand: string;
   photoUrl: string | null;
 };
@@ -89,7 +105,10 @@ export function QuickSaleForm({
   const [productOpen, setProductOpen] = useState(false);
   const [productId, setProductId] = useState(products[0]?.id ?? "");
   const [quantity, setQuantity] = useState("1");
-  const [unitPrice, setUnitPrice] = useState(products[0]?.price ?? "0");
+  const [lineTotal, setLineTotal] = useState(() =>
+    moneyDisplay(D(products[0]?.ratePerUnit ?? products[0]?.price ?? "0")),
+  );
+  const [priceTouched, setPriceTouched] = useState(false);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [nextKey, setNextKey] = useState(1);
   const [payMode, setPayMode] = useState<PayMode>("paid");
@@ -115,6 +134,13 @@ export function QuickSaleForm({
     }
     return map;
   }, [cart]);
+
+  function calcLineTotal(product: QuickSaleProduct, qtyRaw: string) {
+    const qty = parseDec(qtyRaw);
+    if (!qty || !qty.gt(0)) return "";
+    const rate = D(product.ratePerUnit || product.price || "0");
+    return moneyDisplay(qty.mul(rate));
+  }
 
   useEffect(() => {
     if (!pickerOpen && !productOpen) return;
@@ -154,7 +180,9 @@ export function QuickSaleForm({
   function pickProduct(id: string) {
     const p = products.find((x) => x.id === id);
     setProductId(id);
-    setUnitPrice(p?.price ?? "0");
+    setQuantity("1");
+    setPriceTouched(false);
+    if (p) setLineTotal(calcLineTotal(p, "1"));
     setProductOpen(false);
   }
 
@@ -162,6 +190,13 @@ export function QuickSaleForm({
     if (saleLocked) return;
     setCustomerName(value);
     if (customerId) setCustomerId("");
+  }
+
+  function onQuantityChange(value: string) {
+    setQuantity(value);
+    if (!priceTouched && selected) {
+      setLineTotal(calcLineTotal(selected, value));
+    }
   }
 
   function remainingStock(product: QuickSaleProduct) {
@@ -173,7 +208,8 @@ export function QuickSaleForm({
     const p = products.find((x) => x.id === nextProductId) ?? products[0];
     setProductId(p?.id ?? "");
     setQuantity("1");
-    setUnitPrice(p?.price ?? "0");
+    setPriceTouched(false);
+    setLineTotal(p ? calcLineTotal(p, "1") : "");
   }
 
   function addToCart() {
@@ -184,18 +220,19 @@ export function QuickSaleForm({
     }
     if (!selected) return;
 
-    const qty = D(quantity);
-    const price = D(unitPrice);
-    if (!qty.gt(0)) {
+    const qty = parseDec(quantity);
+    const amount = parseDec(lineTotal);
+    if (!qty || !qty.gt(0)) {
       setError("Укажите количество.");
       return;
     }
-    if (price.lt(0)) {
-      setError("Цена некорректна.");
+    if (!amount || amount.lt(0)) {
+      setError("Сумма некорректна.");
       return;
     }
-    if (price.lt(D(selected.minPrice))) {
-      setError(`Цена ниже минимальной (${selected.minPrice} с).`);
+    const unitPrice = amount.div(qty);
+    if (unitPrice.lt(D(selected.minPrice))) {
+      setError(`Цена за ${selected.symbol} ниже минимальной (${selected.minPrice} с).`);
       return;
     }
     const left = remainingStock(selected);
@@ -206,7 +243,6 @@ export function QuickSaleForm({
       return;
     }
 
-    const amount = qty.mul(price);
     setCart((prev) => [
       ...prev,
       {
@@ -216,7 +252,7 @@ export function QuickSaleForm({
         symbol: selected.symbol,
         photoUrl: selected.photoUrl,
         quantity: qty.toFixed(6),
-        unitPrice: price.toFixed(4),
+        unitPrice: unitPrice.toFixed(4),
         amount: amount.toFixed(4),
       },
     ]);
@@ -269,7 +305,9 @@ export function QuickSaleForm({
           required
           className={styles.field}
           labelExtra={
-            !saleLocked && customers.length > 0 ? (
+            saleLocked ? (
+              <span className={styles.lockHint}>{labels.clientLocked}</span>
+            ) : customers.length > 0 ? (
               <button
                 type="button"
                 className={styles.pickLink}
@@ -335,8 +373,6 @@ export function QuickSaleForm({
             placeholder="+992 …"
           />
         </FormField>
-
-        {saleLocked ? <p className={styles.lockHint}>{labels.clientLocked}</p> : null}
 
         <FormField label={labels.product} required className={styles.field}>
           <div ref={productRef} className={styles.productWrap}>
@@ -429,25 +465,24 @@ export function QuickSaleForm({
               className="ui-input"
               inputMode="decimal"
               value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
+              onChange={(e) => onQuantityChange(e.target.value)}
             />
           </FormField>
-          <FormField
-            label={`${labels.unitPrice}${selected ? `, с/${selected.symbol}` : ""}`}
-            required
-            className={styles.field}
-          >
+          <FormField label={labels.unitPrice} required className={styles.field}>
             <input
               required
               className="ui-input"
               inputMode="decimal"
-              value={unitPrice}
-              onChange={(e) => setUnitPrice(e.target.value)}
+              value={lineTotal}
+              onChange={(e) => {
+                setPriceTouched(true);
+                setLineTotal(e.target.value);
+              }}
             />
           </FormField>
         </div>
 
-        <button type="button" className={`ui-btn-primary ${styles.submit}`} onClick={addToCart}>
+        <button type="button" className={`ui-btn-primary ${styles.addBtn}`} onClick={addToCart}>
           {labels.addLine}
         </button>
       </div>
@@ -543,21 +578,23 @@ export function QuickSaleForm({
               )}
             </div>
 
-            <PendingButton
-              className={`ui-btn-primary ${styles.submit}`}
-              pendingLabel={labels.sending}
-              disabled={pending}
-            >
-              {labels.finish}
-            </PendingButton>
-            <button
-              type="button"
-              className={styles.cancelBtn}
-              onClick={cancelSale}
-              disabled={pending}
-            >
-              {labels.cancel}
-            </button>
+            <div className={styles.checkoutActions}>
+              <PendingButton
+                className={`ui-btn-primary ${styles.finishBtn}`}
+                pendingLabel={labels.sending}
+                disabled={pending}
+              >
+                {labels.finish}
+              </PendingButton>
+              <button
+                type="button"
+                className={styles.cancelBtn}
+                onClick={cancelSale}
+                disabled={pending}
+              >
+                {labels.cancel}
+              </button>
+            </div>
           </form>
         </div>
       ) : null}
