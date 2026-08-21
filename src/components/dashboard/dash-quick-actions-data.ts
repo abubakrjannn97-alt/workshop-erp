@@ -11,18 +11,16 @@ export type DashQuickAction = {
 
 export function ownerQuickActions(t: (key: string) => string): DashQuickAction[] {
   return [
-    { href: "/orders/new", label: t("sales.newOrder"), icon: "clipboard-list", tone: "orange" },
+    { href: "/orders/quick", label: t("sales.newOrder"), icon: "clipboard-list", tone: "orange" },
     { href: "/crm", label: t("nav.crm"), icon: "users", tone: "blue" },
-    { href: "/production", label: t("nav.production"), icon: "factory", tone: "green" },
     { href: "/warehouse", label: t("nav.warehouse"), icon: "package", tone: "purple" },
   ];
 }
 
 export function ownerDesktopQuickActions(t: (key: string) => string): DashQuickAction[] {
   return [
-    { href: "/orders/new", label: t("sales.newOrder"), icon: "plus", tone: "orange" },
+    { href: "/orders/quick", label: t("sales.newOrder"), icon: "plus", tone: "orange" },
     { href: "/finance/expenses", label: t("nav.expenses"), icon: "clipboard-list", tone: "gold" },
-    { href: "/production", label: t("home.actionStartProduction"), icon: "play", tone: "green" },
     { href: "/warehouse", label: t("home.actionToWarehouse"), icon: "truck", tone: "purple" },
     { href: "/analytics", label: t("home.actionDailyReport"), icon: "chart-column", tone: "blue" },
   ];
@@ -37,9 +35,8 @@ export function ownerSecondaryActions(t: (key: string) => string): DashQuickActi
 
 export function ownerMobileQuickActions(t: (key: string) => string): DashQuickAction[] {
   return [
-    { href: "/orders/new", label: t("sales.newOrder"), icon: "plus", tone: "orange" },
+    { href: "/orders/quick", label: t("sales.newOrder"), icon: "plus", tone: "orange" },
     { href: "/finance/expenses", label: t("nav.expenses"), icon: "clipboard-list", tone: "gold" },
-    { href: "/production", label: t("home.actionStartProduction"), icon: "play", tone: "green" },
     { href: "/warehouse", label: t("home.actionToWarehouse"), icon: "truck", tone: "purple" },
   ];
 }
