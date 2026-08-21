@@ -4,7 +4,7 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, canSeeMaterialCost } from "@core/auth/authz";
 import { updateProduct } from "@/app/actions/products";
 import { materialCostForRecipe } from "@core/costing/costing";
-import { moneyDisplay } from "@core/shared/decimal";
+import { D, moneyDisplay } from "@core/shared/decimal";
 import { RecipeEditor } from "./recipe-editor";
 import { NeedPreview } from "./need-preview";
 import { FormField } from "@/components/form-field";
@@ -84,7 +84,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                     name="saleUnitId"
                     defaultValue={product.saleUnitId}
                     disabled={!canManage}
-                    options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
+                    options={units.map((u) => ({ value: u.id, label: u.symbol }))}
                   />
                 </FormField>
                 <FormField label={t("products.fgUnitSimple")}>
@@ -92,7 +92,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                     name="outputUnitId"
                     defaultValue={product.outputUnitId}
                     disabled={!canManage}
-                    options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
+                    options={units.map((u) => ({ value: u.id, label: u.symbol }))}
                   />
                 </FormField>
               </div>
@@ -122,11 +122,21 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
             <div className={`${catalogStyles.paramGroup} ${catalogStyles.paramGroupStock}`}>
               <p className={catalogStyles.paramGroupTitle}>{t("products.groupStock")}</p>
-              <div className={`${catalogStyles.paramRow} ${catalogStyles.paramRowOne}`}>
+              <div className={catalogStyles.paramRow}>
                 <FormField label={t("products.minPriceShort")} hint={t("products.minPriceHint")}>
                   <input
                     name="minPrice"
                     defaultValue={product.minPrice.toString()}
+                    disabled={!canManage}
+                    placeholder="0"
+                    className="ui-input"
+                    inputMode="decimal"
+                  />
+                </FormField>
+                <FormField label={t("products.laborRate")} hint={t("products.laborRateHint")}>
+                  <input
+                    name="laborRate"
+                    defaultValue={product.laborRate.toString()}
                     disabled={!canManage}
                     placeholder="0"
                     className="ui-input"
@@ -167,43 +177,24 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         </div>
       </section>
 
-      {canSeeCost ? (
+      {cost || D(String(product.laborRate)).gt(0) ? (
         <section className={styles.section}>
-          <div className={styles.sectionHead}><h2 className={styles.sectionTitle}>{t("products.matCostTitle")}</h2></div>
-          <div className={styles.sectionBody}>
-            <p style={{ fontSize: 12, color: "var(--ink-3)", margin: "0 0 12px" }}>{t("products.matCostHint")}</p>
-            {cost ? (
-              <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-                {cost.lines.map((line) => (
-                  <li key={line.materialId} style={{ display: "flex", justifyContent: "space-between", gap: 16, padding: "8px 0", borderBottom: "1px solid var(--line)", fontSize: 13 }}>
-                    <span style={{ color: "var(--ink-2)" }}>
-                      {line.materialName}: {line.quantity} {line.unitSymbol}
-                      {line.warning ? <span style={{ marginLeft: 8, fontSize: 11, color: "var(--warn)" }}>{line.warning}</span> : null}
-                    </span>
-                    <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 600 }}>{line.lineCost ? `${moneyDisplay(line.lineCost)} с` : "—"}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p style={{ fontSize: 13, color: "var(--ink-3)" }}>{t("products.noRecipe")}</p>
-            )}
-            <p style={{ marginTop: 14, fontSize: 14, fontWeight: 600 }}>
-              {t("products.totalOn")} {product.recipeBaseQty.toString()} {product.saleUnit.symbol}: {cost?.total ? `${moneyDisplay(cost.total)} с` : t("products.costUnset")}
-            </p>
+          <div className={`${styles.sectionBody} ${catalogStyles.sectionTightBody}`}>
+            <NeedPreview
+              lines={(cost?.lines ?? []).map((l) => ({
+                materialName: l.materialName,
+                quantity: l.quantity,
+                unitSymbol: l.unitSymbol,
+                lineCost: canSeeCost ? l.lineCost : null,
+              }))}
+              saleSymbol={product.saleUnit.symbol}
+              recipeBaseQty={product.recipeBaseQty.toString()}
+              laborRate={product.laborRate.toString()}
+              locale={locale}
+              showCosts={canSeeCost}
+            />
           </div>
         </section>
-      ) : null}
-
-      {cost ? (
-        <NeedPreview
-          lines={cost.lines.map((l) => ({ materialName: l.materialName, quantity: l.quantity, unitSymbol: l.unitSymbol, lineCost: canSeeCost ? l.lineCost : null }))}
-          outputPerBase={product.outputPerBase.toString()}
-          outputSymbol={product.outputUnit.symbol}
-          saleSymbol={product.saleUnit.symbol}
-          recipeBaseQty={product.recipeBaseQty.toString()}
-          locale={locale}
-          showCosts={canSeeCost}
-        />
       ) : null}
 
       <section className={styles.section}>

@@ -5,7 +5,6 @@ import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { FUND, LEDGER, fundDelta } from "@core/finance/finance";
 import { contributionAndNet } from "@core/finance/profit";
 import { coverageAndPurchaseNeed } from "@core/inventory/alerts";
-import { resolveProductionPaySchemeCode } from "@core/config/domain-config";
 import { getTranslator } from "@core/shared/i18n/locale";
 import { RevealList } from "@/components/reveal-list";
 import styles from "./analytics.module.css";
@@ -13,12 +12,7 @@ import styles from "./analytics.module.css";
 export default async function AnalyticsPage() {
   await requirePermission("analytics.view");
   const { t } = await getTranslator();
-  const productionSchemeCode = await resolveProductionPaySchemeCode();
-  const monthStart = new Date();
-  monthStart.setDate(1);
-  monthStart.setHours(0, 0, 0, 0);
-
-  const [monthOrders, scraps, accruals, funds, entries, cover, productItems, prodScheme] = await Promise.all([
+  const [monthOrders, scraps, accruals, funds, entries, cover, productItems] = await Promise.all([
     prisma.order.findMany({
       where: { createdAt: { gte: monthStart }, status: { code: { not: "CANCELLED" } } },
       include: { payments: true },
@@ -37,7 +31,6 @@ export default async function AnalyticsPage() {
         order: { include: { payments: true } },
       },
     }),
-    prisma.payScheme.findUnique({ where: { code: productionSchemeCode } }),
   ]);
 
   const sold = monthOrders.reduce((s, o) => s.add(String(o.total)), D(0));
@@ -62,7 +55,6 @@ export default async function AnalyticsPage() {
     commission,
     fixedExpenses: expenses,
   });
-  const rate = D(String(prodScheme?.productionRate ?? "0"));
   const netPositive = net.gte(0);
   const payrollTotal = labor.add(commission);
 
@@ -96,7 +88,7 @@ export default async function AnalyticsPage() {
     const orderTotal = D(String(item.order.total));
     const share = orderTotal.gt(0) ? amount.div(orderTotal) : D(0);
     row.materials = row.materials.add(D(String(item.order.materialCost ?? 0)).mul(share));
-    row.labor = row.labor.add(qtySale.mul(rate));
+    row.labor = row.labor.add(qtySale.mul(D(String(item.product.laborRate ?? 0))));
     const paid = item.order.payments.reduce((s, p) => s.add(String(p.amount)), D(0));
     const paidShare = orderTotal.gt(0) ? paid.mul(share) : D(0);
     row.commission = row.commission.add(paidShare.mul("0.03"));

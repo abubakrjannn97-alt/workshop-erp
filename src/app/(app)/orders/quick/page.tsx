@@ -2,7 +2,6 @@ import { getTranslator } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
 import { getFgWarehouse } from "@core/config/resolve-warehouse";
-import { resolveProductionPaySchemeCode } from "@core/config/domain-config";
 import { available } from "@core/inventory/stock";
 import { materialCostForRecipe, scaleNeed } from "@core/costing/costing";
 import { D, money, qtyDisplay } from "@core/shared/decimal";
@@ -23,8 +22,7 @@ export default async function QuickSalePage() {
   }
 
   const fg = await getFgWarehouse();
-  const productionSchemeCode = await resolveProductionPaySchemeCode();
-  const [customers, products, prodScheme] = await Promise.all([
+  const [customers, products] = await Promise.all([
     prisma.customer.findMany({
       where: {
         archivedAt: null,
@@ -53,10 +51,7 @@ export default async function QuickSalePage() {
       },
       orderBy: { name: "asc" },
     }),
-    prisma.payScheme.findUnique({ where: { code: productionSchemeCode } }),
   ]);
-
-  const laborPerUnit = D(String(prodScheme?.productionRate ?? "0"));
 
   const sellable = products
     .map((p) => {
@@ -69,6 +64,7 @@ export default async function QuickSalePage() {
       const scale = scaleNeed(p.recipeBaseQty, 1);
       const mat = version ? materialCostForRecipe(version.items, Number(scale.toString())) : null;
       const matPerUnit = mat?.total ? D(mat.total) : D(0);
+      const laborPerUnit = D(String(p.laborRate ?? 0));
       const costPerUnit = matPerUnit.plus(laborPerUnit);
       const rate = salePrice.gte(costPerUnit) ? salePrice : costPerUnit;
       return {

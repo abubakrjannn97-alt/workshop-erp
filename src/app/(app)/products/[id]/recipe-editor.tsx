@@ -43,7 +43,7 @@ export function RecipeEditor({
   ];
   const unitOptions = units.map((u) => ({
     value: u.id,
-    label: u.extra ? `${u.name} (${u.extra})` : u.name,
+    label: u.extra ?? u.name,
   }));
 
   return (

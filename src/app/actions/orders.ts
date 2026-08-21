@@ -29,7 +29,7 @@ import { issueOrderStockAndMarkIssued, completeIssuedOrder } from "@core/orders/
 import { confirmOrderCore } from "@core/orders/confirm-order";
 import { canSelfApprove, pendingFor, queueApproval } from "@core/control/control";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
-import { resolveProductionPaySchemeCode } from "@core/config/domain-config";
+import { laborAmountForLines } from "@core/payroll/product-labor";
 
 function moneyStr(value: string) {
   return z.string().regex(/^\d+(\.\d{1,4})?$/).safeParse(value).success;
@@ -65,7 +65,7 @@ async function recordInitialOrderPayment(
     orderTotal: string;
     materialCost: string | null;
     sellerId: string;
-    saleQty: ReturnType<typeof D>;
+    laborAmount: string;
     userId: string;
   },
 ) {
@@ -86,9 +86,7 @@ async function recordInitialOrderPayment(
     where: { id: input.sellerId },
     include: { payScheme: { include: { tiers: true } } },
   });
-  const productionSchemeCode = await resolveProductionPaySchemeCode();
   const scheme = seller?.payScheme;
-  const laborAmount = scheme?.productionRate ? money(input.saleQty.mul(scheme.productionRate)) : "0";
   let commissionAmount = "0";
   if (scheme && (scheme.kind === "SALES_COMMISSION" || scheme.kind === "MIXED") && scheme.tiers.length) {
     const pct = await commissionPercentNow(tx, input.sellerId, input.orderId, scheme);
@@ -101,10 +99,6 @@ async function recordInitialOrderPayment(
       scheme,
     });
   }
-  const prodScheme = await tx.payScheme.findUnique({ where: { code: productionSchemeCode } });
-  const laborFromProd = prodScheme?.productionRate
-    ? money(input.saleQty.mul(prodScheme.productionRate))
-    : laborAmount;
 
   await postClientPayment(tx, {
     orderId: input.orderId,
@@ -113,7 +107,7 @@ async function recordInitialOrderPayment(
     method: "cash",
     orderTotal: input.orderTotal,
     materialCost: input.materialCost,
-    laborAmount: laborFromProd,
+    laborAmount: input.laborAmount,
     commissionAmount,
     userId: input.userId,
   });
@@ -246,7 +240,7 @@ export async function createOrder(formData: FormData) {
         orderTotal: money(total),
         materialCost: quote.materialCost,
         sellerId,
-        saleQty: D(quote.quantity),
+        laborAmount: laborAmountForLines([{ quantity: quote.quantity, laborRate: product.laborRate }]),
         userId: session.user.id,
       });
     }
@@ -482,7 +476,7 @@ export async function addPayment(formData: FormData) {
     where: { id: orderId },
     include: {
       status: true,
-      items: true,
+      items: { include: { product: { select: { laborRate: true } } } },
       payments: true,
       seller: { include: { payScheme: { include: { tiers: true } } } },
     },
@@ -492,7 +486,6 @@ export async function addPayment(formData: FormData) {
     return { error: "Нет доступа." };
   }
 
-  const productionSchemeCode = await resolveProductionPaySchemeCode();
   let paymentId: string | null = null;
   let created = false;
   try {
@@ -534,12 +527,7 @@ export async function addPayment(formData: FormData) {
       where: { id: orderId },
       data: { paidAmount: money(paid), paymentStatus: paymentStatusOf(order.total, paid, hadRefund) },
     });
-    // productionRate applies to the sale-unit quantity, not finished-goods outputQty.
-    const saleQty = order.items.reduce((s, item) => s.add(String(item.quantity)), D(0));
     const scheme = order.seller.payScheme;
-    const laborAmount = scheme?.productionRate
-      ? money(saleQty.mul(scheme.productionRate))
-      : "0";
     let commissionAmount = "0";
     if (scheme && (scheme.kind === "SALES_COMMISSION" || scheme.kind === "MIXED") && scheme.tiers.length) {
       const pct = await commissionPercentNow(tx, order.sellerId, orderId, scheme);
@@ -552,10 +540,9 @@ export async function addPayment(formData: FormData) {
         scheme,
       });
     }
-    const prodScheme = await tx.payScheme.findUnique({ where: { code: productionSchemeCode } });
-    const laborFromProd = prodScheme?.productionRate
-      ? money(saleQty.mul(prodScheme.productionRate))
-      : laborAmount;
+    const laborFromProd = laborAmountForLines(
+      order.items.map((item) => ({ quantity: item.quantity, laborRate: item.product.laborRate })),
+    );
     await postClientPayment(tx, {
       orderId,
       paymentId: payment.id,
@@ -599,7 +586,10 @@ export async function reversePayment(formData: FormData) {
   const paymentId = String(formData.get("paymentId") ?? "");
   const payment = await prisma.payment.findUnique({
     where: { id: paymentId },
-    include: { reversedBy: true, order: { include: { items: true } } },
+    include: {
+      reversedBy: true,
+      order: { include: { items: { include: { product: { select: { laborRate: true } } } } } },
+    },
   });
   if (!payment) return { error: "Оплата не найдена." };
   if (payment.reversedBy) return { error: "Оплата уже сторнирована." };
@@ -617,7 +607,6 @@ export async function reversePayment(formData: FormData) {
     return { ok: true, pending: true };
   }
 
-  const productionSchemeCode = await resolveProductionPaySchemeCode();
   try {
     await prisma.$transaction(async (tx) => {
       const reversal = await tx.payment.create({
@@ -642,8 +631,6 @@ export async function reversePayment(formData: FormData) {
       _sum: { amount: true },
     });
     await reverseCommissionForPayment(tx, payment.id);
-    const prodScheme = await tx.payScheme.findUnique({ where: { code: productionSchemeCode } });
-    const saleQty = payment.order.items.reduce((s, item) => s.add(String(item.quantity)), D(0));
     await postClientPayment(tx, {
       orderId: payment.orderId,
       paymentId: reversal.id,
@@ -651,9 +638,9 @@ export async function reversePayment(formData: FormData) {
       method: payment.method,
       orderTotal: String(payment.order.total),
       materialCost: payment.order.materialCost ? String(payment.order.materialCost) : null,
-      laborAmount: prodScheme?.productionRate
-        ? money(saleQty.mul(prodScheme.productionRate))
-        : "0",
+      laborAmount: laborAmountForLines(
+        payment.order.items.map((item) => ({ quantity: item.quantity, laborRate: item.product.laborRate })),
+      ),
       commissionAmount: commSum._sum.amount ? money(commSum._sum.amount) : "0",
       userId: session.user.id,
       reverseOf: payment.id,
@@ -930,6 +917,7 @@ export async function createMultiItemOrder(formData: FormData) {
   const appliedDiscount = requestedOverLimit ? D(0) : discount;
 
   const quotes = [];
+  const laborLines: { quantity: string; laborRate: { toString(): string } }[] = [];
   for (const item of items) {
     const product = await prisma.product.findUnique({ where: { id: item.productId } });
     if (!product || product.archivedAt) return { error: "Изделие не найдено." };
@@ -938,6 +926,7 @@ export async function createMultiItemOrder(formData: FormData) {
     }
     try {
       quotes.push(await quoteProduct(item.productId, item.quantity, item.unitPrice));
+      laborLines.push({ quantity: item.quantity, laborRate: product.laborRate });
     } catch (e) {
       return { error: e instanceof Error ? e.message : "Не удалось рассчитать заказ." };
     }
@@ -1012,7 +1001,7 @@ export async function createMultiItemOrder(formData: FormData) {
           orderTotal: money(total),
           materialCost: money(materialCost),
           sellerId,
-          saleQty,
+          laborAmount: laborAmountForLines(laborLines),
           userId: session.user.id,
         });
       }

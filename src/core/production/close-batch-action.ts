@@ -11,7 +11,6 @@ import { ORDER_STATUS } from "@core/orders/orders";
 import { accrueProductionWage } from "@core/payroll/payroll";
 import { notifyRoles } from "@core/control/control";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
-import { resolveProductionPaySchemeCode } from "@core/config/domain-config";
 import { resolveBatchFinishedGoods } from "@core/production/production-order";
 import { assertCanCloseBatch } from "@core/production/batch-auth";
 
@@ -76,7 +75,6 @@ export async function closeBatch(formData: FormData) {
   }, D(0));
   const good = D(actualQty);
   const unitCost = good.gt(0) ? materialCost.div(good) : D(0);
-  const productionSchemeCode = await resolveProductionPaySchemeCode();
 
   try {
     let closedNow = false;
@@ -159,20 +157,31 @@ export async function closeBatch(formData: FormData) {
       });
 
       if (batch.responsibleUserId && good.gt(0)) {
-        const worker = await tx.user.findUnique({
-          where: { id: batch.responsibleUserId },
-          include: { payScheme: true },
-        });
-        const rate =
-          worker?.payScheme?.productionRate ??
-          (await tx.payScheme.findUnique({ where: { code: productionSchemeCode } }))?.productionRate;
-        if (rate) {
+        const productIds = [...new Set(fgLines.map((l) => l.productId))];
+        const products = productIds.length
+          ? await tx.product.findMany({
+              where: { id: { in: productIds } },
+              select: { id: true, laborRate: true },
+            })
+          : [];
+        const rateByProduct = new Map(products.map((p) => [p.id, D(String(p.laborRate ?? 0))]));
+        let wageAmount = D(0);
+        let wageQty = D(0);
+        for (const line of fgLines) {
+          const rate = rateByProduct.get(line.productId) ?? D(0);
+          if (rate.lte(0)) continue;
+          const lineQty = D(line.quantity);
+          wageAmount = wageAmount.add(lineQty.mul(rate));
+          wageQty = wageQty.add(lineQty);
+        }
+        if (wageAmount.gt(0) && wageQty.gt(0)) {
+          const avgRate = wageAmount.div(wageQty);
           await accrueProductionWage(tx, {
             userId: batch.responsibleUserId,
             batchId: batch.id,
             orderId: batch.production.orderId,
-            goodQty: qty(good),
-            rate: String(rate),
+            goodQty: qty(wageQty),
+            rate: money(avgRate),
           });
         }
       }

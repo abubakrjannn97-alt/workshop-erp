@@ -52,10 +52,12 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
       : Promise.resolve([]),
     getDomainConfig(),
   ]);
-  const outputUnit = await prisma.unit.findUnique({ where: { code: domainConfig.product.defaultOutputUnit } });
-  const outputUnitSymbol = outputUnit?.symbol ?? t("common.unitGeneric");
+  const outputUnit = await prisma.unit.findUnique({ where: { code: domainConfig.product.defaultSaleUnit } });
+  const outputUnitSymbol = outputUnit?.symbol ?? "м²";
   const permModules = [...new Set(assignablePerms.map((p) => p.module))];
   const selectedPermCodes = user.permissions.map((up) => up.permission.code as PermissionCode);
+  const workQty = D(String(m2._sum.quantity ?? 0));
+  const workPay = D(String(m2._sum.amount ?? 0));
 
   async function archiveAction(formData: FormData) { "use server"; await archiveEmployee(formData); }
 
@@ -117,7 +119,11 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
         </div>
         <div className={styles.kpiBox}>
           <p className={styles.kpiLabel}>{t("emp.goodOutput")}</p>
-          <p className={styles.kpiValueAccent}>{qtyDisplay(m2._sum.quantity ?? 0)} {outputUnitSymbol}</p>
+          <p className={styles.kpiValueAccent}>{qtyDisplay(workQty)} {outputUnitSymbol}</p>
+        </div>
+        <div className={styles.kpiBox}>
+          <p className={styles.kpiLabel}>{t("emp.workPay")}</p>
+          <p className={styles.kpiValue}>{moneyDisplay(workPay)} с</p>
         </div>
         <div className={styles.kpiBox}>
           <p className={styles.kpiLabel}>{t("common.debt")}</p>
@@ -140,9 +146,11 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
                   placeholder={t("emp.noScheme")}
                   options={[
                     { value: "", label: t("emp.noScheme") },
-                    ...schemes.map((s) => ({
+                    ...schemes
+                      .filter((s) => s.productionRate == null)
+                      .map((s) => ({
                       value: s.id,
-                      label: s.kind === "SALES_COMMISSION" ? t("emp.commissionTitle") : s.productionRate != null ? t("emp.laborTitle") : s.name,
+                      label: s.kind === "SALES_COMMISSION" ? t("emp.commissionTitle") : s.name,
                     })),
                   ]}
                 />

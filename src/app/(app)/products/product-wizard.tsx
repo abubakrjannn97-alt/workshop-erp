@@ -61,12 +61,13 @@ export function ProductCreateWizard({
   ]);
   const [price, setPrice] = useState("");
   const [minPrice, setMinPrice] = useState("");
+  const [laborRate, setLaborRate] = useState("22");
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   const materialMap = useMemo(() => new Map(materials.map((m) => [m.id, m])), [materials]);
-  const unitOptions = units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }));
+  const unitOptions = units.map((u) => ({ value: u.id, label: u.symbol }));
   const materialOptions = [
     { value: "", label: t("products.pickMaterial") },
     ...materials.map((m) => ({ value: m.id, label: m.name })),
@@ -115,6 +116,9 @@ export function ProductCreateWizard({
 
     formData.set("price", "0");
     formData.set("minPrice", "0");
+    formData.set("laborRate", laborRate || "0");
+    formData.set("minStock", formData.get("minStock")?.toString() || "0");
+    formData.set("maxStock", formData.get("maxStock")?.toString() || "0");
 
     startTransition(async () => {
       const created = await createProduct(formData);
@@ -356,6 +360,15 @@ export function ProductCreateWizard({
               placeholder={expense ? moneyDisplay(expense) : t("products.phMinPrice")}
               onChange={(e) => setMinPrice(e.target.value)}
               required
+            />
+          </FormField>
+          <FormField label={t("products.laborRate")} hint={t("products.laborRateHint")} className={styles.priceFieldFull}>
+            <input
+              className="ui-input"
+              inputMode="decimal"
+              value={laborRate}
+              placeholder="0"
+              onChange={(e) => setLaborRate(e.target.value)}
             />
           </FormField>
         </div>

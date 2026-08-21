@@ -5,8 +5,8 @@ import { writeOffMaterial, releaseMaterial, adjustToActual } from "@core/invento
 import { findRawWarehouse } from "@core/config/resolve-warehouse";
 import { ORDER_STATUS, paymentStatusOf } from "@core/orders/orders";
 import { notifyRoles } from "@core/control/control";
-import { resolveProductionPaySchemeCode } from "@core/config/domain-config";
 import { postClientPayment } from "@core/finance/finance";
+import { laborAmountForLines } from "@core/payroll/product-labor";
 import { reverseCommissionForPayment } from "@core/payroll/payroll";
 
 export type ApprovalDecision = "APPROVED" | "REJECTED";
@@ -221,12 +221,15 @@ async function executeRefund(payload: Record<string, unknown>, userId: string): 
   const paymentId = String(payload.paymentId ?? "");
   const payment = await prisma.payment.findUnique({
     where: { id: paymentId },
-    include: { reversedBy: true, order: { include: { items: true } } },
+    include: {
+      reversedBy: true,
+      order: { include: { items: { include: { product: { select: { laborRate: true } } } } } },
+    },
   });
   if (!payment) return { error: "Оплата не найдена." };
   if (payment.reversedBy) return { error: "Оплата уже сторнирована." };
   if (payment.reversesId) return { error: "Нельзя сторнировать сторно." };
-  const productionSchemeCode = await resolveProductionPaySchemeCode();
+  try {
   await prisma.$transaction(async (tx) => {
     const reversal = await tx.payment.create({
       data: {
@@ -250,8 +253,6 @@ async function executeRefund(payload: Record<string, unknown>, userId: string): 
       _sum: { amount: true },
     });
     await reverseCommissionForPayment(tx, payment.id);
-    const prodScheme = await tx.payScheme.findUnique({ where: { code: productionSchemeCode } });
-    const saleQty = payment.order.items.reduce((s, item) => s.add(String(item.quantity)), D(0));
     await postClientPayment(tx, {
       orderId: payment.orderId,
       paymentId: reversal.id,
@@ -259,13 +260,18 @@ async function executeRefund(payload: Record<string, unknown>, userId: string): 
       method: payment.method,
       orderTotal: String(payment.order.total),
       materialCost: payment.order.materialCost ? String(payment.order.materialCost) : null,
-      laborAmount: prodScheme?.productionRate ? money(saleQty.mul(prodScheme.productionRate)) : "0",
+      laborAmount: laborAmountForLines(
+        payment.order.items.map((item) => ({ quantity: item.quantity, laborRate: item.product.laborRate })),
+      ),
       commissionAmount: commSum._sum.amount ? money(commSum._sum.amount) : "0",
       userId,
       reverseOf: payment.id,
     });
   });
   return { ok: true };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Ошибка сторно." };
+  }
 }
 
 async function executeApprovedPayload(

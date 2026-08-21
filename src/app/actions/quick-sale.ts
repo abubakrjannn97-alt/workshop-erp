@@ -9,11 +9,11 @@ import { writeAudit } from "@core/control/audit";
 import { D, money, qtyDisplay } from "@core/shared/decimal";
 import { available } from "@core/inventory/stock";
 import { findFinishedGoodsWarehouse } from "@core/config/resolve-warehouse";
-import { resolveProductionPaySchemeCode } from "@core/config/domain-config";
 import { materialCostForRecipe, scaleNeed } from "@core/costing/costing";
 import { nextOrderNumber, ORDER_STATUS, paymentStatusOf } from "@core/orders/orders";
 import { issueOrderStockAndMarkIssued } from "@core/orders/issue-complete";
 import { postClientPayment } from "@core/finance/finance";
+import { laborAmountForLines } from "@core/payroll/product-labor";
 
 const NEW_CUSTOMER = "__new__";
 
@@ -64,30 +64,25 @@ export async function quickSaleFromFg(formData: FormData) {
   if (!fg) return { error: "Склад ГП не найден." };
 
   const productIds = [...new Set(parsed.data.items.map((i) => i.productId))];
-  const [products, productionSchemeCode] = await Promise.all([
-    prisma.product.findMany({
-      where: { id: { in: productIds }, archivedAt: null, isActive: true },
-      include: {
-        saleUnit: true,
-        recipe: {
-          include: {
-            versions: {
-              where: { validTo: null },
-              include: {
-                items: { include: { material: { include: { storageUnit: true } }, unit: true } },
-              },
-              take: 1,
+  const products = await prisma.product.findMany({
+    where: { id: { in: productIds }, archivedAt: null, isActive: true },
+    include: {
+      saleUnit: true,
+      recipe: {
+        include: {
+          versions: {
+            where: { validTo: null },
+            include: {
+              items: { include: { material: { include: { storageUnit: true } }, unit: true } },
             },
+            take: 1,
           },
         },
       },
-    }),
-    resolveProductionPaySchemeCode(),
-  ]);
+    },
+  });
   if (products.length !== productIds.length) return { error: "Изделие не найдено." };
   const byId = new Map(products.map((p) => [p.id, p]));
-  const prodScheme = await prisma.payScheme.findUnique({ where: { code: productionSchemeCode } });
-  const laborRate = D(String(prodScheme?.productionRate ?? "0"));
 
   const stocks = await prisma.stockItem.findMany({
     where: { warehouseId: fg.id, productId: { in: productIds } },
@@ -140,7 +135,6 @@ export async function quickSaleFromFg(formData: FormData) {
   const orderTotal = built.reduce((sum, line) => sum.plus(line.amount), D(0));
   const outputQty = built.reduce((sum, line) => sum.plus(line.quantity), D(0));
   let materialCostTotal = D(0);
-  let laborAmountTotal = D(0);
   for (const line of built) {
     const product = byId.get(line.productId)!;
     const version = product.recipe?.versions[0];
@@ -149,8 +143,15 @@ export async function quickSaleFromFg(formData: FormData) {
       const cost = materialCostForRecipe(version.items, Number(scale.toString()));
       if (cost.total) materialCostTotal = materialCostTotal.plus(D(cost.total));
     }
-    laborAmountTotal = laborAmountTotal.plus(line.quantity.mul(laborRate));
   }
+  const laborAmountTotal = D(
+    laborAmountForLines(
+      built.map((line) => ({
+        quantity: line.quantity,
+        laborRate: byId.get(line.productId)?.laborRate,
+      })),
+    ),
+  );
   const payMode = parsed.data.payMode;
   let paidRaw = D(0);
 

@@ -78,7 +78,7 @@ export default async function EmployeesPage() {
                 const paid = D(String(payMap.get(u.id)?._sum.amount ?? 0));
                 const schemeLabel = u.payScheme
                   ? u.payScheme.kind === "SALES_COMMISSION" ? t("emp.commissionTitle")
-                    : u.payScheme.productionRate != null ? t("emp.laborTitle")
+                    : u.payScheme.productionRate != null ? t("emp.output")
                     : u.payScheme.name
                   : "—";
                 return (
@@ -121,11 +121,12 @@ export default async function EmployeesPage() {
         </ul>
       </section>
 
-      {schemes.map((scheme) => {
+      {schemes
+        .filter((scheme) => scheme.productionRate == null)
+        .map((scheme) => {
         const isCommission = scheme.kind === "SALES_COMMISSION" || scheme.kind === "MIXED";
-        const isLabor = scheme.productionRate != null;
-        const title = scheme.kind === "SALES_COMMISSION" ? t("emp.commissionTitle") : scheme.productionRate != null ? t("emp.laborTitle") : scheme.name;
-        const hint = isCommission ? t("emp.commissionHint") : isLabor ? t("emp.laborHint") : "";
+        const title = scheme.kind === "SALES_COMMISSION" ? t("emp.commissionTitle") : scheme.name;
+        const hint = isCommission ? t("emp.commissionHint") : "";
         return (
           <section key={scheme.id} className={styles.section}>
             <div className={styles.sectionHead}>
@@ -133,17 +134,9 @@ export default async function EmployeesPage() {
             </div>
             <div className={styles.sectionBody}>
               {hint ? <p style={{ marginBottom: 12, fontSize: 13, color: "var(--ink-2)" }}>{hint}</p> : null}
-              {scheme.productionRate ? (
-                <p style={{ marginBottom: 12, fontSize: 12, color: "var(--ink-3)" }}>{t("emp.currentRate", { n: qtyDisplay(scheme.productionRate) })}</p>
-              ) : null}
               {canEditScheme ? (
                 <form action={schemeAction} className="grid gap-3">
                   <input type="hidden" name="id" value={scheme.id} />
-                  {isLabor ? (
-                    <FormField label={t("emp.productionRate")} className="max-w-xs">
-                      <input name="productionRate" inputMode="decimal" defaultValue={qtyDisplay(scheme.productionRate ?? 0)} className="ui-input" />
-                    </FormField>
-                  ) : null}
                   {isCommission ? (
                     <>
                       <FormField label={t("emp.model")} className="max-w-xl">
@@ -175,7 +168,7 @@ export default async function EmployeesPage() {
                     </>
                   ) : null}
                   <button type="submit" className="ui-btn-primary min-h-[44px]">
-                    {isCommission ? t("emp.saveCommission") : isLabor ? t("emp.saveRate") : t("emp.saveScheme")}
+                    {isCommission ? t("emp.saveCommission") : t("emp.saveScheme")}
                   </button>
                 </form>
               ) : (

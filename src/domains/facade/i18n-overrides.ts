@@ -54,6 +54,11 @@ export const FACADE_I18N_OVERRIDES: Record<Locale, Dict> = {
     "products.minStockHint": "Если плиток меньше — на складе «мало», пора производить",
     "products.minPrice": "Минимальная цена, с",
     "products.minPriceHint": "Дешевле этой цены продать нельзя",
+    "products.laborRate": "Зарплата рабочему за 1 м², с",
+    "products.laborRateHint": "Сколько платите за годный м² этого изделия",
+    "products.laborLine": "Зарплата рабочему",
+    "products.costPerM2": "Расход на 1 {u}",
+    "products.costPerM2Total": "Итого на 1 м²",
     "products.stepRecipeLead":
       "Добавьте сырьё и количество на 1 м². Цена сырья — из закупки; расход посчитается сам.",
     "products.matCostHint":
@@ -139,6 +144,11 @@ export const FACADE_I18N_OVERRIDES: Record<Locale, Dict> = {
     "products.minStockHint": "Агар плитка камтар бошад — дар анбор «кам», бояд истеҳсол кард",
     "products.minPrice": "Нархи минималӣ, с",
     "products.minPriceHint": "Аз ин нарх арзонтар фурӯхтан мумкин нест",
+    "products.laborRate": "Маоши коргар барои 1 м², с",
+    "products.laborRateHint": "Барои 1 м²-и хуби ин мол чӣ қадар медиҳед",
+    "products.laborLine": "Маоши коргар",
+    "products.costPerM2": "Хароҷот барои 1 {u}",
+    "products.costPerM2Total": "Ҷамъ барои 1 м²",
     "products.stepRecipeLead":
       "Ашё ва миқдор барои 1 м² илова кунед. Нарх аз харид — хароҷот худ ҳисоб мешавад.",
     "products.matCostHint":

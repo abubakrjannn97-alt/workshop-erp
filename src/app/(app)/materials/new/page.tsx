@@ -51,14 +51,14 @@ export default async function NewMaterialPage() {
               <AppSelect
                 name="storageUnitId"
                 defaultValue={units[0]?.id ?? ""}
-                options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
+                options={units.map((u) => ({ value: u.id, label: u.symbol }))}
               />
             </FormField>
             <FormField label={t("materials.purchaseUnit")}>
               <AppSelect
                 name="purchaseUnitId"
                 defaultValue={units[0]?.id ?? ""}
-                options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
+                options={units.map((u) => ({ value: u.id, label: u.symbol }))}
               />
             </FormField>
             <FormField label={t("materials.packWeight")} required>

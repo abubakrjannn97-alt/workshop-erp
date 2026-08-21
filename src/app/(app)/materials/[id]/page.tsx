@@ -56,7 +56,7 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
                 name="storageUnitId"
                 defaultValue={material.storageUnitId}
                 disabled={!canManage}
-                options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
+                options={units.map((u) => ({ value: u.id, label: u.symbol }))}
               />
             </FormField>
             <FormField label={t("materials.purchaseUnit")}>
@@ -64,7 +64,7 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
                 name="purchaseUnitId"
                 defaultValue={material.purchaseUnitId}
                 disabled={!canManage}
-                options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
+                options={units.map((u) => ({ value: u.id, label: u.symbol }))}
               />
             </FormField>
             <FormField label={t("materials.packVolume")}><input name="packageWeight" defaultValue={material.packageWeight.toString()} disabled={!canManage} className="ui-input" /></FormField>
