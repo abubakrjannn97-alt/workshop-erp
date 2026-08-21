@@ -14,6 +14,8 @@ export type DashMetric = {
   tone: DashMetricTone;
   icon: LucideIcon;
   href?: string;
+  /** Full-width hero card (e.g. sales today on home). */
+  featured?: boolean;
 };
 
 const TONE_CLASS: Record<DashMetricTone, string> = {
@@ -42,16 +44,48 @@ export function DashMetricStrip({
     >
       {metrics.map((metric) => {
         const Icon = metric.icon;
+        const featured = compact && metric.featured;
         const card = (
           <article
-            className={`${compact ? styles.kpiCardCompact : styles.kpiCard} ${TONE_CLASS[metric.tone]}`}
+            className={[
+              compact ? styles.kpiCardCompact : styles.kpiCard,
+              featured ? styles.kpiCardFeatured : "",
+              TONE_CLASS[metric.tone],
+            ]
+              .filter(Boolean)
+              .join(" ")}
           >
             {!compact ? <span className={styles.kpiScenery} aria-hidden /> : null}
-            {compact ? (
+            {featured ? (
+              <>
+                <div className={styles.kpiFeaturedMain}>
+                  <span className={styles.kpiIconCompact} aria-hidden>
+                    <Icon size={22} strokeWidth={1.75} />
+                  </span>
+                  <div className={styles.kpiFeaturedText}>
+                    <p className={styles.kpiLabelCompact}>{metric.label}</p>
+                    <p className={styles.kpiValueFeatured}>{metric.value}</p>
+                  </div>
+                </div>
+                {metric.hint ? (
+                  <p
+                    className={[
+                      styles.kpiHintCompact,
+                      metric.hintTone === "positive" ? styles.kpiHintPositive : "",
+                      metric.hintTone === "negative" ? styles.kpiHintNegative : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                  >
+                    {metric.hint}
+                  </p>
+                ) : null}
+              </>
+            ) : compact ? (
               <>
                 <div className={styles.kpiHeadCompact}>
                   <span className={styles.kpiIconCompact} aria-hidden>
-                    <Icon size={20} strokeWidth={1.75} />
+                    <Icon size={18} strokeWidth={1.75} />
                   </span>
                   <p className={styles.kpiLabelCompact}>{metric.label}</p>
                 </div>
@@ -103,12 +137,20 @@ export function DashMetricStrip({
           </article>
         );
 
+        const wrapClass = [
+          "min-w-0",
+          featured ? styles.kpiFeaturedWrap : "",
+          metric.href ? "block no-underline" : "",
+        ]
+          .filter(Boolean)
+          .join(" ");
+
         return metric.href ? (
-          <Link key={metric.id} href={metric.href} className="block min-w-0 no-underline">
+          <Link key={metric.id} href={metric.href} className={wrapClass}>
             {card}
           </Link>
         ) : (
-          <div key={metric.id} className="min-w-0">
+          <div key={metric.id} className={wrapClass}>
             {card}
           </div>
         );

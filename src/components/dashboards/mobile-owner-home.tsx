@@ -58,6 +58,7 @@ export async function MobileOwnerHome() {
             id: "sales",
             tone: "orange",
             icon: ShoppingBag,
+            featured: true,
             label: t("home.kpi.salesToday"),
             value: `${formatSalesMoney(kpis.salesToday)} с`,
             hint:

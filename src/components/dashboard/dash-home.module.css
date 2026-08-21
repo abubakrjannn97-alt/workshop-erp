@@ -126,21 +126,26 @@
 }
 
 .homeDesktop .kpiStripCompact {
-  gap: 10px;
+  gap: 12px;
 }
 
 .homeDesktop .kpiCardCompact {
   border: 1px solid var(--mobile-glass-border);
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: 0 1px 4px rgba(28, 35, 43, 0.04);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 2px 10px rgba(28, 35, 43, 0.04);
   backdrop-filter: blur(var(--mobile-glass-blur));
   -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
 }
 
+.homeDesktop .kpiCardFeatured {
+  background:
+    linear-gradient(120deg, rgba(255, 248, 241, 0.95) 0%, rgba(255, 255, 255, 0.85) 45%, rgba(255, 255, 255, 0.78) 100%);
+}
+
 .homeDesktop .actionsMobileStrip .actionStrip {
   border: 1px solid var(--mobile-glass-border);
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: 0 1px 4px rgba(28, 35, 43, 0.04);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 2px 10px rgba(28, 35, 43, 0.04);
   backdrop-filter: blur(var(--mobile-glass-blur));
   -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
 }
@@ -323,23 +328,75 @@
   padding: 0;
 }
 
+.kpiFeaturedWrap {
+  grid-column: 1 / -1;
+}
+
 .kpiCardCompact {
   position: relative;
   display: flex;
-  min-height: 145px;
+  min-height: 132px;
   flex-direction: column;
   gap: 6px;
-  padding: 16px 14px 14px;
+  padding: 14px 12px 12px;
   overflow: hidden;
   border-radius: 18px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  box-shadow: var(--mobile-glass-shadow);
-  transition: transform 0.16s ease;
+  border: 1px solid rgba(232, 236, 241, 0.95);
+  background:
+    linear-gradient(165deg, #ffffff 0%, #fbfbfa 100%);
+  box-shadow:
+    0 1px 2px rgba(28, 35, 43, 0.03),
+    0 8px 20px rgba(28, 35, 43, 0.04);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
 }
 
 .kpiCardCompact:active {
   transform: scale(0.985);
+}
+
+.kpiCardFeatured {
+  min-height: 0;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 16px 14px;
+  background:
+    linear-gradient(120deg, #fff8f1 0%, #ffffff 42%, #ffffff 100%);
+  border-color: rgba(216, 137, 66, 0.18);
+  box-shadow:
+    0 1px 2px rgba(216, 137, 66, 0.06),
+    0 10px 24px rgba(28, 35, 43, 0.05);
+}
+
+.kpiFeaturedMain {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 12px;
+}
+
+.kpiFeaturedText {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kpiValueFeatured {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 34px;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.kpiCardFeatured .kpiHintCompact {
+  margin: 0;
+  flex-shrink: 0;
 }
 
 .kpiHeadCompact {
@@ -351,31 +408,38 @@
 
 .kpiIconCompact {
   display: grid;
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   flex-shrink: 0;
   place-items: center;
   border-radius: 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.kpiCardFeatured .kpiIconCompact {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
 }
 
 .kpiOrange .kpiIconCompact {
-  background: #FFF0E4;
-  color: #D88942;
+  background: linear-gradient(145deg, #ffe8d4 0%, #fff4ea 100%);
+  color: #c7772f;
 }
 
 .kpiGreen .kpiIconCompact {
-  background: #EAF7F0;
-  color: #249565;
+  background: linear-gradient(145deg, #dcf5e7 0%, #eefaf3 100%);
+  color: #1f8a5a;
 }
 
 .kpiBlue .kpiIconCompact {
-  background: #EEF3FF;
-  color: #4A70D0;
+  background: linear-gradient(145deg, #e2eaff 0%, #f1f5ff 100%);
+  color: #3f63c2;
 }
 
 .kpiPurple .kpiIconCompact {
-  background: #F2EEFF;
-  color: #8067C5;
+  background: linear-gradient(145deg, #ebe4ff 0%, #f5f1ff 100%);
+  color: #6f58b8;
 }
 
 .kpiLabelCompact {
@@ -387,18 +451,26 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 18px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
   color: var(--ink-2);
   word-break: break-word;
 }
 
+.kpiCardFeatured .kpiLabelCompact {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  font-size: 13px;
+  font-weight: 500;
+  color: #8a6a45;
+}
+
 .kpiValueCompact {
-  margin: 4px 0 0;
-  font-size: 28px;
-  font-weight: 600;
-  line-height: 34px;
+  margin: 2px 0 0;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 28px;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
@@ -406,10 +478,10 @@
 
 .kpiHintCompact {
   margin: auto 0 0;
-  font-size: 12px;
-  line-height: 18px;
-  font-weight: 400;
-  color: #64748B;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  color: #64748b;
 }
 
 .kpiHintCompact.kpiHintPositive,
@@ -417,7 +489,7 @@
   display: inline-flex;
   align-self: flex-start;
   margin-top: auto;
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 600;
@@ -435,7 +507,7 @@
 
 .kpiHintSpacerCompact {
   display: block;
-  min-height: 18px;
+  min-height: 16px;
   margin-top: auto;
 }
 
@@ -599,16 +671,21 @@
 .actionsStripWrap {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
 }
 
 .actions.actionsMobileStrip {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  width: 100%;
+  max-width: 360px;
+  margin-inline: auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
   overflow: visible;
   padding: 0;
   scroll-snap-type: none;
+  justify-items: stretch;
 }
 
 .actionsMobileStrip > li {
@@ -620,35 +697,46 @@
   display: flex;
   flex: none;
   width: 100%;
-  height: 116px;
-  min-height: 116px;
-  padding: 12px 4px 10px;
-  border-radius: 16px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  box-shadow: var(--mobile-glass-shadow);
+  height: auto;
+  min-height: 108px;
+  padding: 14px 8px 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(232, 236, 241, 0.95);
+  background:
+    linear-gradient(165deg, #ffffff 0%, #fbfbfa 100%);
+  box-shadow:
+    0 1px 2px rgba(28, 35, 43, 0.03),
+    0 8px 18px rgba(28, 35, 43, 0.04);
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   box-sizing: border-box;
   color: var(--ink);
   text-decoration: none;
   scroll-snap-align: unset;
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+
+.actionsMobileStrip .actionStrip:active {
+  transform: scale(0.97);
 }
 
 .actionsMobileStrip .actionStrip:hover {
   transform: none;
   border-color: var(--line-strong);
-  box-shadow: var(--mobile-glass-shadow);
+  box-shadow:
+    0 1px 2px rgba(28, 35, 43, 0.04),
+    0 10px 22px rgba(28, 35, 43, 0.06);
 }
 
 .actionsMobileStrip .actionIcon {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
   border-radius: 50%;
   opacity: 1;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
 .actionsMobileStrip .actionLabel {
@@ -660,8 +748,8 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 600;
   line-height: 14px;
   text-align: center;
   color: var(--ink);
@@ -741,28 +829,28 @@
 }
 
 .actionOrange .actionIcon {
-  background: #FFF0E4;
-  color: #D88942;
+  background: linear-gradient(145deg, #ffe2c8 0%, #fff3e8 100%);
+  color: #c7772f;
 }
 
 .actionGreen .actionIcon {
-  background: #EAF7F0;
-  color: #249565;
+  background: linear-gradient(145deg, #d8f3e4 0%, #eefaf3 100%);
+  color: #1f8a5a;
 }
 
 .actionBlue .actionIcon {
-  background: #EEF3FF;
-  color: #4A70D0;
+  background: linear-gradient(145deg, #dce6ff 0%, #f1f5ff 100%);
+  color: #3f63c2;
 }
 
 .actionPurple .actionIcon {
-  background: #F2EEFF;
-  color: #8067C5;
+  background: linear-gradient(145deg, #e6ddff 0%, #f5f1ff 100%);
+  color: #6f58b8;
 }
 
 .actionGold .actionIcon {
-  background: #F8F4EC;
-  color: #9A7338;
+  background: linear-gradient(145deg, #f3e6cf 0%, #faf6ee 100%);
+  color: #8f6a32;
 }
 
 /* ─── Orders table ─── */
@@ -1192,3 +1280,31 @@ a.row:hover .rowTitle {
     display: none;
   }
 }
+
+@media (max-width: 389px) {
+  .kpiValueFeatured {
+    font-size: 26px;
+    line-height: 30px;
+  }
+
+  .kpiValueCompact {
+    font-size: 20px;
+    line-height: 24px;
+  }
+
+  .actions.actionsMobileStrip {
+    max-width: 100%;
+    gap: 8px;
+  }
+
+  .actionsMobileStrip .actionStrip {
+    min-height: 96px;
+    padding: 12px 6px 10px;
+  }
+
+  .actionsMobileStrip .actionIcon {
+    width: 42px;
+    height: 42px;
+  }
+}
+
