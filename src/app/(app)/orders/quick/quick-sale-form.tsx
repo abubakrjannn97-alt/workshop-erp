@@ -12,6 +12,10 @@ import type { Locale } from "@core/shared/i18n/i18n";
 import { PayDueCalendar } from "../pay-due-calendar";
 import styles from "./quick-sale.module.css";
 
+function formatFgStock(template: string, n: string, u: string) {
+  return template.replaceAll("{n}", n).replaceAll("{u}", u);
+}
+
 export type QuickSaleCustomer = {
   id: string;
   name: string;
@@ -53,7 +57,7 @@ export function QuickSaleForm({
     unitPrice: string;
     minPrice: string;
     stock: string;
-    fgStock: (n: string, u: string) => string;
+    fgStock: string;
     submit: string;
     sending: string;
     pay: string;
@@ -258,7 +262,7 @@ export function QuickSaleForm({
             <span className={styles.productTriggerText}>
               <span className={styles.productTriggerName}>{selected?.name ?? "—"}</span>
               <span className={styles.productTriggerMeta}>
-                {selected ? labels.fgStock(selected.onHand, selected.symbol) : ""}
+                {selected ? formatFgStock(labels.fgStock, selected.onHand, selected.symbol) : ""}
               </span>
             </span>
             <ChevronDown
@@ -290,7 +294,7 @@ export function QuickSaleForm({
                   <span className={styles.productTriggerText}>
                     <span className={styles.productTriggerName}>{p.name}</span>
                     <span className={styles.productTriggerMeta}>
-                      {labels.fgStock(p.onHand, p.symbol)}
+                      {formatFgStock(labels.fgStock, p.onHand, p.symbol)}
                     </span>
                   </span>
                 </button>

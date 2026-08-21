@@ -79,7 +79,7 @@ export default async function QuickSalePage() {
             unitPrice: t("sales.quickSalePrice"),
             minPrice: t("sales.quickMinPrice"),
             stock: t("common.stock"),
-            fgStock: (n: string, u: string) => t("sales.quickFgStock", { n, u }),
+            fgStock: t("sales.quickFgStock"),
             submit: t("sales.quickSubmit"),
             sending: t("common.sending"),
             pay: t("sales.quickPay"),
