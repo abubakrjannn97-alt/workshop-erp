@@ -313,8 +313,8 @@ body {
     position: fixed;
     inset: 0;
     z-index: 0;
-    background: url("/stone-hero.png") no-repeat top right / 100% auto;
-    opacity: 0.34;
+    background: url("/stone-hero-mobile.png") no-repeat top right / min(100%, 420px) auto;
+    opacity: 0.55;
     pointer-events: none;
   }
 
