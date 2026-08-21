@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, ImagePlus, Plus, Trash2 } from "lucide-react";
+import { Camera, ChevronDown, ImagePlus, Plus, Trash2 } from "lucide-react";
 import { AppSelect } from "@/components/app-select";
 import { FormField } from "@/components/form-field";
 import { ICON_STROKE } from "@/components/nav-icons";
@@ -50,12 +50,11 @@ export function ProductCreateWizard({
 }) {
   const t = createT(locale);
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2>(1);
-  const [productId, setProductId] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [showMore, setShowMore] = useState(false);
   const [nextKey, setNextKey] = useState(1);
   const [rows, setRows] = useState<RecipeRow[]>([
     { key: 0, materialId: "", quantity: "", unitId: units[0]?.id ?? "" },
@@ -64,6 +63,7 @@ export function ProductCreateWizard({
   const [minPrice, setMinPrice] = useState("");
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const materialMap = useMemo(() => new Map(materials.map((m) => [m.id, m])), [materials]);
   const unitOptions = units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }));
@@ -95,188 +95,208 @@ export function ProductCreateWizard({
   function onPickFile(file: File | null) {
     if (!file) return;
     setPhotoFile(file);
-    const url = URL.createObjectURL(file);
-    setPhotoPreview(url);
+    setPhotoPreview(URL.createObjectURL(file));
   }
 
-  function submitStep1(formData: FormData) {
-    setError(null);
-    formData.set("price", "0");
-    formData.set("minPrice", "0");
-    startTransition(async () => {
-      const result = await createProduct(formData);
-      if (result.error || !result.id) {
-        setError(result.error ?? t("common.error"));
-        return;
-      }
-      if (photoFile) {
-        const fd = new FormData();
-        fd.set("productId", result.id);
-        fd.set("photo", photoFile);
-        const photo = await saveProductPhoto(fd);
-        if (photo.error) {
-          setError(photo.error);
-          setProductId(result.id);
-          setStep(2);
-          return;
-        }
-      }
-      setProductId(result.id);
-      setStep(2);
-    });
-  }
-
-  function submitStep2() {
-    if (!productId) return;
+  function submitAll(formData: FormData) {
     setError(null);
     const expenseStr = expense ? moneyDisplay(expense) : "0";
-    if (expense && minPrice && D(minPrice || "0").lt(expense)) {
+    const sale = price || "0";
+    const floor = minPrice || expenseStr || "0";
+
+    if (expense && D(floor).lt(expense)) {
       setError(t("products.minBelowCost", { n: expenseStr }));
       return;
     }
-    if (price && minPrice && D(price || "0").lt(minPrice || "0")) {
+    if (sale && D(sale).lt(D(floor))) {
       setError(t("products.priceBelowMin"));
       return;
     }
 
-    const fd = new FormData();
-    fd.set("productId", productId);
-    fd.set("price", price || "0");
-    fd.set("minPrice", minPrice || expenseStr || "0");
-    for (const row of rows) {
-      if (!row.materialId || !row.quantity) continue;
-      fd.append("materialId", row.materialId);
-      fd.append("quantity", row.quantity);
-      fd.append("unitId", row.unitId || materialMap.get(row.materialId)?.storageUnitId || "");
-    }
+    formData.set("price", "0");
+    formData.set("minPrice", "0");
 
     startTransition(async () => {
-      const result = await finishProductSetup(fd);
-      if (result.error) {
-        setError(result.error);
+      const created = await createProduct(formData);
+      if (created.error || !created.id) {
+        setError(created.error ?? t("common.error"));
         return;
       }
-      router.push(`/products/${productId}`);
+
+      if (photoFile) {
+        const photoFd = new FormData();
+        photoFd.set("productId", created.id);
+        photoFd.set("photo", photoFile);
+        const photo = await saveProductPhoto(photoFd);
+        if (photo.error) {
+          setError(photo.error);
+          router.push(`/products/${created.id}`);
+          return;
+        }
+      }
+
+      const setupFd = new FormData();
+      setupFd.set("productId", created.id);
+      setupFd.set("price", sale);
+      setupFd.set("minPrice", floor);
+      for (const row of rows) {
+        if (!row.materialId || !row.quantity) continue;
+        setupFd.append("materialId", row.materialId);
+        setupFd.append("quantity", row.quantity);
+        setupFd.append("unitId", row.unitId || materialMap.get(row.materialId)?.storageUnitId || "");
+      }
+
+      const finished = await finishProductSetup(setupFd);
+      if (finished.error) {
+        setError(finished.error);
+        router.push(`/products/${created.id}`);
+        return;
+      }
+
+      router.push(`/products/${created.id}`);
       router.refresh();
     });
   }
 
   return (
-    <div className={styles.wizard}>
-      <div className={styles.steps}>
-        <span className={step === 1 ? styles.stepOn : styles.stepDone}>1. {t("products.stepBasics")}</span>
-        <span className={styles.stepSep}>→</span>
-        <span className={step === 2 ? styles.stepOn : styles.stepIdle}>2. {t("products.stepRecipe")}</span>
-      </div>
-
+    <form
+      ref={formRef}
+      className={styles.wizard}
+      onSubmit={(e) => {
+        e.preventDefault();
+        submitAll(new FormData(e.currentTarget));
+      }}
+    >
       {error ? <p className={styles.error}>{error}</p> : null}
 
-      {step === 1 ? (
-        <form
-          className={catalogStyles.formGrid}
-          onSubmit={(e) => {
-            e.preventDefault();
-            submitStep1(new FormData(e.currentTarget));
-          }}
+      <div className={styles.photoRow}>
+        <button
+          type="button"
+          className={styles.photoThumb}
+          onClick={() => galleryRef.current?.click()}
+          aria-label={t("products.photo")}
         >
-          <div className={`${catalogStyles.formFull} ${styles.photoBlock}`}>
-            <p className={styles.photoLabel}>{t("products.photo")}</p>
-            {photoPreview ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={photoPreview} alt="" className={styles.photoPreview} />
-            ) : (
-              <div className={styles.photoEmpty}>{t("products.photoHint")}</div>
-            )}
-            <div className={styles.photoActions}>
-              <button type="button" className={styles.photoBtn} onClick={() => cameraRef.current?.click()}>
-                <Camera size={18} strokeWidth={ICON_STROKE} aria-hidden />
-                {t("products.photoCamera")}
-              </button>
-              <button type="button" className={styles.photoBtn} onClick={() => galleryRef.current?.click()}>
-                <ImagePlus size={18} strokeWidth={ICON_STROKE} aria-hidden />
-                {t("products.photoGallery")}
-              </button>
-            </div>
-            <input
-              ref={cameraRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className={styles.hiddenFile}
-              onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
-            />
-            <input
-              ref={galleryRef}
-              type="file"
-              accept="image/*"
-              className={styles.hiddenFile}
-              onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
-            />
+          {photoPreview ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={photoPreview} alt="" className={styles.photoThumbImg} />
+          ) : (
+            <ImagePlus size={22} strokeWidth={ICON_STROKE} aria-hidden />
+          )}
+        </button>
+        <div className={styles.photoSide}>
+          <p className={styles.photoLabel}>{t("products.photoOptional")}</p>
+          <div className={styles.photoActions}>
+            <button type="button" className={styles.photoBtn} onClick={() => cameraRef.current?.click()}>
+              <Camera size={16} strokeWidth={ICON_STROKE} aria-hidden />
+              {t("products.photoCamera")}
+            </button>
+            <button type="button" className={styles.photoBtn} onClick={() => galleryRef.current?.click()}>
+              <ImagePlus size={16} strokeWidth={ICON_STROKE} aria-hidden />
+              {t("products.photoGallery")}
+            </button>
           </div>
+        </div>
+        <input
+          ref={cameraRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className={styles.hiddenFile}
+          onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
+        />
+        <input
+          ref={galleryRef}
+          type="file"
+          accept="image/*"
+          className={styles.hiddenFile}
+          onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
+        />
+      </div>
 
-          <FormField label={t("common.name")} required>
-            <input name="name" required className="ui-input" />
-          </FormField>
-          <FormField label={t("common.category")}>
-            <input name="category" defaultValue={defaults.category} className="ui-input" />
-          </FormField>
-          <FormField label={t("products.saleUnit")} required>
+      <div className={catalogStyles.formGrid}>
+        <FormField label={t("common.name")} required className={catalogStyles.formFull}>
+          <input name="name" required maxLength={200} className="ui-input" autoComplete="off" />
+        </FormField>
+        <FormField label={t("common.category")} className={catalogStyles.formFull}>
+          <input name="category" defaultValue={defaults.category} className="ui-input" />
+        </FormField>
+      </div>
+
+      {!showMore ? (
+        <>
+          <input type="hidden" name="saleUnitId" value={defaults.saleUnitId} />
+          <input type="hidden" name="outputUnitId" value={defaults.outputUnitId} />
+          <input type="hidden" name="recipeBaseQty" value={defaults.recipeBaseQty} />
+          <input type="hidden" name="outputPerBase" value={defaults.outputPerBase} />
+        </>
+      ) : null}
+
+      <button
+        type="button"
+        className={styles.moreToggle}
+        onClick={() => setShowMore((v) => !v)}
+        aria-expanded={showMore}
+      >
+        <ChevronDown
+          size={16}
+          strokeWidth={ICON_STROKE}
+          className={showMore ? styles.moreChevronOpen : undefined}
+          aria-hidden
+        />
+        {t("products.moreSettings")}
+      </button>
+
+      {showMore ? (
+        <div className={`${catalogStyles.formGrid} ${styles.moreGrid}`}>
+          <FormField label={t("products.saleUnitSimple")}>
             <AppSelect name="saleUnitId" defaultValue={defaults.saleUnitId} required options={unitOptions} />
           </FormField>
-          <FormField label={t("products.fgUnit")} required>
+          <FormField label={t("products.fgUnitSimple")}>
             <AppSelect name="outputUnitId" defaultValue={defaults.outputUnitId} required options={unitOptions} />
           </FormField>
-          <FormField label={t("products.recipeBaseShort")}>
-            <input name="recipeBaseQty" defaultValue={defaults.recipeBaseQty} className="ui-input" />
+          <FormField label={t("products.recipeBaseSimple")} hint={t("products.tipRecipe")}>
+            <input name="recipeBaseQty" defaultValue={defaults.recipeBaseQty} className="ui-input" inputMode="decimal" />
           </FormField>
-          <FormField label={t("products.outputBaseShort")}>
-            <input name="outputPerBase" defaultValue={defaults.outputPerBase} className="ui-input" />
+          <FormField label={t("products.outputSimple")} hint={t("products.tipOutput")}>
+            <input name="outputPerBase" defaultValue={defaults.outputPerBase} className="ui-input" inputMode="decimal" />
           </FormField>
+        </div>
+      ) : null}
 
-          <button
-            type="submit"
-            className={`${catalogStyles.formFull} ui-btn-primary min-h-[44px]`}
-            disabled={pending}
-          >
-            {pending ? t("common.saving") : t("products.toStep2")}
-          </button>
-        </form>
-      ) : (
-        <div className={styles.step2}>
-          <p className={styles.step2Lead}>{t("products.stepRecipeLead")}</p>
+      <div className={styles.block}>
+        <p className={styles.blockTitle}>{t("products.recipeTitle")}</p>
+        <p className={styles.blockHint}>{t("products.stepRecipeLead")}</p>
 
-          <ul className={styles.recipeList}>
-            {rows.map((row, index) => {
-              const mat = materialMap.get(row.materialId);
-              const unitPrice = mat?.unitCost ?? null;
-              let line: string | null = null;
-              try {
-                if (unitPrice && row.quantity) {
-                  line = moneyDisplay(D(unitPrice).mul(row.quantity));
-                }
-              } catch {
-                line = null;
-              }
-              return (
-                <li key={row.key} className={styles.recipeRow}>
-                  <AppSelect
-                    value={row.materialId}
-                    onChange={(value) => {
-                      const m = materialMap.get(value);
-                      setRows((prev) =>
-                        prev.map((r, i) =>
-                          i === index
-                            ? {
-                                ...r,
-                                materialId: value,
-                                unitId: m?.storageUnitId ?? r.unitId,
-                              }
-                            : r,
-                        ),
-                      );
+        <ul className={styles.recipeList}>
+          {rows.map((row, index) => {
+            const mat = materialMap.get(row.materialId);
+            return (
+              <li key={row.key} className={styles.recipeRow}>
+                <AppSelect
+                  value={row.materialId}
+                  onChange={(value) => {
+                    const m = materialMap.get(value);
+                    setRows((prev) =>
+                      prev.map((r, i) =>
+                        i === index
+                          ? { ...r, materialId: value, unitId: m?.storageUnitId ?? r.unitId }
+                          : r,
+                      ),
+                    );
+                  }}
+                  options={materialOptions}
+                  placeholder={t("products.pickMaterial")}
+                />
+                <div className={styles.qtyRow}>
+                  <input
+                    className="ui-input"
+                    inputMode="decimal"
+                    placeholder={mat ? `${t("common.qty")}, ${mat.storageSymbol}` : t("common.qty")}
+                    value={row.quantity}
+                    onChange={(e) => {
+                      const q = e.target.value;
+                      setRows((prev) => prev.map((r, i) => (i === index ? { ...r, quantity: q } : r)));
                     }}
-                    options={materialOptions}
-                    placeholder={t("products.pickMaterial")}
                   />
                   {rows.length > 1 ? (
                     <button
@@ -287,100 +307,63 @@ export function ProductCreateWizard({
                     >
                       <Trash2 size={16} strokeWidth={ICON_STROKE} />
                     </button>
-                  ) : (
-                    <span />
-                  )}
-                  <div className={styles.qtyCost}>
-                    <label className={styles.miniLabel}>
-                      {t("common.qty")}
-                      {mat ? ` (${mat.storageSymbol})` : ""}
-                      <input
-                        className="ui-input"
-                        inputMode="decimal"
-                        placeholder="1"
-                        value={row.quantity}
-                        onChange={(e) => {
-                          const q = e.target.value;
-                          setRows((prev) => prev.map((r, i) => (i === index ? { ...r, quantity: q } : r)));
-                        }}
-                      />
-                    </label>
-                    <div className={styles.miniLabel}>
-                      {t("products.matUnitPrice")}
-                      {mat ? ` / ${mat.storageSymbol}` : ""}
-                      <div className={styles.costCell}>
-                        {unitPrice ? `${moneyDisplay(unitPrice)} с` : t("products.noPrice")}
-                        {!unitPrice && mat ? <small>{t("products.matPriceFromBuy")}</small> : null}
-                      </div>
-                    </div>
-                  </div>
-                  <p className={styles.lineSum}>
-                    {t("products.lineCost")}: <strong>{line ? `${line} с` : "—"}</strong>
-                  </p>
-                </li>
-              );
-            })}
-          </ul>
+                  ) : null}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
 
-          <button
-            type="button"
-            className={styles.addRow}
-            onClick={() => {
-              setRows((prev) => [
-                ...prev,
-                {
-                  key: nextKey,
-                  materialId: "",
-                  quantity: "",
-                  unitId: units[0]?.id ?? "",
-                },
-              ]);
-              setNextKey((k) => k + 1);
-            }}
-          >
-            <Plus size={16} strokeWidth={ICON_STROKE} aria-hidden />
-            {t("products.addMaterial")}
-          </button>
+        <button
+          type="button"
+          className={styles.addRow}
+          onClick={() => {
+            setRows((prev) => [
+              ...prev,
+              { key: nextKey, materialId: "", quantity: "", unitId: units[0]?.id ?? "" },
+            ]);
+            setNextKey((k) => k + 1);
+          }}
+        >
+          <Plus size={16} strokeWidth={ICON_STROKE} aria-hidden />
+          {t("products.addMaterial")}
+        </button>
 
-          <div className={styles.expenseBox}>
-            <span>{t("products.expenseTotal")}</span>
-            <strong>{expense ? `${moneyDisplay(expense)} с` : "—"}</strong>
-          </div>
-
-          <div className={catalogStyles.formGrid}>
-            <FormField label={t("products.salePrice")} required>
-              <input
-                className="ui-input"
-                inputMode="decimal"
-                value={price}
-                placeholder={expense ? moneyDisplay(expense) : t("products.phSalePrice")}
-                onChange={(e) => setPrice(e.target.value)}
-                required
-              />
-            </FormField>
-            <FormField label={t("products.minPrice")} required>
-              <input
-                className="ui-input"
-                inputMode="decimal"
-                value={minPrice}
-                placeholder={expense ? moneyDisplay(expense) : t("products.phMinPrice")}
-                onChange={(e) => setMinPrice(e.target.value)}
-                required
-              />
-            </FormField>
-          </div>
-          <p className={styles.priceHint}>{t("products.priceAfterCostHint")}</p>
-
-          <button
-            type="button"
-            className="ui-btn-primary min-h-[44px] w-full"
-            disabled={pending}
-            onClick={submitStep2}
-          >
-            {pending ? t("common.saving") : t("products.finishCreate")}
-          </button>
+        <div className={styles.expenseBox}>
+          <span>{t("products.expenseTotal")}</span>
+          <strong>{expense ? `${moneyDisplay(expense)} с` : "—"}</strong>
         </div>
-      )}
-    </div>
+      </div>
+
+      <div className={styles.block}>
+        <p className={styles.blockTitle}>{t("products.groupStock")}</p>
+        <div className={catalogStyles.formGrid}>
+          <FormField label={t("products.salePrice")} required>
+            <input
+              className="ui-input"
+              inputMode="decimal"
+              value={price}
+              placeholder={expense ? moneyDisplay(expense) : t("products.phSalePrice")}
+              onChange={(e) => setPrice(e.target.value)}
+              required
+            />
+          </FormField>
+          <FormField label={t("products.minPriceSimple")} hint={t("products.minPriceHint")} required>
+            <input
+              className="ui-input"
+              inputMode="decimal"
+              value={minPrice}
+              placeholder={expense ? moneyDisplay(expense) : t("products.phMinPrice")}
+              onChange={(e) => setMinPrice(e.target.value)}
+              required
+            />
+          </FormField>
+        </div>
+      </div>
+
+      <button type="submit" className="ui-btn-primary min-h-[44px] w-full" disabled={pending}>
+        {pending ? t("common.saving") : t("products.finishCreate")}
+      </button>
+    </form>
   );
 }

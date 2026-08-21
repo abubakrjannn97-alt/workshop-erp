@@ -31,9 +31,6 @@ export default async function NewProductPage() {
         </div>
       </header>
       <section className={styles.section} data-tour="products-form">
-        <div className={`${styles.sectionHead} ${catalogStyles.sectionTightHead}`}>
-          <h2 className={styles.sectionTitle}>{t("products.newTitle")}</h2>
-        </div>
         <div className={`${styles.sectionBody} ${catalogStyles.sectionTightBody}`}>
           <ProductCreateWizard
             locale={locale}
