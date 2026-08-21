@@ -14,7 +14,7 @@ export const FACADE_I18N_OVERRIDES: Record<Locale, Dict> = {
     "home.kpi.finishedGoods": "Остаток плитки",
     "home.kpi.onStock": "Готово к продаже",
     "home.kpi.fgUnit": "шт",
-    "home.kpi.fgHint": "Сколько плиток / камня лежит на складе ГП",
+    "home.kpi.fgHint": "На складе ГП",
     "home.greetCalm": "Всё спокойно. Фасадное производство под контролем.",
     "home.actionAddProduct": "Добавить изделие (плитка / камень)",
 
@@ -76,7 +76,7 @@ export const FACADE_I18N_OVERRIDES: Record<Locale, Dict> = {
     "home.kpi.finishedGoods": "Боқимондаи плитка",
     "home.kpi.onStock": "Омода ба фурӯш",
     "home.kpi.fgUnit": "дона",
-    "home.kpi.fgHint": "Чанд плитка / санг дар анбори ГП ҳаст",
+    "home.kpi.fgHint": "Дар анбори ГП",
     "home.greetCalm": "Ором. Истеҳсоли фасад зери назорат аст.",
     "home.actionAddProduct": "Маҳсулот илова (плитка / санг)",
 
