@@ -1,16 +1,15 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import {
-  CheckCircle2,
   ChevronRight,
   ClipboardList,
   Plus,
-  Sparkles,
 } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import { EmptyState } from "@/components/empty-state";
 import { OrdersStatusFilter } from "./orders-status-filter";
 import { StatusBadge, orderTone, type BadgeTone } from "@/components/status-badge";
+import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import styles from "./orders.module.css";
 
 export type OrderListItem = {
@@ -21,7 +20,11 @@ export type OrderListItem = {
   dueAt: Date | null;
   customer: { name: string; id: string };
   status: { code: string; name: string };
-  items?: { product: { name: string } }[];
+  items?: {
+    quantity: unknown;
+    outputQty: unknown;
+    product: { name: string; photoUrl?: string | null; saleUnit?: { symbol: string } | null };
+  }[];
 };
 
 export type OrdersSummary = {
@@ -69,7 +72,7 @@ export function OrdersPageHeader({
       <div className={styles.headerMain}>
         <div className={styles.headerText}>
           <h1 className={styles.title}>{title}</h1>
-          <p className={styles.subtitle}>{subtitle}</p>
+          {subtitle ? <p className={styles.subtitle}>{subtitle}</p> : null}
         </div>
         <div className={styles.headerActions}>
           <Link href={historyHref} className={styles.ghostLink}>
@@ -79,70 +82,6 @@ export function OrdersPageHeader({
       </div>
       <Suspense fallback={null}>{mobileTools}</Suspense>
     </header>
-  );
-}
-
-export function OrdersSummaryStrip({
-  summary,
-  labels,
-  activeBucket,
-  newHref,
-  completedHref,
-}: {
-  summary: OrdersSummary;
-  labels: {
-    new: string;
-    completed: string;
-  };
-  activeBucket: "new" | "COMPLETED";
-  newHref: string;
-  completedHref: string;
-}) {
-  const cards = [
-    {
-      id: "new",
-      label: labels.new,
-      value: String(summary.newCount),
-      hint: `${summary.newRevenue} с`,
-      icon: Sparkles,
-      tone: styles.summaryOrange,
-      href: newHref,
-      active: activeBucket === "new",
-    },
-    {
-      id: "completed",
-      label: labels.completed,
-      value: String(summary.completedCount),
-      hint: `${summary.completedRevenue} с`,
-      icon: CheckCircle2,
-      tone: styles.summaryGreen,
-      href: completedHref,
-      active: activeBucket === "COMPLETED",
-    },
-  ];
-
-  return (
-    <section className={styles.summaryGrid} aria-label={labels.new}>
-      {cards.map((card) => {
-        const Icon = card.icon;
-        return (
-          <Link
-            key={card.id}
-            href={card.href}
-            scroll={false}
-            aria-current={card.active ? "page" : undefined}
-            className={`${styles.summaryCard} ${card.tone} ${card.active ? styles.summaryCardActive : ""}`.trim()}
-          >
-            <span className={styles.summaryIcon}>
-              <Icon size={20} strokeWidth={ICON_STROKE} aria-hidden />
-            </span>
-            <p className={styles.summaryLabel}>{card.label}</p>
-            <p className={styles.summaryValue}>{card.value}</p>
-            <p className={styles.summaryHint}>{card.hint}</p>
-          </Link>
-        );
-      })}
-    </section>
   );
 }
 
@@ -278,27 +217,34 @@ export function OrdersListPanel({
 
       <ul className={styles.mobileList}>
         {orders.map((order) => {
-          const overdue = isOrderOverdue(order);
-          const label = statusLabel(order.status.code, order.status.name);
+          const item = order.items?.[0];
+          const product = item?.product;
+          const qty = item ? qtyDisplay(String(item.outputQty ?? item.quantity ?? 0)) : "—";
+          const unit = product?.saleUnit?.symbol ?? "";
+          const photo = product?.photoUrl;
           return (
             <li key={order.id}>
-              <Link
-                href={`/orders/${order.id}`}
-                className={`${styles.mobileCard} ${overdue ? styles.mobileCardAttention : ""}`.trim()}
-              >
-                <div className={styles.mobileTop}>
-                  <span className={styles.mobileCustomerName}>{order.customer.name}</span>
-                  <span className={styles.chevron} aria-hidden>
-                    <ChevronRight size={16} strokeWidth={ICON_STROKE} />
-                  </span>
-                </div>
-                <p className={styles.mobileProduct}>{productSummary(order, productMoreLabel)}</p>
-                <div className={styles.mobileBottom}>
-                  <div className={styles.statusCell}>
-                    <StatusBadge label={label} tone={orderTone(order.status.code) as BadgeTone} />
-                    {overdue ? <span className={styles.attention}>{attentionLabel}</span> : null}
+              <Link href={`/orders/${order.id}`} className={styles.mobileCard}>
+                <div className={styles.mobileSaleRow}>
+                  <div className={styles.mobileSalePhoto}>
+                    {photo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={photo} alt="" className={styles.mobileSaleImg} />
+                    ) : (
+                      <span className={styles.mobileSalePhotoEmpty}>
+                        {(product?.name ?? "?").slice(0, 1)}
+                      </span>
+                    )}
                   </div>
-                  <span className={styles.mobileAmount}>{moneyDisplay(String(order.total))} с</span>
+                  <div className={styles.mobileSaleBody}>
+                    <p className={styles.mobileProduct}>{product?.name ?? productSummary(order, productMoreLabel)}</p>
+                    <p className={styles.mobileSaleMeta}>
+                      {qty} {unit}
+                      {" · "}
+                      {order.customer.name}
+                    </p>
+                    <p className={styles.mobileAmount}>{moneyDisplay(String(order.total))} с</p>
+                  </div>
                 </div>
               </Link>
             </li>

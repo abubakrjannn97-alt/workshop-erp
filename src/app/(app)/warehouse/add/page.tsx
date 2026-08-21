@@ -1,9 +1,9 @@
+import Link from "next/link";
 import { getTranslator } from "@core/shared/i18n/locale";
 import { redirect } from "next/navigation";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
-import { qtyDisplay } from "@core/shared/decimal";
-import { D } from "@core/shared/decimal";
+import { qtyDisplay, D } from "@core/shared/decimal";
 import { getRawWarehouse } from "@/core/config/resolve-warehouse";
 import { receiveOpening, addRawMaterialToWarehouse } from "@/app/actions/inventory";
 import { FormField } from "@/components/form-field";
@@ -91,9 +91,7 @@ export default async function AddWarehouseMaterialPage({
                 inputMode="decimal"
                 className="ui-input"
                 defaultValue={
-                  lowFirst[0]?.lastPurchasePrice
-                    ? String(lowFirst[0].lastPurchasePrice)
-                    : ""
+                  lowFirst[0]?.lastPurchasePrice ? String(lowFirst[0].lastPurchasePrice) : ""
                 }
               />
             </FormField>
@@ -101,9 +99,12 @@ export default async function AddWarehouseMaterialPage({
           <PendingButton className="ui-btn-primary min-h-[40px] w-full" pendingLabel={t("common.sending")}>
             {t("wh.addMaterial")}
           </PendingButton>
-          <a href="/warehouse/add?mode=new" className="text-center text-[13px] text-[var(--ink-2)] underline-offset-2 hover:underline">
+          <Link
+            href="/warehouse/add?mode=new"
+            className="text-center text-[13px] text-[var(--ink-2)] underline-offset-2 hover:underline"
+          >
             {t("wh.addMaterialNew")}
-          </a>
+          </Link>
         </form>
       ) : (
         <form action={createNew} className="ui-card grid gap-2.5 p-3.5">
@@ -125,9 +126,12 @@ export default async function AddWarehouseMaterialPage({
           <PendingButton className="ui-btn-primary min-h-[40px] w-full" pendingLabel={t("common.sending")}>
             {t("wh.addMaterial")}
           </PendingButton>
-          <a href="/warehouse/add" className="text-center text-[13px] text-[var(--ink-2)] underline-offset-2 hover:underline">
+          <Link
+            href="/warehouse/add"
+            className="text-center text-[13px] text-[var(--ink-2)] underline-offset-2 hover:underline"
+          >
             {t("common.back")}
-          </a>
+          </Link>
         </form>
       )}
     </div>

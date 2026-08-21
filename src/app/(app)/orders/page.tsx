@@ -1,21 +1,13 @@
 import { getTranslator } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
-import { requirePermission } from "@core/auth/authz";
-import { hasPermission } from "@core/auth/authz";
-import { D, moneyDisplay } from "@core/shared/decimal";
+import { requirePermission, hasPermission } from "@core/auth/authz";
+import { moneyDisplay } from "@core/shared/decimal";
 import {
   ORDERS_PAGE_SIZE,
   buildOrdersQuery,
   resolveOrderDateRange,
 } from "@core/shared/order-period";
-import {
-  completedOrdersStatusWhere,
-  newOrdersStatusWhere,
-  orderListStatusWhere,
-  resolveOrderListBucket,
-  ORDER_LIST_BUCKET_DONE,
-  ORDER_LIST_BUCKET_NEW,
-} from "@core/shared/orders-list-filter";
+import { orderListStatusWhere, resolveOrderListBucket } from "@core/shared/orders-list-filter";
 import { Segmented } from "@/components/segmented";
 import { OrdersMobileHeaderTools } from "./orders-mobile-header-tools";
 import { OrdersPeriodPicker } from "./orders-period-picker";
@@ -24,7 +16,6 @@ import {
   OrdersFilterToolbar,
   OrdersListPanel,
   OrdersPageHeader,
-  OrdersSummaryStrip,
   type OrderListItem,
 } from "./orders-ui";
 import styles from "./orders.module.css";
@@ -79,14 +70,18 @@ export default async function OrdersPage({
     ...orderListStatusWhere(status),
   };
 
-  const [orders, total, statuses, newStats, completedStats] = await Promise.all([
+  const [orders, total, statuses] = await Promise.all([
     prisma.order.findMany({
       where,
       include: {
         customer: true,
         seller: true,
         status: true,
-        items: { include: { product: true }, orderBy: { id: "asc" }, take: 3 },
+        items: {
+          include: { product: { include: { saleUnit: true } } },
+          orderBy: { id: "asc" },
+          take: 3,
+        },
       },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * ORDERS_PAGE_SIZE,
@@ -94,16 +89,6 @@ export default async function OrdersPage({
     }),
     prisma.order.count({ where }),
     prisma.orderStatus.findMany({ orderBy: { sortOrder: "asc" } }),
-    prisma.order.aggregate({
-      where: { ...periodWhere, ...newOrdersStatusWhere() },
-      _count: true,
-      _sum: { total: true },
-    }),
-    prisma.order.aggregate({
-      where: { ...periodWhere, ...completedOrdersStatusWhere() },
-      _count: true,
-      _sum: { total: true },
-    }),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / ORDERS_PAGE_SIZE));
@@ -118,7 +103,7 @@ export default async function OrdersPage({
 
   const statusLabel = (code: string, name: string) => n("ostatus", code, name);
   const productMoreLabel = (extra: number) => t("orders.productMore", { n: String(extra) });
-  const listOrders = orders as OrderListItem[];
+  const listOrders = orders as unknown as OrderListItem[];
 
   return (
     <div className={styles.page}>
@@ -137,22 +122,6 @@ export default async function OrdersPage({
             newOrderLabel={t("sales.quickTitle")}
           />
         }
-      />
-
-      <OrdersSummaryStrip
-        summary={{
-          newCount: newStats._count,
-          newRevenue: moneyDisplay(D(String(newStats._sum.total ?? 0))),
-          completedCount: completedStats._count,
-          completedRevenue: moneyDisplay(D(String(completedStats._sum.total ?? 0))),
-        }}
-        labels={{
-          new: t("orders.kpiNew"),
-          completed: t("orders.kpiCompleted"),
-        }}
-        activeBucket={activeBucket}
-        newHref={buildOrdersQuery({ ...baseQuery, status: ORDER_LIST_BUCKET_NEW, page: undefined })}
-        completedHref={buildOrdersQuery({ ...baseQuery, status: ORDER_LIST_BUCKET_DONE, page: undefined })}
       />
 
       <div className={styles.navRow}>
@@ -223,20 +192,21 @@ export default async function OrdersPage({
           orders={listOrders}
           moneyDisplay={moneyDisplay}
           statusLabel={statusLabel}
-          attentionLabel={t("orders.attention")}
+          attentionLabel={t("orders.overdue")}
           productMoreLabel={productMoreLabel}
-          colCustomer={t("home.col.customer")}
-          colProduct={t("home.col.product")}
-          colStatus={t("home.col.status")}
-          colAmount={t("home.col.amount")}
+          colCustomer={t("common.customer")}
+          colProduct={t("common.product")}
+          colStatus={t("common.status")}
+          colAmount={t("common.amount")}
           pagination={{
             page,
             totalPages,
-            prevHref: page > 1 ? buildOrdersQuery({ ...baseQuery, page: String(page - 1) }) : undefined,
-            nextHref: page < totalPages ? buildOrdersQuery({ ...baseQuery, page: String(page + 1) }) : undefined,
-            prevLabel: t("common.back"),
+            prevHref: page > 1 ? buildOrdersQuery({ ...baseQuery, page: page - 1 }) : undefined,
+            nextHref:
+              page < totalPages ? buildOrdersQuery({ ...baseQuery, page: page + 1 }) : undefined,
+            prevLabel: t("common.prev"),
             nextLabel: t("common.next"),
-            meta: `${page} / ${totalPages}`,
+            meta: t("orders.pageMeta", { page: String(page), pages: String(totalPages) }),
           }}
         />
       )}

@@ -52,7 +52,7 @@ export function QuickSaleForm({
   };
 }) {
   const router = useRouter();
-  const [pending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [customerId, setCustomerId] = useState(customers[0]?.id ?? NEW_CUSTOMER);
   const [phone, setPhone] = useState(
@@ -176,11 +176,7 @@ export function QuickSaleForm({
         </select>
       </FormField>
 
-      <PendingButton
-        className="ui-btn-primary min-h-[44px]"
-        pendingLabel={labels.sending}
-        disabled={pending}
-      >
+      <PendingButton className="ui-btn-primary min-h-[44px]" pendingLabel={labels.sending}>
         {labels.submit}
       </PendingButton>
     </form>

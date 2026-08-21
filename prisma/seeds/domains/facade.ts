@@ -142,7 +142,7 @@ async function seedFacadeCatalog(prisma: PrismaClient) {
     const nextVersion = (versions[0]?.versionNumber ?? 0) + 1;
     if (replaceExisting && versions.length > 0) {
       await prisma.recipeItem.deleteMany({
-        where: { versionId: { in: versions.map((v) => v.id) } },
+        where: { recipeVersionId: { in: versions.map((v) => v.id) } },
       });
       await prisma.recipeVersion.deleteMany({ where: { recipeId: recipe.id } });
     }

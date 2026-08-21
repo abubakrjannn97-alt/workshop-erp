@@ -710,13 +710,58 @@
 }
 
 .mobileProduct {
-  margin-top: 2px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--ink);
+}
+
+.mobileSaleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mobileSalePhoto {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f3f1ec;
+}
+
+.mobileSaleImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mobileSalePhotoEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+
+.mobileSaleBody {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mobileSaleMeta {
+  margin: 0;
   font-size: 13px;
   line-height: 18px;
   color: var(--ink-2);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .mobileBottom {

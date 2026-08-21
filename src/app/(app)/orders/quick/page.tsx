@@ -72,7 +72,7 @@ export default async function QuickSalePage() {
           labels={{
             customer: t("common.customer"),
             newCustomer: t("sales.quickNewCustomer"),
-            customerName: t("common.name"),
+            customerName: t("sales.quickCustomerName"),
             phone: t("sales.quickPhone"),
             product: t("common.product"),
             quantity: t("common.quantity"),
