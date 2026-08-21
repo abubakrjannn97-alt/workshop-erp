@@ -226,6 +226,8 @@ model Product {
   outputUnitId   String
   minStock       Decimal   @default(0) @db.Decimal(18, 6)
   maxStock       Decimal   @default(0) @db.Decimal(18, 6)
+  /** Worker pay per 1 sale unit (м²) of good output for this product. */
+  laborRate      Decimal   @default(0) @db.Decimal(18, 4)
   isActive       Boolean   @default(true)
   archivedAt     DateTime?
   createdAt      DateTime  @default(now())

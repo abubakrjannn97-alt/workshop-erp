@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
+import styles from "./need-preview.module.css";
 
 type Line = {
   materialName: string;
@@ -13,69 +13,73 @@ type Line = {
 
 export function NeedPreview({
   lines,
-  outputPerBase,
-  outputSymbol,
   saleSymbol,
   recipeBaseQty,
+  laborRate,
   locale,
   showCosts = true,
 }: {
   lines: Line[];
-  outputPerBase: string;
-  outputSymbol: string;
   saleSymbol: string;
   recipeBaseQty: string;
+  laborRate: string;
   locale: Locale;
   showCosts?: boolean;
 }) {
   const t = createT(locale);
-  const [orderQty, setOrderQty] = useState("50");
-  const scale = useMemo(() => {
+  const base = (() => {
     try {
-      const base = D(recipeBaseQty);
-      if (base.lte(0)) return D(orderQty || "0");
-      return D(orderQty || "0").div(base);
+      const b = D(recipeBaseQty);
+      return b.gt(0) ? b : D(1);
+    } catch {
+      return D(1);
+    }
+  })();
+  /** Normalize recipe lines to 1 sale unit (м²). */
+  const scale = D(1).div(base);
+  const labor = (() => {
+    try {
+      return D(laborRate || "0");
     } catch {
       return D(0);
     }
-  }, [orderQty, recipeBaseQty]);
+  })();
 
-  const total = lines.reduce((sum, line) => {
+  const materialsTotal = lines.reduce((sum, line) => {
     if (!line.lineCost) return sum;
     return sum.add(D(line.lineCost).mul(scale));
   }, D(0));
+  const total = materialsTotal.add(labor);
 
   return (
-    <div className="ui-card">
-      <h2 className="text-sm font-semibold">{t("products.needTitle")}</h2>
-      <p className="mt-1 text-xs text-[var(--muted)]">{t("products.needHint")}</p>
-      <label className="mt-3 block text-sm">
-        {t("orders.qtyWithUnit")}, {saleSymbol}
-        <input
-          value={orderQty}
-          onChange={(e) => setOrderQty(e.target.value)}
-          className="mt-1 w-40 rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
-        />
-      </label>
-      <p className="mt-2 text-sm text-[var(--text-muted)]">
-        {t("products.readyUnits")}: {qtyDisplay(D(outputPerBase).mul(scale))} {outputSymbol}
-      </p>
-      <ul className="mt-3 space-y-1 text-sm">
+    <div className={styles.box}>
+      <p className={styles.title}>{t("products.costPerM2", { u: saleSymbol })}</p>
+      <ul className={styles.list}>
         {lines.map((line) => (
-          <li key={line.materialName} className="flex justify-between gap-4">
+          <li key={line.materialName} className={styles.row}>
             <span>
               {line.materialName}: {qtyDisplay(D(line.quantity).mul(scale))} {line.unitSymbol}
             </span>
-            <span className="font-mono text-xs">
-              {showCosts && line.lineCost ? `${moneyDisplay(D(line.lineCost).mul(scale))} с` : showCosts ? t("products.noPrice") : ""}
-            </span>
+            {showCosts ? (
+              <span className={styles.amount}>
+                {line.lineCost ? `${moneyDisplay(D(line.lineCost).mul(scale))} с` : t("products.noPrice")}
+              </span>
+            ) : null}
           </li>
         ))}
+        <li className={styles.row}>
+          <span>{t("products.laborLine")}</span>
+          {showCosts ? (
+            <span className={styles.amount}>
+              {labor.gt(0) ? `${moneyDisplay(labor)} с` : "—"}
+            </span>
+          ) : null}
+        </li>
       </ul>
       {showCosts ? (
-      <p className="mt-3 text-sm font-semibold">
-        {t("products.matsOnOrder")}: {moneyDisplay(total)} с
-      </p>
+        <p className={styles.total}>
+          {t("products.costPerM2Total")}: {moneyDisplay(total)} с
+        </p>
       ) : null}
     </div>
   );

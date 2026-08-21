@@ -27,6 +27,8 @@ export type FacadeProductDef = {
   minStock?: string;
   /** Soft ceiling — workers can pause production above this. */
   maxStock?: string;
+  /** Worker pay с per 1 м² for this product. */
+  laborRate?: string;
   outputPerBase: number;
   recipeComment: string;
   recipeItems: FacadeRecipeItemDef[];
