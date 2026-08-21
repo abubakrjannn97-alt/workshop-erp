@@ -2,7 +2,6 @@ import { getTranslator } from "@core/shared/i18n/locale";
 import Link from "next/link";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
-import { WarehouseNav } from "@/components/warehouse-nav";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { D } from "@core/shared/decimal";
 import { getFgWarehouse } from "@/core/config/resolve-warehouse";
@@ -10,7 +9,7 @@ import { saleToOutputQty } from "@core/inventory/finished-goods";
 import styles from "../warehouse.module.css";
 
 export default async function FinishedWarehousePage() {
-  const { t, locale } = await getTranslator();
+  const { t } = await getTranslator();
   const session = await requirePermission("inventory.view");
   const canReceive = session.user.roleCode === "owner" || session.user.permissions.includes("inventory.receive");
   const fg = await getFgWarehouse();
@@ -22,14 +21,13 @@ export default async function FinishedWarehousePage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.toolbar}>
-        <WarehouseNav current="fg" locale={locale} />
-        {canReceive ? (
+      {canReceive ? (
+        <div className={styles.toolbar}>
           <Link href="/warehouse/finished/receive" className={styles.softBtn}>
             {t("common.receipt")}
           </Link>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       <section className={styles.section}>
         <div className={styles.sectionHead}>

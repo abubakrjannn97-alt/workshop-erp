@@ -2,7 +2,6 @@ import { getTranslator } from "@core/shared/i18n/locale";
 import Link from "next/link";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
-import { WarehouseNav } from "@/components/warehouse-nav";
 import { qtyDisplay } from "@core/shared/decimal";
 import { D } from "@core/shared/decimal";
 import { getRawWarehouse } from "@/core/config/resolve-warehouse";
@@ -16,7 +15,7 @@ export default async function WarehousePage({
 }: {
   searchParams: Promise<{ view?: string }>;
 }) {
-  const { t, locale } = await getTranslator();
+  const { t } = await getTranslator();
   const session = await requirePermission("inventory.view");
   const canReceive = hasPermission(session.user.permissions, session.user.roleCode, "inventory.receive");
   const params = await searchParams;
@@ -68,14 +67,13 @@ export default async function WarehousePage({
     <div className={styles.page}>
       <WarehouseMetrics items={metrics} activeId={activeId} />
 
-      <div className={styles.toolbar}>
-        <WarehouseNav current="raw" locale={locale} />
-        {canReceive ? (
+      {canReceive ? (
+        <div className={styles.toolbar}>
           <Link href="/warehouse/add" className={styles.iconBtn} aria-label={t("wh.addMaterial")}>
             <Plus size={18} strokeWidth={ICON_STROKE} />
           </Link>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       {activeId === "urgent" ? (
         <section className={styles.section}>
