@@ -147,6 +147,131 @@
   opacity: 0.5;
 }
 
+.productWrap {
+  position: relative;
+  z-index: 30;
+}
+
+.productTrigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(28, 35, 43, 0.03);
+}
+
+.productTrigger:focus-visible {
+  outline: none;
+  border-color: rgba(154, 115, 56, 0.45);
+}
+
+.productThumb {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 9px;
+  overflow: hidden;
+  background: #f3f1ec;
+  display: grid;
+  place-items: center;
+}
+
+.productThumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.productThumbEmpty {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-3);
+}
+
+.productTriggerText {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.productTriggerName {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 16px;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.productTriggerMeta {
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--ink-2);
+}
+
+.productChevron {
+  flex-shrink: 0;
+  color: var(--ink-3);
+  transition: transform 0.15s;
+}
+
+.productChevronOpen {
+  transform: rotate(180deg);
+}
+
+.productList {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  max-height: min(280px, 48vh);
+  overflow-y: auto;
+  padding: 6px;
+  border: 1px solid #e5e2dc;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(28, 35, 43, 0.16);
+  scrollbar-width: none;
+}
+
+.productList::-webkit-scrollbar {
+  display: none;
+}
+
+.productOption {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.productOption:hover {
+  background: #f6f3ee;
+}
+
+.productOptionActive {
+  background: linear-gradient(180deg, #fffaf2 0%, #f3ead8 100%);
+}
+
 .row2 {
   display: grid;
   grid-template-columns: 1fr 1fr;

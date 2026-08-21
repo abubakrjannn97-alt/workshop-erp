@@ -2,10 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { UserRound } from "lucide-react";
+import { ChevronDown, UserRound } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import { FormField } from "@/components/form-field";
-import { AppSelect } from "@/components/app-select";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
 import { quickSaleFromFg } from "@/app/actions/quick-sale";
@@ -68,12 +67,14 @@ export function QuickSaleForm({
   const router = useRouter();
   const [, startTransition] = useTransition();
   const pickerRef = useRef<HTMLDivElement>(null);
+  const productRef = useRef<HTMLDivElement>(null);
 
   const [error, setError] = useState<string | null>(null);
   const [customerId, setCustomerId] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [phone, setPhone] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [productOpen, setProductOpen] = useState(false);
   const [productId, setProductId] = useState(products[0]?.id ?? "");
   const [payMode, setPayMode] = useState<PayMode>("paid");
   const [partialAmount, setPartialAmount] = useState("");
@@ -92,12 +93,21 @@ export function QuickSaleForm({
       : "";
 
   useEffect(() => {
-    if (!pickerOpen) return;
+    if (!pickerOpen && !productOpen) return;
     const onPointer = (event: MouseEvent | TouchEvent) => {
-      if (!pickerRef.current?.contains(event.target as Node)) setPickerOpen(false);
+      const target = event.target as Node;
+      if (pickerOpen && pickerRef.current && !pickerRef.current.contains(target)) {
+        setPickerOpen(false);
+      }
+      if (productOpen && productRef.current && !productRef.current.contains(target)) {
+        setProductOpen(false);
+      }
     };
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setPickerOpen(false);
+      if (event.key === "Escape") {
+        setPickerOpen(false);
+        setProductOpen(false);
+      }
     };
     document.addEventListener("mousedown", onPointer);
     document.addEventListener("touchstart", onPointer);
@@ -107,13 +117,18 @@ export function QuickSaleForm({
       document.removeEventListener("touchstart", onPointer);
       document.removeEventListener("keydown", onKey);
     };
-  }, [pickerOpen]);
+  }, [pickerOpen, productOpen]);
 
   function pickCustomer(c: QuickSaleCustomer) {
     setCustomerId(c.id);
     setCustomerName(c.name);
     setPhone(c.phone || c.whatsapp || "");
     setPickerOpen(false);
+  }
+
+  function pickProduct(id: string) {
+    setProductId(id);
+    setProductOpen(false);
   }
 
   function onNameChange(value: string) {
@@ -217,15 +232,71 @@ export function QuickSaleForm({
       </FormField>
 
       <FormField label={labels.product} required className={styles.field}>
-        <AppSelect
-          name="productId"
-          value={productId}
-          onChange={setProductId}
-          options={products.map((p) => ({
-            value: p.id,
-            label: `${p.name} · ${p.onHand} ${p.symbol}`,
-          }))}
-        />
+        <div ref={productRef} className={styles.productWrap}>
+          <input type="hidden" name="productId" value={productId} required />
+          <button
+            type="button"
+            className={styles.productTrigger}
+            aria-haspopup="listbox"
+            aria-expanded={productOpen}
+            onClick={() => {
+              setPickerOpen(false);
+              setProductOpen((v) => !v);
+            }}
+          >
+            <span className={styles.productThumb}>
+              {selected?.photoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={selected.photoUrl} alt="" className={styles.productThumbImg} />
+              ) : (
+                <span className={styles.productThumbEmpty}>
+                  {(selected?.name ?? "?").slice(0, 1)}
+                </span>
+              )}
+            </span>
+            <span className={styles.productTriggerText}>
+              <span className={styles.productTriggerName}>{selected?.name ?? "—"}</span>
+              <span className={styles.productTriggerMeta}>
+                {selected ? `${selected.onHand} ${selected.symbol}` : ""}
+              </span>
+            </span>
+            <ChevronDown
+              size={16}
+              strokeWidth={ICON_STROKE}
+              className={`${styles.productChevron} ${productOpen ? styles.productChevronOpen : ""}`}
+              aria-hidden
+            />
+          </button>
+          {productOpen ? (
+            <div className={styles.productList} role="listbox">
+              {products.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  role="option"
+                  aria-selected={p.id === productId}
+                  className={`${styles.productOption} ${p.id === productId ? styles.productOptionActive : ""}`}
+                  onClick={() => pickProduct(p.id)}
+                >
+                  <span className={styles.productThumb}>
+                    {p.photoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={p.photoUrl} alt="" className={styles.productThumbImg} />
+                    ) : (
+                      <span className={styles.productThumbEmpty}>{p.name.slice(0, 1)}</span>
+                    )}
+                  </span>
+                  <span className={styles.productTriggerText}>
+                    <span className={styles.productTriggerName}>{p.name}</span>
+                    <span className={styles.productTriggerMeta}>
+                      {p.onHand} {p.symbol}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
       </FormField>
 
       {selected ? (
