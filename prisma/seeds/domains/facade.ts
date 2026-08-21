@@ -126,21 +126,31 @@ async function seedFacadeCatalog(prisma: PrismaClient) {
     await prisma.productPrice.create({ data: { productId, price } });
   }
 
-  async function ensureRecipe(productId: string, def: FacadeProductDef) {
+  async function ensureRecipe(productId: string, def: FacadeProductDef, replaceExisting: boolean) {
     let recipe = await prisma.recipe.findUnique({ where: { productId } });
     if (!recipe) {
       recipe = await prisma.recipe.create({ data: { productId } });
     }
 
-    const hasVersion = await prisma.recipeVersion.findFirst({
+    const versions = await prisma.recipeVersion.findMany({
       where: { recipeId: recipe.id },
+      select: { id: true, versionNumber: true },
+      orderBy: { versionNumber: "desc" },
     });
-    if (hasVersion) return;
+    if (versions.length > 0 && !replaceExisting) return;
+
+    const nextVersion = (versions[0]?.versionNumber ?? 0) + 1;
+    if (replaceExisting && versions.length > 0) {
+      await prisma.recipeItem.deleteMany({
+        where: { versionId: { in: versions.map((v) => v.id) } },
+      });
+      await prisma.recipeVersion.deleteMany({ where: { recipeId: recipe.id } });
+    }
 
     await prisma.recipeVersion.create({
       data: {
         recipeId: recipe.id,
-        versionNumber: 1,
+        versionNumber: replaceExisting ? 1 : nextVersion,
         comment: def.recipeComment,
         items: {
           create: def.recipeItems.map((item) => {
@@ -160,9 +170,15 @@ async function seedFacadeCatalog(prisma: PrismaClient) {
   }
 
   const { defaultCategory } = FACADE_DOMAIN_CONFIG.product;
+  const replaceRecipes = process.env.REPLACE_CATALOG === "1";
 
   for (const def of FACADE_PRODUCTS) {
     let product = await prisma.product.findFirst({ where: { name: def.name } });
+    const stockFields = {
+      minStock: def.minStock ?? "0",
+      maxStock: def.maxStock ?? "0",
+      ...(def.photoUrl ? { photoUrl: def.photoUrl } : {}),
+    };
     if (!product) {
       product = await prisma.product.create({
         data: {
@@ -173,6 +189,7 @@ async function seedFacadeCatalog(prisma: PrismaClient) {
           recipeBaseQty: "1",
           outputPerBase: String(def.outputPerBase),
           minPrice: def.minPrice,
+          ...stockFields,
           recipe: { create: {} },
         },
       });
@@ -185,11 +202,12 @@ async function seedFacadeCatalog(prisma: PrismaClient) {
           minPrice: def.minPrice,
           outputPerBase: String(def.outputPerBase),
           category: defaultCategory,
+          ...stockFields,
         },
       });
     }
 
-    await ensureRecipe(product.id, def);
+    await ensureRecipe(product.id, def, replaceRecipes);
   }
 }
 

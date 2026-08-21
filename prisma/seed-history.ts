@@ -156,8 +156,12 @@ export async function seedWorkshopHistory(prisma: PrismaClient, opts?: { force?:
     return;
   }
 
-  const tile = await prisma.product.findFirst({ where: { name: "Фасадная плитка" } });
-  const stone = await prisma.product.findFirst({ where: { name: "Декоративный камень" } });
+  const tile = await prisma.product.findFirst({
+    where: { name: { contains: "Сланец" } },
+  });
+  const stone = await prisma.product.findFirst({
+    where: { name: { contains: "Скала" } },
+  });
   if (!tile || !stone) {
     console.warn("Demo history skipped: catalog products missing.");
     return;
