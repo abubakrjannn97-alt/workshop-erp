@@ -87,12 +87,6 @@
     var(--surface);
 }
 
-.kpiSoft {
-  background:
-    linear-gradient(180deg, #f7faf8 0%, #ffffff 60%),
-    var(--surface);
-}
-
 .kpiTop {
   display: flex;
   align-items: center;
@@ -117,11 +111,6 @@
 .kpiIconWarn {
   background: #ffece5;
   color: #c2410c;
-}
-
-.kpiIconSoft {
-  background: #e8f5ee;
-  color: #1b7a4a;
 }
 
 .kpiSource {

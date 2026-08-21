@@ -1,6 +1,6 @@
 import { getTranslator } from "@core/shared/i18n/locale";
 import Link from "next/link";
-import { ChevronRight, CircleDollarSign, Handshake, Wallet } from "lucide-react";
+import { ChevronRight, CircleDollarSign, Wallet } from "lucide-react";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
@@ -15,14 +15,13 @@ export default async function SalesPage() {
   const { t, locale, n } = await getTranslator();
   const session = await requirePermission("orders.view");
   const own = session.user.roleCode === "sales_manager" ? { sellerId: session.user.id } : {};
-  const crmOwn = session.user.roleCode === "sales_manager" ? { managerId: session.user.id } : {};
 
   const monthStart = new Date();
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
   const monthLabel = monthStart.toLocaleDateString(intlLocale(locale), { month: "long", year: "numeric" });
 
-  const [unpaid, overdue, leads, monthOrders, unpaidCount] = await Promise.all([
+  const [unpaid, overdue, monthOrders, unpaidCount] = await Promise.all([
     prisma.order.findMany({
       where: {
         ...own,
@@ -41,9 +40,6 @@ export default async function SalesPage() {
       },
       include: { customer: true, status: true },
       take: 20,
-    }),
-    prisma.lead.count({
-      where: { archivedAt: null, ...crmOwn, stage: { isWon: false, isLost: false } },
     }),
     prisma.order.findMany({
       where: { ...own, createdAt: { gte: monthStart }, status: { code: { not: "CANCELLED" } } },
@@ -98,18 +94,6 @@ export default async function SalesPage() {
           <p className={`${styles.kpiValue} ${styles.kpiValueWarn}`}>{String(unpaidCount)}</p>
           <p className={styles.kpiHint}>{t("sales.unpaidHint")}</p>
         </a>
-
-        <Link href="/crm" className={`${styles.kpiCard} ${styles.kpiSoft}`}>
-          <div className={styles.kpiTop}>
-            <span className={`${styles.kpiIcon} ${styles.kpiIconSoft}`}>
-              <Handshake size={20} strokeWidth={ICON_STROKE} aria-hidden />
-            </span>
-            <span className={styles.kpiSource}>{t("sales.kpiFromCrm")}</span>
-          </div>
-          <p className={styles.kpiLabel}>{t("sales.leadsOpen")}</p>
-          <p className={styles.kpiValue}>{String(leads)}</p>
-          <p className={styles.kpiHint}>{t("sales.leadsHint")}</p>
-        </Link>
       </section>
 
       <Link href={monthOrdersHref} className={styles.monthGate}>
