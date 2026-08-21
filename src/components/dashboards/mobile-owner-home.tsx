@@ -72,8 +72,8 @@ export async function MobileOwnerHome() {
             tone: "blue",
             icon: Package,
             label: t("home.kpi.finishedGoods"),
-            value: formatFgQty(kpis.fgTotal),
-            hint: t("home.kpi.onStock"),
+            value: `${formatFgQty(kpis.fgTotal)} ${t("home.kpi.fgUnit")}`,
+            hint: t("home.kpi.fgHint"),
           },
           {
             id: "today",

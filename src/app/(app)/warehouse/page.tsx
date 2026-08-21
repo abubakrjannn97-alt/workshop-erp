@@ -117,25 +117,28 @@ export default async function WarehousePage({
                     </div>
                     <div className={styles.productBody}>
                       <p className={styles.productName}>{product.name}</p>
-                      <p className={styles.productUnit}>
-                        {product.saleUnit.name} · {product.saleUnit.symbol}
-                      </p>
                       <p className={styles.productStock}>
                         {t("wh.fgOnHand")}:{" "}
                         <strong>
                           {qtyDisplay(onHand)} {product.saleUnit.symbol}
                         </strong>
+                        <span className={styles.productUnit}> · {product.saleUnit.symbol}</span>
                       </p>
-                      {min.gt(0) ? (
-                        <p className={low ? styles.productNeed : styles.productMeta}>
-                          {t("me.fgMin")}: {qtyDisplay(min)} {product.saleUnit.symbol}
-                          {low ? ` · ${t("me.fgNeed")} ${qtyDisplay(short)}` : ""}
-                        </p>
-                      ) : null}
-                      {max.gt(0) ? (
-                        <p className={atLimit ? styles.productLimitOk : styles.productMeta}>
-                          {t("wh.fgLimit")}: {qtyDisplay(max)} {product.saleUnit.symbol}
-                          {atLimit ? ` · ${t("wh.fgLimitReached")}` : ""}
+                      {(min.gt(0) || max.gt(0)) ? (
+                        <p className={low ? styles.productNeed : atLimit ? styles.productLimitOk : styles.productMeta}>
+                          {min.gt(0) ? (
+                            <>
+                              {t("me.fgMin")}: {qtyDisplay(min)}
+                              {low ? ` · ${t("me.fgNeed")} ${qtyDisplay(short)}` : ""}
+                            </>
+                          ) : null}
+                          {min.gt(0) && max.gt(0) ? " · " : null}
+                          {max.gt(0) ? (
+                            <>
+                              {t("wh.fgLimit")}: {qtyDisplay(max)}
+                              {atLimit ? ` · ${t("wh.fgLimitReached")}` : ""}
+                            </>
+                          ) : null}
                         </p>
                       ) : null}
                     </div>

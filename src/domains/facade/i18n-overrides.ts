@@ -11,7 +11,10 @@ export const FACADE_I18N_OVERRIDES: Record<Locale, Dict> = {
     "home.made": "Сделано, м²",
     "home.scrap": "Брак, м²",
     "home.kpi.producedToday": "Произведено сегодня, м²",
-    "home.kpi.finishedGoods": "Готовая плитка / камень",
+    "home.kpi.finishedGoods": "Остаток плитки",
+    "home.kpi.onStock": "Готово к продаже",
+    "home.kpi.fgUnit": "шт",
+    "home.kpi.fgHint": "Сколько плиток / камня лежит на складе ГП",
     "home.greetCalm": "Всё спокойно. Фасадное производство под контролем.",
     "home.actionAddProduct": "Добавить изделие (плитка / камень)",
 
@@ -70,7 +73,10 @@ export const FACADE_I18N_OVERRIDES: Record<Locale, Dict> = {
     "home.made": "Истеҳсол, м²",
     "home.scrap": "Нуқсон, м²",
     "home.kpi.producedToday": "Имрӯз истеҳсол, м²",
-    "home.kpi.finishedGoods": "Плитка / санги тайёр",
+    "home.kpi.finishedGoods": "Боқимондаи плитка",
+    "home.kpi.onStock": "Омода ба фурӯш",
+    "home.kpi.fgUnit": "дона",
+    "home.kpi.fgHint": "Чанд плитка / санг дар анбори ГП ҳаст",
     "home.greetCalm": "Ором. Истеҳсоли фасад зери назорат аст.",
     "home.actionAddProduct": "Маҳсулот илова (плитка / санг)",
 
