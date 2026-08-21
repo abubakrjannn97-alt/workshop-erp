@@ -15,11 +15,12 @@ describe("resolveBackHref", () => {
   });
 
   it("returns /more on mobile for more-landing roots", () => {
-    const tabs = new Set(["/", "/orders", "/production", "/warehouse", "/more"]);
+    const tabs = new Set(["/", "/orders", "/warehouse", "/more"]);
     assert.equal(resolveBackHref("/finance", { tabRoots: tabs }), "/more");
     assert.equal(resolveBackHref("/settings", { tabRoots: tabs }), "/more");
     assert.equal(resolveBackHref("/notifications", { tabRoots: tabs }), "/more");
     assert.equal(resolveBackHref("/analytics", { tabRoots: tabs }), "/more");
+    assert.equal(resolveBackHref("/production", { tabRoots: tabs }), "/more");
   });
 
   it("keeps bottom tabs as roots on mobile", () => {

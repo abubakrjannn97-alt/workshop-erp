@@ -13,7 +13,9 @@ import { nextOrderNumber, ORDER_STATUS, paymentStatusOf } from "@core/orders/ord
 import { issueOrderStockAndMarkIssued } from "@core/orders/issue-complete";
 import { postClientPayment } from "@core/finance/finance";
 
-/** One-tap sale from FG stock: create order + write off FG immediately. */
+const NEW_CUSTOMER = "__new__";
+
+/** One-tap sale from FG stock: create/find customer + order + write off FG immediately. */
 export async function quickSaleFromFg(formData: FormData) {
   const session = await requirePermission("orders.create");
   const canIssue =
@@ -25,6 +27,8 @@ export async function quickSaleFromFg(formData: FormData) {
   const parsed = z
     .object({
       customerId: z.string().min(1),
+      customerName: z.string().trim().max(200).optional().or(z.literal("")),
+      phone: z.string().trim().max(40).optional().or(z.literal("")),
       productId: z.string().min(1),
       quantity: z.string().regex(/^\d+(\.\d{1,6})?$/),
       unitPrice: z.string().regex(/^\d+(\.\d{1,4})?$/),
@@ -33,6 +37,8 @@ export async function quickSaleFromFg(formData: FormData) {
     })
     .safeParse({
       customerId: formData.get("customerId"),
+      customerName: formData.get("customerName") ?? "",
+      phone: formData.get("phone") ?? "",
       productId: formData.get("productId"),
       quantity: formData.get("quantity"),
       unitPrice: formData.get("unitPrice"),
@@ -46,15 +52,21 @@ export async function quickSaleFromFg(formData: FormData) {
   if (!qtyVal.gt(0)) return { error: "Укажите количество." };
   if (price.lt(0)) return { error: "Цена некорректна." };
 
-  const [customer, product, fg] = await Promise.all([
-    prisma.customer.findFirst({ where: { id: parsed.data.customerId, archivedAt: null } }),
+  const isNewCustomer = parsed.data.customerId === NEW_CUSTOMER;
+  if (isNewCustomer && !parsed.data.customerName?.trim()) {
+    return { error: "Укажите имя клиента." };
+  }
+  if (isNewCustomer && !parsed.data.phone?.trim()) {
+    return { error: "Укажите телефон или WhatsApp." };
+  }
+
+  const [product, fg] = await Promise.all([
     prisma.product.findFirst({
       where: { id: parsed.data.productId, archivedAt: null, isActive: true },
       include: { saleUnit: true },
     }),
     findFinishedGoodsWarehouse(),
   ]);
-  if (!customer) return { error: "Клиент не найден." };
   if (!product) return { error: "Изделие не найдено." };
   if (!fg) return { error: "Склад ГП не найден." };
   if (price.lt(product.minPrice)) {
@@ -71,6 +83,42 @@ export async function quickSaleFromFg(formData: FormData) {
     };
   }
 
+  let customerId = parsed.data.customerId;
+  const phone = parsed.data.phone?.trim() || null;
+
+  if (isNewCustomer) {
+    const created = await prisma.customer.create({
+      data: {
+        name: parsed.data.customerName!.trim(),
+        phone,
+        whatsapp: phone,
+        managerId: session.user.roleCode === "sales_manager" ? session.user.id : null,
+      },
+    });
+    customerId = created.id;
+    await writeAudit({
+      userId: session.user.id,
+      action: "customer.create",
+      entityType: "customer",
+      entityId: created.id,
+      newValue: { name: created.name, from: "quick_sale" },
+    });
+  } else {
+    const existing = await prisma.customer.findFirst({
+      where: { id: customerId, archivedAt: null },
+    });
+    if (!existing) return { error: "Клиент не найден." };
+    if (phone && phone !== existing.phone && phone !== existing.whatsapp) {
+      await prisma.customer.update({
+        where: { id: existing.id },
+        data: {
+          phone: existing.phone || phone,
+          whatsapp: existing.whatsapp || phone,
+        },
+      });
+    }
+  }
+
   const lineTotal = qtyVal.mul(price);
   const paidRaw = parsed.data.paidNow === "1" ? lineTotal : D(0);
   const inFgStatus = await prisma.orderStatus.findUniqueOrThrow({ where: { code: ORDER_STATUS.IN_FG } });
@@ -83,7 +131,7 @@ export async function quickSaleFromFg(formData: FormData) {
       const order = await tx.order.create({
         data: {
           number,
-          customerId: customer.id,
+          customerId,
           sellerId: session.user.id,
           statusId: inFgStatus.id,
           paymentStatus: paymentStatusOf(lineTotal, paidRaw, false),
@@ -156,12 +204,15 @@ export async function quickSaleFromFg(formData: FormData) {
       productId: product.id,
       quantity: parsed.data.quantity,
       total: lineTotal.toFixed(4),
+      customerId,
     },
   });
 
   revalidatePath("/orders");
+  revalidatePath("/orders/quick");
   revalidatePath("/warehouse");
   revalidatePath("/warehouse/finished");
+  revalidatePath("/crm");
   revalidatePath("/");
   return { ok: true, id: orderId };
 }

@@ -320,7 +320,6 @@ function rawTabsForRole(roleCode: string): BottomTab[] {
         CRM_ITEM,
         ORDERS_ITEM,
         COMMISSION_ITEM,
-        PRODUCTION_ITEM,
         BATCHES_ITEM,
         WAREHOUSE_ITEM,
         PURCHASING_ITEM,
@@ -334,13 +333,13 @@ function rawTabsForRole(roleCode: string): BottomTab[] {
     case "sales_manager":
       return [HOME_ITEM, CRM_ITEM, ORDERS_ITEM, COMMISSION_ITEM, MORE_TAB];
     case "production_manager":
-      return [HOME_ITEM, PRODUCTION_ITEM, BATCHES_ITEM, SCRAP_ITEM, MORE_TAB];
+      return [HOME_ITEM, BATCHES_ITEM, SCRAP_ITEM, MORE_TAB];
     case "warehouse_manager":
       return [HOME_ITEM, WAREHOUSE_ITEM, PURCHASING_ITEM, INVENTORY_ITEM, MORE_TAB];
     case "accountant":
       return [HOME_ITEM, FINANCE_ITEM, EXPENSES_ITEM, MORE_TAB];
     default:
-      return [HOME_ITEM, ORDERS_ITEM, PRODUCTION_ITEM, WAREHOUSE_ITEM, MORE_TAB];
+      return [HOME_ITEM, ORDERS_ITEM, WAREHOUSE_ITEM, MORE_TAB];
   }
 }
 

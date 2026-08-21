@@ -84,9 +84,9 @@ export default async function WarehousePage({
         </p>
         {canReceive ? (
           <Link
-            href={activeId === "products" ? "/warehouse/finished/receive" : "/warehouse/add"}
+            href="/warehouse/add"
             className={styles.iconBtn}
-            aria-label={activeId === "products" ? t("me.fgAddStock") : t("wh.addMaterial")}
+            aria-label={t("wh.addMaterial")}
           >
             <Plus size={18} strokeWidth={ICON_STROKE} />
           </Link>

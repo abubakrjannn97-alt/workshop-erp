@@ -9,11 +9,11 @@ import {
 } from "../src/core/shared/nav";
 
 describe("mobile nav by role", () => {
-  it("owner gets home orders production warehouse more", () => {
+  it("owner gets home orders warehouse more", () => {
     const tabs = bottomTabsForRole("owner", ROLE_PERMISSIONS.owner);
     assert.deepEqual(
       tabs.map((t) => t.href),
-      ["/", "/orders", "/production", "/warehouse", "/more"],
+      ["/", "/orders", "/warehouse", "/more"],
     );
   });
 
