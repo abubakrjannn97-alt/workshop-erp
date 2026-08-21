@@ -53,6 +53,7 @@ export function QuickSaleForm({
     unitPrice: string;
     minPrice: string;
     stock: string;
+    fgStock: (n: string, u: string) => string;
     submit: string;
     sending: string;
     pay: string;
@@ -257,7 +258,7 @@ export function QuickSaleForm({
             <span className={styles.productTriggerText}>
               <span className={styles.productTriggerName}>{selected?.name ?? "—"}</span>
               <span className={styles.productTriggerMeta}>
-                {selected ? `${selected.onHand} ${selected.symbol}` : ""}
+                {selected ? labels.fgStock(selected.onHand, selected.symbol) : ""}
               </span>
             </span>
             <ChevronDown
@@ -289,7 +290,7 @@ export function QuickSaleForm({
                   <span className={styles.productTriggerText}>
                     <span className={styles.productTriggerName}>{p.name}</span>
                     <span className={styles.productTriggerMeta}>
-                      {p.onHand} {p.symbol}
+                      {labels.fgStock(p.onHand, p.symbol)}
                     </span>
                   </span>
                 </button>
