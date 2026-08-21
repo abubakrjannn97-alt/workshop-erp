@@ -1,4 +1,4 @@
-export type OrderPeriod = "today" | "month" | "prev" | "all" | "custom";
+export type OrderPeriod = "today" | "week" | "month" | "prev" | "all" | "custom";
 
 export type FinancePeriod = "month" | "prev" | "2m" | "3m" | "quarter" | "year" | "all";
 
@@ -29,7 +29,7 @@ export function resolveOrderDateRange(params: {
   from?: string;
   to?: string;
 }): { from?: Date; to?: Date; period: OrderPeriod } {
-  const period = (params.period as OrderPeriod) || "month";
+  const period = (params.period as OrderPeriod) || "today";
   if (period === "all") return { period: "all" };
 
   if (period === "custom") {
@@ -42,6 +42,14 @@ export function resolveOrderDateRange(params: {
   const now = new Date();
   if (period === "today") {
     return { from: startOfDay(now), to: endOfDay(now), period: "today" };
+  }
+
+  if (period === "week") {
+    const day = now.getDay();
+    const mondayOffset = day === 0 ? -6 : 1 - day;
+    const from = new Date(now);
+    from.setDate(now.getDate() + mondayOffset);
+    return { from: startOfDay(from), to: endOfDay(now), period: "week" };
   }
 
   if (period === "prev") {
@@ -63,6 +71,7 @@ export function orderPeriodLabel(
 ) {
   if (period === "all") return t("orders.periodAll");
   if (period === "today") return t("orders.periodToday");
+  if (period === "week") return t("orders.periodWeek");
   if (period === "month") return t("orders.periodMonth");
   if (period === "prev") return t("orders.periodPrev");
   if (from && to) {

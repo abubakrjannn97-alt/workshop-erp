@@ -21,6 +21,7 @@ const SECTION_LIST_PARENTS: Record<string, string> = {
   "/products/new": "/products",
   "/materials/new": "/materials",
   "/orders/new": "/orders",
+  "/orders/quick": "/orders",
   "/purchasing/suppliers": "/purchasing",
   "/settings/users": "/settings",
   "/settings/roles": "/settings",

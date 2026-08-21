@@ -49,6 +49,30 @@
   gap: 8px;
 }
 
+.fabSale {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: calc(var(--mobile-chrome-bottom) + 16px);
+  z-index: 60;
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border-radius: 16px;
+  background: var(--navy, #1c232b);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(28, 35, 43, 0.28);
+  text-decoration: none;
+  touch-action: manipulation;
+}
+
+@media (min-width: 1024px) {
+  .fabSale {
+    bottom: 28px;
+    right: 28px;
+  }
+}
+
 .ghostLink {
   display: inline-flex;
   min-height: 44px;

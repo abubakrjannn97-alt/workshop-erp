@@ -83,6 +83,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <FormField label={t("products.salePrice")}><input name="price" defaultValue={currentPrice?.price.toString() ?? "0"} disabled={!canManage} placeholder={t("products.phSalePrice")} className="ui-input" /></FormField>
             <FormField label={t("products.minPrice")}><input name="minPrice" defaultValue={product.minPrice.toString()} disabled={!canManage} placeholder={t("products.phMinPrice")} className="ui-input" /></FormField>
             <FormField label={t("products.minStock")}><input name="minStock" defaultValue={product.minStock.toString()} disabled={!canManage} placeholder={t("products.phMinStock")} className="ui-input" inputMode="decimal" /></FormField>
+            <FormField label={t("products.maxStock")}><input name="maxStock" defaultValue={product.maxStock.toString()} disabled={!canManage} placeholder={t("products.phMaxStock")} className="ui-input" inputMode="decimal" /></FormField>
             {canManage ? <button className={`${catalogStyles.formFull} ui-btn-primary min-h-[44px]`}>{t("products.savePriceHist")}</button> : null}
           </form>
         </div>

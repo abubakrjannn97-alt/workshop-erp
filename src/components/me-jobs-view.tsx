@@ -113,6 +113,9 @@ export function MeJobsView({
                   {row.low && row.shortfall
                     ? ` · ${t("me.fgNeed")}: ${row.shortfall} ${row.unit}`
                     : ""}
+                  {row.maxStock
+                    ? ` · ${t("wh.fgLimit")}: ${row.maxStock} ${row.unit}${row.atLimit ? ` (${t("wh.fgLimitReached")})` : ""}`
+                    : ""}
                 </p>
               </li>
             ))}

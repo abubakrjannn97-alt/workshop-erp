@@ -45,7 +45,7 @@ export default async function OrdersPage({
   const session = await requirePermission("orders.view");
   const params = await searchParams;
   const { q, status, from: fromRaw, to: toRaw, page: pageRaw } = params;
-  const period = params.period ?? "month";
+  const period = params.period ?? "today";
   const activeBucket = resolveOrderListBucket(status);
   const canCreate = hasPermission(session.user.permissions, session.user.roleCode, "orders.create");
   const ownOnly = session.user.roleCode === "sales_manager";
@@ -124,17 +124,17 @@ export default async function OrdersPage({
     <div className={styles.page}>
       <OrdersPageHeader
         title={t("page.orders")}
-        subtitle={t("orders.manageHint")}
+        subtitle={t("orders.salesHint")}
         historyHref="/crm/history"
-        historyLabel={t("crm.purchaseHistory")}
+        historyLabel={t("orders.salesHistory")}
         canCreate={canCreate}
-        newOrderHref="/orders/new"
-        newOrderLabel={t("sales.newOrder")}
+        newOrderHref="/orders/quick"
+        newOrderLabel={t("sales.quickTitle")}
         mobileTools={
           <OrdersMobileHeaderTools
             canCreate={canCreate}
-            newOrderHref="/orders/new"
-            newOrderLabel={t("sales.newOrder")}
+            newOrderHref="/orders/quick"
+            newOrderLabel={t("sales.quickTitle")}
           />
         }
       />
@@ -165,6 +165,7 @@ export default async function OrdersPage({
             q={q?.trim()}
             presetLabels={{
               today: t("orders.periodToday"),
+              week: t("orders.periodWeek"),
               month: t("orders.periodMonth"),
               prev: t("orders.periodPrev"),
             }}
@@ -182,6 +183,7 @@ export default async function OrdersPage({
             items={(
               [
                 ["today", t("orders.periodToday")],
+                ["week", t("orders.periodWeek")],
                 ["month", t("orders.periodMonth")],
                 ["prev", t("orders.periodPrev")],
               ] as const
@@ -213,8 +215,8 @@ export default async function OrdersPage({
         <OrdersEmpty
           title={t("orders.emptyTitle")}
           description={t("orders.emptyDesc")}
-          actionHref={canCreate ? "/orders/new" : undefined}
-          actionLabel={canCreate ? t("sales.newOrder") : undefined}
+          actionHref={canCreate ? "/orders/quick" : undefined}
+          actionLabel={canCreate ? t("sales.quickTitle") : undefined}
         />
       ) : (
         <OrdersListPanel

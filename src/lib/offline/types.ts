@@ -36,7 +36,9 @@ export type MeJobsSnapshot = {
     unit: string;
     onHand: string;
     minStock: string;
+    maxStock?: string | null;
     shortfall: string | null;
     low: boolean;
+    atLimit?: boolean;
   }[];
 };

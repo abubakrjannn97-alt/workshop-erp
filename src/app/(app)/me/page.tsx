@@ -53,15 +53,19 @@ export default async function MyJobsPage() {
   const fgRows = products.map((p) => {
     const onHand = D(String(p.stockItems[0]?.qtyOnHand ?? 0));
     const min = D(String(p.minStock ?? 0));
+    const max = D(String(p.maxStock ?? 0));
     const short = min.gt(0) && onHand.lt(min) ? min.sub(onHand) : D(0);
+    const atLimit = max.gt(0) && onHand.gte(max);
     return {
       id: p.id,
       name: p.name,
       unit: p.saleUnit.symbol,
       onHand: qtyDisplay(onHand),
       minStock: qtyDisplay(min),
+      maxStock: max.gt(0) ? qtyDisplay(max) : null,
       shortfall: short.gt(0) ? qtyDisplay(short) : null,
       low: short.gt(0),
+      atLimit,
     };
   });
 

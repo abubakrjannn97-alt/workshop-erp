@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "maxStock" DECIMAL(18,6) NOT NULL DEFAULT 0;

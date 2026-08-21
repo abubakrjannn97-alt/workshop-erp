@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import styles from "./orders.module.css";
 
+/** Floating quick-sale button for mobile/desktop sales page (not in top header). */
 export function OrdersMobileHeaderTools({
   canCreate,
   newOrderHref,
@@ -17,12 +18,8 @@ export function OrdersMobileHeaderTools({
   if (!canCreate) return null;
 
   return (
-    <div className={styles.mobileHeaderToolsGrid}>
-      <div className={styles.mobileHeaderIcons}>
-        <Link href={newOrderHref} className={styles.iconBtn} aria-label={newOrderLabel} data-tour="orders-new-mobile">
-          <Plus size={20} strokeWidth={ICON_STROKE} />
-        </Link>
-      </div>
-    </div>
+    <Link href={newOrderHref} className={styles.fabSale} aria-label={newOrderLabel} data-tour="orders-quick-sale">
+      <Plus size={22} strokeWidth={ICON_STROKE} aria-hidden />
+    </Link>
   );
 }

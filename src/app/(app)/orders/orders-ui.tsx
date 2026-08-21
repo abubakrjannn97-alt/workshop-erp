@@ -71,21 +71,13 @@ export function OrdersPageHeader({
           <h1 className={styles.title}>{title}</h1>
           <p className={styles.subtitle}>{subtitle}</p>
         </div>
-        <Suspense fallback={null}>{mobileTools}</Suspense>
         <div className={styles.headerActions}>
           <Link href={historyHref} className={styles.ghostLink}>
             {historyLabel}
           </Link>
-          {canCreate ? (
-            <Link href={newOrderHref} className={styles.primaryBtn} data-tour="orders-new">
-              <span className={styles.primaryBtnIcon} aria-hidden>
-                <Plus size={16} strokeWidth={ICON_STROKE} />
-              </span>
-              {newOrderLabel}
-            </Link>
-          ) : null}
         </div>
       </div>
+      <Suspense fallback={null}>{mobileTools}</Suspense>
     </header>
   );
 }
