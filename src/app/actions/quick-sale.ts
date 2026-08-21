@@ -3,6 +3,7 @@
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
@@ -204,7 +205,21 @@ export async function quickSaleFromFg(formData: FormData) {
 
   const inFgStatus = await prisma.orderStatus.findUniqueOrThrow({ where: { code: ORDER_STATUS.IN_FG } });
   const number = await nextOrderNumber();
-  const idempotencyKey = String(formData.get("idempotencyKey") ?? randomUUID());
+  const idempotencyKey = String(formData.get("idempotencyKey") ?? randomUUID()).trim() || randomUUID();
+  const payKey = `${idempotencyKey}-pay`;
+
+  if (paidRaw.gt(0)) {
+    const existingPay = await prisma.payment.findUnique({
+      where: { idempotencyKey: payKey },
+      select: { orderId: true },
+    });
+    if (existingPay) {
+      revalidatePath("/orders");
+      revalidatePath("/orders/quick");
+      revalidatePath("/warehouse");
+      return { ok: true, id: existingPay.orderId };
+    }
+  }
 
   let orderId = "";
   try {
@@ -259,7 +274,7 @@ export async function quickSaleFromFg(formData: FormData) {
             comment:
               parsed.data.comment?.trim() ||
               (payMode === "partial" ? "Частичная оплата" : "Быстрая продажа"),
-            idempotencyKey: `${idempotencyKey}-pay`,
+            idempotencyKey: payKey,
             createdById: session.user.id,
           },
         });
@@ -277,6 +292,18 @@ export async function quickSaleFromFg(formData: FormData) {
       }
     });
   } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      const raced = await prisma.payment.findUnique({
+        where: { idempotencyKey: payKey },
+        select: { orderId: true },
+      });
+      if (raced) {
+        revalidatePath("/orders");
+        revalidatePath("/orders/quick");
+        revalidatePath("/warehouse");
+        return { ok: true, id: raced.orderId };
+      }
+    }
     return { error: e instanceof Error ? e.message : "Не удалось оформить продажу." };
   }
 

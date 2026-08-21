@@ -300,6 +300,7 @@ export function QuickSaleForm({
     }
     startTransition(async () => {
       const result = await quickSaleFromFg(formData);
+      setIdempotencyKey(`quick-sale-${crypto.randomUUID()}`);
       if (result.error) {
         setError(result.error);
         return;
@@ -307,7 +308,6 @@ export function QuickSaleForm({
       setCart([]);
       setPayMode("paid");
       setPartialAmount("");
-      setIdempotencyKey(`quick-sale-${crypto.randomUUID()}`);
       resetLineFields(products[0]?.id);
       router.refresh();
     });
@@ -539,7 +539,7 @@ export function QuickSaleForm({
           </ul>
 
           <form action={onFinish} className={styles.checkout}>
-            <IdempotencyField prefix="quick-sale" key={idempotencyKey} />
+            <IdempotencyField prefix="quick-sale" value={idempotencyKey} />
             <input type="hidden" name="customerId" value={customerId || "__new__"} />
             <input type="hidden" name="customerName" value={customerName} />
             <input type="hidden" name="phone" value={phone} />

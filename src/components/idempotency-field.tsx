@@ -2,8 +2,8 @@
 
 import { useId } from "react";
 
-/** Stable across SSR + hydration (unlike randomUUID / Date.now in useState). */
-export function IdempotencyField({ prefix }: { prefix: string }) {
+/** Prefer explicit `value` from parent; fall back to stable React id for SSR. */
+export function IdempotencyField({ prefix, value }: { prefix: string; value?: string }) {
   const reactId = useId().replace(/:/g, "");
-  return <input type="hidden" name="idempotencyKey" value={`${prefix}-${reactId}`} />;
+  return <input type="hidden" name="idempotencyKey" value={value ?? `${prefix}-${reactId}`} />;
 }
