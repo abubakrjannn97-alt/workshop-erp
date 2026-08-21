@@ -3,50 +3,49 @@
   display: flex;
   min-height: 100dvh;
   min-height: 100svh;
+  width: 100%;
   align-items: center;
   justify-content: center;
-  padding: 20px 16px;
-  padding-top: max(20px, env(safe-area-inset-top));
-  padding-bottom: max(20px, env(safe-area-inset-bottom));
+  padding: 24px 16px;
+  padding-top: max(24px, env(safe-area-inset-top));
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
   background: var(--bg);
   overflow-y: auto;
   overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .lang {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: max(12px, env(safe-area-inset-top));
+  right: 12px;
   z-index: 2;
-  padding-top: env(safe-area-inset-top);
 }
 
 .column {
   position: relative;
   width: 100%;
   max-width: 22rem;
+  margin-block: auto;
 }
 
 .brand {
   display: flex;
   justify-content: center;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
-/* Phone: slight lift when typing — avoid jumping too high */
+/* Keep card centered; only soften brand when keyboard opens */
 @media (max-width: 639px) {
   .screen {
-    align-items: flex-start;
-    padding-top: max(28px, calc(env(safe-area-inset-top) + 20px));
-  }
-
-  .screen:focus-within {
-    padding-top: max(20px, calc(env(safe-area-inset-top) + 12px));
+    align-items: center;
+    justify-content: center;
   }
 
   .screen:focus-within .brand {
-    margin-bottom: 8px;
-    transform: scale(0.9);
-    opacity: 0.92;
+    margin-bottom: 10px;
+    transform: scale(0.92);
+    opacity: 0.9;
+    transition: transform 160ms ease, opacity 160ms ease, margin-bottom 160ms ease;
   }
 }
