@@ -15,7 +15,13 @@ import { postClientPayment } from "@core/finance/finance";
 
 const NEW_CUSTOMER = "__new__";
 
-/** One-tap sale from FG stock: create/find customer + order + write off FG immediately. */
+const lineSchema = z.object({
+  productId: z.string().min(1),
+  quantity: z.string().regex(/^\d+(\.\d{1,6})?$/),
+  unitPrice: z.string().regex(/^\d+(\.\d{1,4})?$/),
+});
+
+/** One-tap sale from FG stock: create/find customer + multi-line order + write off FG. */
 export async function quickSaleFromFg(formData: FormData) {
   const session = await requirePermission("orders.create");
   const canIssue =
@@ -24,77 +30,105 @@ export async function quickSaleFromFg(formData: FormData) {
     session.user.permissions.includes("inventory.receive");
   if (!canIssue) return { error: "Нет права списывать со склада ГП." };
 
+  let itemsRaw: unknown = [];
+  try {
+    itemsRaw = JSON.parse(String(formData.get("items") ?? "[]"));
+  } catch {
+    return { error: "Некорректный список изделий." };
+  }
+
   const parsed = z
     .object({
       customerId: z.string().min(1),
       customerName: z.string().trim().min(1).max(200),
       phone: z.string().trim().min(1).max(40),
-      productId: z.string().min(1),
-      quantity: z.string().regex(/^\d+(\.\d{1,6})?$/),
-      unitPrice: z.string().regex(/^\d+(\.\d{1,4})?$/),
-      payMode: z.enum(["paid", "later", "partial"]).default("paid"),
+      items: z.array(lineSchema).min(1),
+      payMode: z.enum(["paid", "partial"]).default("paid"),
       paidAmount: z.string().optional().or(z.literal("")),
-      dueAt: z.string().optional().or(z.literal("")),
       comment: z.string().optional(),
     })
     .safeParse({
       customerId: formData.get("customerId") || NEW_CUSTOMER,
       customerName: formData.get("customerName") ?? "",
       phone: formData.get("phone") ?? "",
-      productId: formData.get("productId"),
-      quantity: formData.get("quantity"),
-      unitPrice: formData.get("unitPrice"),
+      items: itemsRaw,
       payMode: formData.get("payMode") || "paid",
       paidAmount: formData.get("paidAmount") ?? "",
-      dueAt: formData.get("dueAt") ?? "",
       comment: formData.get("comment") || undefined,
     });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Проверьте поля." };
 
-  const qtyVal = D(parsed.data.quantity);
-  const price = D(parsed.data.unitPrice);
-  if (!qtyVal.gt(0)) return { error: "Укажите количество." };
-  if (price.lt(0)) return { error: "Цена некорректна." };
-
-  const [product, fg] = await Promise.all([
-    prisma.product.findFirst({
-      where: { id: parsed.data.productId, archivedAt: null, isActive: true },
-      include: { saleUnit: true },
-    }),
-    findFinishedGoodsWarehouse(),
-  ]);
-  if (!product) return { error: "Изделие не найдено." };
+  const fg = await findFinishedGoodsWarehouse();
   if (!fg) return { error: "Склад ГП не найден." };
-  if (price.lt(product.minPrice)) {
-    return { error: `Цена ниже минимальной (${money(product.minPrice)}).` };
-  }
 
-  const stock = await prisma.stockItem.findFirst({
-    where: { warehouseId: fg.id, productId: product.id },
+  const productIds = [...new Set(parsed.data.items.map((i) => i.productId))];
+  const products = await prisma.product.findMany({
+    where: { id: { in: productIds }, archivedAt: null, isActive: true },
+    include: { saleUnit: true },
   });
-  const avail = stock ? available(stock.qtyOnHand, stock.qtyReserved) : D(0);
-  if (avail.lt(qtyVal)) {
-    return {
-      error: `На складе ГП не хватает «${product.name}»: нужно ${qtyDisplay(qtyVal)} ${product.saleUnit.symbol}, есть ${qtyDisplay(avail)}.`,
-    };
+  if (products.length !== productIds.length) return { error: "Изделие не найдено." };
+  const byId = new Map(products.map((p) => [p.id, p]));
+
+  const stocks = await prisma.stockItem.findMany({
+    where: { warehouseId: fg.id, productId: { in: productIds } },
+  });
+  const stockByProduct = new Map(stocks.map((s) => [s.productId, s]));
+
+  type BuiltLine = {
+    productId: string;
+    name: string;
+    quantity: ReturnType<typeof D>;
+    unitPrice: ReturnType<typeof D>;
+    amount: ReturnType<typeof D>;
+  };
+
+  const built: BuiltLine[] = [];
+  const needByProduct = new Map<string, ReturnType<typeof D>>();
+
+  for (const item of parsed.data.items) {
+    const product = byId.get(item.productId);
+    if (!product) return { error: "Изделие не найдено." };
+    const qtyVal = D(item.quantity);
+    const price = D(item.unitPrice);
+    if (!qtyVal.gt(0)) return { error: "Укажите количество." };
+    if (price.lt(0)) return { error: "Цена некорректна." };
+    if (price.lt(product.minPrice)) {
+      return { error: `«${product.name}»: цена ниже минимальной (${money(product.minPrice)}).` };
+    }
+    const amount = qtyVal.mul(price);
+    built.push({
+      productId: product.id,
+      name: product.name,
+      quantity: qtyVal,
+      unitPrice: price,
+      amount,
+    });
+    needByProduct.set(product.id, (needByProduct.get(product.id) ?? D(0)).plus(qtyVal));
   }
 
-  const lineTotal = qtyVal.mul(price);
+  for (const [productId, need] of needByProduct) {
+    const product = byId.get(productId)!;
+    const stock = stockByProduct.get(productId);
+    const avail = stock ? available(stock.qtyOnHand, stock.qtyReserved) : D(0);
+    if (avail.lt(need)) {
+      return {
+        error: `На складе ГП не хватает «${product.name}»: нужно ${qtyDisplay(need)} ${product.saleUnit.symbol}, есть ${qtyDisplay(avail)}.`,
+      };
+    }
+  }
+
+  const orderTotal = built.reduce((sum, line) => sum.plus(line.amount), D(0));
+  const outputQty = built.reduce((sum, line) => sum.plus(line.quantity), D(0));
   const payMode = parsed.data.payMode;
   let paidRaw = D(0);
-  let dueAt: Date | null = null;
 
   if (payMode === "paid") {
-    paidRaw = lineTotal;
-  } else if (payMode === "later") {
-    if (!parsed.data.dueAt) return { error: "Укажите дату оплаты." };
-    dueAt = new Date(`${parsed.data.dueAt}T12:00:00`);
-    if (Number.isNaN(dueAt.getTime())) return { error: "Некорректная дата оплаты." };
+    paidRaw = orderTotal;
   } else {
     if (!parsed.data.paidAmount?.trim()) return { error: "Укажите сумму частичной оплаты." };
     paidRaw = D(parsed.data.paidAmount);
     if (!paidRaw.gt(0)) return { error: "Частичная оплата должна быть больше 0." };
-    if (paidRaw.gte(lineTotal)) {
+    if (paidRaw.gte(orderTotal)) {
       return { error: "Частичная оплата должна быть меньше полной суммы." };
     }
   }
@@ -148,26 +182,26 @@ export async function quickSaleFromFg(formData: FormData) {
           customerId,
           sellerId: session.user.id,
           statusId: inFgStatus.id,
-          paymentStatus: paymentStatusOf(lineTotal, paidRaw, false),
+          paymentStatus: paymentStatusOf(orderTotal, paidRaw, false),
           paymentMethod: paidRaw.gt(0) ? "cash" : null,
           discountPercent: 0,
           discountAmount: 0,
-          subtotal: lineTotal.toFixed(4),
-          total: lineTotal.toFixed(4),
+          subtotal: orderTotal.toFixed(4),
+          total: orderTotal.toFixed(4),
           paidAmount: paidRaw.toFixed(4),
-          outputQty: qtyVal.toFixed(6),
+          outputQty: outputQty.toFixed(6),
           canProduceFully: true,
           confirmedAt: new Date(),
-          dueAt,
+          dueAt: null,
           createdById: session.user.id,
           items: {
-            create: {
-              productId: product.id,
-              quantity: qtyVal.toFixed(6),
-              unitPrice: price.toFixed(4),
-              amount: lineTotal.toFixed(4),
-              outputQty: qtyVal.toFixed(6),
-            },
+            create: built.map((line) => ({
+              productId: line.productId,
+              quantity: line.quantity.toFixed(6),
+              unitPrice: line.unitPrice.toFixed(4),
+              amount: line.amount.toFixed(4),
+              outputQty: line.quantity.toFixed(6),
+            })),
           },
         },
         include: { items: true },
@@ -200,7 +234,7 @@ export async function quickSaleFromFg(formData: FormData) {
           paymentId: payment.id,
           amount: money(paidRaw),
           method: "cash",
-          orderTotal: money(lineTotal),
+          orderTotal: money(orderTotal),
           materialCost: "0",
           laborAmount: "0",
           commissionAmount: "0",
@@ -218,9 +252,12 @@ export async function quickSaleFromFg(formData: FormData) {
     entityType: "order",
     entityId: orderId,
     newValue: {
-      productId: product.id,
-      quantity: parsed.data.quantity,
-      total: lineTotal.toFixed(4),
+      lines: built.map((l) => ({
+        productId: l.productId,
+        quantity: l.quantity.toFixed(6),
+        amount: l.amount.toFixed(4),
+      })),
+      total: orderTotal.toFixed(4),
       customerId,
       payMode,
     },

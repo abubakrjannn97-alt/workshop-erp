@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/page-header";
 import { QuickSaleForm } from "./quick-sale-form";
 
 export default async function QuickSalePage() {
-  const { t, locale } = await getTranslator();
+  const { t } = await getTranslator();
   const session = await requirePermission("orders.create");
   const canIssue = hasPermission(session.user.permissions, session.user.roleCode, "inventory.receive");
   if (!canIssue) {
@@ -69,7 +69,6 @@ export default async function QuickSalePage() {
         <QuickSaleForm
           customers={customers}
           products={sellable}
-          locale={locale}
           labels={{
             customerName: t("sales.quickCustomerName"),
             pickCustomer: t("sales.quickPickCustomer"),
@@ -80,15 +79,18 @@ export default async function QuickSalePage() {
             minPrice: t("sales.quickMinPrice"),
             stock: t("common.stock"),
             fgStock: t("sales.quickFgStock"),
-            submit: t("sales.quickSubmit"),
+            addLine: t("sales.quickAddLine"),
+            finish: t("sales.quickFinish"),
+            cancel: t("sales.quickCancel"),
             sending: t("common.sending"),
             pay: t("sales.quickPay"),
             paid: t("sales.quickPaid"),
-            later: t("sales.quickLater"),
             partial: t("sales.quickPartial"),
-            dueDate: t("sales.quickDueDate"),
             paidAmount: t("sales.quickPartialAmount"),
             noCustomers: t("sales.quickNoCustomers"),
+            forCustomer: t("sales.quickForCustomer"),
+            cartTotal: t("sales.quickCartTotal"),
+            clientLocked: t("sales.quickClientLocked"),
           }}
         />
       )}

@@ -8,8 +8,7 @@ import { FormField } from "@/components/form-field";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
 import { quickSaleFromFg } from "@/app/actions/quick-sale";
-import type { Locale } from "@core/shared/i18n/i18n";
-import { PayDueCalendar } from "../pay-due-calendar";
+import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import styles from "./quick-sale.module.css";
 
 function formatFgStock(template: string, n: string, u: string) {
@@ -33,21 +32,26 @@ export type QuickSaleProduct = {
   photoUrl: string | null;
 };
 
-type PayMode = "paid" | "later" | "partial";
+type CartLine = {
+  key: number;
+  productId: string;
+  name: string;
+  symbol: string;
+  photoUrl: string | null;
+  quantity: string;
+  unitPrice: string;
+  amount: string;
+};
 
-function daysInMonth(year: number, month: number) {
-  return new Date(year, month, 0).getDate();
-}
+type PayMode = "paid" | "partial";
 
 export function QuickSaleForm({
   customers,
   products,
-  locale = "ru",
   labels,
 }: {
   customers: QuickSaleCustomer[];
   products: QuickSaleProduct[];
-  locale?: Locale;
   labels: {
     customerName: string;
     pickCustomer: string;
@@ -58,19 +62,22 @@ export function QuickSaleForm({
     minPrice: string;
     stock: string;
     fgStock: string;
-    submit: string;
+    addLine: string;
+    finish: string;
+    cancel: string;
     sending: string;
     pay: string;
     paid: string;
-    later: string;
     partial: string;
-    dueDate: string;
     paidAmount: string;
     noCustomers: string;
+    forCustomer: string;
+    cartTotal: string;
+    clientLocked: string;
   };
 }) {
   const router = useRouter();
-  const [, startTransition] = useTransition();
+  const [pending, startTransition] = useTransition();
   const pickerRef = useRef<HTMLDivElement>(null);
   const productRef = useRef<HTMLDivElement>(null);
 
@@ -81,21 +88,33 @@ export function QuickSaleForm({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [productOpen, setProductOpen] = useState(false);
   const [productId, setProductId] = useState(products[0]?.id ?? "");
+  const [quantity, setQuantity] = useState("1");
+  const [unitPrice, setUnitPrice] = useState(products[0]?.price ?? "0");
+  const [cart, setCart] = useState<CartLine[]>([]);
+  const [nextKey, setNextKey] = useState(1);
   const [payMode, setPayMode] = useState<PayMode>("paid");
   const [partialAmount, setPartialAmount] = useState("");
-  const [dueDay, setDueDay] = useState<number | null>(null);
-  const [dueMonth, setDueMonth] = useState<number | null>(null);
+  const [idempotencyKey, setIdempotencyKey] = useState(() => `quick-sale-${crypto.randomUUID()}`);
+
+  const saleLocked = cart.length > 0;
 
   const selected = useMemo(
     () => products.find((p) => p.id === productId) ?? products[0],
     [products, productId],
   );
 
-  const year = new Date().getFullYear();
-  const dueAtValue =
-    dueDay != null && dueMonth != null
-      ? `${year}-${String(dueMonth).padStart(2, "0")}-${String(Math.min(dueDay, daysInMonth(year, dueMonth))).padStart(2, "0")}`
-      : "";
+  const cartTotal = useMemo(
+    () => cart.reduce((sum, line) => sum.plus(D(line.amount)), D(0)),
+    [cart],
+  );
+
+  const reservedByProduct = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof D>>();
+    for (const line of cart) {
+      map.set(line.productId, (map.get(line.productId) ?? D(0)).plus(D(line.quantity)));
+    }
+    return map;
+  }, [cart]);
 
   useEffect(() => {
     if (!pickerOpen && !productOpen) return;
@@ -125,6 +144,7 @@ export function QuickSaleForm({
   }, [pickerOpen, productOpen]);
 
   function pickCustomer(c: QuickSaleCustomer) {
+    if (saleLocked) return;
     setCustomerId(c.id);
     setCustomerName(c.name);
     setPhone(c.phone || c.whatsapp || "");
@@ -132,19 +152,92 @@ export function QuickSaleForm({
   }
 
   function pickProduct(id: string) {
+    const p = products.find((x) => x.id === id);
     setProductId(id);
+    setUnitPrice(p?.price ?? "0");
     setProductOpen(false);
   }
 
   function onNameChange(value: string) {
+    if (saleLocked) return;
     setCustomerName(value);
     if (customerId) setCustomerId("");
   }
 
-  function onSubmit(formData: FormData) {
+  function remainingStock(product: QuickSaleProduct) {
+    const reserved = reservedByProduct.get(product.id) ?? D(0);
+    return D(product.onHand).minus(reserved);
+  }
+
+  function resetLineFields(nextProductId = productId) {
+    const p = products.find((x) => x.id === nextProductId) ?? products[0];
+    setProductId(p?.id ?? "");
+    setQuantity("1");
+    setUnitPrice(p?.price ?? "0");
+  }
+
+  function addToCart() {
     setError(null);
-    if (payMode === "later" && !dueAtValue) {
-      setError("Укажите дату оплаты.");
+    if (!customerName.trim() || !phone.trim()) {
+      setError("Укажите клиента и телефон.");
+      return;
+    }
+    if (!selected) return;
+
+    const qty = D(quantity);
+    const price = D(unitPrice);
+    if (!qty.gt(0)) {
+      setError("Укажите количество.");
+      return;
+    }
+    if (price.lt(0)) {
+      setError("Цена некорректна.");
+      return;
+    }
+    if (price.lt(D(selected.minPrice))) {
+      setError(`Цена ниже минимальной (${selected.minPrice} с).`);
+      return;
+    }
+    const left = remainingStock(selected);
+    if (left.lt(qty)) {
+      setError(
+        `На складе ГП не хватает: нужно ${qtyDisplay(qty)} ${selected.symbol}, свободно ${qtyDisplay(left)}.`,
+      );
+      return;
+    }
+
+    const amount = qty.mul(price);
+    setCart((prev) => [
+      ...prev,
+      {
+        key: nextKey,
+        productId: selected.id,
+        name: selected.name,
+        symbol: selected.symbol,
+        photoUrl: selected.photoUrl,
+        quantity: qty.toFixed(6),
+        unitPrice: price.toFixed(4),
+        amount: amount.toFixed(4),
+      },
+    ]);
+    setNextKey((k) => k + 1);
+    resetLineFields();
+    setPickerOpen(false);
+    setProductOpen(false);
+  }
+
+  function cancelSale() {
+    setCart([]);
+    setError(null);
+    setPayMode("paid");
+    setPartialAmount("");
+    resetLineFields(products[0]?.id);
+  }
+
+  function onFinish(formData: FormData) {
+    setError(null);
+    if (cart.length === 0) {
+      setError("Добавьте хотя бы одно изделие.");
       return;
     }
     startTransition(async () => {
@@ -153,247 +246,321 @@ export function QuickSaleForm({
         setError(result.error);
         return;
       }
-      router.push("/orders");
+      setCart([]);
+      setPayMode("paid");
+      setPartialAmount("");
+      setIdempotencyKey(`quick-sale-${crypto.randomUUID()}`);
+      resetLineFields(products[0]?.id);
       router.refresh();
     });
   }
 
   if (products.length === 0) return null;
 
+  const selectedLeft = selected ? remainingStock(selected) : D(0);
+
   return (
-    <form action={onSubmit} className={styles.card}>
-      <IdempotencyField prefix="quick-sale" />
-      <input type="hidden" name="customerId" value={customerId || "__new__"} />
-      <input type="hidden" name="payMode" value={payMode} />
-      <input type="hidden" name="dueAt" value={payMode === "later" ? dueAtValue : ""} />
+    <div className={styles.wrap}>
+      <div className={styles.card}>
+        {error ? <p className={styles.error}>{error}</p> : null}
 
-      {error ? <p className={styles.error}>{error}</p> : null}
-
-      <FormField
-        label={labels.customerName}
-        required
-        className={styles.field}
-        labelExtra={
-          customers.length > 0 ? (
-            <button
-              type="button"
-              className={styles.pickLink}
-              onClick={() => setPickerOpen((v) => !v)}
-            >
-              {labels.pickCustomer}
-            </button>
-          ) : null
-        }
-      >
-        <div ref={pickerRef} className={styles.customerWrap}>
-          <input
-            name="customerName"
-            required
-            className="ui-input"
-            autoComplete="name"
-            value={customerName}
-            onChange={(e) => onNameChange(e.target.value)}
-          />
-          {pickerOpen ? (
-            <div className={styles.picker} role="listbox">
-              {customers.length === 0 ? (
-                <p className={styles.pickerEmpty}>{labels.noCustomers}</p>
-              ) : (
-                customers.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    className={`${styles.pickerItem} ${c.id === customerId ? styles.pickerItemActive : ""}`}
-                    onClick={() => pickCustomer(c)}
-                  >
-                    <span className={styles.pickerIcon} aria-hidden>
-                      <UserRound size={16} strokeWidth={ICON_STROKE} />
-                    </span>
-                    <span className={styles.pickerText}>
-                      <span className={styles.pickerName}>{c.name}</span>
-                      <span className={styles.pickerPhone}>
-                        {c.phone || c.whatsapp || "—"}
+        <FormField
+          label={labels.customerName}
+          required
+          className={styles.field}
+          labelExtra={
+            !saleLocked && customers.length > 0 ? (
+              <button
+                type="button"
+                className={styles.pickLink}
+                onClick={() => setPickerOpen((v) => !v)}
+              >
+                {labels.pickCustomer}
+              </button>
+            ) : null
+          }
+        >
+          <div ref={pickerRef} className={styles.customerWrap}>
+            <input
+              required
+              className="ui-input"
+              autoComplete="name"
+              value={customerName}
+              onChange={(e) => onNameChange(e.target.value)}
+              disabled={saleLocked}
+              readOnly={saleLocked}
+            />
+            {pickerOpen && !saleLocked ? (
+              <div className={styles.picker} role="listbox">
+                {customers.length === 0 ? (
+                  <p className={styles.pickerEmpty}>{labels.noCustomers}</p>
+                ) : (
+                  customers.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      className={`${styles.pickerItem} ${c.id === customerId ? styles.pickerItemActive : ""}`}
+                      onClick={() => pickCustomer(c)}
+                    >
+                      <span className={styles.pickerIcon} aria-hidden>
+                        <UserRound size={16} strokeWidth={ICON_STROKE} />
                       </span>
-                    </span>
-                  </button>
-                ))
-              )}
-            </div>
-          ) : null}
-        </div>
-      </FormField>
-
-      <FormField label={labels.phone} required className={styles.field}>
-        <input
-          name="phone"
-          className="ui-input"
-          inputMode="tel"
-          autoComplete="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          required
-          placeholder="+992 …"
-        />
-      </FormField>
-
-      <FormField label={labels.product} required className={styles.field}>
-        <div ref={productRef} className={styles.productWrap}>
-          <input type="hidden" name="productId" value={productId} required />
-          <button
-            type="button"
-            className={styles.productTrigger}
-            aria-haspopup="listbox"
-            aria-expanded={productOpen}
-            onClick={() => {
-              setPickerOpen(false);
-              setProductOpen((v) => !v);
-            }}
-          >
-            <span className={styles.productThumb}>
-              {selected?.photoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={selected.photoUrl} alt="" className={styles.productThumbImg} />
-              ) : (
-                <span className={styles.productThumbEmpty}>
-                  {(selected?.name ?? "?").slice(0, 1)}
-                </span>
-              )}
-            </span>
-            <span className={styles.productTriggerText}>
-              <span className={styles.productTriggerName}>{selected?.name ?? "—"}</span>
-              <span className={styles.productTriggerMeta}>
-                {selected ? formatFgStock(labels.fgStock, selected.onHand, selected.symbol) : ""}
-              </span>
-            </span>
-            <ChevronDown
-              size={16}
-              strokeWidth={ICON_STROKE}
-              className={`${styles.productChevron} ${productOpen ? styles.productChevronOpen : ""}`}
-              aria-hidden
-            />
-          </button>
-          {productOpen ? (
-            <div className={styles.productList} role="listbox">
-              {products.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  role="option"
-                  aria-selected={p.id === productId}
-                  className={`${styles.productOption} ${p.id === productId ? styles.productOptionActive : ""}`}
-                  onClick={() => pickProduct(p.id)}
-                >
-                  <span className={styles.productThumb}>
-                    {p.photoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.photoUrl} alt="" className={styles.productThumbImg} />
-                    ) : (
-                      <span className={styles.productThumbEmpty}>{p.name.slice(0, 1)}</span>
-                    )}
-                  </span>
-                  <span className={styles.productTriggerText}>
-                    <span className={styles.productTriggerName}>{p.name}</span>
-                    <span className={styles.productTriggerMeta}>
-                      {formatFgStock(labels.fgStock, p.onHand, p.symbol)}
-                    </span>
-                  </span>
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      </FormField>
-
-      {selected ? (
-        <p className={styles.meta}>
-          {labels.minPrice} <strong>{selected.minPrice} с</strong>
-          <span className={styles.metaDot}>·</span>
-          {labels.stock} {selected.onHand} {selected.symbol}
-        </p>
-      ) : null}
-
-      <div className={styles.row2}>
-        <FormField
-          label={`${labels.quantity}${selected ? `, ${selected.symbol}` : ""}`}
-          required
-          className={styles.field}
-        >
-          <input name="quantity" required className="ui-input" inputMode="decimal" defaultValue="1" />
+                      <span className={styles.pickerText}>
+                        <span className={styles.pickerName}>{c.name}</span>
+                        <span className={styles.pickerPhone}>
+                          {c.phone || c.whatsapp || "—"}
+                        </span>
+                      </span>
+                    </button>
+                  ))
+                )}
+              </div>
+            ) : null}
+          </div>
         </FormField>
-        <FormField
-          label={`${labels.unitPrice}${selected ? `, с/${selected.symbol}` : ""}`}
-          required
-          className={styles.field}
-        >
+
+        <FormField label={labels.phone} required className={styles.field}>
           <input
-            key={selected?.id ?? "price"}
-            name="unitPrice"
-            required
             className="ui-input"
-            inputMode="decimal"
-            defaultValue={selected?.price ?? "0"}
+            inputMode="tel"
+            autoComplete="tel"
+            value={phone}
+            onChange={(e) => {
+              if (saleLocked) return;
+              setPhone(e.target.value);
+            }}
+            required
+            disabled={saleLocked}
+            readOnly={saleLocked}
+            placeholder="+992 …"
           />
         </FormField>
-      </div>
 
-      <div className={styles.payBlock}>
-        <p className={styles.payLabel}>{labels.pay}</p>
-        <div className={styles.paySeg} role="radiogroup" aria-label={labels.pay}>
-          {(
-            [
-              ["paid", labels.paid],
-              ["later", labels.later],
-              ["partial", labels.partial],
-            ] as const
-          ).map(([id, label]) => (
+        {saleLocked ? <p className={styles.lockHint}>{labels.clientLocked}</p> : null}
+
+        <FormField label={labels.product} required className={styles.field}>
+          <div ref={productRef} className={styles.productWrap}>
             <button
-              key={id}
               type="button"
-              role="radio"
-              aria-checked={payMode === id}
-              className={`${styles.payBtn} ${payMode === id ? styles.payBtnActive : ""}`}
-              onClick={() => setPayMode(id)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {payMode === "later" ? (
-          <FormField label={labels.dueDate} required className={styles.fieldTight}>
-            <PayDueCalendar
-              locale={locale}
-              day={dueDay}
-              month={dueMonth}
-              autoFocus
-              onChange={(d, m) => {
-                setDueDay(d);
-                setDueMonth(m);
+              className={styles.productTrigger}
+              aria-haspopup="listbox"
+              aria-expanded={productOpen}
+              onClick={() => {
+                setPickerOpen(false);
+                setProductOpen((v) => !v);
               }}
-            />
-          </FormField>
+            >
+              <span className={styles.productThumb}>
+                {selected?.photoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={selected.photoUrl} alt="" className={styles.productThumbImg} />
+                ) : (
+                  <span className={styles.productThumbEmpty}>
+                    {(selected?.name ?? "?").slice(0, 1)}
+                  </span>
+                )}
+              </span>
+              <span className={styles.productTriggerText}>
+                <span className={styles.productTriggerName}>{selected?.name ?? "—"}</span>
+                <span className={styles.productTriggerMeta}>
+                  {selected
+                    ? formatFgStock(labels.fgStock, qtyDisplay(selectedLeft), selected.symbol)
+                    : ""}
+                </span>
+              </span>
+              <ChevronDown
+                size={16}
+                strokeWidth={ICON_STROKE}
+                className={`${styles.productChevron} ${productOpen ? styles.productChevronOpen : ""}`}
+                aria-hidden
+              />
+            </button>
+            {productOpen ? (
+              <div className={styles.productList} role="listbox">
+                {products.map((p) => {
+                  const left = remainingStock(p);
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      role="option"
+                      aria-selected={p.id === productId}
+                      className={`${styles.productOption} ${p.id === productId ? styles.productOptionActive : ""}`}
+                      onClick={() => pickProduct(p.id)}
+                    >
+                      <span className={styles.productThumb}>
+                        {p.photoUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={p.photoUrl} alt="" className={styles.productThumbImg} />
+                        ) : (
+                          <span className={styles.productThumbEmpty}>{p.name.slice(0, 1)}</span>
+                        )}
+                      </span>
+                      <span className={styles.productTriggerText}>
+                        <span className={styles.productTriggerName}>{p.name}</span>
+                        <span className={styles.productTriggerMeta}>
+                          {formatFgStock(labels.fgStock, qtyDisplay(left), p.symbol)}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
+          </div>
+        </FormField>
+
+        {selected ? (
+          <p className={styles.meta}>
+            {labels.minPrice} <strong>{selected.minPrice} с</strong>
+            <span className={styles.metaDot}>·</span>
+            {labels.stock} {qtyDisplay(selectedLeft)} {selected.symbol}
+          </p>
         ) : null}
 
-        {payMode === "partial" ? (
-          <FormField label={labels.paidAmount} required className={styles.fieldTight}>
+        <div className={styles.row2}>
+          <FormField
+            label={`${labels.quantity}${selected ? `, ${selected.symbol}` : ""}`}
+            required
+            className={styles.field}
+          >
             <input
-              name="paidAmount"
               required
               className="ui-input"
               inputMode="decimal"
-              value={partialAmount}
-              onChange={(e) => setPartialAmount(e.target.value)}
-              placeholder="0"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
             />
           </FormField>
-        ) : (
-          <input type="hidden" name="paidAmount" value="" />
-        )}
+          <FormField
+            label={`${labels.unitPrice}${selected ? `, с/${selected.symbol}` : ""}`}
+            required
+            className={styles.field}
+          >
+            <input
+              required
+              className="ui-input"
+              inputMode="decimal"
+              value={unitPrice}
+              onChange={(e) => setUnitPrice(e.target.value)}
+            />
+          </FormField>
+        </div>
+
+        <button type="button" className={`ui-btn-primary ${styles.submit}`} onClick={addToCart}>
+          {labels.addLine}
+        </button>
       </div>
 
-      <PendingButton className={`ui-btn-primary ${styles.submit}`} pendingLabel={labels.sending}>
-        {labels.submit}
-      </PendingButton>
-    </form>
+      {cart.length > 0 ? (
+        <div className={styles.receiptBlock}>
+          <ul className={styles.receiptList}>
+            {cart.map((line) => (
+              <li key={line.key} className={styles.receiptCard}>
+                <span className={styles.receiptThumb}>
+                  {line.photoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={line.photoUrl} alt="" className={styles.receiptThumbImg} />
+                  ) : (
+                    <span className={styles.receiptThumbEmpty}>{line.name.slice(0, 1)}</span>
+                  )}
+                </span>
+                <span className={styles.receiptMain}>
+                  <span className={styles.receiptName}>{line.name}</span>
+                  <span className={styles.receiptWho}>
+                    {labels.forCustomer} {customerName.trim() || "—"}
+                  </span>
+                </span>
+                <span className={styles.receiptRight}>
+                  <span className={styles.receiptQty}>
+                    {qtyDisplay(D(line.quantity))} {line.symbol}
+                  </span>
+                  <span className={styles.receiptSum}>{moneyDisplay(D(line.amount))} с</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          <form action={onFinish} className={styles.checkout}>
+            <IdempotencyField prefix="quick-sale" key={idempotencyKey} />
+            <input type="hidden" name="customerId" value={customerId || "__new__"} />
+            <input type="hidden" name="customerName" value={customerName} />
+            <input type="hidden" name="phone" value={phone} />
+            <input
+              type="hidden"
+              name="items"
+              value={JSON.stringify(
+                cart.map((line) => ({
+                  productId: line.productId,
+                  quantity: line.quantity,
+                  unitPrice: line.unitPrice,
+                })),
+              )}
+            />
+            <input type="hidden" name="payMode" value={payMode} />
+
+            <div className={styles.totalRow}>
+              <span>{labels.cartTotal}</span>
+              <strong>{moneyDisplay(cartTotal)} с</strong>
+            </div>
+
+            <div className={styles.payBlock}>
+              <p className={styles.payLabel}>{labels.pay}</p>
+              <div className={styles.paySeg} role="radiogroup" aria-label={labels.pay}>
+                {(
+                  [
+                    ["paid", labels.paid],
+                    ["partial", labels.partial],
+                  ] as const
+                ).map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    role="radio"
+                    aria-checked={payMode === id}
+                    className={`${styles.payBtn} ${payMode === id ? styles.payBtnActive : ""}`}
+                    onClick={() => setPayMode(id)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {payMode === "partial" ? (
+                <FormField label={labels.paidAmount} required className={styles.fieldTight}>
+                  <input
+                    name="paidAmount"
+                    required
+                    className="ui-input"
+                    inputMode="decimal"
+                    value={partialAmount}
+                    onChange={(e) => setPartialAmount(e.target.value)}
+                    placeholder="0"
+                  />
+                </FormField>
+              ) : (
+                <input type="hidden" name="paidAmount" value="" />
+              )}
+            </div>
+
+            <PendingButton
+              className={`ui-btn-primary ${styles.submit}`}
+              pendingLabel={labels.sending}
+              disabled={pending}
+            >
+              {labels.finish}
+            </PendingButton>
+            <button
+              type="button"
+              className={styles.cancelBtn}
+              onClick={cancelSale}
+              disabled={pending}
+            >
+              {labels.cancel}
+            </button>
+          </form>
+        </div>
+      ) : null}
+    </div>
   );
 }
