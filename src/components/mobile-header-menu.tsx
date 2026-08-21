@@ -1,15 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { CircleQuestionMark, Settings, User, X } from "lucide-react";
+import { X } from "lucide-react";
 import { LanguageSwitcher } from "@/components/language-switcher";
-import { QUICK_ACTION_ICONS } from "@/components/dashboard/dash-quick-action-icons";
-import { ICON_STROKE } from "@/components/nav-icons";
-import { mobileMenuQuickActions } from "@/components/mobile-menu-quick-actions";
-import { canSee, SETTINGS_ITEM } from "@core/shared/nav";
+import { LogoutButton } from "@/components/logout-button";
+import { NAV_ICONS, ICON_STROKE } from "@/components/nav-icons";
+import { moreGroupsForRole } from "@core/shared/nav";
 import type { Locale } from "@core/shared/i18n/i18n";
 import { createT } from "@core/shared/i18n/i18n";
 import styles from "./mobile-header-menu.module.css";
@@ -31,16 +29,13 @@ export function MobileHeaderMenu({
   roleCode: string;
   permissions: string[];
 }) {
-  const pathname = usePathname();
   const t = createT(locale);
   const [mounted, setMounted] = useState(false);
 
-  const quickActions = useMemo(
-    () => mobileMenuQuickActions(roleCode, permissions, t),
-    [roleCode, permissions, t],
+  const groups = useMemo(
+    () => moreGroupsForRole(roleCode, permissions),
+    [roleCode, permissions],
   );
-
-  const showSettings = canSee(permissions, roleCode, SETTINGS_ITEM);
 
   useEffect(() => {
     setMounted(true);
@@ -78,7 +73,7 @@ export function MobileHeaderMenu({
   return createPortal(
     <>
       <button type="button" className={styles.backdrop} aria-label={t("help.close")} onClick={onClose} />
-      <nav id="mobile-header-menu" className={styles.panel} aria-label={t("nav.menu")}>
+      <nav id="mobile-header-menu" className={styles.panel} aria-label={t("nav.more")}>
         <div className={styles.headCard}>
           <div className={styles.userBlock}>
             <p className={styles.userName}>{userName}</p>
@@ -93,44 +88,45 @@ export function MobileHeaderMenu({
           <LanguageSwitcher locale={locale} />
         </div>
 
-        {quickActions.length > 0 ? (
-          <section className={styles.card}>
-            <h2 className={styles.sectionTitle}>{t("home.quickActions")}</h2>
-            <ul className={styles.actionList}>
-              {quickActions.map((action) => {
-                const Icon = QUICK_ACTION_ICONS[action.icon];
+        {groups.map((group) => (
+          <section key={group.id} className={styles.group}>
+            {group.labelKey ? (
+              <h2 className={styles.groupTitle}>{t(group.labelKey)}</h2>
+            ) : null}
+            <ul className={styles.list}>
+              {group.items.map((item) => {
+                const Icon = NAV_ICONS[item.icon];
                 return (
-                  <li key={action.href}>
-                    <Link href={action.href} className={styles.actionLink} onClick={closeAndNavigate}>
-                      <span className={styles.actionIcon}>
-                        <Icon size={20} strokeWidth={ICON_STROKE} aria-hidden />
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={styles.row}
+                      prefetch
+                      onClick={closeAndNavigate}
+                      data-tour={item.tour ?? `nav-${item.id}`}
+                    >
+                      <span className={styles.rowIcon}>
+                        <Icon size={18} strokeWidth={ICON_STROKE} aria-hidden />
                       </span>
-                      {action.label}
+                      <span className={styles.rowLabel}>{t(item.labelKey)}</span>
                     </Link>
                   </li>
                 );
               })}
             </ul>
           </section>
-        ) : null}
+        ))}
 
-        <div className={styles.footerCard}>
-          <Link href="/help" className={styles.footerLink} onClick={closeAndNavigate}>
-            <CircleQuestionMark size={18} strokeWidth={ICON_STROKE} aria-hidden />
+        <div className={styles.account}>
+          <Link href="/help" className={styles.accountLink} onClick={closeAndNavigate}>
             {t("nav.help")}
           </Link>
-          {pathname.startsWith("/me") ? (
-            <Link href="/me/profile" className={styles.footerLink} onClick={closeAndNavigate}>
-              <User size={18} strokeWidth={ICON_STROKE} aria-hidden />
-              {t("nav.profile")}
-            </Link>
-          ) : null}
-          {showSettings ? (
-            <Link href={SETTINGS_ITEM.href} className={styles.footerLink} onClick={closeAndNavigate}>
-              <Settings size={18} strokeWidth={ICON_STROKE} aria-hidden />
-              {t("nav.settings")}
-            </Link>
-          ) : null}
+          <Link href="/me/profile" className={styles.accountLink} onClick={closeAndNavigate}>
+            {t("nav.profile")}
+          </Link>
+          <div className={styles.accountLogout}>
+            <LogoutButton label={t("nav.logout")} />
+          </div>
         </div>
       </nav>
     </>,

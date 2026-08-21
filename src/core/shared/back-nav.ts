@@ -31,12 +31,13 @@ const SECTION_LIST_PARENTS: Record<string, string> = {
   "/settings/audit": "/settings",
 };
 
-/** Top-level pages usually opened from «Ещё» — on mobile, back goes to /more. */
+/** Top-level pages usually opened from the hamburger «Ещё» menu. */
 const MORE_LANDING = new Set([
   "/sales",
   "/crm",
   "/products",
   "/materials",
+  "/production",
   "/purchasing",
   "/finance",
   "/employees",
@@ -45,6 +46,7 @@ const MORE_LANDING = new Set([
   "/help",
   "/notifications",
   "/search",
+  "/more",
 ]);
 
 export type BackNavOptions = {
@@ -72,19 +74,19 @@ export function resolveBackHref(pathname: string, opts?: BackNavOptions): string
   }
 
   if (MORE_LANDING.has(path)) {
-    // Mobile (tabs known): return to «Ещё». Desktop (no tabs): no shell back.
-    return tabs ? "/more" : null;
+    // Mobile: show hamburger (menu is the «Ещё» entry). Desktop: no shell back.
+    return null;
   }
 
   if (path.startsWith("/settings/")) return "/settings";
-  if (path.startsWith("/more/")) return "/more";
+  if (path.startsWith("/more/")) return "/";
   if (path.startsWith("/crm/customers/")) return "/crm";
   if (path.startsWith("/purchasing/suppliers/")) return "/purchasing";
 
   const segments = path.split("/").filter(Boolean);
   if (segments.length <= 1) {
-    // Unknown single-segment page opened from more on mobile.
-    return tabs ? "/more" : null;
+    // Unknown single-segment page — hamburger on mobile, no back on desktop.
+    return null;
   }
 
   return `/${segments.slice(0, -1).join("/")}`;

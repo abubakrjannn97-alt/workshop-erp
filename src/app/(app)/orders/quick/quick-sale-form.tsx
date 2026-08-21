@@ -1,12 +1,15 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { UserRound } from "lucide-react";
+import { ICON_STROKE } from "@/components/nav-icons";
 import { FormField } from "@/components/form-field";
 import { AppSelect } from "@/components/app-select";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
 import { quickSaleFromFg } from "@/app/actions/quick-sale";
+import styles from "./quick-sale.module.css";
 
 export type QuickSaleCustomer = {
   id: string;
@@ -25,7 +28,7 @@ export type QuickSaleProduct = {
   photoUrl: string | null;
 };
 
-const NEW_CUSTOMER = "__new__";
+type PayMode = "paid" | "later" | "partial";
 
 export function QuickSaleForm({
   customers,
@@ -35,9 +38,8 @@ export function QuickSaleForm({
   customers: QuickSaleCustomer[];
   products: QuickSaleProduct[];
   labels: {
-    customer: string;
-    newCustomer: string;
     customerName: string;
+    pickCustomer: string;
     phone: string;
     product: string;
     quantity: string;
@@ -46,35 +48,61 @@ export function QuickSaleForm({
     stock: string;
     submit: string;
     sending: string;
-    paidNow: string;
-    unpaid: string;
     pay: string;
+    paid: string;
+    later: string;
+    partial: string;
+    dueDate: string;
+    paidAmount: string;
+    noCustomers: string;
   };
 }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
+  const pickerRef = useRef<HTMLDivElement>(null);
+
   const [error, setError] = useState<string | null>(null);
-  const [customerId, setCustomerId] = useState(customers[0]?.id ?? NEW_CUSTOMER);
-  const [phone, setPhone] = useState(
-    customers[0]?.phone || customers[0]?.whatsapp || "",
-  );
+  const [customerId, setCustomerId] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [productId, setProductId] = useState(products[0]?.id ?? "");
+  const [payMode, setPayMode] = useState<PayMode>("paid");
+  const [partialAmount, setPartialAmount] = useState("");
 
   const selected = useMemo(
     () => products.find((p) => p.id === productId) ?? products[0],
     [products, productId],
   );
 
-  const isNew = customerId === NEW_CUSTOMER || customers.length === 0;
+  useEffect(() => {
+    if (!pickerOpen) return;
+    const onPointer = (event: MouseEvent | TouchEvent) => {
+      if (!pickerRef.current?.contains(event.target as Node)) setPickerOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setPickerOpen(false);
+    };
+    document.addEventListener("mousedown", onPointer);
+    document.addEventListener("touchstart", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointer);
+      document.removeEventListener("touchstart", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [pickerOpen]);
 
-  function onCustomerChange(id: string) {
-    setCustomerId(id);
-    if (id === NEW_CUSTOMER) {
-      setPhone("");
-      return;
-    }
-    const c = customers.find((x) => x.id === id);
-    setPhone(c?.phone || c?.whatsapp || "");
+  function pickCustomer(c: QuickSaleCustomer) {
+    setCustomerId(c.id);
+    setCustomerName(c.name);
+    setPhone(c.phone || c.whatsapp || "");
+    setPickerOpen(false);
+  }
+
+  function onNameChange(value: string) {
+    setCustomerName(value);
+    if (customerId) setCustomerId("");
   }
 
   function onSubmit(formData: FormData) {
@@ -90,38 +118,77 @@ export function QuickSaleForm({
     });
   }
 
-  if (products.length === 0) {
-    return null;
-  }
+  if (products.length === 0) return null;
+
+  const tomorrow = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().slice(0, 10);
+  })();
 
   return (
-    <form action={onSubmit} className="ui-card grid gap-3 p-3.5 max-w-xl">
+    <form action={onSubmit} className={styles.card}>
       <IdempotencyField prefix="quick-sale" />
-      {error ? (
-        <p className="m-0 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900">{error}</p>
-      ) : null}
+      <input type="hidden" name="customerId" value={customerId || "__new__"} />
+      <input type="hidden" name="payMode" value={payMode} />
 
-      <FormField label={labels.customer} required>
-        <AppSelect
-          name="customerId"
-          value={isNew && customers.length === 0 ? NEW_CUSTOMER : customerId}
-          onChange={onCustomerChange}
-          options={[
-            { value: NEW_CUSTOMER, label: labels.newCustomer },
-            ...customers.map((c) => ({ value: c.id, label: c.name })),
-          ]}
-        />
+      {error ? <p className={styles.error}>{error}</p> : null}
+
+      <FormField
+        label={labels.customerName}
+        required
+        className={styles.field}
+        labelExtra={
+          customers.length > 0 ? (
+            <button
+              type="button"
+              className={styles.pickLink}
+              onClick={() => setPickerOpen((v) => !v)}
+            >
+              {labels.pickCustomer}
+            </button>
+          ) : null
+        }
+      >
+        <div ref={pickerRef} className={styles.customerWrap}>
+          <input
+            name="customerName"
+            required
+            className="ui-input"
+            autoComplete="name"
+            value={customerName}
+            onChange={(e) => onNameChange(e.target.value)}
+          />
+          {pickerOpen ? (
+            <div className={styles.picker} role="listbox">
+              {customers.length === 0 ? (
+                <p className={styles.pickerEmpty}>{labels.noCustomers}</p>
+              ) : (
+                customers.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className={`${styles.pickerItem} ${c.id === customerId ? styles.pickerItemActive : ""}`}
+                    onClick={() => pickCustomer(c)}
+                  >
+                    <span className={styles.pickerIcon} aria-hidden>
+                      <UserRound size={16} strokeWidth={ICON_STROKE} />
+                    </span>
+                    <span className={styles.pickerText}>
+                      <span className={styles.pickerName}>{c.name}</span>
+                      <span className={styles.pickerPhone}>
+                        {c.phone || c.whatsapp || "—"}
+                      </span>
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+          ) : null}
+        </div>
       </FormField>
 
-      {isNew ? (
-        <FormField label={labels.customerName} required>
-          <input name="customerName" required className="ui-input" autoComplete="name" />
-        </FormField>
-      ) : (
-        <input type="hidden" name="customerName" value="" />
-      )}
-
-      <FormField label={labels.phone} required={isNew}>
+      <FormField label={labels.phone} required className={styles.field}>
         <input
           name="phone"
           className="ui-input"
@@ -129,12 +196,12 @@ export function QuickSaleForm({
           autoComplete="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          required={isNew}
+          required
           placeholder="+992 …"
         />
       </FormField>
 
-      <FormField label={labels.product} required>
+      <FormField label={labels.product} required className={styles.field}>
         <AppSelect
           name="productId"
           value={productId}
@@ -147,36 +214,86 @@ export function QuickSaleForm({
       </FormField>
 
       {selected ? (
-        <p className="m-0 text-[13px] text-[var(--ink-2)]">
-          {labels.minPrice}: <strong className="text-[var(--ink)]">{selected.minPrice} с</strong>
-          {" · "}
-          {labels.stock}: {selected.onHand} {selected.symbol}
+        <p className={styles.meta}>
+          {labels.minPrice} <strong>{selected.minPrice} с</strong>
+          <span className={styles.metaDot}>·</span>
+          {labels.stock} {selected.onHand} {selected.symbol}
         </p>
       ) : null}
 
-      <FormField label={`${labels.quantity}${selected ? `, ${selected.symbol}` : ""}`} required>
-        <input name="quantity" required className="ui-input" inputMode="decimal" defaultValue="1" />
-      </FormField>
-
-      <FormField label={`${labels.unitPrice}${selected ? `, с/${selected.symbol}` : ""}`} required>
-        <input
-          key={selected?.id ?? "price"}
-          name="unitPrice"
+      <div className={styles.row2}>
+        <FormField
+          label={`${labels.quantity}${selected ? `, ${selected.symbol}` : ""}`}
           required
-          className="ui-input"
-          inputMode="decimal"
-          defaultValue={selected?.price ?? "0"}
-        />
-      </FormField>
+          className={styles.field}
+        >
+          <input name="quantity" required className="ui-input" inputMode="decimal" defaultValue="1" />
+        </FormField>
+        <FormField
+          label={`${labels.unitPrice}${selected ? `, с/${selected.symbol}` : ""}`}
+          required
+          className={styles.field}
+        >
+          <input
+            key={selected?.id ?? "price"}
+            name="unitPrice"
+            required
+            className="ui-input"
+            inputMode="decimal"
+            defaultValue={selected?.price ?? "0"}
+          />
+        </FormField>
+      </div>
 
-      <FormField label={labels.pay}>
-        <select name="paidNow" className="ui-input" defaultValue="1">
-          <option value="1">{labels.paidNow}</option>
-          <option value="0">{labels.unpaid}</option>
-        </select>
-      </FormField>
+      <div className={styles.payBlock}>
+        <p className={styles.payLabel}>{labels.pay}</p>
+        <div className={styles.paySeg} role="radiogroup" aria-label={labels.pay}>
+          {(
+            [
+              ["paid", labels.paid],
+              ["later", labels.later],
+              ["partial", labels.partial],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              role="radio"
+              aria-checked={payMode === id}
+              className={`${styles.payBtn} ${payMode === id ? styles.payBtnActive : ""}`}
+              onClick={() => setPayMode(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
-      <PendingButton className="ui-btn-primary min-h-[44px]" pendingLabel={labels.sending}>
+        {payMode === "later" ? (
+          <FormField label={labels.dueDate} required className={styles.fieldTight}>
+            <input name="dueAt" type="date" required className="ui-input" defaultValue={tomorrow} />
+          </FormField>
+        ) : null}
+
+        {payMode === "partial" ? (
+          <FormField label={labels.paidAmount} required className={styles.fieldTight}>
+            <input
+              name="paidAmount"
+              required
+              className="ui-input"
+              inputMode="decimal"
+              value={partialAmount}
+              onChange={(e) => setPartialAmount(e.target.value)}
+              placeholder="0"
+            />
+          </FormField>
+        ) : (
+          <input type="hidden" name="paidAmount" value="" />
+        )}
+
+        {payMode !== "later" ? <input type="hidden" name="dueAt" value="" /> : null}
+      </div>
+
+      <PendingButton className={`ui-btn-primary ${styles.submit}`} pendingLabel={labels.sending}>
         {labels.submit}
       </PendingButton>
     </form>

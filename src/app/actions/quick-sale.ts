@@ -27,22 +27,26 @@ export async function quickSaleFromFg(formData: FormData) {
   const parsed = z
     .object({
       customerId: z.string().min(1),
-      customerName: z.string().trim().max(200).optional().or(z.literal("")),
-      phone: z.string().trim().max(40).optional().or(z.literal("")),
+      customerName: z.string().trim().min(1).max(200),
+      phone: z.string().trim().min(1).max(40),
       productId: z.string().min(1),
       quantity: z.string().regex(/^\d+(\.\d{1,6})?$/),
       unitPrice: z.string().regex(/^\d+(\.\d{1,4})?$/),
-      paidNow: z.enum(["0", "1"]).default("1"),
+      payMode: z.enum(["paid", "later", "partial"]).default("paid"),
+      paidAmount: z.string().optional().or(z.literal("")),
+      dueAt: z.string().optional().or(z.literal("")),
       comment: z.string().optional(),
     })
     .safeParse({
-      customerId: formData.get("customerId"),
+      customerId: formData.get("customerId") || NEW_CUSTOMER,
       customerName: formData.get("customerName") ?? "",
       phone: formData.get("phone") ?? "",
       productId: formData.get("productId"),
       quantity: formData.get("quantity"),
       unitPrice: formData.get("unitPrice"),
-      paidNow: formData.get("paidNow") === "0" ? "0" : "1",
+      payMode: formData.get("payMode") || "paid",
+      paidAmount: formData.get("paidAmount") ?? "",
+      dueAt: formData.get("dueAt") ?? "",
       comment: formData.get("comment") || undefined,
     });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Проверьте поля." };
@@ -51,14 +55,6 @@ export async function quickSaleFromFg(formData: FormData) {
   const price = D(parsed.data.unitPrice);
   if (!qtyVal.gt(0)) return { error: "Укажите количество." };
   if (price.lt(0)) return { error: "Цена некорректна." };
-
-  const isNewCustomer = parsed.data.customerId === NEW_CUSTOMER;
-  if (isNewCustomer && !parsed.data.customerName?.trim()) {
-    return { error: "Укажите имя клиента." };
-  }
-  if (isNewCustomer && !parsed.data.phone?.trim()) {
-    return { error: "Укажите телефон или WhatsApp." };
-  }
 
   const [product, fg] = await Promise.all([
     prisma.product.findFirst({
@@ -83,13 +79,34 @@ export async function quickSaleFromFg(formData: FormData) {
     };
   }
 
+  const lineTotal = qtyVal.mul(price);
+  const payMode = parsed.data.payMode;
+  let paidRaw = D(0);
+  let dueAt: Date | null = null;
+
+  if (payMode === "paid") {
+    paidRaw = lineTotal;
+  } else if (payMode === "later") {
+    if (!parsed.data.dueAt) return { error: "Укажите дату оплаты." };
+    dueAt = new Date(`${parsed.data.dueAt}T12:00:00`);
+    if (Number.isNaN(dueAt.getTime())) return { error: "Некорректная дата оплаты." };
+  } else {
+    if (!parsed.data.paidAmount?.trim()) return { error: "Укажите сумму частичной оплаты." };
+    paidRaw = D(parsed.data.paidAmount);
+    if (!paidRaw.gt(0)) return { error: "Частичная оплата должна быть больше 0." };
+    if (paidRaw.gte(lineTotal)) {
+      return { error: "Частичная оплата должна быть меньше полной суммы." };
+    }
+  }
+
   let customerId = parsed.data.customerId;
-  const phone = parsed.data.phone?.trim() || null;
+  const phone = parsed.data.phone.trim();
+  const isNewCustomer = customerId === NEW_CUSTOMER || !customerId;
 
   if (isNewCustomer) {
     const created = await prisma.customer.create({
       data: {
-        name: parsed.data.customerName!.trim(),
+        name: parsed.data.customerName.trim(),
         phone,
         whatsapp: phone,
         managerId: session.user.roleCode === "sales_manager" ? session.user.id : null,
@@ -108,19 +125,16 @@ export async function quickSaleFromFg(formData: FormData) {
       where: { id: customerId, archivedAt: null },
     });
     if (!existing) return { error: "Клиент не найден." };
-    if (phone && phone !== existing.phone && phone !== existing.whatsapp) {
-      await prisma.customer.update({
-        where: { id: existing.id },
-        data: {
-          phone: existing.phone || phone,
-          whatsapp: existing.whatsapp || phone,
-        },
-      });
-    }
+    await prisma.customer.update({
+      where: { id: existing.id },
+      data: {
+        name: parsed.data.customerName.trim() || existing.name,
+        phone: phone || existing.phone,
+        whatsapp: existing.whatsapp || phone,
+      },
+    });
   }
 
-  const lineTotal = qtyVal.mul(price);
-  const paidRaw = parsed.data.paidNow === "1" ? lineTotal : D(0);
   const inFgStatus = await prisma.orderStatus.findUniqueOrThrow({ where: { code: ORDER_STATUS.IN_FG } });
   const number = await nextOrderNumber();
   const idempotencyKey = String(formData.get("idempotencyKey") ?? randomUUID());
@@ -144,6 +158,7 @@ export async function quickSaleFromFg(formData: FormData) {
           outputQty: qtyVal.toFixed(6),
           canProduceFully: true,
           confirmedAt: new Date(),
+          dueAt,
           createdById: session.user.id,
           items: {
             create: {
@@ -173,7 +188,9 @@ export async function quickSaleFromFg(formData: FormData) {
             orderId: order.id,
             amount: paidRaw.toFixed(4),
             method: "cash",
-            comment: parsed.data.comment?.trim() || "Быстрая продажа",
+            comment:
+              parsed.data.comment?.trim() ||
+              (payMode === "partial" ? "Частичная оплата" : "Быстрая продажа"),
             idempotencyKey: `${idempotencyKey}-pay`,
             createdById: session.user.id,
           },
@@ -205,6 +222,7 @@ export async function quickSaleFromFg(formData: FormData) {
       quantity: parsed.data.quantity,
       total: lineTotal.toFixed(4),
       customerId,
+      payMode,
     },
   });
 

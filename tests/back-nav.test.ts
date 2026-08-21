@@ -14,20 +14,20 @@ describe("resolveBackHref", () => {
     assert.equal(resolveBackHref("/notifications"), null);
   });
 
-  it("returns /more on mobile for more-landing roots", () => {
-    const tabs = new Set(["/", "/orders", "/warehouse", "/more"]);
-    assert.equal(resolveBackHref("/finance", { tabRoots: tabs }), "/more");
-    assert.equal(resolveBackHref("/settings", { tabRoots: tabs }), "/more");
-    assert.equal(resolveBackHref("/notifications", { tabRoots: tabs }), "/more");
-    assert.equal(resolveBackHref("/analytics", { tabRoots: tabs }), "/more");
-    assert.equal(resolveBackHref("/production", { tabRoots: tabs }), "/more");
+  it("shows hamburger on mobile for more-landing roots", () => {
+    const tabs = new Set(["/", "/orders", "/warehouse"]);
+    assert.equal(resolveBackHref("/finance", { tabRoots: tabs }), null);
+    assert.equal(resolveBackHref("/settings", { tabRoots: tabs }), null);
+    assert.equal(resolveBackHref("/notifications", { tabRoots: tabs }), null);
+    assert.equal(resolveBackHref("/analytics", { tabRoots: tabs }), null);
+    assert.equal(resolveBackHref("/production", { tabRoots: tabs }), null);
   });
 
   it("keeps bottom tabs as roots on mobile", () => {
-    const tabs = new Set(["/", "/crm", "/orders", "/me/commission", "/more"]);
+    const tabs = new Set(["/", "/crm", "/orders", "/me/commission"]);
     assert.equal(resolveBackHref("/crm", { tabRoots: tabs }), null);
     assert.equal(resolveBackHref("/me/commission", { tabRoots: tabs }), null);
-    assert.equal(resolveBackHref("/finance", { tabRoots: tabs }), "/more");
+    assert.equal(resolveBackHref("/finance", { tabRoots: tabs }), null);
   });
 
   it("returns crm root from customer card", () => {
@@ -50,11 +50,10 @@ describe("resolveBackHref", () => {
 
   it("returns section root for nested list pages", () => {
     assert.equal(resolveBackHref("/warehouse/inventory"), "/warehouse");
-    assert.equal(resolveBackHref("/orders/new"), "/orders");
+    assert.equal(resolveBackHref("/me/history"), "/me");
   });
 
   it("returns settings root for settings subpages", () => {
-    assert.equal(resolveBackHref("/settings/approvals"), "/settings");
-    assert.equal(resolveBackHref("/settings/audit"), "/settings");
+    assert.equal(resolveBackHref("/settings/roles"), "/settings");
   });
 });

@@ -61,7 +61,7 @@ export default async function QuickSalePage() {
     .filter((p) => p.hasStock);
 
   return (
-    <div className="page-stack" style={{ gap: 12 }}>
+    <div className="page-stack" style={{ gap: 10 }}>
       <PageHeader title={t("sales.quickTitle")} backHref="/orders" backLabel={t("common.back")} />
       {sellable.length === 0 ? (
         <p className="text-sm text-[var(--ink-2)]">{t("sales.quickNoStock")}</p>
@@ -70,9 +70,8 @@ export default async function QuickSalePage() {
           customers={customers}
           products={sellable}
           labels={{
-            customer: t("common.customer"),
-            newCustomer: t("sales.quickNewCustomer"),
             customerName: t("sales.quickCustomerName"),
+            pickCustomer: t("sales.quickPickCustomer"),
             phone: t("sales.quickPhone"),
             product: t("common.product"),
             quantity: t("common.quantity"),
@@ -81,9 +80,13 @@ export default async function QuickSalePage() {
             stock: t("common.stock"),
             submit: t("sales.quickSubmit"),
             sending: t("common.sending"),
-            paidNow: t("sales.quickPaidNow"),
-            unpaid: t("sales.quickUnpaid"),
             pay: t("sales.quickPay"),
+            paid: t("sales.quickPaid"),
+            later: t("sales.quickLater"),
+            partial: t("sales.quickPartial"),
+            dueDate: t("sales.quickDueDate"),
+            paidAmount: t("sales.quickPartialAmount"),
+            noCustomers: t("sales.quickNoCustomers"),
           }}
         />
       )}

@@ -20,7 +20,7 @@ export default async function MoreGroupPage({ params }: { params: Promise<{ grou
 
   return (
     <div className="mx-auto max-w-lg space-y-3 pb-8">
-      <PageHeader title={t(group.labelKey ?? "nav.more")} backHref="/more" backLabel={t("common.back")} />
+      <PageHeader title={t(group.labelKey ?? "nav.more")} backHref="/" backLabel={t("common.back")} />
       <ul className="ui-card divide-y divide-[var(--line)] overflow-hidden">
         {group.items.map((item) => (
           <li key={item.href}>

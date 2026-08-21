@@ -9,19 +9,20 @@ import {
 } from "../src/core/shared/nav";
 
 describe("mobile nav by role", () => {
-  it("owner gets home orders warehouse more", () => {
+  it("owner gets home orders warehouse without more tab", () => {
     const tabs = bottomTabsForRole("owner", ROLE_PERMISSIONS.owner);
     assert.deepEqual(
       tabs.map((t) => t.href),
-      ["/", "/orders", "/warehouse", "/more"],
+      ["/", "/orders", "/warehouse"],
     );
+    assert.equal(tabs.some((t) => t.isMore), false);
   });
 
   it("sales manager gets crm orders commission, not finance tab", () => {
     const tabs = bottomTabsForRole("sales_manager", ROLE_PERMISSIONS.sales_manager);
     assert.deepEqual(
       tabs.map((t) => t.href),
-      ["/", "/crm", "/orders", "/me/commission", "/more"],
+      ["/", "/crm", "/orders", "/me/commission"],
     );
     const more = moreGroupsForRole("sales_manager", ROLE_PERMISSIONS.sales_manager);
     const hrefs = more.flatMap((g) => g.items.map((i) => i.href));
@@ -55,11 +56,13 @@ describe("mobile nav by role", () => {
     assert.equal(isTabActive("/warehouse", warehouse, tabs), true);
   });
 
-  it("more is active only when no other tab matches", () => {
-    const tabs = bottomTabsForRole("owner", ROLE_PERMISSIONS.owner);
-    const more = tabs.find((t) => t.isMore)!;
-    assert.equal(isTabActive("/settings", more, tabs), true);
-    assert.equal(isTabActive("/orders/abc", more, tabs), false);
+  it("owner more menu still lists production and settings", () => {
+    const more = moreGroupsForRole("owner", ROLE_PERMISSIONS.owner);
+    const hrefs = more.flatMap((g) => g.items.map((i) => i.href));
+    assert.ok(hrefs.includes("/production"));
+    assert.ok(hrefs.includes("/settings"));
+    assert.equal(hrefs.includes("/orders"), false);
+    assert.equal(hrefs.includes("/warehouse"), false);
   });
 
   it("jobs tab is not active on /me/history", () => {

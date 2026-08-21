@@ -58,7 +58,7 @@ export function AppShellMobileHeader({
           <button
             type="button"
             className={styles.menuBtn}
-            aria-label="Menu"
+            aria-label={t("nav.more")}
             aria-expanded={menuOpen}
             aria-controls="mobile-header-menu"
             onClick={() => setMenuOpen((open) => !open)}
