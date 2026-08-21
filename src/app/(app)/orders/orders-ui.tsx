@@ -42,6 +42,21 @@ export function productSummary(order: OrderListItem, moreLabel: (n: number) => s
   return `${first} ${moreLabel(items.length - 1)}`;
 }
 
+function shortProductName(name: string) {
+  const quoted = name.match(/[«"]([^»"]+)[»"]/);
+  if (quoted?.[1]?.trim()) return quoted[1].trim();
+  const cleaned = name
+    .replace(/^(декоративный\s+камень|цоколь|плитка)\s*/i, "")
+    .trim();
+  const base = cleaned || name.trim();
+  return base.length > 22 ? `${base.slice(0, 20)}…` : base;
+}
+
+function shortPersonName(name: string) {
+  const first = name.trim().split(/\s+/)[0] ?? "";
+  return first.length > 14 ? `${first.slice(0, 12)}…` : first || "—";
+}
+
 export function isOrderOverdue(order: OrderListItem): boolean {
   if (!order.dueAt) return false;
   if (["COMPLETED", "CANCELLED", "ISSUED"].includes(order.status.code)) return false;
@@ -217,33 +232,53 @@ export function OrdersListPanel({
 
       <ul className={styles.mobileList}>
         {orders.map((order) => {
-          const item = order.items?.[0];
-          const product = item?.product;
-          const qty = item ? qtyDisplay(String(item.outputQty ?? item.quantity ?? 0)) : "—";
+          const items = order.items ?? [];
+          const first = items[0];
+          const product = first?.product;
           const unit = product?.saleUnit?.symbol ?? "";
-          const photo = product?.photoUrl;
+          const qty =
+            items.length === 0
+              ? "—"
+              : items.length === 1
+                ? `${qtyDisplay(String(first?.outputQty ?? first?.quantity ?? 0))} ${unit}`.trim()
+                : `${items.length} поз.`;
+          const title =
+            items.length === 0
+              ? "—"
+              : items.length === 1
+                ? shortProductName(product?.name ?? "—")
+                : `${shortProductName(product?.name ?? "—")} +${items.length - 1}`;
           return (
             <li key={order.id}>
               <Link href={`/orders/${order.id}`} className={styles.mobileCard}>
                 <div className={styles.mobileSaleRow}>
-                  <div className={styles.mobileSalePhoto}>
-                    {photo ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={photo} alt="" className={styles.mobileSaleImg} />
-                    ) : (
-                      <span className={styles.mobileSalePhotoEmpty}>
-                        {(product?.name ?? "?").slice(0, 1)}
-                      </span>
-                    )}
+                  <div className={styles.mobileSalePhotos}>
+                    {(items.length > 0 ? items.slice(0, 3) : [null]).map((item, index) => {
+                      const photo = item?.product?.photoUrl;
+                      const letter = (item?.product?.name ?? "?").slice(0, 1);
+                      return (
+                        <span
+                          key={`${order.id}-ph-${index}`}
+                          className={styles.mobileSalePhoto}
+                          style={index > 0 ? { marginLeft: -10 } : undefined}
+                        >
+                          {photo ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={photo} alt="" className={styles.mobileSaleImg} />
+                          ) : (
+                            <span className={styles.mobileSalePhotoEmpty}>{letter}</span>
+                          )}
+                        </span>
+                      );
+                    })}
                   </div>
                   <div className={styles.mobileSaleBody}>
-                    <p className={styles.mobileProduct}>{product?.name ?? productSummary(order, productMoreLabel)}</p>
-                    <p className={styles.mobileSaleMeta}>
-                      {qty} {unit}
-                      {" · "}
-                      {order.customer.name}
-                    </p>
-                    <p className={styles.mobileAmount}>{moneyDisplay(String(order.total))} с</p>
+                    <p className={styles.mobileProduct}>{title}</p>
+                    <p className={styles.mobileSaleMeta}>{shortPersonName(order.customer.name)}</p>
+                  </div>
+                  <div className={styles.mobileSaleMetrics}>
+                    <span className={styles.mobileSaleQty}>{qty}</span>
+                    <span className={styles.mobileAmount}>{moneyDisplay(String(order.total))} с</span>
                   </div>
                 </div>
               </Link>

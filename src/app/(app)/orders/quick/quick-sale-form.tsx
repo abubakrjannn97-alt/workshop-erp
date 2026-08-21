@@ -514,12 +514,6 @@ export function QuickSaleForm({
           <ul className={styles.receiptList}>
             {cart.map((line) => (
               <li key={line.key} className={styles.receiptCard}>
-                <span className={styles.receiptMetrics}>
-                  <span className={styles.receiptQty}>
-                    {qtyDisplay(D(line.quantity))} {line.symbol}
-                  </span>
-                  <span className={styles.receiptSum}>{moneyDisplay(D(line.amount))} с</span>
-                </span>
                 <span className={styles.receiptThumb}>
                   {line.photoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -533,6 +527,12 @@ export function QuickSaleForm({
                 <span className={styles.receiptMain}>
                   <span className={styles.receiptName}>{shortProductName(line.name)}</span>
                   <span className={styles.receiptWho}>{shortPersonName(customerName)}</span>
+                </span>
+                <span className={styles.receiptMetrics}>
+                  <span className={styles.receiptQty}>
+                    {qtyDisplay(D(line.quantity))} {line.symbol}
+                  </span>
+                  <span className={styles.receiptSum}>{moneyDisplay(D(line.amount))} с</span>
                 </span>
               </li>
             ))}
