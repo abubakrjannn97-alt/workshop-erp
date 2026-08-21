@@ -27,3 +27,77 @@
 .formFull {
   grid-column: 1 / -1;
 }
+
+/* Product params — clear groups */
+.paramForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.paramGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.paramGroupMain {
+  border-color: rgba(166, 132, 64, 0.22);
+  background: linear-gradient(165deg, #fffaf3 0%, #ffffff 55%);
+}
+
+.paramGroupMake {
+  border-color: rgba(74, 112, 208, 0.2);
+  background: linear-gradient(165deg, #f5f8ff 0%, #ffffff 55%);
+}
+
+.paramGroupStock {
+  border-color: rgba(36, 149, 101, 0.2);
+  background: linear-gradient(165deg, #f4fbf7 0%, #ffffff 55%);
+}
+
+.paramGroupTitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.paramGroupMain .paramGroupTitle {
+  color: #8f6a32;
+}
+
+.paramGroupMake .paramGroupTitle {
+  color: #3f63c2;
+}
+
+.paramGroupStock .paramGroupTitle {
+  color: #1f8a5a;
+}
+
+.paramRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.paramRowOne {
+  grid-template-columns: 1fr;
+}
+
+.paramSave {
+  width: 100%;
+  min-height: 44px;
+}
+
+@media (max-width: 389px) {
+  .paramRow {
+    grid-template-columns: 1fr;
+  }
+}

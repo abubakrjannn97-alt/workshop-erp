@@ -56,45 +56,113 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       </header>
 
       <section className={styles.section}>
-        <div className={`${styles.sectionHead} ${catalogStyles.sectionTightHead}`}><h2 className={styles.sectionTitle}>{t("common.settings")}</h2></div>
+        <div className={`${styles.sectionHead} ${catalogStyles.sectionTightHead}`}>
+          <h2 className={styles.sectionTitle}>{t("products.paramsTitle")}</h2>
+        </div>
         <div className={`${styles.sectionBody} ${catalogStyles.sectionTightBody}`}>
-          <form action={updateProduct} className={catalogStyles.formGrid} data-tour="products-form">
+          <form action={updateProduct} className={catalogStyles.paramForm} data-tour="products-form">
             <input type="hidden" name="id" value={product.id} />
-            <FormField label={t("common.name")}><input name="name" defaultValue={product.name} disabled={!canManage} className="ui-input" /></FormField>
-            <FormField label={t("common.category")}><input name="category" defaultValue={product.category} disabled={!canManage} className="ui-input" /></FormField>
-            <FormField label={t("products.saleUnit")}>
-              <AppSelect
-                name="saleUnitId"
-                defaultValue={product.saleUnitId}
-                disabled={!canManage}
-                options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
-              />
-            </FormField>
-            <FormField label={t("products.fgUnit")}>
-              <AppSelect
-                name="outputUnitId"
-                defaultValue={product.outputUnitId}
-                disabled={!canManage}
-                options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
-              />
-            </FormField>
-            <FormField label={t("products.recipeBaseShort")} hint={t("products.tipRecipe")}>
-              <input name="recipeBaseQty" defaultValue={product.recipeBaseQty.toString()} disabled={!canManage} placeholder={t("products.phRecipeBase")} className="ui-input" />
-            </FormField>
-            <FormField label={t("products.outputBaseShort")} hint={t("products.tipOutput")}>
-              <input name="outputPerBase" defaultValue={product.outputPerBase.toString()} disabled={!canManage} placeholder={t("products.phOutput")} className="ui-input" />
-            </FormField>
             <input type="hidden" name="price" value={currentPrice?.price.toString() ?? "0"} />
-            <FormField label={t("products.minPrice")} hint={t("products.minPriceHint")}>
-              <input name="minPrice" defaultValue={product.minPrice.toString()} disabled={!canManage} placeholder={t("products.phMinPrice")} className="ui-input" />
-            </FormField>
-            <FormField label={t("products.minStock")} hint={t("products.minStockHint")}>
-              <input name="minStock" defaultValue={product.minStock.toString()} disabled={!canManage} placeholder={t("products.phMinStock")} className="ui-input" inputMode="decimal" />
-            </FormField>
-            <FormField label={t("products.maxStock")} hint={t("products.maxStockHint")}>
-              <input name="maxStock" defaultValue={product.maxStock.toString()} disabled={!canManage} placeholder={t("products.phMaxStock")} className="ui-input" inputMode="decimal" />
-            </FormField>
-            {canManage ? <button className={`${catalogStyles.formFull} ui-btn-primary min-h-[44px]`}>{t("products.saveParams")}</button> : null}
+
+            <div className={`${catalogStyles.paramGroup} ${catalogStyles.paramGroupMain}`}>
+              <p className={catalogStyles.paramGroupTitle}>{t("products.groupBasic")}</p>
+              <div className={catalogStyles.paramRow}>
+                <FormField label={t("common.name")}>
+                  <input name="name" defaultValue={product.name} disabled={!canManage} className="ui-input" />
+                </FormField>
+                <FormField label={t("common.category")}>
+                  <input name="category" defaultValue={product.category} disabled={!canManage} className="ui-input" />
+                </FormField>
+              </div>
+            </div>
+
+            <div className={`${catalogStyles.paramGroup} ${catalogStyles.paramGroupMake}`}>
+              <p className={catalogStyles.paramGroupTitle}>{t("products.groupMake")}</p>
+              <div className={catalogStyles.paramRow}>
+                <FormField label={t("products.saleUnitSimple")}>
+                  <AppSelect
+                    name="saleUnitId"
+                    defaultValue={product.saleUnitId}
+                    disabled={!canManage}
+                    options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
+                  />
+                </FormField>
+                <FormField label={t("products.fgUnitSimple")}>
+                  <AppSelect
+                    name="outputUnitId"
+                    defaultValue={product.outputUnitId}
+                    disabled={!canManage}
+                    options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
+                  />
+                </FormField>
+              </div>
+              <div className={catalogStyles.paramRow}>
+                <FormField label={t("products.recipeBaseSimple")}>
+                  <input
+                    name="recipeBaseQty"
+                    defaultValue={product.recipeBaseQty.toString()}
+                    disabled={!canManage}
+                    placeholder="1"
+                    className="ui-input"
+                    inputMode="decimal"
+                  />
+                </FormField>
+                <FormField label={t("products.outputSimple")}>
+                  <input
+                    name="outputPerBase"
+                    defaultValue={product.outputPerBase.toString()}
+                    disabled={!canManage}
+                    placeholder="10"
+                    className="ui-input"
+                    inputMode="decimal"
+                  />
+                </FormField>
+              </div>
+            </div>
+
+            <div className={`${catalogStyles.paramGroup} ${catalogStyles.paramGroupStock}`}>
+              <p className={catalogStyles.paramGroupTitle}>{t("products.groupStock")}</p>
+              <div className={`${catalogStyles.paramRow} ${catalogStyles.paramRowOne}`}>
+                <FormField label={t("products.minPriceSimple")}>
+                  <input
+                    name="minPrice"
+                    defaultValue={product.minPrice.toString()}
+                    disabled={!canManage}
+                    placeholder="0"
+                    className="ui-input"
+                    inputMode="decimal"
+                  />
+                </FormField>
+              </div>
+              <div className={catalogStyles.paramRow}>
+                <FormField label={t("products.minStockSimple")}>
+                  <input
+                    name="minStock"
+                    defaultValue={product.minStock.toString()}
+                    disabled={!canManage}
+                    placeholder="0"
+                    className="ui-input"
+                    inputMode="decimal"
+                  />
+                </FormField>
+                <FormField label={t("products.maxStockSimple")}>
+                  <input
+                    name="maxStock"
+                    defaultValue={product.maxStock.toString()}
+                    disabled={!canManage}
+                    placeholder="0"
+                    className="ui-input"
+                    inputMode="decimal"
+                  />
+                </FormField>
+              </div>
+            </div>
+
+            {canManage ? (
+              <button type="submit" className={`${catalogStyles.paramSave} ui-btn-primary`}>
+                {t("products.saveParams")}
+              </button>
+            ) : null}
           </form>
         </div>
       </section>
