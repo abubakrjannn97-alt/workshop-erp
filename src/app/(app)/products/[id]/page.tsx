@@ -78,13 +78,23 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 options={units.map((u) => ({ value: u.id, label: `${u.name} (${u.symbol})` }))}
               />
             </FormField>
-            <FormField label={t("products.recipeBaseShort")}><input name="recipeBaseQty" defaultValue={product.recipeBaseQty.toString()} disabled={!canManage} placeholder={t("products.phRecipeBase")} className="ui-input" /></FormField>
-            <FormField label={t("products.outputBaseShort")}><input name="outputPerBase" defaultValue={product.outputPerBase.toString()} disabled={!canManage} placeholder={t("products.phOutput")} className="ui-input" /></FormField>
-            <FormField label={t("products.salePrice")}><input name="price" defaultValue={currentPrice?.price.toString() ?? "0"} disabled={!canManage} placeholder={t("products.phSalePrice")} className="ui-input" /></FormField>
-            <FormField label={t("products.minPrice")}><input name="minPrice" defaultValue={product.minPrice.toString()} disabled={!canManage} placeholder={t("products.phMinPrice")} className="ui-input" /></FormField>
-            <FormField label={t("products.minStock")}><input name="minStock" defaultValue={product.minStock.toString()} disabled={!canManage} placeholder={t("products.phMinStock")} className="ui-input" inputMode="decimal" /></FormField>
-            <FormField label={t("products.maxStock")}><input name="maxStock" defaultValue={product.maxStock.toString()} disabled={!canManage} placeholder={t("products.phMaxStock")} className="ui-input" inputMode="decimal" /></FormField>
-            {canManage ? <button className={`${catalogStyles.formFull} ui-btn-primary min-h-[44px]`}>{t("products.savePriceHist")}</button> : null}
+            <FormField label={t("products.recipeBaseShort")} hint={t("products.tipRecipe")}>
+              <input name="recipeBaseQty" defaultValue={product.recipeBaseQty.toString()} disabled={!canManage} placeholder={t("products.phRecipeBase")} className="ui-input" />
+            </FormField>
+            <FormField label={t("products.outputBaseShort")} hint={t("products.tipOutput")}>
+              <input name="outputPerBase" defaultValue={product.outputPerBase.toString()} disabled={!canManage} placeholder={t("products.phOutput")} className="ui-input" />
+            </FormField>
+            <input type="hidden" name="price" value={currentPrice?.price.toString() ?? "0"} />
+            <FormField label={t("products.minPrice")} hint={t("products.minPriceHint")}>
+              <input name="minPrice" defaultValue={product.minPrice.toString()} disabled={!canManage} placeholder={t("products.phMinPrice")} className="ui-input" />
+            </FormField>
+            <FormField label={t("products.minStock")} hint={t("products.minStockHint")}>
+              <input name="minStock" defaultValue={product.minStock.toString()} disabled={!canManage} placeholder={t("products.phMinStock")} className="ui-input" inputMode="decimal" />
+            </FormField>
+            <FormField label={t("products.maxStock")} hint={t("products.maxStockHint")}>
+              <input name="maxStock" defaultValue={product.maxStock.toString()} disabled={!canManage} placeholder={t("products.phMaxStock")} className="ui-input" inputMode="decimal" />
+            </FormField>
+            {canManage ? <button className={`${catalogStyles.formFull} ui-btn-primary min-h-[44px]`}>{t("products.saveParams")}</button> : null}
           </form>
         </div>
       </section>
