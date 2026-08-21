@@ -7,7 +7,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
-import { D, money, qty } from "@core/shared/decimal";
+import { D, money, qty, qtyDisplay } from "@core/shared/decimal";
 import { available, releaseMaterial, reserveMaterial } from "@core/inventory/stock";
 import { isPeriodClosedError } from "@core/control/control";
 import { postClientPayment } from "@core/finance/finance";
@@ -784,6 +784,82 @@ export async function issueOrderToCustomer(formData: FormData) {
     entityId: id,
   });
   revalidatePath(`/orders/${id}`);
+  revalidatePath("/warehouse/finished");
+  return { ok: true };
+}
+
+/** Sell from FG stock: move order to IN_FG (if needed) and issue to customer in one step. */
+export async function sellOrderFromFgStock(formData: FormData) {
+  const session = await requirePermission("inventory.receive");
+  const id = String(formData.get("id") ?? "");
+  const order = await prisma.order.findUnique({
+    where: { id },
+    include: {
+      status: true,
+      items: { include: { product: { include: { saleUnit: true } } } },
+    },
+  });
+  if (!order) return { error: "Заказ не найден." };
+  if (order.status.code === ORDER_STATUS.ISSUED || order.status.code === ORDER_STATUS.COMPLETED) {
+    return { error: "Заказ уже выдан." };
+  }
+  if (order.status.code === ORDER_STATUS.CANCELLED) {
+    return { error: "Заказ отменён." };
+  }
+
+  const fg = await findFinishedGoodsWarehouse();
+  if (!fg) return { error: "Склад ГП не найден." };
+
+  const stock = await prisma.stockItem.findMany({
+    where: {
+      warehouseId: fg.id,
+      productId: { in: order.items.map((i) => i.productId) },
+    },
+  });
+  const byProduct = new Map(stock.map((s) => [s.productId!, s]));
+
+  for (const item of order.items) {
+    const row = byProduct.get(item.productId);
+    const avail = row ? available(row.qtyOnHand, row.qtyReserved) : D(0);
+    if (avail.lt(item.quantity)) {
+      const name = item.product.name;
+      const unit = item.product.saleUnit.symbol;
+      return {
+        error: `На складе ГП не хватает «${name}»: нужно ${qtyDisplay(item.quantity)} ${unit}, есть ${qtyDisplay(avail)} ${unit}.`,
+      };
+    }
+  }
+
+  const inFg = await prisma.orderStatus.findUniqueOrThrow({ where: { code: ORDER_STATUS.IN_FG } });
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      if (order.status.code !== ORDER_STATUS.IN_FG && order.status.code !== ORDER_STATUS.READY) {
+        await tx.order.update({
+          where: { id: order.id },
+          data: { statusId: inFg.id },
+        });
+      }
+      await issueOrderStockAndMarkIssued(tx, {
+        orderId: order.id,
+        orderNumber: order.number,
+        items: order.items,
+        warehouseId: fg.id,
+        userId: session.user.id,
+      });
+    });
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Не удалось продать со склада ГП." };
+  }
+
+  await writeAudit({
+    userId: session.user.id,
+    action: "order.sell_from_fg",
+    entityType: "order",
+    entityId: id,
+  });
+  revalidatePath(`/orders/${id}`);
+  revalidatePath("/orders");
   revalidatePath("/warehouse/finished");
   return { ok: true };
 }

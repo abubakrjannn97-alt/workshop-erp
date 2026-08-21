@@ -30,4 +30,13 @@ export type MeJobsSnapshot = {
     }[];
   } | null;
   jobs: { id: string; title: string; href: string }[];
+  fgStock?: {
+    id: string;
+    name: string;
+    unit: string;
+    onHand: string;
+    minStock: string;
+    shortfall: string | null;
+    low: boolean;
+  }[];
 };

@@ -4,10 +4,13 @@
   display: grid;
   grid-template-columns: var(--mobile-header-btn) 1fr var(--mobile-header-btn);
   align-items: center;
-  height: var(--mobile-chrome-top);
-  padding-top: var(--safe-top);
-  padding-left: clamp(8px, 2.5vw, 12px);
-  padding-right: clamp(8px, 2.5vw, 12px);
+  box-sizing: border-box;
+  min-height: var(--mobile-header-content-h);
+  height: auto;
+  padding-top: max(var(--safe-top), 0px);
+  padding-bottom: 0;
+  padding-left: var(--page-pad-x);
+  padding-right: var(--page-pad-x);
   background: var(--surface);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -35,7 +38,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(4px, 1.5vw, 8px);
+  gap: 4px;
   justify-self: center;
   min-width: 0;
 }
@@ -55,7 +58,7 @@
 }
 
 .brandLine {
-  font-size: clamp(8px, 2.2vw, 9px);
+  font-size: var(--font-size-small);
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: 0.06em;
@@ -72,7 +75,7 @@
   justify-self: end;
 }
 
-@media (max-width: 340px) {
+@media (max-width: 359px) {
   .brandText {
     display: none;
   }

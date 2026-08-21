@@ -7,7 +7,7 @@ import { hasPermission } from "@core/auth/authz";
 import { PendingButton } from "@/components/pending-button";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { available } from "@core/inventory/stock";
-import { findRawWarehouse } from "@/core/config/resolve-warehouse";
+import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge, orderTone } from "@/components/status-badge";
 import { OrderDetailMetrics } from "../order-detail-metrics";
@@ -21,6 +21,7 @@ import {
   confirmOrder,
   createPurchaseFromDeficit,
   issueOrderToCustomer,
+  sellOrderFromFgStock,
   reversePayment,
   schedulePayLater,
   updateOrderStatus,
@@ -74,9 +75,25 @@ export default async function OrderPage({
   const showSendToShop = canCreate && (code === "NEW" || code === "AWAITING_PAYMENT") && paymentDecided;
   const showInShop = ["CONFIRMED", "SCHEDULED", "IN_PRODUCTION", "PARTIAL"].includes(code);
   const showReady = canIssue && (code === "READY" || code === "IN_FG");
-  const showWorkflow = showPayStep || showSendToShop || showInShop || showReady;
 
   const raw = await findRawWarehouse();
+  const fg = await findFinishedGoodsWarehouse();
+  const fgStock = fg
+    ? await prisma.stockItem.findMany({
+        where: { warehouseId: fg.id, productId: { in: order.items.map((i) => i.productId) } },
+      })
+    : [];
+  const fgMap = new Map(fgStock.map((s) => [s.productId!, s]));
+  const canSellFromFg =
+    canIssue &&
+    !["ISSUED", "COMPLETED", "CANCELLED"].includes(code) &&
+    order.items.length > 0 &&
+    order.items.every((item) => {
+      const row = fgMap.get(item.productId);
+      const avail = row ? available(row.qtyOnHand, row.qtyReserved) : D(0);
+      return avail.gte(item.quantity);
+    });
+  const showWorkflow = showPayStep || showSendToShop || showInShop || showReady || canSellFromFg;
   const stock = raw
     ? await prisma.stockItem.findMany({
         where: { warehouseId: raw.id, materialId: { in: order.materials.map((m) => m.materialId) } },
@@ -191,6 +208,13 @@ export default async function OrderPage({
     "use server";
     await issueOrderToCustomer(formData);
   }
+  async function sellFromFgAction(formData: FormData) {
+    "use server";
+    const result = await sellOrderFromFgStock(formData);
+    if (result?.error) {
+      redirect(`/orders/${id}?payError=${encodeURIComponent(result.error)}`);
+    }
+  }
 
   return (
     <div className={`page-stack ${detailStyles.orderDetailPage}`} style={{ gap: "8px" }}>
@@ -277,6 +301,16 @@ export default async function OrderPage({
                 </form>
               </div>
             </div>
+          ) : null}
+
+          {canSellFromFg && !showReady ? (
+            <form action={sellFromFgAction} className={detailStyles.payFormCompact}>
+              <input type="hidden" name="id" value={order.id} />
+              <PendingButton className="ui-btn-primary min-h-[40px] w-full" pendingLabel={t("common.sending")}>
+                {t("orders.sellFromFg")}
+              </PendingButton>
+              <p className={detailStyles.sectionNote}>{t("orders.sellFromFgHint")}</p>
+            </form>
           ) : null}
         </section>
       ) : null}

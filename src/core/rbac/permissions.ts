@@ -155,16 +155,6 @@ export const ROLE_PERMISSIONS: Record<string, PermissionCode[]> = {
     "analytics.view",
     "approvals.decide",
   ],
-  sales_manager: [
-    "orders.view",
-    "orders.create",
-    "orders.discount",
-    "payments.create",
-    "crm.view",
-    "crm.manage",
-    "units.view",
-    "products.view",
-  ],
   production_manager: [
     "production.view",
     "production.manage",
@@ -177,7 +167,7 @@ export const ROLE_PERMISSIONS: Record<string, PermissionCode[]> = {
     "recipes.view",
     "recipes.manage",
   ],
-  worker: ["production.view", "production.report"],
+  worker: ["production.view", "production.report", "products.view", "inventory.view", "inventory.receive"],
   employee: [],
   warehouse_manager: [
     "inventory.view",
@@ -203,5 +193,17 @@ export const ROLE_PERMISSIONS: Record<string, PermissionCode[]> = {
     "payments.create",
     "purchasing.view",
     "suppliers.view",
+  ],
+  sales_manager: [
+    "orders.view",
+    "orders.create",
+    "orders.discount",
+    "payments.create",
+    "crm.view",
+    "crm.manage",
+    "units.view",
+    "products.view",
+    "inventory.view",
+    "inventory.receive",
   ],
 };

@@ -2,28 +2,40 @@ import { requirePermission } from "@core/auth/authz";
 import { prisma } from "@core/infrastructure/prisma";
 import { D, qtyDisplay } from "@core/shared/decimal";
 import { getTranslator } from "@core/shared/i18n/locale";
+import { getFgWarehouse } from "@core/config/resolve-warehouse";
 import { MeJobsView } from "@/components/me-jobs-view";
 import type { MeJobsSnapshot } from "@/lib/offline/types";
 
 export default async function MyJobsPage() {
   const session = await requirePermission("production.view");
   const { t, locale } = await getTranslator();
+  const fg = await getFgWarehouse();
 
-  const jobs = await prisma.productionOrder.findMany({
-    where: {
-      status: { in: ["OPEN", "IN_PROGRESS"] },
-      batches: { some: { responsibleUserId: session.user.id } },
-    },
-    include: {
-      order: { include: { customer: true, items: { include: { product: { include: { saleUnit: true } } } } } },
-      batches: {
-        where: { responsibleUserId: session.user.id },
-        include: { materials: { include: { material: { include: { storageUnit: true } } } } },
-        orderBy: { number: "asc" },
+  const [jobs, products] = await Promise.all([
+    prisma.productionOrder.findMany({
+      where: {
+        status: { in: ["OPEN", "IN_PROGRESS"] },
+        batches: { some: { responsibleUserId: session.user.id } },
       },
-    },
-    orderBy: { dueAt: "asc" },
-  });
+      include: {
+        order: { include: { customer: true, items: { include: { product: { include: { saleUnit: true } } } } } },
+        batches: {
+          where: { responsibleUserId: session.user.id },
+          include: { materials: { include: { material: { include: { storageUnit: true } } } } },
+          orderBy: { number: "asc" },
+        },
+      },
+      orderBy: { dueAt: "asc" },
+    }),
+    prisma.product.findMany({
+      where: { archivedAt: null, isActive: true },
+      include: {
+        saleUnit: true,
+        stockItems: { where: { warehouseId: fg.id } },
+      },
+      orderBy: { name: "asc" },
+    }),
+  ]);
 
   const current = jobs
     .flatMap((job) =>
@@ -37,6 +49,21 @@ export default async function MyJobsPage() {
   const planned = current ? D(String(current.job.plannedQty)) : D(0);
   const produced = current ? D(String(current.job.producedQty)) : D(0);
   const pct = planned.gt(0) ? Math.min(100, produced.div(planned).mul(100).toNumber()) : 0;
+
+  const fgRows = products.map((p) => {
+    const onHand = D(String(p.stockItems[0]?.qtyOnHand ?? 0));
+    const min = D(String(p.minStock ?? 0));
+    const short = min.gt(0) && onHand.lt(min) ? min.sub(onHand) : D(0);
+    return {
+      id: p.id,
+      name: p.name,
+      unit: p.saleUnit.symbol,
+      onHand: qtyDisplay(onHand),
+      minStock: qtyDisplay(min),
+      shortfall: short.gt(0) ? qtyDisplay(short) : null,
+      low: short.gt(0),
+    };
+  });
 
   const snapshot: MeJobsSnapshot = {
     updatedAt: new Date().toISOString(),
@@ -64,6 +91,7 @@ export default async function MyJobsPage() {
       title: `${job.order.items[0]?.product.name ?? "—"} · ${job.order.customer.name}`,
       href: `/production/${job.id}`,
     })),
+    fgStock: fgRows,
   };
 
   return <MeJobsView snapshot={snapshot} locale={locale} />;

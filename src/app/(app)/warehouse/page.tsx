@@ -67,13 +67,16 @@ export default async function WarehousePage({
     <div className={styles.page}>
       <WarehouseMetrics items={metrics} activeId={activeId} />
 
-      {canReceive ? (
-        <div className={styles.toolbar}>
+      <div className={styles.toolbar}>
+        <Link href="/warehouse/finished" className={styles.softBtn}>
+          {t("wh.openFg")}
+        </Link>
+        {canReceive ? (
           <Link href="/warehouse/add" className={styles.iconBtn} aria-label={t("wh.addMaterial")}>
             <Plus size={18} strokeWidth={ICON_STROKE} />
           </Link>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
 
       {activeId === "urgent" ? (
         <section className={styles.section}>

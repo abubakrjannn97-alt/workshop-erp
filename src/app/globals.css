@@ -215,7 +215,7 @@
   --mobile-nav-bg: rgba(255, 255, 255, 0.88);
   --mobile-nav-blur: 16px;
 
-  /* Mobile chrome — compact for phones / PWA */
+  /* Mobile chrome — compact for phones / PWA (overridden per phone tier below) */
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --mobile-header-content-h: 40px;
@@ -224,8 +224,18 @@
   --mobile-nav-bar-h: 52px;
   --mobile-nav-icon-size: 20px;
   --mobile-nav-label-size: 10px;
+  --mobile-nav-icon-wrap: 28px;
+  --mobile-nav-icon-wrap-active-w: 34px;
+  --mobile-nav-icon-wrap-active-h: 26px;
   --mobile-chrome-top: calc(var(--mobile-header-content-h) + var(--safe-top));
   --mobile-chrome-bottom: calc(var(--mobile-nav-bar-h) + var(--safe-bottom));
+  --page-pad-x: 12px;
+  --page-pad-y: 8px;
+  --page-gap: 12px;
+  --card-pad: 12px;
+  --login-card-pad: 20px;
+  --login-max-w: 22rem;
+  --radius-card-mobile: 14px;
 }
 
 html {
@@ -243,25 +253,51 @@ body {
   font-weight: 400;
 }
 
+/*
+ * Phone tiers (width only — portrait phones + narrow landscape):
+ *   XS  ≤359  — iPhone SE 1 / tiny Android
+ *   SM  ≤389  — 360–389 Android
+ *   MD  ≤429  — iPhone 12–14 class
+ *   LG  ≤639  — Pro Max / large phones
+ *   XL  ≤1023 — small tablets / landscape phones (still mobile shell)
+ */
 @media (max-width: 1023px) {
   :root {
-    --mobile-header-content-h: clamp(38px, 10vw, 42px);
-    --mobile-header-btn: clamp(32px, 8.5vw, 36px);
-    --mobile-header-logo: clamp(18px, 5vw, 22px);
-    --mobile-nav-bar-h: clamp(48px, 12vw, 52px);
-    --mobile-nav-icon-size: clamp(18px, 4.8vw, 20px);
-    --mobile-nav-label-size: clamp(9px, 2.4vw, 10px);
+    /* XL phone / small tablet — roomiest mobile shell */
+    --mobile-header-content-h: 42px;
+    --mobile-header-btn: 36px;
+    --mobile-header-logo: 22px;
+    --mobile-nav-bar-h: 52px;
+    --mobile-nav-icon-size: 20px;
+    --mobile-nav-label-size: 10px;
+    --mobile-nav-icon-wrap: 28px;
+    --mobile-nav-icon-wrap-active-w: 34px;
+    --mobile-nav-icon-wrap-active-h: 26px;
     --mobile-chrome-top: calc(var(--mobile-header-content-h) + var(--safe-top));
     --mobile-chrome-bottom: calc(var(--mobile-nav-bar-h) + var(--safe-bottom));
-    --control-h-mobile: 36px;
-    --font-size-body: 13px;
-    --line-height-body: 18px;
-    --font-size-small: 11px;
-    --line-height-small: 14px;
+    --control-h-mobile: 40px;
+    --font-size-display: 22px;
+    --line-height-display: 28px;
+    --font-size-body: 14px;
+    --line-height-body: 20px;
+    --font-size-small: 12px;
+    --line-height-small: 16px;
     --font-size-h1: 18px;
     --line-height-h1: 24px;
-    --font-size-h2: 14px;
-    --line-height-h2: 18px;
+    --font-size-h2: 15px;
+    --line-height-h2: 20px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --page-pad-x: 14px;
+    --page-pad-y: 10px;
+    --page-gap: 12px;
+    --card-pad: 14px;
+    --login-card-pad: 22px;
+    --login-max-w: 24rem;
+    --radius-card: 14px;
+    --radius-card-mobile: 14px;
+    --radius-control: 10px;
     /* Mobile cards — solid surfaces, not heavy glass */
     --mobile-glass: #ffffff;
     --mobile-glass-shadow: 0 2px 12px rgba(28, 35, 43, 0.06);
@@ -288,6 +324,141 @@ body {
 
   .app-shell-main {
     background: transparent !important;
+  }
+}
+
+/* LG phones — iPhone Pro Max / Pixel XL class */
+@media (max-width: 639px) {
+  :root {
+    --mobile-header-content-h: 40px;
+    --mobile-header-btn: 34px;
+    --mobile-header-logo: 20px;
+    --mobile-nav-bar-h: 50px;
+    --mobile-nav-icon-size: 19px;
+    --mobile-nav-label-size: 10px;
+    --mobile-nav-icon-wrap: 27px;
+    --mobile-nav-icon-wrap-active-w: 32px;
+    --mobile-nav-icon-wrap-active-h: 25px;
+    --control-h-mobile: 38px;
+    --font-size-body: 13px;
+    --line-height-body: 18px;
+    --font-size-small: 11px;
+    --line-height-small: 15px;
+    --font-size-h1: 17px;
+    --line-height-h1: 22px;
+    --font-size-h2: 14px;
+    --line-height-h2: 18px;
+    --page-pad-x: 12px;
+    --page-pad-y: 8px;
+    --page-gap: 10px;
+    --card-pad: 12px;
+    --login-card-pad: 18px;
+    --login-max-w: 22rem;
+    --radius-card: 12px;
+    --radius-card-mobile: 12px;
+  }
+}
+
+/* MD phones — iPhone 12/13/14 / common 390–428 */
+@media (max-width: 429px) {
+  :root {
+    --mobile-header-content-h: 38px;
+    --mobile-header-btn: 32px;
+    --mobile-header-logo: 18px;
+    --mobile-nav-bar-h: 48px;
+    --mobile-nav-icon-size: 18px;
+    --mobile-nav-label-size: 9px;
+    --mobile-nav-icon-wrap: 26px;
+    --mobile-nav-icon-wrap-active-w: 30px;
+    --mobile-nav-icon-wrap-active-h: 24px;
+    --control-h-mobile: 36px;
+    --font-size-body: 13px;
+    --line-height-body: 18px;
+    --font-size-small: 11px;
+    --line-height-small: 14px;
+    --font-size-h1: 16px;
+    --line-height-h1: 20px;
+    --font-size-h2: 13px;
+    --line-height-h2: 17px;
+    --space-3: 10px;
+    --space-4: 12px;
+    --space-5: 16px;
+    --page-pad-x: 10px;
+    --page-pad-y: 6px;
+    --page-gap: 8px;
+    --card-pad: 10px;
+    --login-card-pad: 16px;
+    --login-max-w: 20rem;
+    --radius-card: 12px;
+    --radius-control: 9px;
+  }
+}
+
+/* SM phones — 360–389 */
+@media (max-width: 389px) {
+  :root {
+    --mobile-header-content-h: 36px;
+    --mobile-header-btn: 30px;
+    --mobile-header-logo: 17px;
+    --mobile-nav-bar-h: 46px;
+    --mobile-nav-icon-size: 17px;
+    --mobile-nav-label-size: 9px;
+    --mobile-nav-icon-wrap: 24px;
+    --mobile-nav-icon-wrap-active-w: 28px;
+    --mobile-nav-icon-wrap-active-h: 22px;
+    --control-h-mobile: 34px;
+    --font-size-body: 12px;
+    --line-height-body: 16px;
+    --font-size-small: 10px;
+    --line-height-small: 13px;
+    --font-size-h1: 15px;
+    --line-height-h1: 19px;
+    --font-size-h2: 12px;
+    --line-height-h2: 16px;
+    --space-2: 6px;
+    --space-3: 8px;
+    --space-4: 10px;
+    --space-5: 14px;
+    --page-pad-x: 8px;
+    --page-pad-y: 5px;
+    --page-gap: 8px;
+    --card-pad: 8px;
+    --login-card-pad: 14px;
+    --login-max-w: 18.5rem;
+    --radius-card: 10px;
+    --radius-control: 8px;
+  }
+}
+
+/* XS phones — ≤359 (SE 1 / tiny) */
+@media (max-width: 359px) {
+  :root {
+    --mobile-header-content-h: 34px;
+    --mobile-header-btn: 28px;
+    --mobile-header-logo: 16px;
+    --mobile-nav-bar-h: 44px;
+    --mobile-nav-icon-size: 16px;
+    --mobile-nav-label-size: 8px;
+    --mobile-nav-icon-wrap: 22px;
+    --mobile-nav-icon-wrap-active-w: 26px;
+    --mobile-nav-icon-wrap-active-h: 20px;
+    --control-h-mobile: 32px;
+    --font-size-body: 12px;
+    --line-height-body: 16px;
+    --font-size-small: 10px;
+    --line-height-small: 12px;
+    --font-size-h1: 14px;
+    --line-height-h1: 18px;
+    --font-size-h2: 12px;
+    --line-height-h2: 15px;
+    --page-pad-x: 6px;
+    --page-pad-y: 4px;
+    --page-gap: 6px;
+    --card-pad: 8px;
+    --login-card-pad: 12px;
+    --login-max-w: 100%;
+    --radius-card: 10px;
+    --radius-control: 8px;
   }
 }
 
@@ -1186,8 +1357,8 @@ main::-webkit-scrollbar-corner,
   .ui-btn-icon {
     min-height: var(--control-h-mobile);
     height: var(--control-h-mobile);
-    font-size: 13px;
-    padding-inline: 12px;
+    font-size: var(--font-size-body);
+    padding-inline: var(--space-3);
   }
   .ui-btn-icon {
     width: var(--control-h-mobile);
@@ -1198,6 +1369,7 @@ main::-webkit-scrollbar-corner,
   .ui-chip,
   .ui-chip-on {
     min-height: var(--control-h-mobile);
+    font-size: var(--font-size-small);
   }
   .ui-input,
   main input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]),
@@ -1215,11 +1387,11 @@ main::-webkit-scrollbar-corner,
   textarea.ui-input,
   main textarea {
     height: auto;
-    min-height: 88px;
+    min-height: calc(var(--control-h-mobile) * 2.4);
   }
   .ui-dialog {
-    width: calc(100vw - 24px);
-    padding: var(--space-4);
+    width: calc(100vw - (var(--page-pad-x) * 2));
+    padding: var(--card-pad);
   }
 }
 

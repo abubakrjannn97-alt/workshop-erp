@@ -6,9 +6,9 @@
   width: 100%;
   align-items: center;
   justify-content: center;
-  padding: 24px 16px;
-  padding-top: max(24px, env(safe-area-inset-top));
-  padding-bottom: max(24px, env(safe-area-inset-bottom));
+  padding: var(--page-pad-y) var(--page-pad-x);
+  padding-top: max(var(--page-pad-y), env(safe-area-inset-top));
+  padding-bottom: max(var(--page-pad-y), env(safe-area-inset-bottom));
   background: var(--bg);
   overflow-y: auto;
   overflow-x: hidden;
@@ -17,25 +17,24 @@
 
 .lang {
   position: absolute;
-  top: max(12px, env(safe-area-inset-top));
-  right: 12px;
+  top: max(8px, env(safe-area-inset-top));
+  right: max(8px, var(--page-pad-x));
   z-index: 2;
 }
 
 .column {
   position: relative;
   width: 100%;
-  max-width: 22rem;
+  max-width: var(--login-max-w);
   margin-block: auto;
 }
 
 .brand {
   display: flex;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: var(--space-3);
 }
 
-/* Keep card centered; only soften brand when keyboard opens */
 @media (max-width: 639px) {
   .screen {
     align-items: center;
@@ -43,9 +42,15 @@
   }
 
   .screen:focus-within .brand {
-    margin-bottom: 10px;
+    margin-bottom: var(--space-2);
     transform: scale(0.92);
     opacity: 0.9;
     transition: transform 160ms ease, opacity 160ms ease, margin-bottom 160ms ease;
+  }
+}
+
+@media (max-width: 359px) {
+  .brand {
+    margin-bottom: var(--space-2);
   }
 }

@@ -224,6 +224,7 @@ model Product {
   recipeBaseQty  Decimal   @default(1) @db.Decimal(18, 6)
   outputPerBase  Decimal   @default(1) @db.Decimal(18, 6)
   outputUnitId   String
+  minStock       Decimal   @default(0) @db.Decimal(18, 6)
   isActive       Boolean   @default(true)
   archivedAt     DateTime?
   createdAt      DateTime  @default(now())

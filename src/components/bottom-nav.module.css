@@ -70,8 +70,8 @@
 }
 
 .tabActive .iconWrap {
-  width: clamp(30px, 8vw, 34px);
-  height: clamp(24px, 6.5vw, 26px);
+  width: var(--mobile-nav-icon-wrap-active-w);
+  height: var(--mobile-nav-icon-wrap-active-h);
   border-radius: 8px;
   border: 1px solid var(--mobile-glass-border);
   background: rgba(244, 237, 224, 0.92);
@@ -80,8 +80,8 @@
 
 .iconWrap {
   display: flex;
-  width: clamp(26px, 7vw, 28px);
-  height: clamp(26px, 7vw, 28px);
+  width: var(--mobile-nav-icon-wrap);
+  height: var(--mobile-nav-icon-wrap);
   align-items: center;
   justify-content: center;
   color: inherit;

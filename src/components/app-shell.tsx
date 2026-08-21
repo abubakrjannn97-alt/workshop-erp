@@ -40,7 +40,7 @@ export function AppShell({
         locale={locale}
       />
       <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden lg:bg-transparent">
-        <div className="sticky top-0 z-[110] shrink-0 print:hidden lg:hidden">
+        <div className="z-[110] shrink-0 print:hidden lg:hidden">
           <AppShellMobileHeader
             unread={unread}
             locale={locale}

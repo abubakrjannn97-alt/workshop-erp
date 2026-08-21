@@ -1,25 +1,36 @@
 .loginCard {
   width: 100%;
-  padding: 24px;
+  padding: var(--login-card-pad);
   border: 1px solid var(--line);
-  border-radius: var(--radius-card);
+  border-radius: var(--radius-card-mobile, var(--radius-card));
   background: var(--surface);
   box-shadow: var(--shadow);
 }
 
 .form {
-  margin-top: 16px;
+  margin-top: var(--space-3);
 }
 
 .error {
-  margin-top: 12px;
-  font-size: 13px;
-  line-height: 20px;
+  margin-top: var(--space-2);
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
   color: var(--bad);
 }
 
 .hint {
   margin-top: 4px;
-  font-size: 13px;
+  font-size: var(--font-size-small);
   color: var(--ink-2);
+}
+
+@media (max-width: 359px) {
+  .loginCard :global(.page-title) {
+    font-size: var(--font-size-h1);
+  }
+
+  .loginCard :global(.page-subtitle) {
+    font-size: var(--font-size-small);
+    margin-top: 2px;
+  }
 }
