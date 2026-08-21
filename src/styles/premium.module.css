@@ -196,15 +196,19 @@
 
 /* ─── Responsive ─── */
 @media (max-width: 1023px) {
-  .page { gap: 16px; max-width: none; }
-  .title { font-size: 22px; line-height: 28px; }
+  .page { gap: var(--page-gap); max-width: none; }
+  .title { font-size: var(--font-size-h1); line-height: var(--line-height-h1); }
   .subtitle { display: none; }
-  .kpiStrip { grid-template-columns: repeat(2, 1fr); }
-  .kpiBox { min-height: 0; }
+  .kpiStrip { grid-template-columns: repeat(2, 1fr); gap: var(--space-2); }
+  .kpiBox { min-height: 0; padding: var(--card-pad); }
   .kpiStripThree { grid-template-columns: 1fr; }
-  .twoCol { grid-template-columns: 1fr; }
+  .twoCol { grid-template-columns: 1fr; gap: var(--page-gap); }
   .tableWrap { display: none; }
   .mobileList { display: block; }
+}
+
+@media (max-width: 359px) {
+  .kpiStrip { grid-template-columns: 1fr; }
 }
 
 @media (min-width: 1024px) {

@@ -18,13 +18,13 @@
   bottom: 0;
   z-index: 101;
   display: flex;
-  width: min(300px, 88vw);
+  width: min(280px, 86vw);
   flex-direction: column;
-  gap: 14px;
+  gap: var(--space-3);
   padding:
-    12px
-    14px
-    calc(14px + var(--safe-bottom));
+    var(--card-pad)
+    var(--page-pad-x)
+    calc(var(--card-pad) + var(--safe-bottom));
   border-right: 1px solid var(--line);
   background: var(--bg);
   overflow-y: auto;
@@ -36,8 +36,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 16px;
+  gap: var(--space-2);
+  padding: var(--card-pad);
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
   background: var(--surface);
@@ -51,24 +51,24 @@
 
 .userName {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--font-size-h2);
   font-weight: 700;
-  line-height: 22px;
+  line-height: var(--line-height-h2);
   color: var(--ink);
 }
 
 .roleName {
   margin: 2px 0 0;
-  font-size: 12px;
-  line-height: 16px;
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
   color: var(--ink-3);
   font-weight: 500;
 }
 
 .closeBtn {
   display: flex;
-  width: 34px;
-  height: 34px;
+  width: var(--mobile-header-btn);
+  height: var(--mobile-header-btn);
   flex-shrink: 0;
   align-items: center;
   justify-content: center;

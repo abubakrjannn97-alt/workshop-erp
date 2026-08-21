@@ -1914,7 +1914,7 @@ main .ui-card > .section-title {
   }
 
   .page-stack {
-    gap: var(--space-4);
+    gap: var(--page-gap);
   }
 
   .ui-table-wrap {
