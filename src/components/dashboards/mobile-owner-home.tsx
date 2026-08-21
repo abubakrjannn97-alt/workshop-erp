@@ -1,4 +1,4 @@
-import { ShoppingBag, Package, Layers } from "lucide-react";
+import { ShoppingBag, Trash2, Layers } from "lucide-react";
 import { prisma } from "@core/infrastructure/prisma";
 import { requireSession } from "@core/auth/authz";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
@@ -46,6 +46,12 @@ export async function MobileOwnerHome() {
     producedHintTone = "negative";
   }
 
+  const scrapUnit = t("home.kpi.scrapUnit").trim();
+  const scrapValue = scrapUnit
+    ? `${formatFgQty(kpis.scrapToday)} ${scrapUnit}`
+    : formatFgQty(kpis.scrapToday);
+  const hasScrap = kpis.scrapToday.gt(0);
+
   return (
     <div className={`${styles.home} ${styles.homeMobile}`}>
       <DashGreeting t={t} mobile />
@@ -68,12 +74,14 @@ export async function MobileOwnerHome() {
             hintTone: kpis.salesTodayCount > 0 ? "positive" : "neutral",
           },
           {
-            id: "fg",
-            tone: "blue",
-            icon: Package,
-            label: t("home.kpi.finishedGoods"),
-            value: `${formatFgQty(kpis.fgTotal)} ${t("home.kpi.fgUnit")}`,
-            hint: t("home.kpi.fgHint"),
+            id: "scrap",
+            tone: "red",
+            icon: Trash2,
+            label: t("home.kpi.scrapToday"),
+            value: scrapValue,
+            hint: hasScrap ? t("home.kpi.scrapTodayHint") : t("home.kpi.noScrapToday"),
+            hintTone: hasScrap ? "negative" : "neutral",
+            href: "/production/scrap",
           },
           {
             id: "today",

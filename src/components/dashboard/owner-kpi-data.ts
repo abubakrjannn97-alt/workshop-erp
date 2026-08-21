@@ -1,6 +1,5 @@
 import { prisma } from "@core/infrastructure/prisma";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
-import { findFinishedGoodsWarehouse } from "@core/config/resolve-warehouse";
 import { ORDER_STATUS } from "@core/orders/orders";
 
 function startOfDay(d = new Date()) {
@@ -26,7 +25,7 @@ function pctChange(today: ReturnType<typeof D>, yesterday: ReturnType<typeof D>)
 export type OwnerOperationalKpis = {
   salesToday: ReturnType<typeof D>;
   salesTodayCount: number;
-  fgTotal: ReturnType<typeof D>;
+  scrapToday: ReturnType<typeof D>;
   producedToday: ReturnType<typeof D>;
   producedChangePct: number | null;
 };
@@ -37,7 +36,7 @@ export async function fetchOwnerOperationalKpis(): Promise<OwnerOperationalKpis>
   const yesterdayStart = startOfDay(new Date(Date.now() - 86_400_000));
   const yesterdayEnd = endOfDay(new Date(Date.now() - 86_400_000));
 
-  const [todayOrders, fgStock, producedToday, producedYesterday] = await Promise.all([
+  const [todayOrders, scrapToday, producedToday, producedYesterday] = await Promise.all([
     prisma.order.findMany({
       where: {
         createdAt: { gte: todayStart, lte: todayEnd },
@@ -45,11 +44,9 @@ export async function fetchOwnerOperationalKpis(): Promise<OwnerOperationalKpis>
       },
       select: { total: true },
     }),
-    findFinishedGoodsWarehouse().then(async (wh) => {
-      if (!wh) return [];
-      return prisma.stockItem.findMany({
-        where: { warehouseId: wh.id, productId: { not: null }, materialId: null },
-      });
+    prisma.scrapRecord.aggregate({
+      where: { createdAt: { gte: todayStart, lte: todayEnd } },
+      _sum: { quantity: true },
     }),
     prisma.productionBatch.aggregate({
       where: { status: "CLOSED", producedAt: { gte: todayStart, lte: todayEnd } },
@@ -62,14 +59,13 @@ export async function fetchOwnerOperationalKpis(): Promise<OwnerOperationalKpis>
   ]);
 
   const salesToday = todayOrders.reduce((s, o) => s.add(String(o.total)), D(0));
-  const fgTotal = fgStock.reduce((s, row) => s.add(String(row.qtyOnHand)), D(0));
   const todayQty = D(String(producedToday._sum.actualQty ?? 0));
   const yesterdayQty = D(String(producedYesterday._sum.actualQty ?? 0));
 
   return {
     salesToday,
     salesTodayCount: todayOrders.length,
-    fgTotal,
+    scrapToday: D(String(scrapToday._sum.quantity ?? 0)),
     producedToday: todayQty,
     producedChangePct: pctChange(todayQty, yesterdayQty),
   };

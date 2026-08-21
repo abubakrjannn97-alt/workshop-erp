@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import styles from "./dash-home.module.css";
 
-export type DashMetricTone = "orange" | "green" | "blue" | "purple";
+export type DashMetricTone = "orange" | "green" | "blue" | "purple" | "red";
 
 export type DashMetric = {
   id: string;
@@ -23,6 +23,7 @@ const TONE_CLASS: Record<DashMetricTone, string> = {
   green: styles.kpiGreen,
   blue: styles.kpiBlue,
   purple: styles.kpiPurple,
+  red: styles.kpiRed,
 };
 
 export function DashMetricStrip({

@@ -451,6 +451,11 @@
   color: #6f58b8;
 }
 
+.kpiRed .kpiIconCompact {
+  background: linear-gradient(145deg, #ffe3e3 0%, #fff1f1 100%);
+  color: #c43b3b;
+}
+
 .kpiLabelCompact {
   margin: 0;
   min-width: 0;
