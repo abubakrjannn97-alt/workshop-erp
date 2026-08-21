@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/page-header";
 import { QuickSaleForm } from "./quick-sale-form";
 
 export default async function QuickSalePage() {
-  const { t } = await getTranslator();
+  const { t, locale } = await getTranslator();
   const session = await requirePermission("orders.create");
   const canIssue = hasPermission(session.user.permissions, session.user.roleCode, "inventory.receive");
   if (!canIssue) {
@@ -69,6 +69,7 @@ export default async function QuickSalePage() {
         <QuickSaleForm
           customers={customers}
           products={sellable}
+          locale={locale}
           labels={{
             customerName: t("sales.quickCustomerName"),
             pickCustomer: t("sales.quickPickCustomer"),

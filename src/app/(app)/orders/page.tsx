@@ -37,7 +37,7 @@ export default async function OrdersPage({
   const params = await searchParams;
   const { q, status, from: fromRaw, to: toRaw, page: pageRaw } = params;
   const period = params.period ?? "today";
-  const activeBucket = resolveOrderListBucket(status);
+  const statusFilter = resolveOrderListBucket(status);
   const canCreate = hasPermission(session.user.permissions, session.user.roleCode, "orders.create");
   const ownOnly = session.user.roleCode === "sales_manager";
   const page = Math.max(1, Number(pageRaw) || 1);
@@ -95,7 +95,7 @@ export default async function OrdersPage({
 
   const baseQuery = {
     q: q?.trim() || undefined,
-    status: activeBucket,
+    status: status || undefined,
     period: resolvedPeriod === "custom" ? "custom" : resolvedPeriod,
     from: fromRaw || undefined,
     to: toRaw || undefined,
@@ -130,7 +130,7 @@ export default async function OrdersPage({
             current={resolvedPeriod}
             fromRaw={fromRaw}
             toRaw={toRaw}
-            status={activeBucket}
+            status={statusFilter}
             q={q?.trim()}
             presetLabels={{
               today: t("orders.periodToday"),

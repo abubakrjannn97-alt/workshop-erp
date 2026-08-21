@@ -9,6 +9,8 @@ import { AppSelect } from "@/components/app-select";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
 import { quickSaleFromFg } from "@/app/actions/quick-sale";
+import type { Locale } from "@core/shared/i18n/i18n";
+import { PayDueCalendar } from "../pay-due-calendar";
 import styles from "./quick-sale.module.css";
 
 export type QuickSaleCustomer = {
@@ -30,13 +32,19 @@ export type QuickSaleProduct = {
 
 type PayMode = "paid" | "later" | "partial";
 
+function daysInMonth(year: number, month: number) {
+  return new Date(year, month, 0).getDate();
+}
+
 export function QuickSaleForm({
   customers,
   products,
+  locale = "ru",
   labels,
 }: {
   customers: QuickSaleCustomer[];
   products: QuickSaleProduct[];
+  locale?: Locale;
   labels: {
     customerName: string;
     pickCustomer: string;
@@ -69,11 +77,19 @@ export function QuickSaleForm({
   const [productId, setProductId] = useState(products[0]?.id ?? "");
   const [payMode, setPayMode] = useState<PayMode>("paid");
   const [partialAmount, setPartialAmount] = useState("");
+  const [dueDay, setDueDay] = useState<number | null>(null);
+  const [dueMonth, setDueMonth] = useState<number | null>(null);
 
   const selected = useMemo(
     () => products.find((p) => p.id === productId) ?? products[0],
     [products, productId],
   );
+
+  const year = new Date().getFullYear();
+  const dueAtValue =
+    dueDay != null && dueMonth != null
+      ? `${year}-${String(dueMonth).padStart(2, "0")}-${String(Math.min(dueDay, daysInMonth(year, dueMonth))).padStart(2, "0")}`
+      : "";
 
   useEffect(() => {
     if (!pickerOpen) return;
@@ -107,6 +123,10 @@ export function QuickSaleForm({
 
   function onSubmit(formData: FormData) {
     setError(null);
+    if (payMode === "later" && !dueAtValue) {
+      setError("Укажите дату оплаты.");
+      return;
+    }
     startTransition(async () => {
       const result = await quickSaleFromFg(formData);
       if (result.error) {
@@ -120,17 +140,12 @@ export function QuickSaleForm({
 
   if (products.length === 0) return null;
 
-  const tomorrow = (() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return d.toISOString().slice(0, 10);
-  })();
-
   return (
     <form action={onSubmit} className={styles.card}>
       <IdempotencyField prefix="quick-sale" />
       <input type="hidden" name="customerId" value={customerId || "__new__"} />
       <input type="hidden" name="payMode" value={payMode} />
+      <input type="hidden" name="dueAt" value={payMode === "later" ? dueAtValue : ""} />
 
       {error ? <p className={styles.error}>{error}</p> : null}
 
@@ -270,7 +285,16 @@ export function QuickSaleForm({
 
         {payMode === "later" ? (
           <FormField label={labels.dueDate} required className={styles.fieldTight}>
-            <input name="dueAt" type="date" required className="ui-input" defaultValue={tomorrow} />
+            <PayDueCalendar
+              locale={locale}
+              day={dueDay}
+              month={dueMonth}
+              autoFocus
+              onChange={(d, m) => {
+                setDueDay(d);
+                setDueMonth(m);
+              }}
+            />
           </FormField>
         ) : null}
 
@@ -289,8 +313,6 @@ export function QuickSaleForm({
         ) : (
           <input type="hidden" name="paidAmount" value="" />
         )}
-
-        {payMode !== "later" ? <input type="hidden" name="dueAt" value="" /> : null}
       </div>
 
       <PendingButton className={`ui-btn-primary ${styles.submit}`} pendingLabel={labels.sending}>
