@@ -1,5 +1,5 @@
 import { prisma } from "@core/infrastructure/prisma";
-import { D, qtyDisplay } from "@core/shared/decimal";
+import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { findFinishedGoodsWarehouse } from "@core/config/resolve-warehouse";
 import { ORDER_STATUS } from "@core/orders/orders";
 
@@ -24,9 +24,8 @@ function pctChange(today: ReturnType<typeof D>, yesterday: ReturnType<typeof D>)
 }
 
 export type OwnerOperationalKpis = {
-  ordersInWork: number;
-  ordersToday: number;
-  inProduction: number;
+  salesToday: ReturnType<typeof D>;
+  salesTodayCount: number;
   fgTotal: ReturnType<typeof D>;
   producedToday: ReturnType<typeof D>;
   producedChangePct: number | null;
@@ -38,41 +37,38 @@ export async function fetchOwnerOperationalKpis(): Promise<OwnerOperationalKpis>
   const yesterdayStart = startOfDay(new Date(Date.now() - 86_400_000));
   const yesterdayEnd = endOfDay(new Date(Date.now() - 86_400_000));
 
-  const activeOrderWhere = {
-    status: { code: { notIn: [ORDER_STATUS.COMPLETED, ORDER_STATUS.CANCELLED, ORDER_STATUS.ISSUED] } },
-  };
+  const [todayOrders, fgStock, producedToday, producedYesterday] = await Promise.all([
+    prisma.order.findMany({
+      where: {
+        createdAt: { gte: todayStart, lte: todayEnd },
+        status: { code: { not: ORDER_STATUS.CANCELLED } },
+      },
+      select: { total: true },
+    }),
+    findFinishedGoodsWarehouse().then(async (wh) => {
+      if (!wh) return [];
+      return prisma.stockItem.findMany({
+        where: { warehouseId: wh.id, productId: { not: null }, materialId: null },
+      });
+    }),
+    prisma.productionBatch.aggregate({
+      where: { status: "CLOSED", producedAt: { gte: todayStart, lte: todayEnd } },
+      _sum: { actualQty: true },
+    }),
+    prisma.productionBatch.aggregate({
+      where: { status: "CLOSED", producedAt: { gte: yesterdayStart, lte: yesterdayEnd } },
+      _sum: { actualQty: true },
+    }),
+  ]);
 
-  const [ordersInWork, ordersToday, inProduction, fgStock, producedToday, producedYesterday] =
-    await Promise.all([
-      prisma.order.count({ where: activeOrderWhere }),
-      prisma.order.count({
-        where: { ...activeOrderWhere, createdAt: { gte: todayStart, lte: todayEnd } },
-      }),
-      prisma.productionOrder.count({ where: { status: { in: ["OPEN", "IN_PROGRESS"] } } }),
-      findFinishedGoodsWarehouse().then(async (wh) => {
-        if (!wh) return [];
-        return prisma.stockItem.findMany({
-          where: { warehouseId: wh.id, productId: { not: null }, materialId: null },
-        });
-      }),
-      prisma.productionBatch.aggregate({
-        where: { status: "CLOSED", producedAt: { gte: todayStart, lte: todayEnd } },
-        _sum: { actualQty: true },
-      }),
-      prisma.productionBatch.aggregate({
-        where: { status: "CLOSED", producedAt: { gte: yesterdayStart, lte: yesterdayEnd } },
-        _sum: { actualQty: true },
-      }),
-    ]);
-
+  const salesToday = todayOrders.reduce((s, o) => s.add(String(o.total)), D(0));
   const fgTotal = fgStock.reduce((s, row) => s.add(String(row.qtyOnHand)), D(0));
   const todayQty = D(String(producedToday._sum.actualQty ?? 0));
   const yesterdayQty = D(String(producedYesterday._sum.actualQty ?? 0));
 
   return {
-    ordersInWork,
-    ordersToday,
-    inProduction,
+    salesToday,
+    salesTodayCount: todayOrders.length,
     fgTotal,
     producedToday: todayQty,
     producedChangePct: pctChange(todayQty, yesterdayQty),
@@ -81,4 +77,8 @@ export async function fetchOwnerOperationalKpis(): Promise<OwnerOperationalKpis>
 
 export function formatFgQty(qty: ReturnType<typeof D>) {
   return qtyDisplay(qty);
+}
+
+export function formatSalesMoney(qty: ReturnType<typeof D>) {
+  return moneyDisplay(qty);
 }

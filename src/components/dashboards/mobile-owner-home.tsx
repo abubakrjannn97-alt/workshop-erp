@@ -1,4 +1,4 @@
-import { ClipboardList, Factory, Package, Layers } from "lucide-react";
+import { ShoppingBag, Package, Layers } from "lucide-react";
 import { prisma } from "@core/infrastructure/prisma";
 import { requireSession } from "@core/auth/authz";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
@@ -11,7 +11,11 @@ import {
   DashSection,
   ownerMobileQuickActions,
 } from "@/components/dashboard/dashboard-system";
-import { fetchOwnerOperationalKpis, formatFgQty } from "@/components/dashboard/owner-kpi-data";
+import {
+  fetchOwnerOperationalKpis,
+  formatFgQty,
+  formatSalesMoney,
+} from "@/components/dashboard/owner-kpi-data";
 import styles from "@/components/dashboard/dash-home.module.css";
 
 export async function MobileOwnerHome() {
@@ -51,24 +55,16 @@ export async function MobileOwnerHome() {
         tour="home-income"
         metrics={[
           {
-            id: "orders",
+            id: "sales",
             tone: "orange",
-            icon: ClipboardList,
-            label: t("home.kpi.ordersInWork"),
-            value: String(kpis.ordersInWork),
+            icon: ShoppingBag,
+            label: t("home.kpi.salesToday"),
+            value: `${formatSalesMoney(kpis.salesToday)} с`,
             hint:
-              kpis.ordersToday > 0
-                ? t("home.kpi.ordersTodayDelta").replace("{n}", String(kpis.ordersToday))
-                : undefined,
-            hintTone: kpis.ordersToday > 0 ? "positive" : "neutral",
-          },
-          {
-            id: "production",
-            tone: "green",
-            icon: Factory,
-            label: t("home.inProduction"),
-            value: String(kpis.inProduction),
-            hint: t("home.kpi.inProcess"),
+              kpis.salesTodayCount > 0
+                ? t("home.kpi.salesTodayCount").replace("{n}", String(kpis.salesTodayCount))
+                : t("home.kpi.noSalesToday"),
+            hintTone: kpis.salesTodayCount > 0 ? "positive" : "neutral",
           },
           {
             id: "fg",
