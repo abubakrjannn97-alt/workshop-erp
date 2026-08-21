@@ -10,6 +10,30 @@ import { ChevronRight } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import styles from "@/styles/premium.module.css";
 import catalogStyles from "@/components/catalog-form.module.css";
+import photoStyles from "./products.module.css";
+
+function ProductThumb({
+  name,
+  photoUrl,
+  size = "card",
+}: {
+  name: string;
+  photoUrl: string | null;
+  size?: "card" | "table";
+}) {
+  const wrap = size === "table" ? photoStyles.tableThumb : photoStyles.thumb;
+  const img = size === "table" ? photoStyles.tableThumbImg : photoStyles.thumbImg;
+  return (
+    <div className={wrap}>
+      {photoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={photoUrl} alt="" className={img} />
+      ) : (
+        <span className={photoStyles.thumbEmpty}>{name.slice(0, 1)}</span>
+      )}
+    </div>
+  );
+}
 
 export default async function ProductsPage() {
   const { t } = await getTranslator();
@@ -49,6 +73,7 @@ export default async function ProductsPage() {
             <div className={styles.tableWrap}>
               <table className={styles.table}>
                 <thead><tr>
+                  <th className={photoStyles.tableThumbCell} aria-hidden />
                   <th>{t("common.product")}</th>
                   <th>{t("common.unit")}</th>
                   <th className={styles.thRight}>{t("common.price")}</th>
@@ -63,6 +88,9 @@ export default async function ProductsPage() {
                     const price = product.prices[0]?.price;
                     return (
                       <tr key={product.id}>
+                        <td className={photoStyles.tableThumbCell}>
+                          <ProductThumb name={product.name} photoUrl={product.photoUrl} size="table" />
+                        </td>
                         <td>
                           <Link href={`/products/${product.id}`} className={styles.tdLink}>{product.name}</Link>
                           <p className={styles.tdMuted}>{product.category}</p>
@@ -86,12 +114,17 @@ export default async function ProductsPage() {
                 return (
                   <li key={product.id}>
                     <Link href={`/products/${product.id}`} className={styles.mobileCard}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span className={styles.mobileName}>{product.name}</span>
-                        <ChevronRight size={16} strokeWidth={ICON_STROKE} style={{ color: "var(--ink-3)" }} />
+                      <div className={photoStyles.cardInner}>
+                        <ProductThumb name={product.name} photoUrl={product.photoUrl} />
+                        <div className={photoStyles.cardBody}>
+                          <div className={photoStyles.cardTop}>
+                            <span className={styles.mobileName}>{product.name}</span>
+                            <ChevronRight size={16} strokeWidth={ICON_STROKE} style={{ color: "var(--ink-3)", flexShrink: 0 }} />
+                          </div>
+                          <p className={styles.mobileMeta}>{product.category} · {product.saleUnit.symbol}</p>
+                          <p className={styles.mobileRow}>{price ? `${moneyDisplay(price)} с` : "—"}</p>
+                        </div>
                       </div>
-                      <p className={styles.mobileMeta}>{product.category} · {product.saleUnit.symbol}</p>
-                      <p className={styles.mobileRow}>{price ? `${moneyDisplay(price)} с` : "—"}</p>
                     </Link>
                   </li>
                 );

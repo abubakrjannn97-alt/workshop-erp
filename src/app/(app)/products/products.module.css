@@ -1,0 +1,64 @@
+.thumb {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface-2);
+  display: grid;
+  place-items: center;
+}
+
+.thumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.thumbEmpty {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink-3);
+}
+
+.cardInner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cardBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.tableThumbCell {
+  width: 56px;
+  padding-right: 0 !important;
+  vertical-align: middle;
+}
+
+.tableThumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface-2);
+  display: grid;
+  place-items: center;
+}
+
+.tableThumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
