@@ -33,12 +33,14 @@ export function WarehouseNewMaterialForm({
       <input type="hidden" name="warehouseId" value={warehouseId} />
       <IdempotencyField prefix="wh-add" />
 
-      <FormField label={t("common.name")} required>
-        <input name="name" required autoFocus placeholder={t("wh.addMaterialNamePh")} className="ui-input" />
-      </FormField>
-      <FormField label={t("common.category")}>
-        <input name="category" placeholder={t("wh.addMaterialCategoryPh")} className="ui-input" />
-      </FormField>
+      <div className="grid grid-cols-2 gap-2.5">
+        <FormField label={t("common.name")} required>
+          <input name="name" required autoFocus placeholder={t("wh.addMaterialNamePh")} className="ui-input" />
+        </FormField>
+        <FormField label={t("common.category")}>
+          <input name="category" placeholder={t("wh.addMaterialCategoryPh")} className="ui-input" />
+        </FormField>
+      </div>
       <div className="grid grid-cols-2 gap-2.5">
         <FormField label={t("common.quantity")} required>
           <input name="quantity" required inputMode="decimal" placeholder="100" className="ui-input" />

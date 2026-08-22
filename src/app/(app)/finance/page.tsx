@@ -1,11 +1,12 @@
 import { getTranslator } from "@core/shared/i18n/locale";
-import { requirePermission } from "@core/auth/authz";
+import { requirePermission, hasPermission } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
-import { FUND, LEDGER } from "@core/finance/finance";
+import { LEDGER } from "@core/finance/finance";
 import { buildFinanceMoneyCards, fetchFinanceDashboardData } from "@core/finance/finance-summary";
 import { Banknote, Layers } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import { FinanceDebts } from "./finance-debts";
+import { FinanceFundsSection } from "./finance-funds-section";
 import { FinanceJournal } from "./finance-journal";
 import { FinanceDashboardBody } from "./finance-dashboard-body";
 import styles from "./finance.module.css";
@@ -14,7 +15,8 @@ const CASH_TYPES = new Set([LEDGER.CASH_IN, LEDGER.CASH_OUT, LEDGER.TRANSFER, LE
 
 export default async function FinancePage() {
   const { t, locale, n } = await getTranslator();
-  await requirePermission("finance.view");
+  const session = await requirePermission("finance.view");
+  const canAddFund = hasPermission(session.user.permissions, session.user.roleCode, "finance.expense.create");
 
   const data = await fetchFinanceDashboardData();
   const moneyCards = buildFinanceMoneyCards({
@@ -103,23 +105,17 @@ export default async function FinancePage() {
         </article>
       </section>
 
-      <section className={styles.section}>
-        <div className={styles.sectionHead}>
-          <h2 className={styles.sectionTitleAccent}>{t("fin.funds")}</h2>
-        </div>
-        <div className={styles.sectionBody}>
-          <ul className={styles.balanceList}>
-            {data.fundBalances.map((f) => (
-              <li key={f.id} className={styles.balanceRow}>
-                <span className={styles.balanceName}>{n("fund", f.code, f.name)}</span>
-                <span className={f.code === FUND.PROFIT ? styles.balanceValueAccent : styles.balanceValue}>
-                  {moneyDisplay(f.balance)} с
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
+      <FinanceFundsSection
+        locale={locale}
+        canAdd={canAddFund}
+        funds={data.fundBalances.map((f) => ({
+          id: f.id,
+          code: f.code,
+          name: n("fund", f.code, f.name),
+          balance: f.balance.toString(),
+          balanceNegative: f.balance.lt(0),
+        }))}
+      />
 
       <FinanceDebts
         locale={locale}

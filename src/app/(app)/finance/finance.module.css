@@ -269,6 +269,59 @@
 .sectionHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px 12px; border-bottom: 1px solid var(--line); }
 .sectionTitle { margin: 0; font-size: 15px; font-weight: 600; line-height: 22px; color: var(--ink); }
 .sectionTitleAccent { composes: sectionTitle; color: var(--accent, #A68649); }
+.sectionHeadLink {
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--accent, #a68649);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.sectionHeadLink:hover { text-decoration: underline; }
+.fundAddForm {
+  display: grid;
+  gap: 10px;
+  padding: 0 18px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.fundAddRow {
+  display: grid;
+  grid-template-columns: 1fr minmax(7rem, 9rem);
+  gap: 10px;
+}
+.fundAddField {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.fundAddLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.fundAddError {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--bad, #b42318);
+}
+.fundAddSubmit {
+  justify-self: start;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--navy, #0e1522);
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+}
+.fundAddSubmit:disabled { opacity: 0.65; cursor: wait; }
 .sectionBody { padding: 16px 18px; }
 .debtHeadText { min-width: 0; }
 .debtHeadHint { margin: 4px 0 0; font-size: 13px; line-height: 18px; color: var(--ink-2); }

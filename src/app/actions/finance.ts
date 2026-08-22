@@ -10,6 +10,26 @@ import { D, money } from "@core/shared/decimal";
 import { accountByCode, FUND, LEDGER, postLedger } from "@core/finance/finance";
 import { assertOutboundPayment, loadBalanceContext, insufficientFundsMessage } from "@core/finance/balance-guard";
 
+function fundCodeFromName(name: string) {
+  const slug = name
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-ZА-ЯЁ0-9]+/gu, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 28);
+  return slug ? `CUSTOM_${slug}` : "CUSTOM_FUND";
+}
+
+async function uniqueFundCode(name: string) {
+  let code = fundCodeFromName(name);
+  let n = 0;
+  while (await prisma.financialFund.findUnique({ where: { code } })) {
+    n += 1;
+    code = `${fundCodeFromName(name).slice(0, 24)}_${n}`;
+  }
+  return code;
+}
+
 function normalizeAmount(value: string) {
   return value.trim().replace(",", ".");
 }
@@ -146,5 +166,46 @@ export async function createExpenseCategory(formData: FormData) {
     newValue: { code, name },
   });
   revalidatePath("/finance");
+  return { ok: true };
+}
+
+export async function createFinancialFund(formData: FormData) {
+  const session = await requirePermission("finance.expense.create");
+  const name = String(formData.get("name") ?? "").trim();
+  const amountRaw = normalizeAmount(String(formData.get("amount") ?? ""));
+  if (!name) return { error: "Укажите название фонда." };
+  if (!moneyStr(amountRaw) || D(amountRaw).eq(0)) return { error: "Укажите сумму (не ноль)." };
+
+  const code = await uniqueFundCode(name);
+  const maxSort = await prisma.financialFund.aggregate({ _max: { sortOrder: true } });
+  const sortOrder = (maxSort._max.sortOrder ?? 0) + 10;
+  const signed = D(amountRaw);
+  const ledgerType = signed.gt(0) ? LEDGER.FUND_IN : LEDGER.FUND_OUT;
+  const absAmount = money(signed.abs());
+
+  const fund = await prisma.$transaction(async (tx) => {
+    const row = await tx.financialFund.create({
+      data: { code, name, sortOrder, isSystem: false },
+    });
+    await postLedger(tx, {
+      type: ledgerType,
+      amount: absAmount,
+      fundId: row.id,
+      comment: `Фонд: ${name}`,
+      createdById: session.user.id,
+      idempotencyKey: `fund-manual-${row.id}`,
+    });
+    return row;
+  });
+
+  await writeAudit({
+    userId: session.user.id,
+    action: "finance.fund.create",
+    entityType: "financial_fund",
+    entityId: fund.id,
+    newValue: { code, name, amount: amountRaw },
+  });
+  revalidatePath("/finance");
+  revalidatePath("/analytics");
   return { ok: true };
 }
