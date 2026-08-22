@@ -1,10 +1,11 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { updateCustomerStatus } from "@/app/actions/customers";
 import {
   CUSTOMER_STATUSES,
   customerStatusLabel,
+  customerStatusSelectClass,
   customerStatusTone,
   type CustomerStatus,
 } from "@core/crm/customer-status";
@@ -25,50 +26,62 @@ export function CustomerStatusPicker({
 }) {
   const t = createT(locale);
   const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   function onChange(next: CustomerStatus) {
     if (next === status || pending) return;
+    setError(null);
     startTransition(async () => {
       const fd = new FormData();
       fd.set("id", customerId);
       fd.set("status", next);
-      await updateCustomerStatus(fd);
+      const result = await updateCustomerStatus(fd);
+      if (result?.error) setError(result.error);
     });
   }
 
   if (compact) {
     return (
-      <select
-        className={styles.statusSelect}
-        value={status}
-        disabled={pending}
-        aria-label={t("crm.clientStatus")}
-        onChange={(e) => onChange(e.target.value as CustomerStatus)}
-      >
-        {CUSTOMER_STATUSES.map((code) => (
-          <option key={code} value={code}>
-            {customerStatusLabel(code, t)}
-          </option>
-        ))}
-      </select>
+      <div className={styles.statusSelectWrap}>
+        <select
+          className={`${styles.statusSelect} ${styles[customerStatusSelectClass(status)]}`}
+          value={status}
+          disabled={pending}
+          aria-label={t("crm.clientStatus")}
+          onChange={(e) => onChange(e.target.value as CustomerStatus)}
+        >
+          {CUSTOMER_STATUSES.map((code) => (
+            <option key={code} value={code}>
+              {customerStatusLabel(code, t)}
+            </option>
+          ))}
+        </select>
+        {error ? <p className={styles.statusError}>{error}</p> : null}
+      </div>
     );
   }
 
   return (
-    <div className={styles.statusPicker} role="radiogroup" aria-label={t("crm.clientStatus")}>
-      {CUSTOMER_STATUSES.map((code) => (
-        <button
-          key={code}
-          type="button"
-          role="radio"
-          aria-checked={status === code}
-          disabled={pending}
-          className={`${styles.statusPill} ${status === code ? styles.statusPillActive : ""}`}
-          onClick={() => onChange(code)}
-        >
-          <StatusBadge label={customerStatusLabel(code, t)} tone={customerStatusTone(code)} />
-        </button>
-      ))}
+    <div className={styles.statusPickerBlock}>
+      <div className={styles.statusPicker} role="radiogroup" aria-label={t("crm.clientStatus")}>
+        {CUSTOMER_STATUSES.map((code) => (
+          <button
+            key={code}
+            type="button"
+            role="radio"
+            aria-checked={status === code}
+            disabled={pending}
+            data-status={code}
+            className={`${styles.statusPill} ${styles[`statusPill_${code}`]} ${
+              status === code ? styles.statusPillActive : ""
+            }`}
+            onClick={() => onChange(code)}
+          >
+            <StatusBadge label={customerStatusLabel(code, t)} tone={customerStatusTone(code)} />
+          </button>
+        ))}
+      </div>
+      {error ? <p className={styles.statusError}>{error}</p> : null}
     </div>
   );
 }

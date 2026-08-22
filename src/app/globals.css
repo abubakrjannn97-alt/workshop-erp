@@ -1757,7 +1757,10 @@ main table tbody tr:hover td {
   color: var(--warn);
   background: var(--warn-soft);
 }
-.st-info,
+.st-info {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
 .st-neutral {
   color: var(--ink-2);
   background: var(--surface-2);

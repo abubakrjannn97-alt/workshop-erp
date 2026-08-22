@@ -662,6 +662,69 @@
   color: var(--ink);
 }
 
+.statusSelectWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.statusPickerBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.statusError {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--bad);
+}
+
+.statusToneNEW {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.statusToneTHINKING {
+  border-color: #94a3b8;
+  background: #f8fafc;
+  color: #475569;
+}
+
+.statusToneIN_PROCESS {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.statusToneCOMPLETED {
+  border-color: #22c55e;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.statusPill_NEW.statusPillActive {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 1px #f59e0b;
+}
+
+.statusPill_THINKING.statusPillActive {
+  border-color: #64748b;
+  box-shadow: 0 0 0 1px #64748b;
+}
+
+.statusPill_IN_PROCESS.statusPillActive {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
+
+.statusPill_COMPLETED.statusPillActive {
+  border-color: #22c55e;
+  box-shadow: 0 0 0 1px #22c55e;
+}
+
 .mobilePayMethod {
   margin: 4px 0 0;
   font-size: 12px;

@@ -5,7 +5,6 @@ import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { productLaborRate } from "@core/payroll/labor-rate";
 import { FUND, LEDGER, fundDelta } from "@core/finance/finance";
 import { contributionAndNet } from "@core/finance/profit";
-import { coverageAndPurchaseNeed } from "@core/inventory/alerts";
 import { getTranslator } from "@core/shared/i18n/locale";
 import { RevealList } from "@/components/reveal-list";
 import styles from "./analytics.module.css";
@@ -16,7 +15,7 @@ export default async function AnalyticsPage() {
   const monthStart = new Date();
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
-  const [monthOrders, scraps, accruals, funds, entries, cover, productItems] = await Promise.all([
+  const [monthOrders, scraps, accruals, funds, entries, productItems] = await Promise.all([
     prisma.order.findMany({
       where: { createdAt: { gte: monthStart }, status: { code: { not: "CANCELLED" } } },
       include: { payments: true },
@@ -27,7 +26,6 @@ export default async function AnalyticsPage() {
     prisma.payrollAccrual.groupBy({ by: ["kind"], where: { status: "ACCRUED" }, _sum: { amount: true } }),
     prisma.financialFund.findMany(),
     prisma.ledgerEntry.findMany({ where: { status: "POSTED" } }),
-    coverageAndPurchaseNeed(),
     prisma.orderItem.findMany({
       where: { order: { createdAt: { gte: monthStart }, status: { code: { not: "CANCELLED" } } } },
       include: {
@@ -121,15 +119,6 @@ export default async function AnalyticsPage() {
           <p className={styles.kpiLabel}>{t("an.contrib")}</p>
           <p className={styles.kpiValue}>{moneyDisplay(contribution)} с</p>
           <p className={styles.kpiMeta}>{t("an.contribShort")}</p>
-        </article>
-        <article className={`${styles.kpi} ${styles.kpiBlue}`}>
-          <p className={styles.kpiLabel}>{t("an.coverFor")}</p>
-          <p className={styles.kpiValue}>
-            {cover.coverQty ? `${cover.coverQty} ${cover.coverUnit}` : "—"}
-          </p>
-          <p className={styles.kpiMeta}>
-            {cover.productName ? cover.productName : t("an.coverEmpty")}
-          </p>
         </article>
         <article className={`${styles.kpi} ${styles.kpiRed}`}>
           <p className={styles.kpiLabel}>{t("an.scrapMonth")}</p>

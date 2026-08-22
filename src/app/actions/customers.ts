@@ -5,7 +5,8 @@ import { z } from "zod";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
-import { CUSTOMER_STATUSES } from "@core/crm/customer-status";
+import { CUSTOMER_STATUSES, type CustomerStatus } from "@core/crm/customer-status";
+import { setCustomerPipelineStatus } from "@core/crm/customer-pipeline";
 
 const schema = z.object({
   name: z.string().trim().min(1).max(200),
@@ -43,9 +44,9 @@ export async function createCustomer(formData: FormData) {
       source: parsed.data.source || null,
       comment: parsed.data.comment || null,
       managerId,
-      pipelineStatus: "NEW",
     },
   });
+  await setCustomerPipelineStatus(customer.id, "NEW");
   await writeAudit({
     userId: session.user.id,
     action: "customer.create",
@@ -142,10 +143,11 @@ export async function updateCustomerStatus(formData: FormData) {
   const existing = await prisma.customer.findUnique({ where: { id } });
   if (!existing || existing.archivedAt) return { error: "Клиент не найден." };
 
-  await prisma.customer.update({
-    where: { id },
-    data: { pipelineStatus: status },
-  });
+  try {
+    await setCustomerPipelineStatus(id, status as CustomerStatus);
+  } catch {
+    return { error: "Не удалось сохранить статус. Обновите страницу и попробуйте снова." };
+  }
   await writeAudit({
     userId: session.user.id,
     action: "customer.status",
