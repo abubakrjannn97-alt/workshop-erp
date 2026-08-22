@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,13 +26,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "no_database_url" }, { status: 503 });
   }
 
-  // Prisma routes $executeRaw to DIRECT_URL; point it at the working pooled URL.
-  const prevDirect = process.env.DIRECT_URL;
   process.env.DIRECT_URL = dbUrl;
-
-  const prisma = new PrismaClient({
-    datasources: { db: { url: dbUrl } },
-  });
+  const { PrismaClient } = await import("@prisma/client");
+  const prisma = new PrismaClient({ datasources: { db: { url: dbUrl } } });
 
   try {
     for (const sql of PATCHES) {
@@ -49,8 +44,6 @@ export async function POST(req: Request) {
       { status: 500 },
     );
   } finally {
-    if (prevDirect === undefined) delete process.env.DIRECT_URL;
-    else process.env.DIRECT_URL = prevDirect;
     await prisma.$disconnect();
   }
 }
