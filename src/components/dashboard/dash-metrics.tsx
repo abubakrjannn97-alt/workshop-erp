@@ -59,53 +59,23 @@ export function DashMetricStrip({
             {!compact ? <span className={styles.kpiScenery} aria-hidden /> : null}
             {featured ? (
               <>
-                <div className={styles.kpiFeaturedMain}>
-                  <span className={styles.kpiIconCompact} aria-hidden>
-                    <Icon size={22} strokeWidth={1.75} />
-                  </span>
-                  <div className={styles.kpiFeaturedText}>
-                    <p className={styles.kpiLabelCompact}>{metric.label}</p>
-                    <p className={styles.kpiValueFeatured}>{metric.value}</p>
-                  </div>
+                <span className={styles.kpiIconCompact} aria-hidden>
+                  <Icon size={20} strokeWidth={1.75} />
+                </span>
+                <div className={styles.kpiBodyCompact}>
+                  <p className={styles.kpiLabelCompact}>{metric.label}</p>
+                  <p className={styles.kpiValueFeatured}>{metric.value}</p>
                 </div>
-                {metric.hint ? (
-                  <p
-                    className={[
-                      styles.kpiHintCompact,
-                      metric.hintTone === "positive" ? styles.kpiHintPositive : "",
-                      metric.hintTone === "negative" ? styles.kpiHintNegative : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                  >
-                    {metric.hint}
-                  </p>
-                ) : null}
               </>
             ) : compact ? (
               <>
-                <div className={styles.kpiHeadCompact}>
-                  <span className={styles.kpiIconCompact} aria-hidden>
-                    <Icon size={18} strokeWidth={1.75} />
-                  </span>
+                <span className={styles.kpiIconCompact} aria-hidden>
+                  <Icon size={18} strokeWidth={1.75} />
+                </span>
+                <div className={styles.kpiBodyCompact}>
                   <p className={styles.kpiLabelCompact}>{metric.label}</p>
+                  <p className={styles.kpiValueCompact}>{metric.value}</p>
                 </div>
-                <p className={styles.kpiValueCompact}>{metric.value}</p>
-                {metric.hint ? (
-                  <p
-                    className={[
-                      styles.kpiHintCompact,
-                      metric.hintTone === "positive" ? styles.kpiHintPositive : "",
-                      metric.hintTone === "negative" ? styles.kpiHintNegative : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                  >
-                    {metric.hint}
-                  </p>
-                ) : (
-                  <span className={styles.kpiHintSpacerCompact} aria-hidden />
-                )}
               </>
             ) : (
               <>

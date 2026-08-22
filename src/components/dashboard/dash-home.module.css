@@ -88,30 +88,31 @@
 }
 
 .homeMobile .kpiCardCompact {
-  min-height: 72px;
-  padding: 6px 8px 5px;
+  padding: 8px 10px;
 }
 
 .homeMobile .kpiCardFeatured {
-  padding: 6px 8px;
+  padding: 10px 12px;
 }
 
 .homeMobile .kpiValueFeatured {
-  font-size: 24px;
-  line-height: 28px;
-}
-
-.homeMobile .kpiValueCompact {
   font-size: 20px;
   line-height: 24px;
 }
 
-.homeMobile .kpiHintCompact {
-  min-height: 0;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-  font-size: 10px;
-  line-height: 13px;
+.homeMobile .kpiValueCompact {
+  font-size: 17px;
+  line-height: 21px;
+}
+
+.homeMobile .kpiIconCompact {
+  width: 34px;
+  height: 34px;
+}
+
+.homeMobile .kpiCardFeatured .kpiIconCompact {
+  width: 38px;
+  height: 38px;
 }
 
 .homeMobile .sectionTitle {
@@ -366,13 +367,11 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
   padding: 0;
-  align-items: stretch;
+  align-items: start;
 }
 
 .kpiStripCompact > * {
-  min-height: 0;
-  height: 100%;
-  display: flex;
+  min-width: 0;
 }
 
 .kpiFeaturedWrap {
@@ -383,20 +382,17 @@
   position: relative;
   display: flex;
   width: 100%;
-  height: 100%;
-  min-height: 84px;
-  flex-direction: column;
-  gap: 2px;
-  padding: 8px 8px 7px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  min-height: 0;
+  padding: 8px 10px;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 12px;
   border: 1px solid rgba(232, 236, 241, 0.95);
-  background:
-    linear-gradient(165deg, #ffffff 0%, #fbfbfa 100%);
-  box-shadow:
-    0 1px 2px rgba(28, 35, 43, 0.03),
-    0 8px 20px rgba(28, 35, 43, 0.04);
-  transition: transform 0.16s ease, box-shadow 0.16s ease;
+  background: linear-gradient(165deg, #ffffff 0%, #fbfbfa 100%);
+  box-shadow: 0 1px 2px rgba(28, 35, 43, 0.03);
+  transition: transform 0.16s ease;
 }
 
 .kpiCardCompact:active {
@@ -404,48 +400,27 @@
 }
 
 .kpiCardFeatured {
-  min-height: 0;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 8px 10px;
-  background:
-    linear-gradient(120deg, #fff8f1 0%, #ffffff 42%, #ffffff 100%);
+  padding: 10px 12px;
+  background: linear-gradient(120deg, #fff8f1 0%, #ffffff 55%);
   border-color: rgba(216, 137, 66, 0.18);
-  box-shadow:
-    0 1px 2px rgba(216, 137, 66, 0.06),
-    0 10px 24px rgba(28, 35, 43, 0.05);
 }
 
-.kpiFeaturedMain {
+.kpiBodyCompact {
   display: flex;
   min-width: 0;
   flex: 1;
-  align-items: center;
-  gap: 12px;
-}
-
-.kpiFeaturedText {
-  display: flex;
-  min-width: 0;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .kpiValueFeatured {
   margin: 0;
-  font-size: 30px;
+  font-size: 22px;
   font-weight: 700;
-  line-height: 34px;
+  line-height: 26px;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
-}
-
-.kpiCardFeatured .kpiHintCompact {
-  margin: 0;
-  flex-shrink: 0;
 }
 
 .kpiHeadCompact {
@@ -457,18 +432,17 @@
 
 .kpiIconCompact {
   display: grid;
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   flex-shrink: 0;
   place-items: center;
-  border-radius: 14px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
 }
 
 .kpiCardFeatured .kpiIconCompact {
-  width: 48px;
-  height: 48px;
-  border-radius: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
 }
 
 .kpiOrange .kpiIconCompact {
@@ -499,32 +473,25 @@
 .kpiLabelCompact {
   margin: 0;
   min-width: 0;
-  flex: 1;
   overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
   font-weight: 500;
-  line-height: 16px;
+  line-height: 14px;
   color: var(--ink-2);
-  word-break: break-word;
 }
 
 .kpiCardFeatured .kpiLabelCompact {
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 12px;
   color: #8a6a45;
 }
 
 .kpiValueCompact {
-  margin: 2px 0 0;
-  font-size: 24px;
+  margin: 0;
+  font-size: 18px;
   font-weight: 700;
-  line-height: 28px;
+  line-height: 22px;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
