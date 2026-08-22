@@ -228,13 +228,29 @@ export const JOBS_ITEM: NavLeaf = {
   icon: "jobs",
 };
 
-/** Worker mobile home — same as nav.home but routes to /me */
+/** Worker mobile home — production tab */
 export const WORKER_HOME: BottomTab = {
-  id: "worker-home",
+  id: "worker-production",
   href: "/me",
-  labelKey: "nav.home",
+  labelKey: "nav.production",
   permission: "production.view",
-  icon: "home",
+  icon: "jobs",
+};
+
+export const WORKER_STATS: BottomTab = {
+  id: "worker-stats",
+  href: "/me/stats",
+  labelKey: "nav.workerStats",
+  permission: "production.view",
+  icon: "reports",
+};
+
+export const WORKER_SALARY: BottomTab = {
+  id: "worker-salary",
+  href: "/me/salary",
+  labelKey: "nav.workerSalary",
+  permission: "production.view",
+  icon: "finance",
 };
 
 export const HISTORY_ITEM: NavLeaf = {
@@ -316,14 +332,9 @@ export function sidebarGroups(permissions: string[], roleCode: string): NavGroup
   if (roleCode === "worker") {
     return [
       {
-        id: "home",
-        labelKey: "nav.overview",
-        items: [{ ...HOME_ITEM, href: "/me" }],
-      },
-      {
-        id: "shop",
-        labelKey: "nav.shopShort",
-        items: [WAREHOUSE_ITEM],
+        id: "worker",
+        labelKey: null,
+        items: [WORKER_HOME, WORKER_STATS, WORKER_SALARY, PROFILE_ITEM],
       },
     ];
   }
@@ -337,7 +348,7 @@ export function sidebarGroups(permissions: string[], roleCode: string): NavGroup
 function rawTabsForRole(roleCode: string): BottomTab[] {
   switch (roleCode) {
     case "worker":
-      return [WORKER_HOME, WAREHOUSE_ITEM];
+      return [WORKER_HOME, WORKER_STATS, WORKER_SALARY, PROFILE_ITEM];
     case "employee":
       return [
         HOME_ITEM,

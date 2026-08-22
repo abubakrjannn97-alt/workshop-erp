@@ -1,0 +1,149 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.periodRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.kpiGrid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.kpiCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 108px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(165deg, #ffffff 0%, #faf9f7 100%);
+  box-shadow: 0 1px 3px rgba(28, 35, 43, 0.04);
+}
+
+.kpiIcon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 1px 2px rgba(28, 35, 43, 0.05);
+}
+
+.kpiPurple {
+  background: linear-gradient(145deg, #ebe4ff 0%, #f5f1ff 100%);
+  color: #6349a8;
+}
+
+.kpiGreen {
+  background: linear-gradient(145deg, #c8edd8 0%, #ecf9f2 100%);
+  color: #167a4f;
+}
+
+.kpiLabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--ink-2);
+}
+
+.kpiValue {
+  margin: 0;
+  font-size: clamp(20px, 5vw, 24px);
+  font-weight: 750;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.kpiUnit {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.kpiHint {
+  margin: auto 0 0;
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--ink-3);
+}
+
+.sectionCard {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.empty {
+  margin: 0;
+  padding: 24px 12px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--ink-3);
+}
+
+.profileCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.profileLang {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.profileName {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 26px;
+  color: var(--ink);
+}
+
+.profileRole {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent, #a68649);
+}
+
+.profileForm {
+  display: grid;
+  gap: 10px;
+}
+
+.profileLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.profileSaved {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ok, #1b7a4a);
+}
+
+.profileError {
+  margin: 0;
+  font-size: 13px;
+  color: var(--bad, #b42318);
+}

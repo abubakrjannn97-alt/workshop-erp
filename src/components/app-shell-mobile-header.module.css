@@ -34,6 +34,11 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+.menuSpacer {
+  width: var(--mobile-header-btn);
+  height: var(--mobile-header-btn);
+}
+
 .brand {
   display: flex;
   align-items: center;

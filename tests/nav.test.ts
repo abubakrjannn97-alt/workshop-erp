@@ -32,11 +32,11 @@ describe("mobile nav by role", () => {
     assert.equal(hrefs.includes("/orders"), false);
   });
 
-  it("worker gets home and warehouse only", () => {
+  it("worker gets production stats salary profile tabs", () => {
     const tabs = bottomTabsForRole("worker", ROLE_PERMISSIONS.worker);
     assert.deepEqual(
       tabs.map((t) => t.href),
-      ["/me", "/warehouse"],
+      ["/me", "/me/stats", "/me/salary", "/me/profile"],
     );
     assert.equal(tabs.some((t) => t.isMore), false);
     const more = moreGroupsForRole("worker", ROLE_PERMISSIONS.worker);

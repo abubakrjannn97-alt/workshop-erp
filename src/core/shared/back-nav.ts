@@ -16,6 +16,8 @@ const SECTION_LIST_PARENTS: Record<string, string> = {
   "/finance/expenses": "/finance",
   "/crm/history": "/crm",
   "/me/profile": "/me",
+  "/me/stats": "/me",
+  "/me/salary": "/me",
   "/me/commission": "/me",
   "/me/history": "/me",
   "/products/new": "/products",

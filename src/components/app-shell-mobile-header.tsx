@@ -42,10 +42,12 @@ export function AppShellMobileHeader({
     setMenuOpen(false);
   }, [pathname]);
 
+  const isWorker = roleCode === "worker";
+
   return (
     <>
       <header className={styles.bar}>
-        {backHref ? (
+        {backHref && !isWorker ? (
           <Link
             href={backHref}
             className={styles.menuBtn}
@@ -54,7 +56,7 @@ export function AppShellMobileHeader({
           >
             <ChevronLeft size={22} strokeWidth={ICON_STROKE} aria-hidden />
           </Link>
-        ) : (
+        ) : !isWorker ? (
           <button
             type="button"
             className={styles.menuBtn}
@@ -69,6 +71,8 @@ export function AppShellMobileHeader({
               <Menu size={20} strokeWidth={ICON_STROKE} aria-hidden />
             )}
           </button>
+        ) : (
+          <span className={styles.menuSpacer} aria-hidden />
         )}
         <div className={styles.brand} aria-hidden>
           <WorkshopMark size={24} className={styles.brandLogo} />
@@ -78,18 +82,20 @@ export function AppShellMobileHeader({
           </div>
         </div>
         <div className={styles.actions}>
-          <NotificationBell unread={unread} locale={locale} />
+          {!isWorker ? <NotificationBell unread={unread} locale={locale} /> : null}
         </div>
       </header>
-      <MobileHeaderMenu
-        open={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        locale={locale}
-        userName={userName}
-        roleName={roleName}
-        roleCode={roleCode}
-        permissions={permissions}
-      />
+      {!isWorker ? (
+        <MobileHeaderMenu
+          open={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          locale={locale}
+          userName={userName}
+          roleName={roleName}
+          roleCode={roleCode}
+          permissions={permissions}
+        />
+      ) : null}
     </>
   );
 }
