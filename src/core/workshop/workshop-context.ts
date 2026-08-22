@@ -64,9 +64,11 @@ async function ensureWorkshopsReady() {
   if (!workshopsReady) {
     workshopsReady = (async () => {
       await ensureTwoWorkshops(prisma);
-      const settingsCount = await prisma.setting.count({ where: { workshopId: DEFAULT_WORKSHOP_ID } });
-      if (settingsCount === 0) {
-        await bootstrapWorkshopStructure(prisma, DEFAULT_WORKSHOP_ID);
+      for (const workshopId of ALLOWED_WORKSHOP_IDS) {
+        const settingsCount = await prisma.setting.count({ where: { workshopId } });
+        if (settingsCount === 0) {
+          await bootstrapWorkshopStructure(prisma, workshopId);
+        }
       }
     })().catch((error) => {
       workshopsReady = null;

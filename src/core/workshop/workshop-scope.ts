@@ -27,6 +27,14 @@ export const WORKSHOP_SCOPED_MODELS = new Set([
   "CashShift",
   "AccountingPeriod",
   "Setting",
+  "StockItem",
+  "StockMovement",
+  "InventoryCount",
+  "PurchasePayment",
+  "CrmDocument",
+  "Payment",
+  "ProductionBatch",
+  "ScrapRecord",
 ]);
 
 /** Composite unique: workshopId + code */

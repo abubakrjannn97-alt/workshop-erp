@@ -42,6 +42,14 @@ model Workshop {
   cashShifts CashShift[]
   payrollAccruals PayrollAccrual[]
   payrollPayouts PayrollPayout[]
+  stockItems StockItem[]
+  stockMovements StockMovement[]
+  inventoryCounts InventoryCount[]
+  purchasePayments PurchasePayment[]
+  crmDocuments CrmDocument[]
+  payments Payment[]
+  productionBatches ProductionBatch[]
+  scrapRecords ScrapRecord[]
 
   @@map("workshops")
 }
@@ -405,6 +413,7 @@ model Warehouse {
 
 model StockItem {
   id           String  @id @default(cuid())
+  workshopId   String
   warehouseId  String
   materialId   String?
   productId    String?
@@ -413,6 +422,7 @@ model StockItem {
   qtyReserved  Decimal @default(0) @db.Decimal(18, 6)
   wacUnitCost  Decimal @default(0) @db.Decimal(18, 6)
 
+  workshop  Workshop        @relation(fields: [workshopId], references: [id], onDelete: Cascade)
   warehouse Warehouse       @relation(fields: [warehouseId], references: [id])
   material  Material?       @relation(fields: [materialId], references: [id])
   product   Product?        @relation(fields: [productId], references: [id])
@@ -420,6 +430,7 @@ model StockItem {
   countLines InventoryCountLine[]
 
   @@unique([warehouseId, materialId])
+  @@index([workshopId])
   @@index([warehouseId, productId])
   @@index([warehouseId])
   @@map("stock_items")
@@ -427,6 +438,7 @@ model StockItem {
 
 model StockMovement {
   id               String   @id @default(cuid())
+  workshopId       String
   warehouseId      String
   stockItemId      String
   type             String
@@ -443,11 +455,13 @@ model StockMovement {
   createdById      String?
   createdAt        DateTime @default(now())
 
+  workshop  Workshop      @relation(fields: [workshopId], references: [id], onDelete: Cascade)
   warehouse Warehouse     @relation(fields: [warehouseId], references: [id])
   stockItem StockItem     @relation(fields: [stockItemId], references: [id])
   reverses  StockMovement? @relation("MovementReversal", fields: [reversesId], references: [id])
   reversedBy StockMovement? @relation("MovementReversal")
 
+  @@index([workshopId])
   @@index([stockItemId, createdAt])
   @@index([type, createdAt])
   @@index([relatedType, relatedId])
@@ -533,20 +547,24 @@ model PurchaseItem {
 
 model PurchasePayment {
   id              String   @id @default(cuid())
+  workshopId      String
   purchaseOrderId String
   amount          Decimal  @db.Decimal(18, 4)
   comment         String?
   createdById     String?
   createdAt       DateTime @default(now())
 
+  workshop      Workshop      @relation(fields: [workshopId], references: [id], onDelete: Cascade)
   purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
 
+  @@index([workshopId])
   @@index([purchaseOrderId])
   @@map("purchase_payments")
 }
 
 model InventoryCount {
   id            String    @id @default(cuid())
+  workshopId    String
   warehouseId   String
   status        String
   reason        String?
@@ -555,9 +573,11 @@ model InventoryCount {
   createdAt     DateTime  @default(now())
   confirmedAt   DateTime?
 
+  workshop  Workshop             @relation(fields: [workshopId], references: [id], onDelete: Cascade)
   warehouse Warehouse            @relation(fields: [warehouseId], references: [id])
   lines     InventoryCountLine[]
 
+  @@index([workshopId])
   @@index([warehouseId, createdAt])
   @@map("inventory_counts")
 }
@@ -654,6 +674,7 @@ model Lead {
 
 model CrmDocument {
   id          String   @id @default(cuid())
+  workshopId  String
   leadId      String
   type        String
   number      String
@@ -663,8 +684,10 @@ model CrmDocument {
   createdById String?
   createdAt   DateTime @default(now())
 
-  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  workshop Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+  lead     Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
 
+  @@index([workshopId])
   @@index([leadId])
   @@index([type, createdAt])
   @@map("crm_documents")
@@ -765,6 +788,7 @@ model OrderMaterialNeed {
 
 model Payment {
   id             String   @id @default(cuid())
+  workshopId     String
   orderId        String
   amount         Decimal  @db.Decimal(18, 4)
   method         String?
@@ -774,10 +798,12 @@ model Payment {
   createdById    String?
   createdAt      DateTime @default(now())
 
+  workshop Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
   order    Order    @relation(fields: [orderId], references: [id])
   reverses Payment? @relation("PaymentReversal", fields: [reversesId], references: [id])
   reversedBy Payment? @relation("PaymentReversal")
 
+  @@index([workshopId])
   @@index([orderId, createdAt])
   @@map("payments")
 }
@@ -826,6 +852,7 @@ model ProductionOrder {
 
 model ProductionBatch {
   id                 String    @id @default(cuid())
+  workshopId         String
   productionOrderId  String
   number             Int
   status             String
@@ -839,11 +866,13 @@ model ProductionBatch {
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
+  workshop   Workshop           @relation(fields: [workshopId], references: [id], onDelete: Cascade)
   production ProductionOrder    @relation(fields: [productionOrderId], references: [id])
   materials  BatchMaterialUse[]
   scraps     ScrapRecord[]
 
   @@unique([productionOrderId, number])
+  @@index([workshopId])
   @@index([productionOrderId])
   @@map("production_batches")
 }
@@ -864,6 +893,7 @@ model BatchMaterialUse {
 
 model ScrapRecord {
   id           String   @id @default(cuid())
+  workshopId   String
   batchId      String
   quantity     Decimal  @db.Decimal(18, 6)
   reason       String
@@ -872,8 +902,10 @@ model ScrapRecord {
   materialCost Decimal? @db.Decimal(18, 4)
   createdAt    DateTime @default(now())
 
-  batch ProductionBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  workshop Workshop        @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+  batch    ProductionBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
 
+  @@index([workshopId])
   @@index([batchId])
   @@map("scrap_records")
 }

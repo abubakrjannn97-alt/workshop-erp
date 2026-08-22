@@ -32,6 +32,8 @@ async function guard(code: PermissionCode) {
   const session = await auth();
   if (!session?.user?.id) return null;
   if (!hasPermission(session.user.permissions, session.user.roleCode, code)) return null;
+  const { bindWorkshopContext } = await import("@core/workshop/workshop-context");
+  await bindWorkshopContext(session.user.id, session.user.roleCode ?? "employee");
   return session;
 }
 

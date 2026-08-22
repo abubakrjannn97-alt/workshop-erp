@@ -9,6 +9,9 @@ import { moneyDisplay } from "@core/shared/decimal";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
 import styles from "./finance.module.css";
 
+/** Core funds created by bootstrap — not deletable from the UI. */
+const PROTECTED_FUND_CODES = new Set(["MATERIALS", "LABOR", "COMMISSION", "OPEX", "PROFIT"]);
+
 export type FinanceFundRow = {
   id: string;
   code: string;
@@ -17,6 +20,10 @@ export type FinanceFundRow = {
   balanceNegative: boolean;
   isSystem: boolean;
 };
+
+function canDeleteFund(fund: FinanceFundRow) {
+  return !PROTECTED_FUND_CODES.has(fund.code);
+}
 
 export function FinanceFundsSection({
   locale,
@@ -145,15 +152,17 @@ export function FinanceFundsSection({
             <button type="submit" className={styles.fundAddSubmit} disabled={pending}>
               {pending ? t("common.sending") : t("common.save")}
             </button>
-            {!editing.isSystem ? (
-              <button type="button" className={styles.fundDeleteBtn} disabled={pending} onClick={submitDelete}>
-                {t("fin.deleteFund")}
-              </button>
-            ) : null}
             <button type="button" className={styles.fundEditCancel} onClick={() => setEditId(null)}>
               {t("common.cancel")}
             </button>
           </div>
+          {canDeleteFund(editing) ? (
+            <button type="button" className={styles.fundDeleteBtn} disabled={pending} onClick={submitDelete}>
+              {t("fin.deleteFund")}
+            </button>
+          ) : (
+            <p className={styles.fundEditHint}>{t("fin.deleteFundSystemHint")}</p>
+          )}
         </form>
       ) : null}
 
