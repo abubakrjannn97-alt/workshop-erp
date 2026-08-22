@@ -15,6 +15,7 @@ import { EMPLOYEE_ASSIGNABLE, type PermissionCode } from "@core/rbac/permissions
 import { formatPhoneDisplay } from "@core/shared/phone";
 import { archiveEmployee } from "@/app/actions/employees";
 import { getDomainConfig } from "@core/config/domain-config";
+import { employeePaySchemeOptions, listWorkshopPaySchemes } from "@core/payroll/employee-pay-schemes";
 import { loadPaymentCards } from "@core/config/payment-cards";
 import { FormField } from "@/components/form-field";
 import { AppSelect } from "@/components/app-select";
@@ -38,8 +39,10 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
   const canEdit = hasPermission(session.user.permissions, session.user.roleCode, "users.edit");
   const canPay = hasPermission(session.user.permissions, session.user.roleCode, "salary.approve");
 
-  const [schemes, accounts, accruals, payouts, assignablePerms, domainConfig, paymentCards] = await Promise.all([
-    prisma.payScheme.findMany({ orderBy: { name: "asc" } }),
+  const roleCode = session.user.roleCode ?? "employee";
+
+  const [schemesRaw, accounts, accruals, payouts, assignablePerms, domainConfig, paymentCards] = await Promise.all([
+    listWorkshopPaySchemes(session.user.id, roleCode),
     prisma.cashAccount.findMany({ where: { archivedAt: null } }),
     prisma.payrollAccrual.findMany({ where: { userId: id }, orderBy: { createdAt: "desc" }, take: 40 }),
     prisma.payrollPayout.findMany({ where: { userId: id }, orderBy: { createdAt: "desc" }, take: 50 }),
@@ -49,6 +52,7 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
     getDomainConfig(),
     loadPaymentCards(),
   ]);
+  const schemeOptions = employeePaySchemeOptions(schemesRaw, t("emp.commissionTitle"));
 
   const lastPayoutAt = payouts[0]?.createdAt ?? user.hiredAt ?? new Date(0);
   const [periodM2, periodEarnedAgg, accruedAgg, paidAgg] = await Promise.all([
@@ -140,12 +144,7 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
                   placeholder={t("emp.noScheme")}
                   options={[
                     { value: "", label: t("emp.noScheme") },
-                    ...schemes
-                      .filter((s) => s.productionRate == null)
-                      .map((s) => ({
-                        value: s.id,
-                        label: s.kind === "SALES_COMMISSION" ? t("emp.commissionTitle") : s.name,
-                      })),
+                    ...schemeOptions,
                   ]}
                 />
               </FormField>

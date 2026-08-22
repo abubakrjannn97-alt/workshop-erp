@@ -9,6 +9,7 @@ import { writeAudit } from "@core/control/audit";
 import { D, money } from "@core/shared/decimal";
 import { accountByCode, FUND, fundDelta, LEDGER, postLedger } from "@core/finance/finance";
 import { assertOutboundPayment, loadBalanceContext, insufficientFundsMessage } from "@core/finance/balance-guard";
+import { requireWorkshopId } from "@core/workshop/workshop-context";
 
 function fundCodeFromName(name: string) {
   const slug = name
@@ -21,9 +22,14 @@ function fundCodeFromName(name: string) {
 }
 
 async function uniqueFundCode(name: string) {
+  const workshopId = requireWorkshopId();
   let code = fundCodeFromName(name);
   let n = 0;
-  while (await prisma.financialFund.findUnique({ where: { code } })) {
+  while (
+    await prisma.financialFund.findFirst({
+      where: { workshopId, code },
+    })
+  ) {
     n += 1;
     code = `${fundCodeFromName(name).slice(0, 24)}_${n}`;
   }
@@ -50,7 +56,7 @@ export async function createExpense(formData: FormData) {
 
   const category = await prisma.expenseCategory.findUnique({ where: { id: categoryId } });
   if (!category) return { error: "Категория не найдена." };
-  const fund = await prisma.financialFund.findUnique({ where: { code: category.fundCode } });
+  const fund = await prisma.financialFund.findFirst({ where: { code: category.fundCode } });
 
   const ctx = await loadBalanceContext();
   const accountRow = ctx.cashBalances.find((a) => a.id === accountId);
@@ -113,6 +119,7 @@ export async function createObligation(formData: FormData) {
 
   const row = await prisma.obligation.create({
     data: {
+      workshopId: requireWorkshopId(),
       kind,
       name,
       amount: money(amount),
@@ -154,10 +161,11 @@ export async function createExpenseCategory(formData: FormData) {
     .replace(/\s+/g, "_");
   const fundCode = String(formData.get("fundCode") ?? "OPEX");
   if (!name || !code) return { error: "Код и название." };
+  const workshopId = requireWorkshopId();
   await prisma.expenseCategory.upsert({
-    where: { code },
+    where: { workshopId_code: { workshopId, code } },
     update: { name, fundCode },
-    create: { code, name, fundCode, isSystem: false },
+    create: { workshopId, code, name, fundCode, isSystem: false },
   });
   await writeAudit({
     userId: session.user.id,
@@ -183,9 +191,10 @@ export async function createFinancialFund(formData: FormData) {
   const ledgerType = signed.gt(0) ? LEDGER.FUND_IN : LEDGER.FUND_OUT;
   const absAmount = money(signed.abs());
 
+  const workshopId = requireWorkshopId();
   const fund = await prisma.$transaction(async (tx) => {
     const row = await tx.financialFund.create({
-      data: { code, name, sortOrder, isSystem: false },
+      data: { workshopId, code, name, sortOrder, isSystem: false },
     });
     await postLedger(tx, {
       type: ledgerType,

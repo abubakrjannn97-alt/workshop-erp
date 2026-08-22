@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { prisma } from "@core/infrastructure/prisma";
 import {
   enterWorkshopContext,
+  getWorkshopIdFromContext,
   patchWorkshopContext,
 } from "./workshop-storage";
 
@@ -62,6 +63,10 @@ export async function bindWorkshopContext(userId: string, roleCode: string): Pro
     enterWorkshopContext(workshopId);
   }
   return workshopId;
+}
+
+export function requireWorkshopId(): string {
+  return getWorkshopIdFromContext() ?? DEFAULT_WORKSHOP_ID;
 }
 
 export function slugifyWorkshopName(name: string) {

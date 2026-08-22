@@ -4,6 +4,7 @@ import { D, money } from "@core/shared/decimal";
 import { assertPeriodOpen } from "@core/control/control";
 import { SETTING_KEYS } from "@core/config/settings";
 import { findSetting } from "@core/config/setting-store";
+import { requireWorkshopId } from "@core/workshop/workshop-context";
 
 type Tx = Prisma.TransactionClient;
 
@@ -55,6 +56,7 @@ export async function postLedger(
   if (D(data.amount).lte(0)) throw new Error("Сумма проводки должна быть больше нуля.");
   return tx.ledgerEntry.create({
     data: {
+      workshopId: requireWorkshopId(),
       type: data.type,
       amount: money(data.amount),
       accountId: data.accountId ?? null,
@@ -76,13 +78,15 @@ export async function postLedger(
 }
 
 export async function accountByCode(tx: Tx | typeof prisma, code: string) {
-  const row = await tx.cashAccount.findUnique({ where: { code } });
+  const workshopId = requireWorkshopId();
+  const row = await tx.cashAccount.findFirst({ where: { workshopId, code } });
   if (!row) throw new Error(`Касса ${code} не найдена.`);
   return row;
 }
 
 export async function fundByCode(tx: Tx | typeof prisma, code: string) {
-  const row = await tx.financialFund.findUnique({ where: { code } });
+  const workshopId = requireWorkshopId();
+  const row = await tx.financialFund.findFirst({ where: { workshopId, code } });
   if (!row) throw new Error(`Фонд ${code} не найден.`);
   return row;
 }
@@ -114,9 +118,10 @@ export async function postClientPayment(
   const account = await accountByCode(tx, accountForMethod(input.method));
   const materials = await fundByCode(tx, FUND.MATERIALS);
   const profit = await fundByCode(tx, FUND.PROFIT);
-  const laborFund = await tx.financialFund.findUnique({ where: { code: FUND.LABOR } });
-  const commFund = await tx.financialFund.findUnique({ where: { code: FUND.COMMISSION } });
-  const opexFund = await tx.financialFund.findUnique({ where: { code: FUND.OPEX } });
+  const workshopId = requireWorkshopId();
+  const laborFund = await tx.financialFund.findFirst({ where: { workshopId, code: FUND.LABOR } });
+  const commFund = await tx.financialFund.findFirst({ where: { workshopId, code: FUND.COMMISSION } });
+  const opexFund = await tx.financialFund.findFirst({ where: { workshopId, code: FUND.OPEX } });
   const total = D(input.orderTotal);
   const mat = input.materialCost ? D(input.materialCost) : D(0);
   const share = total.gt(0) ? abs.div(total) : D(0);

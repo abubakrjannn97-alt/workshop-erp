@@ -4,6 +4,7 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { updatePayScheme } from "@/app/actions/payroll";
+import { employeePaySchemeSections, listWorkshopPaySchemes } from "@core/payroll/employee-pay-schemes";
 import { AddEmployeeForm } from "@/components/add-employee-form";
 import { EMPLOYEE_ASSIGNABLE, type PermissionCode } from "@core/rbac/permissions";
 import { formatPhoneDisplay } from "@core/shared/phone";
@@ -20,13 +21,15 @@ export default async function EmployeesPage() {
   const isOwner = session.user.roleCode === "owner";
   const canEditScheme = hasPermission(session.user.permissions, session.user.roleCode, "settings.edit");
 
-  const [users, schemes, accruals, payouts, assignablePerms] = await Promise.all([
+  const roleCode = session.user.roleCode ?? "employee";
+
+  const [users, schemesRaw, accruals, payouts, assignablePerms] = await Promise.all([
     prisma.user.findMany({
       where: { archivedAt: null, role: { code: { not: "owner" } } },
       include: { role: true, payScheme: true },
       orderBy: { name: "asc" },
     }),
-    prisma.payScheme.findMany({ include: { tiers: { orderBy: { fromCount: "asc" } } }, orderBy: { name: "asc" } }),
+    listWorkshopPaySchemes(session.user.id, roleCode),
     prisma.payrollAccrual.groupBy({ by: ["userId"], where: { status: "ACCRUED" }, _sum: { amount: true, quantity: true } }),
     prisma.payrollPayout.groupBy({ by: ["userId"], _sum: { amount: true } }),
     isOwner
@@ -36,6 +39,7 @@ export default async function EmployeesPage() {
   const accMap = new Map(accruals.map((a) => [a.userId, a]));
   const payMap = new Map(payouts.map((p) => [p.userId, p]));
   const permModules = [...new Set(assignablePerms.map((p) => p.module))];
+  const schemes = employeePaySchemeSections(schemesRaw);
 
   async function schemeAction(formData: FormData) { "use server"; await updatePayScheme(formData); }
 
@@ -121,9 +125,7 @@ export default async function EmployeesPage() {
         </ul>
       </section>
 
-      {schemes
-        .filter((scheme) => scheme.productionRate == null)
-        .map((scheme) => {
+      {schemes.map((scheme) => {
         const isCommission = scheme.kind === "SALES_COMMISSION" || scheme.kind === "MIXED";
         const title = scheme.kind === "SALES_COMMISSION" ? t("emp.commissionTitle") : scheme.name;
         const hint = isCommission ? t("emp.commissionHint") : "";
