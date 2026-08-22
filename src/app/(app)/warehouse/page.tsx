@@ -2,7 +2,8 @@ import { getTranslator } from "@core/shared/i18n/locale";
 import Link from "next/link";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
-import { qtyDisplay } from "@core/shared/decimal";
+import { canSeeMaterialCost } from "@core/rbac/permissions";
+import { qtyDisplay, moneyDisplay } from "@core/shared/decimal";
 import { D } from "@core/shared/decimal";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
 import { WarehouseMetrics } from "./warehouse-metrics";
@@ -26,6 +27,7 @@ export default async function WarehousePage({
   const { t } = await getTranslator();
   const session = await requirePermission("inventory.view");
   const isWorker = session.user.roleCode === "worker";
+  const showCost = canSeeMaterialCost(session.user.permissions, session.user.roleCode);
   const canReceive = hasPermission(session.user.permissions, session.user.roleCode, "inventory.receive");
   const params = await searchParams;
   const activeId = isWorker ? "products" : params.view === "raw" ? "raw" : "products";
@@ -48,6 +50,7 @@ export default async function WarehousePage({
       where: { archivedAt: null, isActive: true },
       include: {
         saleUnit: true,
+        prices: { where: { validTo: null }, orderBy: { validFrom: "desc" }, take: 1 },
         stockItems: { where: { warehouseId: fg.id } },
       },
       orderBy: { name: "asc" },
@@ -62,13 +65,29 @@ export default async function WarehousePage({
   ]);
 
   const productRows = products.map((p) => {
-    const onHand = D(String(p.stockItems[0]?.qtyOnHand ?? 0));
+    const stock = p.stockItems[0];
+    const onHand = D(String(stock?.qtyOnHand ?? 0));
     const min = D(String(p.minStock ?? 0));
     const max = D(String(p.maxStock ?? 0));
     const low = min.gt(0) && onHand.lt(min);
     const short = low ? min.sub(onHand) : D(0);
     const atLimit = max.gt(0) && onHand.gte(max);
-    return { product: p, onHand, min, max, low, short, atLimit };
+    const wac = D(String(stock?.wacUnitCost ?? 0));
+    const salePrice = D(String(p.prices[0]?.price ?? p.minPrice ?? 0));
+    const costTotal = onHand.mul(wac);
+    const saleTotal = onHand.mul(salePrice);
+    const profitTotal = saleTotal.minus(costTotal);
+    return {
+      product: p,
+      onHand,
+      min,
+      max,
+      low,
+      short,
+      atLimit,
+      costTotal,
+      profitTotal,
+    };
   });
 
   const lowFgCount = productRows.filter((r) => r.low).length;
@@ -145,68 +164,64 @@ export default async function WarehousePage({
               <p className={styles.emptyNote}>{t("me.fgEmptyProducts")}</p>
             </div>
           ) : (
-            <ul className={styles.productGrid}>
-              {sortedRows.map(({ product, onHand, min, low, short }) => (
-                <li key={product.id}>
-                  {isWorker ? (
-                    <div
-                      className={`${styles.productCard} ${low ? styles.productCardLow : ""}`.trim()}
-                    >
-                      <div className={styles.productPhoto}>
+            <ul className={styles.fgList}>
+              {sortedRows.map(({ product, onHand, low, costTotal, profitTotal }) => {
+                const profitBad = profitTotal.lt(0);
+                const cardClass = `${styles.fgCard} ${low ? styles.fgCardLow : ""}`.trim();
+                const cardBody = (
+                  <>
+                    <div className={styles.fgCardRow}>
+                      <div className={styles.fgPhoto}>
                         {product.photoUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={product.photoUrl} alt="" className={styles.productImg} />
+                          <img src={product.photoUrl} alt="" className={styles.fgImg} />
                         ) : (
-                          <span className={styles.productPhotoEmpty}>{product.name.slice(0, 1)}</span>
+                          <span className={styles.fgPhotoEmpty}>{product.name.slice(0, 1)}</span>
                         )}
                       </div>
-                      <div className={styles.productBody}>
-                        <p className={styles.productName}>{shortProductName(product.name)}</p>
-                        <p className={styles.productStock}>
-                          <strong>
-                            {qtyDisplay(onHand)} {product.saleUnit.symbol}
-                          </strong>
+                      <div className={styles.fgBody}>
+                        <p className={styles.fgName}>
+                          {isWorker ? shortProductName(product.name) : product.name}
                         </p>
-                        {min.gt(0) ? (
-                          <p className={low ? styles.productNeed : styles.productMeta}>
-                            {t("me.fgMin")}: {qtyDisplay(min)}
-                            {low ? ` · ${t("me.fgNeed")} ${qtyDisplay(short)}` : ""}
-                          </p>
-                        ) : null}
                       </div>
                     </div>
-                  ) : (
-                    <Link
-                      href={`/products/${product.id}`}
-                      className={`${styles.productCard} ${low ? styles.productCardLow : ""}`}
-                    >
-                      <div className={styles.productPhoto}>
-                        {product.photoUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={product.photoUrl} alt="" className={styles.productImg} />
-                        ) : (
-                          <span className={styles.productPhotoEmpty}>{product.name.slice(0, 1)}</span>
-                        )}
+                    <div className={showCost ? styles.fgStats : styles.fgStatsSingle}>
+                      <div className={styles.fgStat}>
+                        <span className={styles.fgStatLabel}>{t("common.stock")}</span>
+                        <span className={styles.fgStatQty}>
+                          {qtyDisplay(onHand)} {product.saleUnit.symbol}
+                        </span>
                       </div>
-                      <div className={styles.productBody}>
-                        <p className={styles.productName}>{product.name}</p>
-                        <p className={styles.productStock}>
-                          {t("wh.fgOnHand")}:{" "}
-                          <strong>
-                            {qtyDisplay(onHand)} {product.saleUnit.symbol}
-                          </strong>
-                        </p>
-                        {min.gt(0) ? (
-                          <p className={low ? styles.productNeed : styles.productMeta}>
-                            {t("me.fgMin")}: {qtyDisplay(min)}
-                            {low ? ` · ${t("me.fgNeed")} ${qtyDisplay(short)}` : ""}
-                          </p>
-                        ) : null}
-                      </div>
-                    </Link>
-                  )}
-                </li>
-              ))}
+                      {showCost ? (
+                        <>
+                          <div className={styles.fgStat}>
+                            <span className={styles.fgStatLabel}>{t("orders.kpiCostSum")}</span>
+                            <span className={styles.fgStatCost}>{moneyDisplay(costTotal)} с</span>
+                          </div>
+                          <div className={styles.fgStat}>
+                            <span className={styles.fgStatLabel}>{t("orders.kpiMargin")}</span>
+                            <span className={profitBad ? styles.fgStatProfitBad : styles.fgStatProfit}>
+                              {moneyDisplay(profitTotal)} с
+                            </span>
+                          </div>
+                        </>
+                      ) : null}
+                    </div>
+                  </>
+                );
+
+                return (
+                  <li key={product.id}>
+                    {isWorker ? (
+                      <div className={cardClass}>{cardBody}</div>
+                    ) : (
+                      <Link href={`/products/${product.id}`} className={cardClass}>
+                        {cardBody}
+                      </Link>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>

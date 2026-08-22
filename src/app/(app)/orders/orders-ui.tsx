@@ -174,6 +174,7 @@ export function OrdersListPanel({
   showCost,
   costLabel,
   profitLabel,
+  totalLabel,
   colCustomer,
   colProduct,
   colStatus,
@@ -188,6 +189,7 @@ export function OrdersListPanel({
   showCost?: boolean;
   costLabel?: string;
   profitLabel?: string;
+  totalLabel?: string;
   colCustomer: string;
   colProduct: string;
   colStatus: string;
@@ -281,17 +283,21 @@ export function OrdersListPanel({
                     <p className={styles.mobileProduct}>{title}</p>
                     <p className={styles.mobileSaleMeta}>{shortPersonName(order.customer.name)}</p>
                   </div>
-                  {showCost ? (
-                    <span className={styles.mobileSaleTotal}>{moneyDisplay(String(order.total))} с</span>
-                  ) : (
+                  {!showCost ? (
                     <div className={styles.mobileSaleMetrics}>
                       <span className={styles.mobileSaleQty}>—</span>
                       <span className={styles.mobileAmount}>{moneyDisplay(String(order.total))} с</span>
                     </div>
-                  )}
+                  ) : null}
                 </div>
                 {showCost ? (
                   <div className={styles.mobileSaleStats}>
+                    <div className={styles.mobileSaleStat}>
+                      <span className={styles.mobileSaleStatLabel}>{totalLabel}</span>
+                      <span className={styles.mobileSaleTotalValue}>
+                        {moneyDisplay(String(order.total))} с
+                      </span>
+                    </div>
                     <div className={styles.mobileSaleStat}>
                       <span className={styles.mobileSaleStatLabel}>{costLabel}</span>
                       <span className={styles.mobileSaleCost}>

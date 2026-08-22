@@ -295,7 +295,6 @@ export default async function OrdersPage({
             delivery: t("orders.bucketDelivery"),
             received: t("orders.bucketReceived"),
           }}
-          statusHint={t("orders.bucketStatusHint")}
         />
       </div>
 
@@ -331,6 +330,7 @@ export default async function OrdersPage({
           showCost={showCostKpis}
           costLabel={t("orders.kpiCostSum")}
           profitLabel={t("orders.kpiMargin")}
+          totalLabel={t("common.amount")}
           colCustomer={t("common.customer")}
           colProduct={t("common.product")}
           colStatus={t("common.status")}

@@ -897,11 +897,10 @@
   min-width: 4.5rem;
 }
 
-.mobileSaleTotal {
-  flex-shrink: 0;
-  font-size: 14px;
+.mobileSaleTotalValue {
+  font-size: 13px;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.25;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
   white-space: nowrap;
@@ -909,7 +908,7 @@
 
 .mobileSaleStats {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   padding-top: 8px;
   border-top: 1px solid var(--line);
