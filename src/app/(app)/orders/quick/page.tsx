@@ -2,6 +2,7 @@ import { getTranslator } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
 import { findFinishedGoodsWarehouse } from "@core/config/resolve-warehouse";
+import { loadPaymentCards } from "@core/config/payment-cards";
 import { available } from "@core/inventory/stock";
 import { materialCostForRecipe, scaleNeed } from "@core/costing/costing";
 import { productLaborRate } from "@core/payroll/labor-rate";
@@ -32,7 +33,7 @@ export default async function QuickSalePage() {
     );
   }
 
-  const [customers, products] = await Promise.all([
+  const [customers, products, paymentCards] = await Promise.all([
     prisma.customer.findMany({
       where: {
         archivedAt: null,
@@ -61,6 +62,7 @@ export default async function QuickSalePage() {
       },
       orderBy: { name: "asc" },
     }),
+    loadPaymentCards(),
   ]);
 
   const sellable = products
@@ -82,7 +84,6 @@ export default async function QuickSalePage() {
         name: p.name,
         symbol: p.saleUnit.symbol,
         price: money(salePrice),
-        minPrice: String(p.minPrice ?? "0"),
         costPerUnit: money(costPerUnit),
         ratePerUnit: money(rate),
         onHand: qtyDisplay(onHand),
@@ -101,6 +102,7 @@ export default async function QuickSalePage() {
         <QuickSaleForm
           customers={customers}
           products={sellable}
+          paymentCards={paymentCards.filter((c) => c.isActive)}
           labels={{
             customerName: t("sales.quickCustomerName"),
             pickCustomer: t("sales.quickPickCustomer"),
@@ -108,16 +110,23 @@ export default async function QuickSalePage() {
             product: t("common.product"),
             quantity: t("common.quantity"),
             unitPrice: t("sales.quickLineTotal"),
-            minPrice: t("sales.quickMinPrice"),
-            stock: t("common.stock"),
             fgStock: t("sales.quickFgStock"),
             addLine: t("sales.quickAddLine"),
             finish: t("sales.quickFinish"),
             cancel: t("sales.quickCancel"),
             sending: t("common.sending"),
             pay: t("sales.quickPay"),
+            payStatus: t("sales.quickPay"),
             paid: t("sales.quickPaid"),
             partial: t("sales.quickPartial"),
+            debt: t("sales.quickDebt"),
+            payMethod: t("sales.quickPayMethod"),
+            payCard: t("sales.quickPayCard"),
+            payCash: t("sales.quickPayCash"),
+            paySplit: t("sales.quickPaySplit"),
+            cardAmount: t("sales.quickCardAmount"),
+            cashAmount: t("sales.quickCashAmount"),
+            pickCard: t("sales.quickPickCard"),
             paidAmount: t("sales.quickPartialAmount"),
             noCustomers: t("sales.quickNoCustomers"),
             forCustomer: t("sales.quickForCustomer"),

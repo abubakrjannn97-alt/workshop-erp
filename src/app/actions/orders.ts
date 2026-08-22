@@ -143,9 +143,6 @@ export async function createOrder(formData: FormData) {
 
   const product = await prisma.product.findUnique({ where: { id: productId } });
   if (!product || product.archivedAt) return { error: "Изделие не найдено." };
-  if (D(unitPrice).lt(product.minPrice)) {
-    return { error: `Цена ниже минимальной (${money(product.minPrice)}).` };
-  }
 
   const discount = D(discountPercent);
   if (discount.lt(0) || discount.gt(100)) return { error: "Скидка 0–100%." };
@@ -921,9 +918,6 @@ export async function createMultiItemOrder(formData: FormData) {
   for (const item of items) {
     const product = await prisma.product.findUnique({ where: { id: item.productId } });
     if (!product || product.archivedAt) return { error: "Изделие не найдено." };
-    if (D(item.unitPrice).lt(product.minPrice)) {
-      return { error: `Цена ниже минимальной для ${product.name} (${money(product.minPrice)}).` };
-    }
     try {
       quotes.push(await quoteProduct(item.productId, item.quantity, item.unitPrice));
       laborLines.push({ quantity: item.quantity });

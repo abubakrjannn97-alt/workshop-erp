@@ -49,12 +49,17 @@
 }
 
 .wrapWithCart {
-  padding-bottom: calc(240px + var(--mobile-chrome-bottom, 0px));
+  padding-bottom: calc(280px + var(--mobile-chrome-bottom, 0px));
+}
+
+.wrapDropdownOpen {
+  position: relative;
+  z-index: 100;
 }
 
 @media (min-width: 1024px) {
   .wrapWithCart {
-    padding-bottom: 220px;
+    padding-bottom: 260px;
   }
 }
 
@@ -105,7 +110,7 @@
 }
 
 .receiptScroll {
-  max-height: 108px;
+  max-height: 162px;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
@@ -230,8 +235,9 @@
 
 .checkoutActions {
   display: grid;
-  gap: 8px;
-  justify-items: stretch;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  align-items: stretch;
 }
 
 .addBtn {
@@ -242,24 +248,24 @@
 }
 
 .finishBtn {
-  min-height: 44px;
+  min-height: 36px;
   width: 100%;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
+  padding-inline: 8px;
 }
 
 .cancelBtn {
-  min-height: 32px;
+  min-height: 36px;
   width: 100%;
-  border: 0;
+  border: 1px solid var(--line);
   border-radius: 8px;
-  background: transparent;
+  background: var(--surface);
   font-size: 12px;
   font-weight: 600;
-  color: var(--ink-3);
+  color: var(--ink-2);
   cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  text-decoration: none;
 }
 
 .cancelBtn:hover:not(:disabled) {
@@ -506,7 +512,7 @@
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  z-index: 50;
+  z-index: 200;
   max-height: min(280px, 48vh);
   overflow-y: auto;
   padding: 6px;
@@ -556,9 +562,75 @@
   caret-color: transparent;
 }
 
+.paySeg3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3px;
+  padding: 3px;
+  border-radius: 10px;
+  background: #f3f1ec;
+}
+
+.paySeg {
+  composes: paySeg3;
+  grid-template-columns: 1fr 1fr;
+}
+
+.paySubLabel {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
+.cardPicker {
+  display: grid;
+  gap: 6px;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.cardOption {
+  display: flex;
+  min-height: 52px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.cardOptionActive {
+  border-color: rgba(154, 115, 56, 0.45);
+  background: linear-gradient(180deg, #fffaf2 0%, #f3ead8 100%);
+  box-shadow: 0 0 0 1px rgba(154, 115, 56, 0.12);
+}
+
+.cardLogo {
+  max-height: 22px;
+  max-width: 54px;
+  object-fit: contain;
+}
+
+.cardName {
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--ink-2);
+  text-align: center;
+}
+
 .payBlock {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .payLabel {
@@ -568,26 +640,17 @@
   color: var(--ink-2);
 }
 
-.paySeg {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px;
-  padding: 3px;
-  border-radius: 10px;
-  background: #f3f1ec;
-}
-
 .payBtn {
-  min-height: 36px;
-  padding: 0 8px;
+  min-height: 32px;
+  padding: 0 4px;
   border: 0;
   border-radius: 8px;
   background: transparent;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--ink-2);
   cursor: pointer;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .payBtnActive {

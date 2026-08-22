@@ -77,6 +77,44 @@ export async function updateBusinessSettings(formData: FormData) {
   return { ok: true };
 }
 
+export async function savePaymentCards(formData: FormData) {
+  const session = await requirePermission("settings.edit");
+  let cardsRaw = String(formData.get("cardsJson") ?? "").trim();
+  if (!cardsRaw) return { error: "Нет данных карт." };
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(cardsRaw);
+  } catch {
+    return { error: "Некорректный формат карт." };
+  }
+  if (!Array.isArray(parsed) || parsed.length === 0) {
+    return { error: "Добавьте хотя бы одну карту." };
+  }
+  const cards = parsed.filter(
+    (c: { id?: string; name?: string; bank?: string; logoUrl?: string }) =>
+      c?.id && c?.name && c?.bank && c?.logoUrl,
+  );
+  if (cards.length === 0) return { error: "Проверьте поля карт." };
+
+  await prisma.setting.upsert({
+    where: { key: SETTING_KEYS.paymentCards },
+    update: { value: JSON.stringify(cards), updatedBy: session.user.id },
+    create: { key: SETTING_KEYS.paymentCards, value: JSON.stringify(cards), updatedBy: session.user.id },
+  });
+
+  await writeAudit({
+    userId: session.user.id,
+    action: "settings.payment_cards",
+    entityType: "settings",
+    entityId: "payment_cards",
+    newValue: { count: cards.length },
+  });
+
+  revalidatePath("/settings");
+  revalidatePath("/orders/quick");
+  return { ok: true };
+}
+
 export async function renameOrderStatus(formData: FormData) {
   const session = await requirePermission("settings.edit");
   const id = String(formData.get("id") ?? "");

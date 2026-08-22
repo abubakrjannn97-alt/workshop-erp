@@ -2,11 +2,13 @@ import { getTranslator } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { DEFAULT_SETTINGS, SETTING_KEYS } from "@core/config/settings";
+import { loadPaymentCards } from "@core/config/payment-cards";
 import { renameLeadStage, renameOrderStatus, updateBusinessSettings } from "@/app/actions/settings";
 import { LogoutButton } from "@/components/logout-button";
 import { SettingsNav } from "@/components/settings-nav";
 import { FormField } from "@/components/form-field";
 import { wipeCustomersAndEmployees } from "@/app/actions/wipe-test-data";
+import { PaymentCardsSettings } from "./payment-cards-settings";
 import styles from "@/styles/premium.module.css";
 
 function asString(value: unknown, fallback: string) {
@@ -30,9 +32,10 @@ export default async function SettingsPage() {
     opexReservePercent: asString(map[SETTING_KEYS.opexReservePercent], DEFAULT_SETTINGS.opexReservePercent),
   };
 
-  const [orderStatuses, leadStages] = await Promise.all([
+  const [orderStatuses, leadStages, paymentCards] = await Promise.all([
     prisma.orderStatus.findMany({ orderBy: { sortOrder: "asc" } }),
     prisma.leadStage.findMany({ orderBy: { sortOrder: "asc" } }),
+    loadPaymentCards(),
   ]);
 
   return (
@@ -78,6 +81,29 @@ export default async function SettingsPage() {
               </button>
             ) : null}
           </form>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHead}>
+          <h2 className={styles.sectionTitle}>{t("set.paymentCards")}</h2>
+        </div>
+        <div className={styles.sectionBody}>
+          <PaymentCardsSettings
+            cards={paymentCards}
+            canEdit={canEdit}
+            labels={{
+              title: t("set.paymentCards"),
+              hint: t("set.paymentCardsHint"),
+              name: t("set.cardName"),
+              bank: t("set.cardBank"),
+              logoUrl: t("set.cardLogo"),
+              last4: t("set.cardLast4"),
+              add: t("set.cardAdd"),
+              save: t("common.save"),
+              sending: t("common.sending"),
+            }}
+          />
         </div>
       </section>
 

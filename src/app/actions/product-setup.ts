@@ -70,22 +70,10 @@ export async function finishProductSetup(formData: FormData) {
         })),
       )
     : null;
-  const expense = cost?.total ? D(cost.total) : D(0);
-  const minPrice = D(prices.data.minPrice);
-  const salePrice = D(prices.data.price);
-
-  if (expense.gt(0) && minPrice.lt(expense)) {
-    return {
-      error: `«Дешевле нельзя» не может быть ниже расхода (${money(expense)} с).`,
-    };
-  }
-  if (salePrice.lt(minPrice)) {
-    return { error: "Цена клиенту не может быть ниже «Дешевле нельзя»." };
-  }
 
   await prisma.product.update({
     where: { id: productId },
-    data: { minPrice: prices.data.minPrice },
+    data: { minPrice: "0" },
   });
 
   const current = product.prices[0]?.price;

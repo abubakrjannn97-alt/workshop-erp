@@ -87,7 +87,7 @@ export async function fundByCode(tx: Tx | typeof prisma, code: string) {
 }
 
 export function accountForMethod(method?: string | null) {
-  if (method === "bank" || method === "card") return "BANK";
+  if (method === "bank" || method === "card" || method?.startsWith("card:")) return "BANK";
   return "CASH";
 }
 

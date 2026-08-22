@@ -10,6 +10,7 @@ import { writeAudit } from "@core/control/audit";
 import { D, money, qtyDisplay } from "@core/shared/decimal";
 import { available } from "@core/inventory/stock";
 import { findFinishedGoodsWarehouse } from "@core/config/resolve-warehouse";
+import { loadPaymentCards } from "@core/config/payment-cards";
 import { materialCostForRecipe, scaleNeed } from "@core/costing/costing";
 import { nextOrderNumber, ORDER_STATUS, paymentStatusOf } from "@core/orders/orders";
 import { issueOrderStockAndMarkIssued } from "@core/orders/issue-complete";
@@ -46,7 +47,11 @@ export async function quickSaleFromFg(formData: FormData) {
       customerName: z.string().trim().min(1).max(200),
       phone: z.string().trim().min(1).max(40),
       items: z.array(lineSchema).min(1),
-      payMode: z.enum(["paid", "partial"]).default("paid"),
+      payMode: z.enum(["paid", "partial", "debt"]).default("paid"),
+      payChannel: z.enum(["card", "cash", "split"]).default("cash"),
+      cardId: z.string().optional(),
+      cardAmount: z.string().optional(),
+      cashAmount: z.string().optional(),
       paidAmount: z.string().optional().or(z.literal("")),
       comment: z.string().optional(),
     })
@@ -56,6 +61,10 @@ export async function quickSaleFromFg(formData: FormData) {
       phone: formData.get("phone") ?? "",
       items: itemsRaw,
       payMode: formData.get("payMode") || "paid",
+      payChannel: formData.get("payChannel") || "cash",
+      cardId: String(formData.get("cardId") ?? ""),
+      cardAmount: String(formData.get("cardAmount") ?? ""),
+      cashAmount: String(formData.get("cashAmount") ?? ""),
       paidAmount: formData.get("paidAmount") ?? "",
       comment: formData.get("comment") || undefined,
     });
@@ -108,9 +117,6 @@ export async function quickSaleFromFg(formData: FormData) {
     const price = D(item.unitPrice);
     if (!qtyVal.gt(0)) return { error: "Укажите количество." };
     if (price.lt(0)) return { error: "Цена некорректна." };
-    if (price.lt(product.minPrice)) {
-      return { error: `«${product.name}»: цена ниже минимальной (${money(product.minPrice)}).` };
-    }
     const amount = qtyVal.mul(price);
     built.push({
       productId: product.id,
@@ -152,19 +158,40 @@ export async function quickSaleFromFg(formData: FormData) {
       })),
     ),
   );
-  const payMode = parsed.data.payMode;
-  let paidRaw = D(0);
 
-  if (payMode === "paid") {
-    paidRaw = orderTotal;
-  } else {
-    if (!parsed.data.paidAmount?.trim()) return { error: "Укажите сумму частичной оплаты." };
-    paidRaw = D(parsed.data.paidAmount);
-    if (!paidRaw.gt(0)) return { error: "Частичная оплата должна быть больше 0." };
-    if (paidRaw.gte(orderTotal)) {
-      return { error: "Частичная оплата должна быть меньше полной суммы." };
+  const payMode = parsed.data.payMode;
+  const payChannel = parsed.data.payChannel;
+  let cardPaid = D(parsed.data.cardAmount || "0");
+  let cashPaid = D(parsed.data.cashAmount || "0");
+  let paidRaw = cardPaid.plus(cashPaid);
+
+  if (payMode === "debt") {
+    paidRaw = D(0);
+    cardPaid = D(0);
+    cashPaid = D(0);
+  } else if (payMode === "paid") {
+    if (!paidRaw.eq(orderTotal)) {
+      return { error: "Сумма оплаты должна равняться итогу." };
     }
+  } else {
+    if (!paidRaw.gt(0)) return { error: "Укажите полученную сумму." };
+    if (paidRaw.gte(orderTotal)) return { error: "Частичная оплата должна быть меньше итога." };
   }
+
+  if (payChannel !== "cash" && cardPaid.gt(0)) {
+    const cards = await loadPaymentCards();
+    const card = cards.find((c) => c.id === parsed.data.cardId);
+    if (!card) return { error: "Выберите карту для оплаты." };
+  }
+
+  const paymentMethod =
+    payMode === "debt"
+      ? null
+      : cardPaid.gt(0) && cashPaid.gt(0)
+        ? "mixed"
+        : cardPaid.gt(0)
+          ? `card:${parsed.data.cardId}`
+          : "cash";
 
   let customerId = parsed.data.customerId;
   const phone = parsed.data.phone.trim();
@@ -220,6 +247,9 @@ export async function quickSaleFromFg(formData: FormData) {
     }
   }
 
+  const cards = await loadPaymentCards();
+  const selectedCard = cards.find((c) => c.id === parsed.data.cardId);
+
   let orderId = "";
   try {
     await prisma.$transaction(async (tx) => {
@@ -230,7 +260,7 @@ export async function quickSaleFromFg(formData: FormData) {
           sellerId: session.user.id,
           statusId: inFgStatus.id,
           paymentStatus: paymentStatusOf(orderTotal, paidRaw, false),
-          paymentMethod: paidRaw.gt(0) ? "cash" : null,
+          paymentMethod,
           discountPercent: 0,
           discountAmount: 0,
           subtotal: orderTotal.toFixed(4),
@@ -264,30 +294,49 @@ export async function quickSaleFromFg(formData: FormData) {
         userId: session.user.id,
       });
 
-      if (paidRaw.gt(0)) {
+      async function recordPayment(amount: ReturnType<typeof D>, method: string, suffix: string, note: string) {
+        if (!amount.gt(0)) return;
+        const key = `${payKey}-${suffix}`;
         const payment = await tx.payment.create({
           data: {
             orderId: order.id,
-            amount: paidRaw.toFixed(4),
-            method: "cash",
-            comment:
-              parsed.data.comment?.trim() ||
-              (payMode === "partial" ? "Частичная оплата" : "Быстрая продажа"),
-            idempotencyKey: payKey,
+            amount: amount.toFixed(4),
+            method,
+            comment: note,
+            idempotencyKey: key,
             createdById: session.user.id,
           },
         });
         await postClientPayment(tx, {
           orderId: order.id,
           paymentId: payment.id,
-          amount: money(paidRaw),
-          method: "cash",
+          amount: money(amount),
+          method,
           orderTotal: money(orderTotal),
           materialCost: money(materialCostTotal),
           laborAmount: money(laborAmountTotal),
           commissionAmount: "0",
           userId: session.user.id,
         });
+      }
+
+      if (cardPaid.gt(0)) {
+        const cardMethod = `card:${parsed.data.cardId}`;
+        const cardLabel = selectedCard ? `${selectedCard.bank} (${selectedCard.name})` : "Карта";
+        await recordPayment(
+          cardPaid,
+          cardMethod,
+          "card",
+          parsed.data.comment?.trim() || `Оплата на карту: ${cardLabel}`,
+        );
+      }
+      if (cashPaid.gt(0)) {
+        await recordPayment(
+          cashPaid,
+          "cash",
+          "cash",
+          parsed.data.comment?.trim() || (payMode === "partial" ? "Частичная оплата (нал)" : "Быстрая продажа (нал)"),
+        );
       }
     });
   } catch (e) {
@@ -320,6 +369,9 @@ export async function quickSaleFromFg(formData: FormData) {
       total: orderTotal.toFixed(4),
       customerId,
       payMode,
+      payChannel,
+      cardPaid: cardPaid.toFixed(4),
+      cashPaid: cashPaid.toFixed(4),
     },
   });
 

@@ -6,6 +6,7 @@ export const SETTING_KEYS = {
   timezone: "timezone",
   discountLimitPercent: "discount_limit_percent",
   opexReservePercent: "opex_reserve_percent",
+  paymentCards: "payment_cards_json",
 } as const;
 
 /** Domain configuration keys (standalone clone, not multi-tenant). */

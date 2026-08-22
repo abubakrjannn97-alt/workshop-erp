@@ -9,6 +9,7 @@ import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
 import { quickSaleFromFg } from "@/app/actions/quick-sale";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
+import type { PaymentCard } from "@core/config/payment-cards";
 import styles from "./quick-sale.module.css";
 
 function formatFgStock(template: string, n: string, u: string) {
@@ -55,10 +56,7 @@ export type QuickSaleProduct = {
   name: string;
   symbol: string;
   price: string;
-  minPrice: string;
-  /** Material + labor per 1 sale unit */
   costPerUnit: string;
-  /** max(salePrice, costPerUnit) — used to auto line total */
   ratePerUnit: string;
   onHand: string;
   photoUrl: string | null;
@@ -75,15 +73,18 @@ type CartLine = {
   amount: string;
 };
 
-type PayMode = "paid" | "partial";
+type PayMode = "paid" | "partial" | "debt";
+type PayChannel = "card" | "cash" | "split";
 
 export function QuickSaleForm({
   customers,
   products,
+  paymentCards,
   labels,
 }: {
   customers: QuickSaleCustomer[];
   products: QuickSaleProduct[];
+  paymentCards: PaymentCard[];
   labels: {
     customerName: string;
     pickCustomer: string;
@@ -91,21 +92,28 @@ export function QuickSaleForm({
     product: string;
     quantity: string;
     unitPrice: string;
-    minPrice: string;
-    stock: string;
-    fgStock: string;
     addLine: string;
     finish: string;
     cancel: string;
     sending: string;
     pay: string;
+    payStatus: string;
     paid: string;
     partial: string;
+    debt: string;
+    payMethod: string;
+    payCard: string;
+    payCash: string;
+    paySplit: string;
+    cardAmount: string;
+    cashAmount: string;
+    pickCard: string;
     paidAmount: string;
     noCustomers: string;
     forCustomer: string;
     cartTotal: string;
     clientLocked: string;
+    fgStock: string;
   };
 }) {
   const router = useRouter();
@@ -129,7 +137,11 @@ export function QuickSaleForm({
   const [cart, setCart] = useState<CartLine[]>([]);
   const [nextKey, setNextKey] = useState(1);
   const [payMode, setPayMode] = useState<PayMode>("paid");
+  const [payChannel, setPayChannel] = useState<PayChannel>("cash");
+  const [cardId, setCardId] = useState(paymentCards[0]?.id ?? "");
   const [partialAmount, setPartialAmount] = useState("");
+  const [cardAmount, setCardAmount] = useState("");
+  const [cashAmount, setCashAmount] = useState("");
   const [idempotencyKey, setIdempotencyKey] = useState(() => `quick-sale-${crypto.randomUUID()}`);
 
   const saleLocked = cart.length > 0;
@@ -246,7 +258,11 @@ export function QuickSaleForm({
     setProductOpen(false);
     setCart([]);
     setPayMode("paid");
+    setPayChannel("cash");
+    setCardId(paymentCards[0]?.id ?? "");
     setPartialAmount("");
+    setCardAmount("");
+    setCashAmount("");
     resetLineFields(products[0]?.id);
   }
 
@@ -269,10 +285,6 @@ export function QuickSaleForm({
       return;
     }
     const unitPrice = amount.div(qty);
-    if (unitPrice.lt(D(selected.minPrice))) {
-      setError(`Цена за ${selected.symbol} ниже минимальной (${selected.minPrice} с).`);
-      return;
-    }
     const left = remainingStock(selected);
     if (left.lt(qty)) {
       setError(
@@ -304,12 +316,66 @@ export function QuickSaleForm({
     resetForm();
   }
 
+  function resolvePaymentAmounts() {
+    const total = cartTotal;
+    if (payMode === "debt") {
+      return { paid: D(0), card: D(0), cash: D(0), ok: true as const };
+    }
+    if (payMode === "paid") {
+      if (payChannel === "card") {
+        if (!cardId) return { ok: false as const, error: "Выберите карту." };
+        return { paid: total, card: total, cash: D(0), ok: true as const };
+      }
+      if (payChannel === "cash") {
+        return { paid: total, card: D(0), cash: total, ok: true as const };
+      }
+      const card = parseDec(cardAmount) ?? D(0);
+      const cash = parseDec(cashAmount) ?? D(0);
+      if (!cardId) return { ok: false as const, error: "Выберите карту." };
+      if (!card.plus(cash).eq(total)) {
+        return { ok: false as const, error: "Сумма на карту и наличными должна равняться итогу." };
+      }
+      return { paid: total, card, cash, ok: true as const };
+    }
+    const received = parseDec(partialAmount);
+    if (!received || !received.gt(0)) {
+      return { ok: false as const, error: "Укажите полученную сумму." };
+    }
+    if (received.gte(total)) {
+      return { ok: false as const, error: "Частичная оплата должна быть меньше итога." };
+    }
+    if (payChannel === "card") {
+      if (!cardId) return { ok: false as const, error: "Выберите карту." };
+      return { paid: received, card: received, cash: D(0), ok: true as const };
+    }
+    if (payChannel === "cash") {
+      return { paid: received, card: D(0), cash: received, ok: true as const };
+    }
+    const card = parseDec(cardAmount) ?? D(0);
+    const cash = parseDec(cashAmount) ?? D(0);
+    if (!cardId) return { ok: false as const, error: "Выберите карту." };
+    if (!card.plus(cash).eq(received)) {
+      return { ok: false as const, error: "На карту и наличными должно равняться полученной сумме." };
+    }
+    return { paid: received, card, cash, ok: true as const };
+  }
+
   function onFinish(formData: FormData) {
     setError(null);
     if (cart.length === 0) {
       setError("Добавьте хотя бы одно изделие.");
       return;
     }
+    const pay = resolvePaymentAmounts();
+    if (!pay.ok) {
+      setError(pay.error);
+      return;
+    }
+    formData.set("payChannel", payChannel);
+    formData.set("cardId", payChannel === "cash" ? "" : cardId);
+    formData.set("cardAmount", pay.card.toFixed(4));
+    formData.set("cashAmount", pay.cash.toFixed(4));
+    formData.set("paidAmount", pay.paid.toFixed(4));
     startTransition(async () => {
       const result = await quickSaleFromFg(formData);
       setIdempotencyKey(`quick-sale-${crypto.randomUUID()}`);
@@ -328,7 +394,9 @@ export function QuickSaleForm({
 
   return (
     <>
-      <div className={`${styles.wrap} ${cart.length > 0 ? styles.wrapWithCart : ""}`}>
+      <div
+        className={`${styles.wrap} ${cart.length > 0 ? styles.wrapWithCart : ""} ${productOpen || pickerOpen ? styles.wrapDropdownOpen : ""}`}
+      >
         <div className={styles.card}>
         {error ? <p className={styles.error}>{error}</p> : null}
 
@@ -482,14 +550,6 @@ export function QuickSaleForm({
           </div>
         </FormField>
 
-        {selected ? (
-          <p className={styles.meta}>
-            {labels.minPrice} <strong>{selected.minPrice} с</strong>
-            <span className={styles.metaDot}>·</span>
-            {labels.stock} {qtyDisplay(selectedLeft)} {selected.symbol}
-          </p>
-        ) : null}
-
         <div className={styles.row2}>
           <FormField
             label={`${labels.quantity}${selected ? `, ${selected.symbol}` : ""}`}
@@ -594,12 +654,13 @@ export function QuickSaleForm({
               <input type="hidden" name="payMode" value={payMode} />
 
               <div className={styles.payBlock}>
-                <p className={styles.payLabel}>{labels.pay}</p>
-                <div className={styles.paySeg} role="radiogroup" aria-label={labels.pay}>
+                <p className={styles.payLabel}>{labels.payStatus}</p>
+                <div className={styles.paySeg3} role="radiogroup">
                   {(
                     [
                       ["paid", labels.paid],
                       ["partial", labels.partial],
+                      ["debt", labels.debt],
                     ] as const
                   ).map(([id, label]) => (
                     <button
@@ -615,21 +676,87 @@ export function QuickSaleForm({
                   ))}
                 </div>
 
-                {payMode === "partial" ? (
-                  <FormField label={labels.paidAmount} required className={styles.fieldTight}>
-                    <input
-                      name="paidAmount"
-                      required
-                      className="ui-input"
-                      inputMode="decimal"
-                      value={partialAmount}
-                      onChange={(e) => setPartialAmount(e.target.value)}
-                      placeholder="0"
-                    />
-                  </FormField>
-                ) : (
-                  <input type="hidden" name="paidAmount" value="" />
-                )}
+                {payMode !== "debt" ? (
+                  <>
+                    <p className={styles.payLabel}>{labels.payMethod}</p>
+                    <div className={styles.paySeg3} role="radiogroup">
+                      {(
+                        [
+                          ["card", labels.payCard],
+                          ["cash", labels.payCash],
+                          ["split", labels.paySplit],
+                        ] as const
+                      ).map(([id, label]) => (
+                        <button
+                          key={id}
+                          type="button"
+                          role="radio"
+                          aria-checked={payChannel === id}
+                          className={`${styles.payBtn} ${payChannel === id ? styles.payBtnActive : ""}`}
+                          onClick={() => setPayChannel(id)}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {payChannel !== "cash" && paymentCards.length > 0 ? (
+                      <div className={styles.cardPicker}>
+                        <p className={styles.paySubLabel}>{labels.pickCard}</p>
+                        <div className={styles.cardGrid}>
+                          {paymentCards.map((card) => (
+                            <button
+                              key={card.id}
+                              type="button"
+                              className={`${styles.cardOption} ${cardId === card.id ? styles.cardOptionActive : ""}`}
+                              onClick={() => setCardId(card.id)}
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={card.logoUrl} alt="" className={styles.cardLogo} />
+                              <span className={styles.cardName}>{card.bank}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {payMode === "partial" ? (
+                      <FormField label={labels.paidAmount} required className={styles.fieldTight}>
+                        <input
+                          required
+                          className="ui-input"
+                          inputMode="decimal"
+                          value={partialAmount}
+                          onChange={(e) => setPartialAmount(e.target.value)}
+                          placeholder="0"
+                        />
+                      </FormField>
+                    ) : null}
+
+                    {payChannel === "split" ? (
+                      <div className={styles.row2}>
+                        <FormField label={labels.cardAmount} className={styles.fieldTight}>
+                          <input
+                            className="ui-input"
+                            inputMode="decimal"
+                            value={cardAmount}
+                            onChange={(e) => setCardAmount(e.target.value)}
+                            placeholder="0"
+                          />
+                        </FormField>
+                        <FormField label={labels.cashAmount} className={styles.fieldTight}>
+                          <input
+                            className="ui-input"
+                            inputMode="decimal"
+                            value={cashAmount}
+                            onChange={(e) => setCashAmount(e.target.value)}
+                            placeholder="0"
+                          />
+                        </FormField>
+                      </div>
+                    ) : null}
+                  </>
+                ) : null}
               </div>
 
               <div className={styles.checkoutActions}>
