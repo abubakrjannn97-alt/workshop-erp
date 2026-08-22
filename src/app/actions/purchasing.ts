@@ -12,6 +12,7 @@ import { D, money, qty } from "@core/shared/decimal";
 import { receiveMaterial } from "@core/inventory/stock";
 import { accountByCode, accountForMethod, FUND, fundByCode, LEDGER, postLedger } from "@core/finance/finance";
 import { loadPaymentCards } from "@core/config/payment-cards";
+import { findRawWarehouse } from "@core/config/resolve-warehouse";
 import { assertOutboundPayment, purchasePaymentComment } from "@core/finance/balance-guard";
 
 async function nextNumber() {
