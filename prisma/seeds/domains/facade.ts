@@ -177,7 +177,6 @@ async function seedFacadeCatalog(prisma: PrismaClient) {
     const stockFields = {
       minStock: def.minStock ?? "0",
       maxStock: def.maxStock ?? "0",
-      laborRate: def.laborRate ?? "22",
       ...(def.photoUrl ? { photoUrl: def.photoUrl } : {}),
     };
     if (!product) {
