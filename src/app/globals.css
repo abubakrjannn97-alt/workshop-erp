@@ -218,6 +218,8 @@
   /* Mobile chrome — compact for phones / PWA (overridden per phone tier below) */
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --app-height: 100dvh;
+  --vv-bottom-inset: 0px;
   --mobile-header-content-h: 40px;
   --mobile-header-btn: 34px;
   --mobile-header-logo: 20px;
@@ -262,6 +264,31 @@ body {
  *   XL  ≤1023 — small tablets / landscape phones (still mobile shell)
  */
 @media (max-width: 1023px) {
+  html {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  body:has(.mobile-stone-shell) {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  .mobile-stone-shell {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: var(--app-height, 100dvh);
+    max-height: var(--app-height, 100dvh);
+    background: transparent !important;
+  }
+
   :root {
     /* XL phone / small tablet — roomiest mobile shell */
     --mobile-header-content-h: 42px;
@@ -302,10 +329,6 @@ body {
     --mobile-glass: #ffffff;
     --mobile-glass-shadow: 0 2px 12px rgba(28, 35, 43, 0.06);
     --mobile-glass-blur: 0px;
-  }
-
-  .mobile-stone-shell {
-    background: transparent !important;
   }
 
   .mobile-stone-shell::before {

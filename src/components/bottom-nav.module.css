@@ -1,8 +1,8 @@
 .shell {
   position: fixed;
   inset-inline: 0;
-  bottom: 0;
-  z-index: 50;
+  bottom: var(--vv-bottom-inset, 0px);
+  z-index: 120;
   padding-bottom: var(--safe-bottom);
   pointer-events: none;
   background: var(--mobile-nav-bg);
