@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, canSeeMaterialCost } from "@core/auth/authz";
+import { hasWorkerShell } from "@core/worker/worker-shell";
 import { materialCostForRecipe } from "@core/costing/costing";
 import { moneyDisplay } from "@core/shared/decimal";
 import { archiveProduct } from "@/app/actions/products";
@@ -38,7 +39,7 @@ function ProductThumb({
 export default async function ProductsPage() {
   const { t } = await getTranslator();
   const session = await requirePermission("products.view");
-  if (session.user.roleCode === "worker") redirect("/warehouse");
+  if (hasWorkerShell(session.user.roleCode, session.user.permissions ?? [])) redirect("/me");
   const canManage = session.user.roleCode === "owner" || session.user.permissions.includes("products.manage");
   const canSeeCost = canSeeMaterialCost(session.user.permissions, session.user.roleCode);
 

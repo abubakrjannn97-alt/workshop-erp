@@ -1,4 +1,6 @@
 import { requirePermission } from "@core/auth/authz";
+import { hasWorkerShell } from "@core/worker/worker-shell";
+import { redirect } from "next/navigation";
 import { prisma } from "@core/infrastructure/prisma";
 import { qtyDisplay } from "@core/shared/decimal";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
@@ -7,6 +9,7 @@ import styles from "@/styles/premium.module.css";
 
 export default async function MyHistoryPage() {
   const session = await requirePermission("production.view");
+  if (hasWorkerShell(session.user.roleCode, session.user.permissions ?? [])) redirect("/me");
   const { t, locale } = await getTranslator();
 
   const batches = await prisma.productionBatch.findMany({

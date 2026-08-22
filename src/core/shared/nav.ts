@@ -1,5 +1,6 @@
 import type { PermissionCode } from "@core/rbac/permissions";
 import { hasPermission } from "@core/rbac/permissions";
+import { hasWorkerShell } from "@core/worker/worker-shell";
 
 export type NavIcon =
   | "home"
@@ -329,7 +330,7 @@ export function canSee(permissions: string[], roleCode: string, item: NavLeaf) {
 }
 
 export function sidebarGroups(permissions: string[], roleCode: string): NavGroup[] {
-  if (roleCode === "worker") {
+  if (hasWorkerShell(roleCode, permissions)) {
     return [
       {
         id: "worker",
@@ -345,10 +346,11 @@ export function sidebarGroups(permissions: string[], roleCode: string): NavGroup
   })).filter((g) => g.items.length > 0);
 }
 
-function rawTabsForRole(roleCode: string): BottomTab[] {
+function rawTabsForRole(roleCode: string, permissions: string[]): BottomTab[] {
+  if (hasWorkerShell(roleCode, permissions)) {
+    return [WORKER_HOME, WORKER_STATS, WORKER_SALARY, PROFILE_ITEM];
+  }
   switch (roleCode) {
-    case "worker":
-      return [WORKER_HOME, WORKER_STATS, WORKER_SALARY, PROFILE_ITEM];
     case "employee":
       return [
         HOME_ITEM,
@@ -378,7 +380,9 @@ function rawTabsForRole(roleCode: string): BottomTab[] {
 }
 
 export function bottomTabsForRole(roleCode: string, permissions: string[]): BottomTab[] {
-  return rawTabsForRole(roleCode).filter((tab) => tab.isMore || canSee(permissions, roleCode, tab));
+  return rawTabsForRole(roleCode, permissions).filter(
+    (tab) => tab.isMore || canSee(permissions, roleCode, tab),
+  );
 }
 
 export function tabHrefSet(tabs: BottomTab[]): Set<string> {
@@ -386,7 +390,7 @@ export function tabHrefSet(tabs: BottomTab[]): Set<string> {
 }
 
 export function moreGroupsForRole(roleCode: string, permissions: string[]): NavGroup[] {
-  if (roleCode === "worker") return [];
+  if (hasWorkerShell(roleCode, permissions)) return [];
   const skip = tabHrefSet(bottomTabsForRole(roleCode, permissions));
   skip.add("/");
   return NAV_GROUPS.filter((g) => g.id !== "home")

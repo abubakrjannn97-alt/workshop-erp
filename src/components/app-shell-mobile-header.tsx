@@ -21,6 +21,7 @@ export function AppShellMobileHeader({
   roleName,
   roleCode,
   permissions,
+  workerShell = false,
 }: {
   unread: number;
   locale: Locale;
@@ -28,6 +29,7 @@ export function AppShellMobileHeader({
   roleName: string;
   roleCode: string;
   permissions: string[];
+  workerShell?: boolean;
 }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -42,7 +44,7 @@ export function AppShellMobileHeader({
     setMenuOpen(false);
   }, [pathname]);
 
-  const isWorker = roleCode === "worker";
+  const isWorker = workerShell;
 
   return (
     <>

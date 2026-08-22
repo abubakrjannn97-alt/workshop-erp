@@ -25,11 +25,13 @@ export function AppShellDesktopHeader({
   roleName,
   unread,
   locale,
+  workerShell = false,
 }: {
   userName: string;
   roleName: string;
   unread: number;
   locale: Locale;
+  workerShell?: boolean;
 }) {
   const path = usePathname();
   const t = createT(locale);
@@ -43,12 +45,14 @@ export function AppShellDesktopHeader({
         {nested ? <HeaderBackButton locale={locale} className="ui-header-icon" /> : null}
         {contextLabel && nested ? <p className={styles.title}>{contextLabel}</p> : null}
       </div>
-      <div className={styles.search}>
-        <HeaderSearch locale={locale} />
-      </div>
+      {!workerShell ? (
+        <div className={styles.search}>
+          <HeaderSearch locale={locale} />
+        </div>
+      ) : null}
       <div className={styles.actions}>
-        <NotificationBell unread={unread} locale={locale} />
-        <HelpHeaderLink locale={locale} />
+        {!workerShell ? <NotificationBell unread={unread} locale={locale} /> : null}
+        {!workerShell ? <HelpHeaderLink locale={locale} /> : null}
         <LanguageSwitcher locale={locale} />
         <div className={styles.user}>
           <span className={styles.avatar} aria-hidden>

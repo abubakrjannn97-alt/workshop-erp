@@ -43,6 +43,23 @@ describe("mobile nav by role", () => {
     assert.equal(more.length, 0);
   });
 
+  it("production employee gets only worker tabs", () => {
+    const perms = ["production.view", "inventory.view", "finance.view"];
+    const tabs = bottomTabsForRole("employee", perms);
+    assert.deepEqual(
+      tabs.map((t) => t.href),
+      ["/me", "/me/stats", "/me/salary", "/me/profile"],
+    );
+    assert.equal(moreGroupsForRole("employee", perms).length, 0);
+  });
+
+  it("sales employee keeps sales tabs not worker shell", () => {
+    const perms = ["production.view", "crm.view", "orders.view"];
+    const tabs = bottomTabsForRole("employee", perms);
+    assert.ok(tabs.some((t) => t.href === "/crm"));
+    assert.equal(tabs.some((t) => t.href === "/me/stats"), false);
+  });
+
   it("warehouse manager does not get a finance tab", () => {
     const tabs = bottomTabsForRole("warehouse_manager", ROLE_PERMISSIONS.warehouse_manager);
     assert.equal(tabs.some((t) => t.href === "/finance"), false);

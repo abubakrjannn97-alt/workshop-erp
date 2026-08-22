@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { AppShell } from "@/components/app-shell";
 import { getTranslator } from "@core/shared/i18n/locale";
 import { getShellData } from "@core/infrastructure/shell-data";
+import { hasWorkerShell } from "@core/worker/worker-shell";
 
 export const dynamic = "force-dynamic";
 
@@ -17,13 +18,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     getShellData(session.user.id),
   ]);
 
+  const permissions = session.user.permissions as string[];
+  const workerShell = hasWorkerShell(session.user.roleCode, permissions);
+
   return (
     <AppShell
       companyName={shell.companyName}
       userName={session.user.name ?? session.user.email ?? t("common.user")}
       roleName={session.user.roleName}
       roleCode={session.user.roleCode}
-      permissions={session.user.permissions as string[]}
+      permissions={permissions}
+      workerShell={workerShell}
       unread={shell.unread}
       locale={locale}
     >

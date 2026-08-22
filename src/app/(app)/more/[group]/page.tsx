@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { requireSession } from "@core/auth/authz";
+import { hasWorkerShell } from "@core/worker/worker-shell";
 import { getTranslator } from "@core/shared/i18n/locale";
 import { PageHeader } from "@/components/page-header";
 import { isMoreGroupId, moreGroupsForRole } from "@core/shared/nav";
@@ -9,7 +10,7 @@ import { NavIconGlyph } from "@/components/nav-icons";
 export default async function MoreGroupPage({ params }: { params: Promise<{ group: string }> }) {
   const session = await requireSession();
   const { t } = await getTranslator();
-  if (session.user.roleCode === "worker") redirect("/me");
+  if (hasWorkerShell(session.user.roleCode, session.user.permissions)) redirect("/me");
 
   const { group: groupId } = await params;
   if (!isMoreGroupId(groupId)) notFound();

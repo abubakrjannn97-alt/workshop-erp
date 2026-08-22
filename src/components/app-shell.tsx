@@ -14,6 +14,7 @@ type Props = {
   roleName: string;
   roleCode: string;
   permissions: string[];
+  workerShell?: boolean;
   unread?: number;
   locale: Locale;
   children: React.ReactNode;
@@ -25,6 +26,7 @@ export function AppShell({
   roleName,
   roleCode,
   permissions,
+  workerShell = false,
   unread = 0,
   locale,
   children,
@@ -48,6 +50,7 @@ export function AppShell({
             roleName={roleName}
             roleCode={roleCode}
             permissions={permissions}
+            workerShell={workerShell}
           />
         </div>
 
@@ -57,15 +60,16 @@ export function AppShell({
             roleName={roleName}
             unread={unread}
             locale={locale}
+            workerShell={workerShell}
           />
         </div>
 
         <AppShellMain>{children}</AppShellMain>
       </div>
       <BottomNav permissions={permissions} roleCode={roleCode} locale={locale} />
-      <OfflineSync locale={locale} />
-      <NotificationWatch locale={locale} />
-      <HelpGuide locale={locale} />
+      {!workerShell ? <OfflineSync locale={locale} /> : null}
+      {!workerShell ? <NotificationWatch locale={locale} /> : null}
+      {!workerShell ? <HelpGuide locale={locale} /> : null}
     </div>
   );
 }

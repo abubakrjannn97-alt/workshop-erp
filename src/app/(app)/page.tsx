@@ -1,7 +1,7 @@
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { hasPermission, usesWorkerMobileExperience } from "@core/rbac/permissions";
+import { hasPermission } from "@core/rbac/permissions";
 import { requireSession } from "@core/auth/authz";
+import { hasWorkerShell } from "@core/worker/worker-shell";
 import { DesktopHome } from "@/components/dashboards/desktop-home";
 import { OwnerHome } from "@/components/dashboards/owner-home";
 import { MobileOwnerHome } from "@/components/dashboards/mobile-owner-home";
@@ -9,10 +9,6 @@ import { SalesHome } from "@/components/dashboards/sales-home";
 import { WarehouseHome } from "@/components/dashboards/warehouse-home";
 import { AccountantHome } from "@/components/dashboards/accountant-home";
 import { ProductionHome } from "@/components/dashboards/production-home";
-
-function isMobileUserAgent(ua: string) {
-  return /Mobile|Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua);
-}
 
 function MobileRoleHome({
   role,
@@ -56,9 +52,8 @@ export default async function HomePage({
   const role = session.user.roleCode;
   const perms = session.user.permissions;
   const { fp } = await searchParams;
-  const ua = (await headers()).get("user-agent") ?? "";
 
-  if (role === "worker" || (usesWorkerMobileExperience(role, perms) && isMobileUserAgent(ua))) {
+  if (hasWorkerShell(role, perms)) {
     redirect("/me");
   }
 
