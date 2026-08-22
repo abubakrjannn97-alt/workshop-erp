@@ -1,105 +1,145 @@
 {
-  "ok": true,
+  "ok": false,
   "rows": [
     {
       "path": "/",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2F"
     },
     {
       "path": "/products",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Fproducts"
     },
     {
       "path": "/materials",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Fmaterials"
     },
     {
       "path": "/sales",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Fsales"
     },
     {
       "path": "/crm",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Fcrm"
     },
     {
       "path": "/orders",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Forders"
     },
     {
       "path": "/orders/new",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Forders%2Fnew"
+    },
+    {
+      "path": "/orders/quick",
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Forders%2Fquick"
     },
     {
       "path": "/production",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Fproduction"
     },
     {
       "path": "/warehouse",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Fwarehouse"
     },
     {
       "path": "/warehouse/finished",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Fwarehouse%2Ffinished"
     },
     {
       "path": "/warehouse/movements",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Fwarehouse%2Fmovements"
     },
     {
       "path": "/purchasing",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Fpurchasing"
     },
     {
       "path": "/finance",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Ffinance"
+    },
+    {
+      "path": "/finance/expenses",
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Ffinance%2Fexpenses"
     },
     {
       "path": "/employees",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Femployees"
     },
     {
       "path": "/analytics",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Fanalytics"
     },
     {
       "path": "/notifications",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Fnotifications"
     },
     {
       "path": "/settings",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Fsettings"
     },
     {
       "path": "/settings/users",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Fsettings%2Fusers"
     },
     {
       "path": "/settings/roles",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Fsettings%2Froles"
     },
     {
       "path": "/settings/units",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Fsettings%2Funits"
     },
     {
       "path": "/settings/audit",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Fsettings%2Faudit"
     },
     {
       "path": "/settings/approvals",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Fsettings%2Fapprovals"
     },
     {
       "path": "/settings/backups",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Fsettings%2Fbackups"
     },
     {
       "path": "/search",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Fsearch"
     },
     {
       "path": "/more",
-      "status": 200
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Fmore"
+    },
+    {
+      "path": "/me",
+      "status": 307,
+      "error": "redirect /login?callbackUrl=https%3A%2F%2Fworkshop-erp-zeta.vercel.app%2Fme"
     }
   ]
 }
