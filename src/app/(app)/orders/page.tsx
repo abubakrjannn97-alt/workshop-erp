@@ -11,10 +11,11 @@ import {
   buildOrdersQuery,
   resolveOrderDateRange,
 } from "@core/shared/order-period";
-import { orderListStatusWhere, resolveOrderListBucket } from "@core/shared/orders-list-filter";
+import { orderListStatusWhere } from "@core/shared/orders-list-filter";
 import { Segmented } from "@/components/segmented";
 import { OrdersMobileHeaderTools } from "./orders-mobile-header-tools";
 import { OrdersPeriodPicker } from "./orders-period-picker";
+import { OrdersStatusPicker } from "./orders-status-picker";
 import {
   OrdersEmpty,
   OrdersFilterToolbar,
@@ -41,7 +42,6 @@ export default async function OrdersPage({
   const params = await searchParams;
   const { q, status, from: fromRaw, to: toRaw, page: pageRaw } = params;
   const period = params.period ?? "today";
-  const statusFilter = resolveOrderListBucket(status);
   const canCreate = hasPermission(session.user.permissions, session.user.roleCode, "orders.create");
   const showCostKpis = canSeeMaterialCost(session.user.permissions, session.user.roleCode);
   const ownOnly = session.user.roleCode === "sales_manager";
@@ -209,13 +209,45 @@ export default async function OrdersPage({
         }
       />
 
+      <div className={styles.salesKpis}>
+        <div className={`${styles.salesKpi} ${styles.salesKpiSales}`}>
+          <p className={styles.salesKpiLabel}>{t("orders.kpiSalesSum")}</p>
+          <p className={styles.salesKpiValue}>{moneyDisplay(salesSum)} с</p>
+        </div>
+        {showCostKpis ? (
+          <>
+            <div className={`${styles.salesKpi} ${styles.salesKpiCost}`}>
+              <p className={styles.salesKpiLabel}>{t("orders.kpiCostSum")}</p>
+              <p className={styles.salesKpiValue}>{moneyDisplay(costSum)} с</p>
+            </div>
+            <div
+              className={`${styles.salesKpi} ${marginOk ? styles.salesKpiMargin : styles.salesKpiMarginBad}`}
+            >
+              <p className={styles.salesKpiLabel}>{t("orders.kpiMargin")}</p>
+              <p className={styles.salesKpiValue}>{moneyDisplay(marginSum)} с</p>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className={`${styles.salesKpi} ${styles.salesKpiCost}`}>
+              <p className={styles.salesKpiLabel}>{t("orders.kpiCostSum")}</p>
+              <p className={styles.salesKpiValue}>—</p>
+            </div>
+            <div className={`${styles.salesKpi} ${styles.salesKpiMargin}`}>
+              <p className={styles.salesKpiLabel}>{t("orders.kpiMargin")}</p>
+              <p className={styles.salesKpiValue}>—</p>
+            </div>
+          </>
+        )}
+      </div>
+
       <div className={styles.navRow}>
         <div className={styles.periodMobile}>
           <OrdersPeriodPicker
             current={resolvedPeriod}
             fromRaw={fromRaw}
             toRaw={toRaw}
-            status={statusFilter}
+            status={status}
             q={q?.trim()}
             presetLabels={{
               today: t("orders.periodToday"),
@@ -250,36 +282,20 @@ export default async function OrdersPage({
         </div>
       </div>
 
-      <div className={styles.salesKpis}>
-        <div className={`${styles.salesKpi} ${styles.salesKpiSales}`}>
-          <p className={styles.salesKpiLabel}>{t("orders.kpiSalesSum")}</p>
-          <p className={styles.salesKpiValue}>{moneyDisplay(salesSum)} с</p>
-        </div>
-        {showCostKpis ? (
-          <>
-            <div className={`${styles.salesKpi} ${styles.salesKpiCost}`}>
-              <p className={styles.salesKpiLabel}>{t("orders.kpiCostSum")}</p>
-              <p className={styles.salesKpiValue}>{moneyDisplay(costSum)} с</p>
-            </div>
-            <div
-              className={`${styles.salesKpi} ${marginOk ? styles.salesKpiMargin : styles.salesKpiMarginBad}`}
-            >
-              <p className={styles.salesKpiLabel}>{t("orders.kpiMargin")}</p>
-              <p className={styles.salesKpiValue}>{moneyDisplay(marginSum)} с</p>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className={`${styles.salesKpi} ${styles.salesKpiCost}`}>
-              <p className={styles.salesKpiLabel}>{t("orders.kpiCostSum")}</p>
-              <p className={styles.salesKpiValue}>—</p>
-            </div>
-            <div className={`${styles.salesKpi} ${styles.salesKpiMargin}`}>
-              <p className={styles.salesKpiLabel}>{t("orders.kpiMargin")}</p>
-              <p className={styles.salesKpiValue}>—</p>
-            </div>
-          </>
-        )}
+      <div className={styles.statusRow}>
+        <OrdersStatusPicker
+          current={status}
+          period={resolvedPeriod === "custom" ? "custom" : resolvedPeriod}
+          fromRaw={fromRaw}
+          toRaw={toRaw}
+          q={q?.trim()}
+          allLabel={t("orders.bucketAll")}
+          bucketLabels={{
+            new: t("orders.bucketNew"),
+            delivery: t("orders.bucketDelivery"),
+            received: t("orders.bucketReceived"),
+          }}
+        />
       </div>
 
       <OrdersFilterToolbar

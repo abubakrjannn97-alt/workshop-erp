@@ -1,4 +1,4 @@
-import { ShoppingBag, Trash2, Layers } from "lucide-react";
+import { Trash2, Layers } from "lucide-react";
 import { prisma } from "@core/infrastructure/prisma";
 import { requireSession } from "@core/auth/authz";
 import { refreshOwnerAlerts } from "@core/inventory/alerts";
@@ -6,6 +6,7 @@ import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
 import {
   DashGreeting,
   DashMetricStrip,
+  DashProfitHero,
   DashQuickActions,
   DashRecentOrders,
   DashRecentOrdersFooterLink,
@@ -14,8 +15,9 @@ import {
 } from "@/components/dashboard/dashboard-system";
 import {
   fetchOwnerOperationalKpis,
+  fetchOwnerProfitKpis,
   formatFgQty,
-  formatSalesMoney,
+  serializeOwnerProfitKpis,
 } from "@/components/dashboard/owner-kpi-data";
 import styles from "@/components/dashboard/dash-home.module.css";
 
@@ -28,8 +30,9 @@ export async function DesktopHome() {
   const { t, n, locale } = await getTranslator();
   const loc = intlLocale(locale);
 
-  const [kpis, recentOrders] = await Promise.all([
+  const [kpis, profitKpis, recentOrders] = await Promise.all([
     fetchOwnerOperationalKpis(),
+    fetchOwnerProfitKpis(),
     prisma.order.findMany({
       include: {
         customer: true,
@@ -62,23 +65,19 @@ export async function DesktopHome() {
     <div className={`${styles.home} ${styles.homeDesktop}`}>
       <DashGreeting t={t} mobile />
 
+      <DashProfitHero
+        data={serializeOwnerProfitKpis(profitKpis)}
+        label={t("home.kpi.profit")}
+        periodLabels={{
+          today: t("orders.periodToday"),
+          week: t("orders.periodWeek"),
+          month: t("orders.periodMonth"),
+        }}
+      />
+
       <DashMetricStrip
         variant="compact"
-        tour="home-income"
         metrics={[
-          {
-            id: "sales",
-            tone: "orange",
-            icon: ShoppingBag,
-            featured: true,
-            label: t("home.kpi.salesToday"),
-            value: `${formatSalesMoney(kpis.salesToday)} с`,
-            hint:
-              kpis.salesTodayCount > 0
-                ? t("home.kpi.salesTodayCount").replace("{n}", String(kpis.salesTodayCount))
-                : t("home.kpi.noSalesToday"),
-            hintTone: kpis.salesTodayCount > 0 ? "positive" : "neutral",
-          },
           {
             id: "scrap",
             tone: "red",
