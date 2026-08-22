@@ -43,7 +43,6 @@ export default async function WarehousePage({
       where: { archivedAt: null, isActive: true },
       include: {
         saleUnit: true,
-        prices: { where: { validTo: null }, orderBy: { validFrom: "desc" }, take: 1 },
         stockItems: { where: { warehouseId: fg.id } },
       },
       orderBy: { name: "asc" },
@@ -66,10 +65,7 @@ export default async function WarehousePage({
     const short = low ? min.sub(onHand) : D(0);
     const atLimit = max.gt(0) && onHand.gte(max);
     const wac = D(String(stock?.wacUnitCost ?? 0));
-    const salePrice = D(String(p.prices[0]?.price ?? p.minPrice ?? 0));
     const costTotal = onHand.mul(wac);
-    const saleTotal = onHand.mul(salePrice);
-    const profitTotal = saleTotal.minus(costTotal);
     return {
       product: p,
       onHand,
@@ -79,7 +75,6 @@ export default async function WarehousePage({
       short,
       atLimit,
       costTotal,
-      profitTotal,
       unitCost: wac,
     };
   });
@@ -158,8 +153,7 @@ export default async function WarehousePage({
             </div>
           ) : (
             <ul className={styles.fgList}>
-              {sortedRows.map(({ product, onHand, low, costTotal, profitTotal, unitCost }) => {
-                const profitBad = profitTotal.lt(0);
+              {sortedRows.map(({ product, onHand, low, costTotal, unitCost }) => {
                 const cardClass = `${styles.fgCard} ${low ? styles.fgCardLow : ""}`.trim();
                 const cardBody = (
                   <>
@@ -188,18 +182,15 @@ export default async function WarehousePage({
                       {showCost ? (
                         <>
                           <div className={styles.fgStat}>
-                            <span className={styles.fgStatLabel}>{t("orders.kpiCostSum")}</span>
+                            <span className={styles.fgStatLabel}>{t("wh.costPerM2")}</span>
                             <span className={styles.fgStatCostUnit}>
                               {moneyDisplay(unitCost)} с/{product.saleUnit.symbol}
                             </span>
-                            <span className={styles.fgStatCostTotal}>
-                              {t("wh.costTotal")} {moneyDisplay(costTotal)} с
-                            </span>
                           </div>
                           <div className={styles.fgStat}>
-                            <span className={styles.fgStatLabel}>{t("orders.kpiMargin")}</span>
-                            <span className={profitBad ? styles.fgStatProfitBad : styles.fgStatProfit}>
-                              {moneyDisplay(profitTotal)} с
+                            <span className={styles.fgStatLabel}>{t("wh.costTotalSum")}</span>
+                            <span className={styles.fgStatCostTotal}>
+                              {moneyDisplay(costTotal)} с
                             </span>
                           </div>
                         </>
