@@ -132,6 +132,8 @@ export default async function QuickSalePage() {
             forCustomer: t("sales.quickForCustomer"),
             cartTotal: t("sales.quickCartTotal"),
             clientLocked: t("sales.quickClientLocked"),
+            backToReceipt: t("sales.quickBackToReceipt"),
+            confirmSale: t("sales.quickConfirmSale"),
           }}
         />
       )}

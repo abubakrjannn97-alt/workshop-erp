@@ -2,13 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { randomUUID } from "crypto";
 import { z } from "zod";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@core/infrastructure/prisma";
-import { requirePermission } from "@core/auth/authz";
+import { requirePermission, hasPermission } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money, qty } from "@core/shared/decimal";
 import { receiveMaterial } from "@core/inventory/stock";
-import { accountByCode, FUND, fundByCode, LEDGER, postLedger } from "@core/finance/finance";
+import { accountByCode, accountForMethod, FUND, fundByCode, LEDGER, postLedger } from "@core/finance/finance";
+import { loadPaymentCards } from "@core/config/payment-cards";
 import { findRawWarehouse } from "@/core/config/resolve-warehouse";
 
 async function nextNumber() {
