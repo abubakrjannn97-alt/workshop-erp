@@ -46,33 +46,57 @@ const NUMBER_UNIQUE_MODELS = new Set(["Order", "PurchaseOrder"]);
 const READ_OPS = new Set(["findMany", "findFirst", "count", "aggregate", "groupBy"]);
 const WRITE_OPS = new Set(["create", "createMany", "update", "updateMany", "upsert", "delete", "deleteMany"]);
 
+function hasCompoundWorkshopUnique(where: Record<string, unknown>) {
+  return Object.keys(where).some((key) => key.startsWith("workshopId_"));
+}
+
 function scopeWhere(model: string, where: Record<string, unknown> | undefined, workshopId: string) {
+  const w = where ?? {};
+
+  if (hasCompoundWorkshopUnique(w)) {
+    return w;
+  }
+
+  // findUnique by primary key — extra workshopId breaks Prisma unique selectors.
+  if ("id" in w && Object.keys(w).length === 1) {
+    return w;
+  }
+
   if (model === "Setting") {
-    if (where && "key" in where && !("workshopId_key" in where) && !("workshopId" in where)) {
-      return { workshopId_key: { workshopId, key: where.key as string } };
+    if ("key" in w && typeof w.key === "string") {
+      return { workshopId_key: { workshopId, key: w.key } };
     }
-    return { ...(where ?? {}), workshopId };
+    return { ...w, workshopId };
   }
 
-  if (where && "code" in where && !("workshopId" in where) && CODE_UNIQUE_MODELS.has(model)) {
-    return { workshopId_code: { workshopId, code: where.code as string } };
+  if ("code" in w && typeof w.code === "string" && CODE_UNIQUE_MODELS.has(model)) {
+    return { workshopId_code: { workshopId, code: w.code } };
   }
 
-  if (where && "number" in where && !("workshopId" in where) && NUMBER_UNIQUE_MODELS.has(model)) {
-    return { workshopId_number: { workshopId, number: where.number as number | string } };
+  if ("number" in w && NUMBER_UNIQUE_MODELS.has(model)) {
+    return { workshopId_number: { workshopId, number: w.number as number | string } };
   }
 
-  if (where && "year" in where && "month" in where && model === "AccountingPeriod" && !("workshopId" in where)) {
+  if ("year_month" in w && model === "AccountingPeriod") {
+    const ym = w.year_month as { year: number; month: number };
+    return { workshopId_year_month: { workshopId, year: ym.year, month: ym.month } };
+  }
+
+  if ("year" in w && "month" in w && model === "AccountingPeriod") {
     return {
       workshopId_year_month: {
         workshopId,
-        year: where.year as number,
-        month: where.month as number,
+        year: w.year as number,
+        month: w.month as number,
       },
     };
   }
 
-  return { ...(where ?? {}), workshopId };
+  if ("workshopId" in w) {
+    return w;
+  }
+
+  return { ...w, workshopId };
 }
 
 export function scopeQueryArgs(model: string, operation: string, args: Record<string, unknown>, workshopId: string) {

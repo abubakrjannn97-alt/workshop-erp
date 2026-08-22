@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { prisma } from "@core/infrastructure/prisma";
+import { bootstrapWorkshopStructure, ensureTwoWorkshops } from "./bootstrap-workshop";
 import {
   enterWorkshopContext,
   getWorkshopIdFromContext,
@@ -57,7 +58,26 @@ export async function resolveActiveWorkshopId(userId: string, roleCode: string):
   return DEFAULT_WORKSHOP_ID;
 }
 
+let workshopsReady: Promise<void> | null = null;
+
+async function ensureWorkshopsReady() {
+  if (!workshopsReady) {
+    workshopsReady = (async () => {
+      await ensureTwoWorkshops(prisma);
+      const settingsCount = await prisma.setting.count({ where: { workshopId: DEFAULT_WORKSHOP_ID } });
+      if (settingsCount === 0) {
+        await bootstrapWorkshopStructure(prisma, DEFAULT_WORKSHOP_ID);
+      }
+    })().catch((error) => {
+      workshopsReady = null;
+      throw error;
+    });
+  }
+  await workshopsReady;
+}
+
 export async function bindWorkshopContext(userId: string, roleCode: string): Promise<string> {
+  await ensureWorkshopsReady();
   const workshopId = await resolveActiveWorkshopId(userId, roleCode);
   if (!patchWorkshopContext(workshopId)) {
     enterWorkshopContext(workshopId);
