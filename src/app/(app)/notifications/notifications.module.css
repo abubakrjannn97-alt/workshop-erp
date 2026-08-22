@@ -3,6 +3,7 @@
   flex-direction: column;
   gap: 10px;
   max-width: 40rem;
+  overflow: visible;
 }
 
 .header {
@@ -40,12 +41,15 @@
 
 .filterRow {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  position: relative;
+  z-index: 30;
+  overflow: visible;
 }
 
 .filterLabel {
+  flex-shrink: 0;
   font-size: 12px;
   font-weight: 500;
   color: var(--ink-2);

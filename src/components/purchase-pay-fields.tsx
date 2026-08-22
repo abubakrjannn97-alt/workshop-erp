@@ -98,8 +98,6 @@ export function PurchasePayFields({
                     className={`${styles.cardOption} ${cardId === card.id ? styles.cardOptionActive : ""}`}
                     onClick={() => setCardId(card.id)}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={card.logoUrl} alt="" className={styles.cardLogo} />
                     <span className={styles.cardName}>{card.bank}</span>
                   </button>
                 ))}

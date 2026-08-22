@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { AppSelect } from "@/components/app-select";
+import styles from "./notif-category-filter.module.css";
 
 type Option = { value: string; label: string };
 
@@ -17,8 +18,9 @@ export function NotifCategoryFilter({
   const router = useRouter();
 
   return (
-    <div className="max-w-xs" data-tour="notif-cats">
+    <div className={styles.wrap} data-tour="notif-cats">
       <AppSelect
+        className={styles.select}
         value={active}
         aria-label={ariaLabel}
         options={options}

@@ -78,9 +78,8 @@ export function PaymentCardsSettings({
             key={card.id}
             className="flex items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-2"
           >
-            <span className="grid h-9 w-14 shrink-0 place-items-center overflow-hidden rounded-md bg-[#f6f5f2]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={card.logoUrl} alt="" className="max-h-7 max-w-[52px] object-contain" />
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[#f6f5f2] text-[11px] font-bold text-[var(--ink-2)]">
+              {card.bank.slice(0, 2).toUpperCase()}
             </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[13px] font-semibold text-[var(--ink)]">{card.name}</span>

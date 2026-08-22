@@ -85,14 +85,9 @@ export default async function FinancePage() {
             {moneyCards.map((card) => (
               <li key={card.id} className={styles.moneyCard}>
                 <div className={styles.moneyCardTop}>
-                  {card.logoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={card.logoUrl} alt="" className={styles.moneyCardLogo} />
-                  ) : (
-                    <span className={styles.moneyCardIcon} aria-hidden>
-                      {card.kind === "cash" ? "💵" : "💳"}
-                    </span>
-                  )}
+                  <span className={styles.moneyCardIcon} aria-hidden>
+                    {card.kind === "cash" ? "💵" : "💳"}
+                  </span>
                   <span className={styles.moneyCardLabel}>{card.label}</span>
                 </div>
                 <p className={card.amount.lt(0) ? styles.moneyCardValueBad : styles.moneyCardValue}>

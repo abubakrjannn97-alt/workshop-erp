@@ -93,7 +93,7 @@ export function AppSelect({
         disabled={disabled}
         onClick={() => setOpen((v) => !v)}
       >
-        <span className={active ? undefined : styles.triggerPlaceholder}>{label}</span>
+        <span className={`${active ? styles.triggerLabel : styles.triggerPlaceholder}`.trim()}>{label}</span>
         <ChevronDown size={16} strokeWidth={ICON_STROKE} className={`${styles.chevron} ${open ? styles.chevronOpen : ""}`.trim()} aria-hidden />
       </button>
       {open ? (

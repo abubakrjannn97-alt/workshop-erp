@@ -448,7 +448,7 @@
 }
 
 .paymentForm .cardOption {
-  min-height: 58px;
+  min-height: 40px;
 }
 
 .paymentConfirmBtn {
@@ -805,12 +805,12 @@
 
 .cardOption {
   display: flex;
-  min-height: 52px;
+  min-height: 40px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 6px 4px;
+  gap: 0;
+  padding: 8px 6px;
   border: 1px solid var(--line);
   border-radius: 10px;
   background: #fff;
@@ -823,16 +823,10 @@
   box-shadow: 0 0 0 1px rgba(154, 115, 56, 0.12);
 }
 
-.cardLogo {
-  max-height: 22px;
-  max-width: 54px;
-  object-fit: contain;
-}
-
 .cardName {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
-  line-height: 1.1;
+  line-height: 1.2;
   color: var(--ink-2);
   text-align: center;
 }
