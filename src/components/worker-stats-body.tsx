@@ -6,6 +6,7 @@ import { ICON_STROKE } from "@/components/nav-icons";
 import { DashHomePeriodPicker } from "@/components/dashboard/dash-home-period-picker";
 import type { HomeProfitPeriod } from "@/components/dashboard/owner-kpi-data";
 import type { WorkerPeriodSnapshots, WorkerProductionByPeriod } from "@core/worker/worker-data";
+import { shortProductLabel } from "@core/shared/format";
 import { WorkerPageHeader } from "@/components/worker-page-header";
 import styles from "./worker-pages.module.css";
 
@@ -79,12 +80,17 @@ export function WorkerStatsBody({
                 )}
               </span>
               <span className={styles.prodMain}>
-                <span className={styles.prodName}>{line.name}</span>
+                <span className={styles.prodName} title={line.name}>
+                  {shortProductLabel(line.name)}
+                </span>
                 <span className={styles.prodRate}>
                   {rateLabel}: {line.rateDisplay} с
                 </span>
               </span>
-              <span className={styles.prodQty}>{line.quantityDisplay}</span>
+              <span className={styles.prodQty}>
+                <span className={styles.prodQtyValue}>{line.quantityDisplay}</span>
+                <span className={styles.prodQtyUnit}>м²</span>
+              </span>
             </li>
           ))}
         </ul>

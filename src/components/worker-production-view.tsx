@@ -8,6 +8,7 @@ import { IdempotencyField } from "@/components/idempotency-field";
 import { stockFinishedGoods } from "@/app/actions/fg-stock";
 import type { Locale } from "@core/shared/i18n/i18n";
 import { translate } from "@core/shared/i18n/i18n";
+import { shortProductLabel } from "@core/shared/format";
 import { WorkerPageHeader } from "@/components/worker-page-header";
 import styles from "./worker-production-view.module.css";
 
@@ -74,7 +75,9 @@ export function WorkerProductionView({
                   )}
                 </div>
                 <div className={styles.cardMain}>
-                  <p className={styles.cardName}>{row.name}</p>
+                  <p className={styles.cardName} title={row.name}>
+                    {shortProductLabel(row.name)}
+                  </p>
                   <p className={styles.cardStock}>
                     {t("me.workerOnHand")}: {row.onHand} {row.unit}
                   </p>

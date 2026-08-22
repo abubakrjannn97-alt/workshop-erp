@@ -152,7 +152,7 @@
 }
 
 .prodName {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.25;
   color: var(--ink);
@@ -169,12 +169,31 @@
 }
 
 .prodQty {
-  font-size: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 3.75rem;
+  padding-left: 8px;
+  text-align: right;
+}
+
+.prodQtyValue {
+  font-size: 17px;
   font-weight: 750;
-  line-height: 1;
+  line-height: 1.1;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
-  padding-left: 4px;
+}
+
+.prodQtyUnit {
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
 }
 
 .sectionCard {
