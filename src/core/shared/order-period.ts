@@ -1,4 +1,4 @@
-export type OrderPeriod = "today" | "week" | "month" | "prev" | "all" | "custom";
+export type OrderPeriod = "today" | "week" | "month" | "3m" | "prev" | "all" | "custom";
 
 export type FinancePeriod = "month" | "prev" | "2m" | "3m" | "quarter" | "year" | "all";
 
@@ -58,6 +58,11 @@ export function resolveOrderDateRange(params: {
     return { from: startOfDay(from), to: endOfDay(to), period: "prev" };
   }
 
+  if (period === "3m") {
+    const from = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    return { from: startOfDay(from), to: endOfDay(now), period: "3m" };
+  }
+
   const from = new Date(now.getFullYear(), now.getMonth(), 1);
   const to = new Date(now.getFullYear(), now.getMonth() + 1, 0);
   return { from: startOfDay(from), to: endOfDay(to), period: "month" };
@@ -73,6 +78,7 @@ export function orderPeriodLabel(
   if (period === "today") return t("orders.periodToday");
   if (period === "week") return t("orders.periodWeek");
   if (period === "month") return t("orders.periodMonth");
+  if (period === "3m") return t("orders.period3m");
   if (period === "prev") return t("orders.periodPrev");
   if (from && to) {
     return `${from.toLocaleDateString()} — ${to.toLocaleDateString()}`;

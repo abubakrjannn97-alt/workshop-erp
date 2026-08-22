@@ -253,7 +253,7 @@ export default async function OrdersPage({
               today: t("orders.periodToday"),
               week: t("orders.periodWeek"),
               month: t("orders.periodMonth"),
-              prev: t("orders.periodPrev"),
+              "3m": t("orders.period3m"),
             }}
             customLabel={t("orders.periodCustom")}
             calendarLabel={t("orders.periodCalendar")}
@@ -271,7 +271,7 @@ export default async function OrdersPage({
                 ["today", t("orders.periodToday")],
                 ["week", t("orders.periodWeek")],
                 ["month", t("orders.periodMonth")],
-                ["prev", t("orders.periodPrev")],
+                ["3m", t("orders.period3m")],
               ] as const
             ).map(([p, label]) => ({
               href: buildOrdersQuery({ ...baseQuery, period: p, page: undefined }),
