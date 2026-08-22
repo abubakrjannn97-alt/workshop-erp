@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  Banknote,
   Box,
   ChartColumn,
   ClipboardList,
@@ -16,6 +17,7 @@ export const QUICK_ACTION_ICONS = {
   play: Play,
   box: Box,
   truck: Truck,
+  banknote: Banknote,
   "chart-column": ChartColumn,
   "clipboard-list": ClipboardList,
   users: Users,

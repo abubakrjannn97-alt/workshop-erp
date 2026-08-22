@@ -5,11 +5,19 @@ import { moneyDisplay } from "@core/shared/decimal";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
 import styles from "./finance.module.css";
 
+export type FinanceDebtLine = {
+  materialName: string;
+  quantityDisplay: string;
+  unit: string;
+  lineAmount: string;
+};
+
 export type FinanceDebtItem = {
   id: string;
   supplierName: string;
   orderNumber: string;
   amount: string;
+  lines: FinanceDebtLine[];
 };
 
 export function FinanceDebts({
@@ -63,36 +71,80 @@ export function FinanceDebts({
               <thead>
                 <tr>
                   <th>{t("fin.weOweTo")}</th>
+                  <th>{t("common.material")}</th>
+                  <th className={styles.thRight}>{t("common.quantity")}</th>
                   <th className={styles.thRight}>{t("common.debt")}</th>
                 </tr>
               </thead>
               <tbody>
-                {items.map((item) => (
-                  <tr key={item.id}>
-                    <td>
-                      <span className={styles.tdBold}>{item.supplierName}</span>
-                      <p className={styles.tdMuted}>
-                        {t("fin.purchaseRef", { number: item.orderNumber })}
-                      </p>
-                    </td>
-                    <td className={`${styles.tdRight} ${styles.tdBad}`}>
-                      {moneyDisplay(item.amount)} с
-                    </td>
-                  </tr>
-                ))}
+                {items.flatMap((item) =>
+                  (item.lines.length > 0 ? item.lines : [null]).map((line, idx) => (
+                    <tr key={`${item.id}-${idx}`}>
+                      <td>
+                        {idx === 0 ? (
+                          <>
+                            <span className={styles.tdBold}>{item.supplierName}</span>
+                            <p className={styles.tdMuted}>
+                              {t("fin.purchaseRef", { number: item.orderNumber })}
+                            </p>
+                          </>
+                        ) : null}
+                      </td>
+                      <td>
+                        {line ? (
+                          <span className={styles.tdBold}>{line.materialName}</span>
+                        ) : (
+                          <span className={styles.tdMuted}>
+                            {t("fin.purchaseRef", { number: item.orderNumber })}
+                          </span>
+                        )}
+                      </td>
+                      <td className={styles.tdRight}>
+                        {line ? `${line.quantityDisplay} ${line.unit}` : "—"}
+                      </td>
+                      <td className={`${styles.tdRight} ${styles.tdBad}`}>
+                        {moneyDisplay(line?.lineAmount ?? item.amount)} с
+                      </td>
+                    </tr>
+                  )),
+                )}
               </tbody>
             </table>
           </div>
           <ul className={styles.mobileList}>
             {items.map((item) => (
-              <li key={item.id} className={styles.mobileCard}>
-                <p className={styles.mobileName}>
-                  {t("fin.weOweNamed", { name: item.supplierName })}
-                </p>
-                <p className={styles.mobileMeta}>
-                  {t("fin.purchaseRef", { number: item.orderNumber })}
-                </p>
-                <p className={styles.mobileValueBad}>{moneyDisplay(item.amount)} с</p>
+              <li key={item.id} className={styles.debtCard}>
+                <div className={styles.debtCardHead}>
+                  <span className={styles.debtSupplier}>{item.supplierName}</span>
+                  <span className={styles.debtPoRef}>{item.orderNumber}</span>
+                </div>
+                {item.lines.length > 0 ? (
+                  <ul className={styles.debtLines}>
+                    {item.lines.map((line, idx) => (
+                      <li key={idx} className={styles.debtLine}>
+                        <span className={styles.debtLineName}>{line.materialName}</span>
+                        <span className={styles.debtLineQty}>
+                          {line.quantityDisplay} {line.unit}
+                        </span>
+                        <span className={styles.debtLineAmt}>{moneyDisplay(line.lineAmount)} с</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className={styles.debtLine}>
+                    <span className={styles.debtLineName}>
+                      {t("fin.purchaseRef", { number: item.orderNumber })}
+                    </span>
+                    <span className={styles.debtLineQty} aria-hidden />
+                    <span className={styles.debtLineAmt}>{moneyDisplay(item.amount)} с</span>
+                  </div>
+                )}
+                {item.lines.length > 1 ? (
+                  <div className={styles.debtCardTotal}>
+                    <span>{t("wh.costTotalSum")}</span>
+                    <span>{moneyDisplay(item.amount)} с</span>
+                  </div>
+                ) : null}
               </li>
             ))}
           </ul>

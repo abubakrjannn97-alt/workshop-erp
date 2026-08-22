@@ -2,9 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { createFinancialFund } from "@/app/actions/finance";
+import { createFinancialFund, updateFinancialFund } from "@/app/actions/finance";
 import { moneyDisplay } from "@core/shared/decimal";
-import { FUND } from "@core/finance/finance";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
 import styles from "./finance.module.css";
 
@@ -19,19 +18,22 @@ export type FinanceFundRow = {
 export function FinanceFundsSection({
   locale,
   funds,
-  canAdd,
+  canManage,
 }: {
   locale: Locale;
   funds: FinanceFundRow[];
-  canAdd: boolean;
+  canManage: boolean;
 }) {
   const t = createT(locale);
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  function submit(formData: FormData) {
+  const editing = funds.find((f) => f.id === editId);
+
+  function submitCreate(formData: FormData) {
     setError(null);
     startTransition(async () => {
       const result = await createFinancialFund(formData);
@@ -39,7 +41,20 @@ export function FinanceFundsSection({
         setError(result.error);
         return;
       }
-      setOpen(false);
+      setAddOpen(false);
+      router.refresh();
+    });
+  }
+
+  function submitUpdate(formData: FormData) {
+    setError(null);
+    startTransition(async () => {
+      const result = await updateFinancialFund(formData);
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+      setEditId(null);
       router.refresh();
     });
   }
@@ -48,23 +63,24 @@ export function FinanceFundsSection({
     <section className={styles.section}>
       <div className={styles.sectionHead}>
         <h2 className={styles.sectionTitleAccent}>{t("fin.funds")}</h2>
-        {canAdd ? (
+        {canManage ? (
           <button
             type="button"
             className={styles.sectionHeadLink}
             onClick={() => {
-              setOpen((v) => !v);
+              setAddOpen((v) => !v);
+              setEditId(null);
               setError(null);
             }}
-            aria-expanded={open}
+            aria-expanded={addOpen}
           >
-            {open ? t("common.cancel") : `+ ${t("fin.addFundShort")}`}
+            {addOpen ? t("common.cancel") : `+ ${t("fin.addFundShort")}`}
           </button>
         ) : null}
       </div>
 
-      {open && canAdd ? (
-        <form action={submit} className={styles.fundAddForm}>
+      {addOpen && canManage ? (
+        <form action={submitCreate} className={styles.fundAddForm}>
           <div className={styles.fundAddRow}>
             <label className={styles.fundAddField}>
               <span className={styles.fundAddLabel}>{t("fin.addFundName")}</span>
@@ -72,19 +88,47 @@ export function FinanceFundsSection({
             </label>
             <label className={styles.fundAddField}>
               <span className={styles.fundAddLabel}>{t("common.amount")}</span>
-              <input
-                name="amount"
-                required
-                className="ui-input"
-                inputMode="decimal"
-                placeholder="0"
-              />
+              <input name="amount" required className="ui-input" inputMode="decimal" placeholder="0" />
             </label>
           </div>
-          {error ? <p className={styles.fundAddError}>{error}</p> : null}
+          {error && !editId ? <p className={styles.fundAddError}>{error}</p> : null}
           <button type="submit" className={styles.fundAddSubmit} disabled={pending}>
             {pending ? t("common.sending") : t("fin.addFundSubmit")}
           </button>
+        </form>
+      ) : null}
+
+      {editId && editing && canManage ? (
+        <form action={submitUpdate} className={styles.fundAddForm}>
+          <input type="hidden" name="id" value={editing.id} />
+          <div className={styles.fundAddRow}>
+            <label className={styles.fundAddField}>
+              <span className={styles.fundAddLabel}>{t("fin.addFundName")}</span>
+              <input name="name" required className="ui-input" defaultValue={editing.name} />
+            </label>
+            <label className={styles.fundAddField}>
+              <span className={styles.fundAddLabel}>{t("fin.fundAdjustment")}</span>
+              <input
+                name="adjustment"
+                className="ui-input"
+                inputMode="decimal"
+                placeholder="0"
+                defaultValue=""
+              />
+            </label>
+          </div>
+          <p className={styles.fundEditHint}>
+            {t("fin.fundCurrent")}: {moneyDisplay(editing.balance)} с · {t("fin.fundAdjustmentHint")}
+          </p>
+          {error ? <p className={styles.fundAddError}>{error}</p> : null}
+          <div className={styles.fundEditActions}>
+            <button type="submit" className={styles.fundAddSubmit} disabled={pending}>
+              {pending ? t("common.sending") : t("common.save")}
+            </button>
+            <button type="button" className={styles.fundEditCancel} onClick={() => setEditId(null)}>
+              {t("common.cancel")}
+            </button>
+          </div>
         </form>
       ) : null}
 
@@ -93,17 +137,32 @@ export function FinanceFundsSection({
           {funds.map((f) => (
             <li key={f.id} className={styles.balanceRow}>
               <span className={styles.balanceName}>{f.name}</span>
-              <span
-                className={
-                  f.code === FUND.PROFIT
-                    ? styles.balanceValueAccent
-                    : f.balanceNegative
-                      ? styles.balanceValueBad
-                      : styles.balanceValue
-                }
-              >
-                {moneyDisplay(f.balance)} с
-              </span>
+              <div className={styles.fundRowRight}>
+                <span
+                  className={
+                    f.code === "PROFIT"
+                      ? styles.balanceValueAccent
+                      : f.balanceNegative
+                        ? styles.balanceValueBad
+                        : styles.balanceValue
+                  }
+                >
+                  {moneyDisplay(f.balance)} с
+                </span>
+                {canManage ? (
+                  <button
+                    type="button"
+                    className={styles.fundEditBtn}
+                    onClick={() => {
+                      setEditId(f.id);
+                      setAddOpen(false);
+                      setError(null);
+                    }}
+                  >
+                    {t("common.edit")}
+                  </button>
+                ) : null}
+              </div>
             </li>
           ))}
         </ul>

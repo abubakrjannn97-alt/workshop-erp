@@ -6,12 +6,12 @@ import { productLaborRate } from "@core/payroll/labor-rate";
 import { FUND, LEDGER, fundDelta } from "@core/finance/finance";
 import { contributionAndNet } from "@core/finance/profit";
 import { getTranslator } from "@core/shared/i18n/locale";
-import { RevealList } from "@/components/reveal-list";
+import { AnalyticsProductsSection } from "./analytics-products-section";
 import styles from "./analytics.module.css";
 
 export default async function AnalyticsPage() {
   await requirePermission("analytics.view");
-  const { t } = await getTranslator();
+  const { t, locale } = await getTranslator();
   const monthStart = new Date();
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
@@ -50,7 +50,7 @@ export default async function AnalyticsPage() {
   const expenses = entries
     .filter((e) => e.type === LEDGER.CASH_OUT && e.categoryId)
     .reduce((s, e) => s.add(String(e.amount)), D(0));
-  const { contribution, net } = contributionAndNet({
+  const { net } = contributionAndNet({
     revenue: sold,
     materialCost,
     labor,
@@ -109,22 +109,28 @@ export default async function AnalyticsPage() {
       <section className={`${styles.hero} ${netPositive ? styles.heroOk : styles.heroBad}`} data-tour="an-kpis">
         <p className={styles.heroLabel}>{t("an.net")}</p>
         <p className={styles.heroValue}>{moneyDisplay(net)} с</p>
-        <p className={styles.heroSub}>
-          {netPositive ? t("an.netOkSub") : t("an.netBadSub")}
-        </p>
+        <p className={styles.heroSub}>{netPositive ? t("an.netOkSub") : t("an.netBadSub")}</p>
       </section>
 
       <div className={styles.kpiRow}>
-        <article className={`${styles.kpi} ${styles.kpiGold}`}>
-          <p className={styles.kpiLabel}>{t("an.contrib")}</p>
-          <p className={styles.kpiValue}>{moneyDisplay(contribution)} с</p>
-          <p className={styles.kpiMeta}>{t("an.contribShort")}</p>
+        <article className={`${styles.kpi} ${styles.kpiBlue}`}>
+          <p className={styles.kpiLabel}>{t("an.receivedReal")}</p>
+          <p className={styles.kpiValue}>{moneyDisplay(received)} с</p>
+          <p className={styles.kpiMeta}>
+            {t("an.sale")}: {moneyDisplay(sold)} с
+          </p>
         </article>
         <article className={`${styles.kpi} ${styles.kpiRed}`}>
           <p className={styles.kpiLabel}>{t("an.scrapMonth")}</p>
-          <p className={styles.kpiValue}>{qtyDisplay(scrapQty)}</p>
+          <p className={styles.kpiValue}>{qtyDisplay(scrapQty)} м²</p>
           <p className={styles.kpiMeta}>
-            {scrapCost.gt(0) ? `${moneyDisplay(scrapCost)} с` : t("an.scrapNone")}
+            {scrapCost.gt(0) ? (
+              <>
+                {t("an.scrapDamage")}: <strong>{moneyDisplay(scrapCost)} с</strong>
+              </>
+            ) : (
+              t("an.scrapNone")
+            )}
           </p>
         </article>
       </div>
@@ -154,14 +160,6 @@ export default async function AnalyticsPage() {
             <span>{t("an.fixedExp")}</span>
             <strong>−{moneyDisplay(expenses)} с</strong>
           </li>
-          <li
-            className={`${styles.row} ${styles.rowTotal} ${
-              netPositive ? styles.rowTotalOk : styles.rowTotalBad
-            }`}
-          >
-            <span>{t("an.netProfit")}</span>
-            <strong>{moneyDisplay(net)} с</strong>
-          </li>
         </ul>
         <div className={styles.rowFoot}>
           <span>
@@ -173,91 +171,43 @@ export default async function AnalyticsPage() {
         </div>
       </section>
 
-      <section className={styles.card}>
-        <div className={styles.cardHead}>
-          <h2 className={styles.cardTitle}>{t("an.byProduct")}</h2>
-        </div>
-
-        {productRows.length === 0 ? (
-          <p className={styles.empty}>{t("an.noSales")}</p>
-        ) : (
-          <>
-            <RevealList as="ul" className={styles.productList} moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={5}>
-              {productRows.map((row) => {
-                const fullCost = row.materials.add(row.labor).add(row.commission);
-                const profitRow = row.revenue.sub(fullCost);
-                const margin = row.revenue.gt(0) ? profitRow.div(row.revenue).mul(100) : D(0);
-                const ok = profitRow.gte(0);
-                return (
-                  <li key={row.name} className={styles.productCard}>
-                    <p className={styles.productName}>{row.name}</p>
-                    <div className={styles.productGrid}>
-                      <div className={styles.productStat}>
-                        <span className={styles.productStatLabel}>{t("an.sold")}</span>
-                        <span className={styles.productStatValue}>
-                          {qtyDisplay(row.qty)} {row.unit}
-                        </span>
-                      </div>
-                      <div className={styles.productStat}>
-                        <span className={styles.productStatLabel}>{t("an.revenue")}</span>
-                        <span className={styles.productStatValue}>{moneyDisplay(row.revenue)} с</span>
-                      </div>
-                      <div className={styles.productStat}>
-                        <span className={styles.productStatLabel}>{t("an.fullCost")}</span>
-                        <span className={styles.productStatValue}>{moneyDisplay(fullCost)} с</span>
-                      </div>
-                      <div className={styles.productStat}>
-                        <span className={styles.productStatLabel}>{t("an.profit")}</span>
-                        <span
-                          className={`${styles.productStatValue} ${
-                            ok ? styles.productStatOk : styles.productStatBad
-                          }`}
-                        >
-                          {moneyDisplay(profitRow)} с · {margin.toFixed(0)}%
-                        </span>
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
-            </RevealList>
-
-            <div className={styles.tableWrap}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>{t("common.product")}</th>
-                    <th className={styles.thRight}>{t("an.sold")}</th>
-                    <th className={styles.thRight}>{t("an.revenue")}</th>
-                    <th className={styles.thRight}>{t("an.fullCost")}</th>
-                    <th className={styles.thRight}>{t("an.profit")}</th>
-                    <th className={styles.thRight}>{t("an.marginPct")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {productRows.map((row) => {
-                    const fullCost = row.materials.add(row.labor).add(row.commission);
-                    const profitRow = row.revenue.sub(fullCost);
-                    const margin = row.revenue.gt(0) ? profitRow.div(row.revenue).mul(100) : D(0);
-                    return (
-                      <tr key={row.name}>
-                        <td className={styles.tdBold}>{row.name}</td>
-                        <td className={styles.tdRight}>
-                          {qtyDisplay(row.qty)} {row.unit}
-                        </td>
-                        <td className={styles.tdRight}>{moneyDisplay(row.revenue)}</td>
-                        <td className={styles.tdRight}>{moneyDisplay(fullCost)}</td>
-                        <td className={styles.tdRight}>{moneyDisplay(profitRow)}</td>
-                        <td className={styles.tdRight}>{margin.toFixed(1)}%</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
-      </section>
+      <AnalyticsProductsSection locale={locale} count={productRows.length}>
+        <ul className={styles.productList}>
+          {productRows.map((row) => {
+            const fullCost = row.materials.add(row.labor).add(row.commission);
+            const profitRow = row.revenue.sub(fullCost);
+            const margin = row.revenue.gt(0) ? profitRow.div(row.revenue).mul(100) : D(0);
+            const ok = profitRow.gte(0);
+            return (
+              <li key={row.name} className={styles.productCard}>
+                <p className={styles.productName}>{row.name}</p>
+                <div className={styles.productGrid}>
+                  <div className={styles.productStat}>
+                    <span className={styles.productStatLabel}>{t("an.sold")}</span>
+                    <span className={styles.productStatValue}>
+                      {qtyDisplay(row.qty)} {row.unit}
+                    </span>
+                  </div>
+                  <div className={styles.productStat}>
+                    <span className={styles.productStatLabel}>{t("an.revenue")}</span>
+                    <span className={styles.productStatValue}>{moneyDisplay(row.revenue)} с</span>
+                  </div>
+                  <div className={styles.productStat}>
+                    <span className={styles.productStatLabel}>{t("an.fullCost")}</span>
+                    <span className={styles.productStatValue}>{moneyDisplay(fullCost)} с</span>
+                  </div>
+                  <div className={styles.productStat}>
+                    <span className={styles.productStatLabel}>{t("an.profit")}</span>
+                    <span className={`${styles.productStatValue} ${ok ? styles.productStatOk : styles.productStatBad}`}>
+                      {moneyDisplay(profitRow)} с · {margin.toFixed(0)}%
+                    </span>
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </AnalyticsProductsSection>
     </div>
   );
 }

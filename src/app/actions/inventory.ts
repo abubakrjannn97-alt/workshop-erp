@@ -353,7 +353,7 @@ export async function addRawMaterialToWarehouse(formData: FormData) {
     material = await prisma.material.create({
       data: {
         name: parsed.data.name.trim(),
-        category: parsed.data.category?.trim() || "Прочее",
+        category: "Прочее",
         storageUnitId: kg.id,
         purchaseUnitId: kg.id,
         packageWeight: "1",

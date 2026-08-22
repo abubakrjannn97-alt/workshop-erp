@@ -205,7 +205,17 @@ export async function fetchFinanceDashboardData() {
     prisma.cashAccount.findMany({ where: { archivedAt: null }, orderBy: { code: "asc" } }),
     prisma.financialFund.findMany({ orderBy: { sortOrder: "asc" } }),
     prisma.ledgerEntry.findMany({ where: { status: "POSTED" }, orderBy: { createdAt: "desc" } }),
-    prisma.purchaseOrder.findMany({ where: { status: { not: "CANCELLED" } }, include: { supplier: true } }),
+    prisma.purchaseOrder.findMany({
+      where: { status: { not: "CANCELLED" } },
+      include: {
+        supplier: true,
+        items: {
+          include: {
+            material: { include: { storageUnit: true } },
+          },
+        },
+      },
+    }),
     loadPaymentCards(),
     prisma.payment.findMany({ select: { id: true, amount: true, method: true, reversesId: true } }),
     fetchFinancePeriodSnapshots(),

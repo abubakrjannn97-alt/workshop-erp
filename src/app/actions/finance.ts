@@ -209,3 +209,46 @@ export async function createFinancialFund(formData: FormData) {
   revalidatePath("/analytics");
   return { ok: true };
 }
+
+export async function updateFinancialFund(formData: FormData) {
+  const session = await requirePermission("finance.expense.create");
+  const id = String(formData.get("id") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  const adjustmentRaw = normalizeAmount(String(formData.get("adjustment") ?? "0"));
+  if (!id) return { error: "Фонд не найден." };
+
+  const fund = await prisma.financialFund.findUnique({ where: { id } });
+  if (!fund) return { error: "Фонд не найден." };
+  if (!name) return { error: "Укажите название фонда." };
+
+  const hasAdjustment = moneyStr(adjustmentRaw) && !D(adjustmentRaw).eq(0);
+
+  await prisma.$transaction(async (tx) => {
+    if (name !== fund.name) {
+      await tx.financialFund.update({ where: { id }, data: { name } });
+    }
+    if (hasAdjustment) {
+      const signed = D(adjustmentRaw);
+      const ledgerType = signed.gt(0) ? LEDGER.FUND_IN : LEDGER.FUND_OUT;
+      await postLedger(tx, {
+        type: ledgerType,
+        amount: money(signed.abs()),
+        fundId: id,
+        comment: `Корректировка фонда: ${name}`,
+        createdById: session.user.id,
+        idempotencyKey: `fund-adj-${id}-${Date.now()}`,
+      });
+    }
+  });
+
+  await writeAudit({
+    userId: session.user.id,
+    action: "finance.fund.update",
+    entityType: "financial_fund",
+    entityId: id,
+    newValue: { name, adjustment: hasAdjustment ? adjustmentRaw : "0" },
+  });
+  revalidatePath("/finance");
+  revalidatePath("/analytics");
+  return { ok: true };
+}

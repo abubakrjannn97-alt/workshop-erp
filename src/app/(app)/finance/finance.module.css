@@ -322,6 +322,124 @@
   cursor: pointer;
 }
 .fundAddSubmit:disabled { opacity: 0.65; cursor: wait; }
+.fundEditHint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--ink-3);
+}
+.fundEditActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.fundEditCancel {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.fundRowRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fundEditBtn {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent, #a68649);
+  cursor: pointer;
+}
+.fundEditBtn:hover { text-decoration: underline; }
+
+.fundsDebtsRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: stretch;
+}
+
+.debtCardTotalLabel {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.debtCardTotalValue {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 750;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.debtCardTotalWarn { color: var(--bad, #b42318); }
+.debtCardMeta {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--ink-3);
+}
+.debtCardLink {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent, #a68649);
+  text-decoration: none;
+}
+.debtCardLink:hover { text-decoration: underline; }
+
+.debtsPageGrid {
+  display: grid;
+  gap: 12px;
+}
+
+.debtSummaryBadge {
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--bad, #b42318);
+}
+
+.debtRowMain {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.debtLinkName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+}
+.debtLinkName:hover { text-decoration: underline; }
+
+.emptyInline {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-3);
+}
+
+@media (max-width: 767px) {
+  .fundsDebtsRow {
+    grid-template-columns: 1fr;
+  }
+}
+
 .sectionBody { padding: 16px 18px; }
 .debtHeadText { min-width: 0; }
 .debtHeadHint { margin: 4px 0 0; font-size: 13px; line-height: 18px; color: var(--ink-2); }
@@ -391,6 +509,113 @@
 .mobileMeta { margin: 4px 0 0; font-size: 13px; line-height: 18px; color: var(--ink-2); }
 .mobileValue { margin: 8px 0 0; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
 .mobileValueBad { composes: mobileValue; color: var(--bad, #B42318); }
+
+.debtCard {
+  display: block;
+  margin-bottom: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(28, 35, 43, 0.03);
+}
+
+.debtCard:last-child { margin-bottom: 0; }
+
+.debtCardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.debtSupplier {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--ink-2);
+}
+
+.debtPoRef {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.debtLines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.debtLine {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 6px 0;
+  border-top: 1px solid var(--line);
+}
+
+.debtLines .debtLine:first-child { border-top: 0; padding-top: 0; }
+
+.debtLineName {
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.debtLineQty {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.debtLineAmt {
+  flex-shrink: 0;
+  min-width: 3.5rem;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--bad, #B42318);
+  white-space: nowrap;
+}
+
+.debtCardTotal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.debtCardTotal span:last-child {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--bad, #B42318);
+  font-variant-numeric: tabular-nums;
+}
 
 /* ─── Empty state ─── */
 .empty { padding: 24px 18px; text-align: center; font-size: 14px; color: var(--ink-3); }

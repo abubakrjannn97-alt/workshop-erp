@@ -21,8 +21,8 @@ export function ownerDesktopQuickActions(t: (key: string) => string): DashQuickA
   return [
     { href: "/orders/quick", label: t("sales.newOrder"), icon: "plus", tone: "orange" },
     { href: "/finance/expenses", label: t("nav.expenses"), icon: "clipboard-list", tone: "gold" },
+    { href: "/finance/debts", label: t("home.debtsShort"), icon: "banknote", tone: "blue" },
     { href: "/warehouse", label: t("home.actionToWarehouse"), icon: "truck", tone: "purple" },
-    { href: "/analytics", label: t("home.actionDailyReport"), icon: "chart-column", tone: "blue" },
   ];
 }
 
@@ -37,6 +37,7 @@ export function ownerMobileQuickActions(t: (key: string) => string): DashQuickAc
   return [
     { href: "/orders/quick", label: t("sales.newOrder"), icon: "plus", tone: "orange" },
     { href: "/finance/expenses", label: t("nav.expenses"), icon: "clipboard-list", tone: "gold" },
+    { href: "/finance/debts", label: t("home.debtsShort"), icon: "banknote", tone: "blue" },
     { href: "/warehouse", label: t("home.actionToWarehouse"), icon: "truck", tone: "purple" },
   ];
 }
