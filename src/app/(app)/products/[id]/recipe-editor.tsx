@@ -4,6 +4,7 @@ import { useState } from "react";
 import { publishRecipeVersion } from "@/app/actions/recipes";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
 import { AppSelect } from "@/components/app-select";
+import styles from "./recipe-editor.module.css";
 
 type Option = { id: string; name: string; extra?: string };
 
@@ -47,10 +48,10 @@ export function RecipeEditor({
   }));
 
   return (
-    <form action={submit} className="space-y-3">
+    <form action={submit} className={styles.form}>
       <input type="hidden" name="productId" value={productId} />
       {rows.map((row, index) => (
-        <div key={index} className="grid gap-2 sm:grid-cols-3">
+        <div key={index} className={styles.row}>
           <AppSelect
             name="materialId"
             value={row.materialId}
@@ -62,44 +63,44 @@ export function RecipeEditor({
             options={materialOptions}
             placeholder={t("common.material")}
           />
-          <input
-            name="quantity"
-            value={row.quantity}
-            onChange={(e) => {
-              const next = [...rows];
-              next[index] = { ...row, quantity: e.target.value };
-              setRows(next);
-            }}
-            placeholder={t("common.qty")}
-            className="ui-input"
-          />
-          <AppSelect
-            name="unitId"
-            value={row.unitId}
-            onChange={(value) => {
-              const next = [...rows];
-              next[index] = { ...row, unitId: value };
-              setRows(next);
-            }}
-            options={unitOptions}
-          />
+          <div className={styles.qtyUnit}>
+            <input
+              name="quantity"
+              value={row.quantity}
+              onChange={(e) => {
+                const next = [...rows];
+                next[index] = { ...row, quantity: e.target.value };
+                setRows(next);
+              }}
+              placeholder={t("common.qty")}
+              className="ui-input"
+              inputMode="decimal"
+              aria-label={t("common.qty")}
+            />
+            <AppSelect
+              name="unitId"
+              value={row.unitId}
+              onChange={(value) => {
+                const next = [...rows];
+                next[index] = { ...row, unitId: value };
+                setRows(next);
+              }}
+              options={unitOptions}
+              aria-label={t("common.unit")}
+            />
+          </div>
         </div>
       ))}
       <button
         type="button"
         onClick={() => setRows([...rows, { materialId: "", quantity: "", unitId: units[0]?.id ?? "" }])}
-        className="text-sm text-[var(--titan-dark)]"
+        className={styles.addBtn}
       >
         {t("recipe.addComponent")}
       </button>
-      <input
-        name="comment"
-        placeholder={t("recipe.commentPhShort")}
-        className="w-full ui-input"
-      />
-      {error ? <p className="text-sm text-[var(--danger)]">{error}</p> : null}
-      <button type="submit" disabled={pending} className="ui-btn-primary disabled:opacity-60">
-        {pending ? t("common.saving") : t("recipe.publishFull")}
+      {error ? <p className={styles.error}>{error}</p> : null}
+      <button type="submit" disabled={pending} className={`ui-btn-primary ${styles.saveBtn} disabled:opacity-60`}>
+        {pending ? t("common.saving") : t("common.save")}
       </button>
     </form>
   );

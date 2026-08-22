@@ -1,0 +1,40 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.qtyUnit {
+  display: grid;
+  grid-template-columns: 1fr minmax(72px, 88px);
+  gap: 6px;
+}
+
+.addBtn {
+  align-self: flex-start;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--titan-dark, #8b6e2f);
+  cursor: pointer;
+}
+
+.saveBtn {
+  min-height: 40px;
+}
+
+.error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--danger);
+}

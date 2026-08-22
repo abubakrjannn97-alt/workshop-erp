@@ -8,6 +8,7 @@ import { PendingButton } from "@/components/pending-button";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { available } from "@core/inventory/stock";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
+import { resolveProductionPaySchemeCode } from "@core/config/domain-config";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge, orderTone } from "@/components/status-badge";
 import { OrderDetailMetrics } from "../order-detail-metrics";
@@ -116,14 +117,15 @@ export default async function OrderPage({
     .filter((row) => row.short.gt(0));
 
   const hasMaterialCost = order.materialCost != null && D(String(order.materialCost)).gte(0);
-  const margin =
-    canSeeCost && hasMaterialCost ? D(String(order.total)).sub(String(order.materialCost)) : null;
-  const noCostHint =
-    order.materials.length === 0 || !hasMaterialCost
-      ? t("orders.noCostNoRecipe")
-      : !order.confirmedAt
-        ? t("orders.noCostHint")
-        : t("orders.noCostNoRecipe");
+  const productionSchemeCode = await resolveProductionPaySchemeCode();
+  const prodScheme = await prisma.payScheme.findUnique({ where: { code: productionSchemeCode } });
+  const laborRate = D(String(prodScheme?.productionRate ?? "0"));
+  let laborCost = D(0);
+  for (const item of order.items) {
+    laborCost = laborCost.plus(D(String(item.quantity)).mul(laborRate));
+  }
+  const costSum = hasMaterialCost ? D(String(order.materialCost)).plus(laborCost) : laborCost;
+  const profitSum = D(String(order.total)).sub(costSum);
   const loc = intlLocale(locale);
   const paymentBlocked = Boolean(payError?.includes("закрыт") || payError?.includes("пӯшида"));
   const hasDiscount = D(String(order.discountPercent)).gt(0);
@@ -131,41 +133,29 @@ export default async function OrderPage({
   const orderDateLabel = order.confirmedAt ? t("orders.orderConfirmed") : t("orders.orderReceived");
   const shortDate = orderDate.toLocaleDateString(loc, { day: "2-digit", month: "2-digit" });
 
-  const paymentBreakdown =
-    debt.lte(0) && paid.gt(0)
-      ? [{ label: t("common.paid"), value: t("orders.fullyPaid"), tone: "success" as const }]
-      : debt.gt(0) && paid.gt(0)
-        ? [
-            { label: t("common.paid"), value: `${moneyDisplay(order.paidAmount)} с`, tone: "success" as const },
-            { label: t("common.debt"), value: `${moneyDisplay(debt)} с`, tone: "warn" as const },
-          ]
-        : debt.gt(0)
-          ? [{ label: t("common.debt"), value: `${moneyDisplay(debt)} с`, tone: "warn" as const }]
-          : [{ label: t("common.payment"), value: t("pay.unpaid"), tone: "muted" as const }];
-
-  const sumTone = debt.gt(0) ? ("warn" as const) : paid.gt(0) && debt.lte(0) ? ("green" as const) : ("gold" as const);
-  const sumIcon = debt.gt(0) ? ("warn" as const) : ("gold" as const);
-
   const metricItems = [
     {
-      id: "total",
-      label: t("common.amount"),
+      id: "sales",
+      label: t("orders.kpiSalesSum"),
       value: `${moneyDisplay(order.total)} с`,
-      breakdown: paymentBreakdown,
-      tone: sumTone,
-      icon: sumIcon,
+      tone: "gold" as const,
+      icon: "gold" as const,
     },
-  ];
-  if (canSeeCost) {
-    metricItems.push({
-      id: "margin",
-      label: t("orders.profitEstimate"),
-      value: margin ? `${moneyDisplay(margin)} с` : "—",
-      hint: margin ? undefined : noCostHint,
+    {
+      id: "cost",
+      label: t("orders.kpiCostSum"),
+      value: canSeeCost ? `${moneyDisplay(costSum)} с` : "—",
       tone: "blue" as const,
       icon: "blue" as const,
-    });
-  }
+    },
+    {
+      id: "margin",
+      label: t("orders.kpiMargin"),
+      value: canSeeCost ? `${moneyDisplay(profitSum)} с` : "—",
+      tone: profitSum.gte(0) ? ("green" as const) : ("warn" as const),
+      icon: profitSum.gte(0) ? ("green" as const) : ("warn" as const),
+    },
+  ];
 
   const currentStatusName = n("ostatus", order.status.code, order.status.name);
 

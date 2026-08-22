@@ -60,7 +60,6 @@ export function ProductCreateWizard({
     { key: 0, materialId: "", quantity: "", unitId: units[0]?.id ?? "" },
   ]);
   const [price, setPrice] = useState("");
-  const [minPrice, setMinPrice] = useState("");
   const [laborRate, setLaborRate] = useState("22");
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
@@ -103,7 +102,7 @@ export function ProductCreateWizard({
     setError(null);
     const expenseStr = expense ? moneyDisplay(expense) : "0";
     const sale = price || "0";
-    const floor = minPrice || expenseStr || "0";
+    const floor = sale || expenseStr || "0";
 
     if (expense && D(floor).lt(expense)) {
       setError(t("products.minBelowCost", { n: expenseStr }));
@@ -218,10 +217,10 @@ export function ProductCreateWizard({
       </div>
 
       <div className={catalogStyles.formGrid}>
-        <FormField label={t("common.name")} required className={catalogStyles.formFull}>
-          <input name="name" required maxLength={200} className="ui-input" autoComplete="off" />
+        <FormField label={t("common.name")} required>
+          <input name="name" required maxLength={40} className="ui-input" autoComplete="off" placeholder={t("products.nameShortPh")} />
         </FormField>
-        <FormField label={t("common.category")} className={catalogStyles.formFull}>
+        <FormField label={t("common.category")}>
           <input name="category" defaultValue={defaults.category} className="ui-input" />
         </FormField>
       </div>
@@ -258,10 +257,10 @@ export function ProductCreateWizard({
           <FormField label={t("products.fgUnitSimple")}>
             <AppSelect name="outputUnitId" defaultValue={defaults.outputUnitId} required options={unitOptions} />
           </FormField>
-          <FormField label={t("products.recipeBaseSimple")} hint={t("products.tipRecipe")}>
+          <FormField label={t("products.recipeBaseSimple")}>
             <input name="recipeBaseQty" defaultValue={defaults.recipeBaseQty} className="ui-input" inputMode="decimal" />
           </FormField>
-          <FormField label={t("products.outputSimple")} hint={t("products.tipOutput")}>
+          <FormField label={t("products.outputSimple")}>
             <input name="outputPerBase" defaultValue={defaults.outputPerBase} className="ui-input" inputMode="decimal" />
           </FormField>
         </div>
@@ -269,12 +268,9 @@ export function ProductCreateWizard({
 
       <div className={styles.block}>
         <p className={styles.blockTitle}>{t("products.recipeTitle")}</p>
-        <p className={styles.blockHint}>{t("products.stepRecipeLead")}</p>
 
         <ul className={styles.recipeList}>
-          {rows.map((row, index) => {
-            const mat = materialMap.get(row.materialId);
-            return (
+          {rows.map((row, index) => (
               <li key={row.key} className={styles.recipeRow}>
                 <AppSelect
                   value={row.materialId}
@@ -291,16 +287,25 @@ export function ProductCreateWizard({
                   options={materialOptions}
                   placeholder={t("products.pickMaterial")}
                 />
-                <div className={styles.qtyRow}>
+                <div className={styles.qtyUnit}>
                   <input
                     className="ui-input"
                     inputMode="decimal"
-                    placeholder={mat ? `${t("common.qty")}, ${mat.storageSymbol}` : t("common.qty")}
+                    placeholder={t("common.qty")}
+                    aria-label={t("common.qty")}
                     value={row.quantity}
                     onChange={(e) => {
                       const q = e.target.value;
                       setRows((prev) => prev.map((r, i) => (i === index ? { ...r, quantity: q } : r)));
                     }}
+                  />
+                  <AppSelect
+                    value={row.unitId}
+                    onChange={(value) => {
+                      setRows((prev) => prev.map((r, i) => (i === index ? { ...r, unitId: value } : r)));
+                    }}
+                    options={unitOptions}
+                    aria-label={t("common.unit")}
                   />
                   {rows.length > 1 ? (
                     <button
@@ -314,8 +319,7 @@ export function ProductCreateWizard({
                   ) : null}
                 </div>
               </li>
-            );
-          })}
+          ))}
         </ul>
 
         <button
@@ -342,7 +346,7 @@ export function ProductCreateWizard({
       <div className={styles.priceBlock}>
         <p className={styles.blockTitle}>{t("products.groupStock")}</p>
         <div className={styles.priceGrid}>
-          <FormField label={t("products.salePriceShort")} required className={styles.priceField}>
+          <FormField label={t("products.salePriceShort")} required className={styles.priceFieldFull}>
             <input
               className="ui-input"
               inputMode="decimal"
@@ -352,17 +356,7 @@ export function ProductCreateWizard({
               required
             />
           </FormField>
-          <FormField label={t("products.minPriceShort")} required className={styles.priceField}>
-            <input
-              className="ui-input"
-              inputMode="decimal"
-              value={minPrice}
-              placeholder={expense ? moneyDisplay(expense) : t("products.phMinPrice")}
-              onChange={(e) => setMinPrice(e.target.value)}
-              required
-            />
-          </FormField>
-          <FormField label={t("products.laborRate")} hint={t("products.laborRateHint")} className={styles.priceFieldFull}>
+          <FormField label={t("products.laborRate")} className={styles.priceFieldFull}>
             <input
               className="ui-input"
               inputMode="decimal"
@@ -372,7 +366,6 @@ export function ProductCreateWizard({
             />
           </FormField>
         </div>
-        <p className={styles.priceNote}>{t("products.pricePairHint")}</p>
       </div>
 
       <button type="submit" className={`ui-btn-primary ${styles.saveBtn}`} disabled={pending}>

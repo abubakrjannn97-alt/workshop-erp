@@ -936,8 +936,17 @@
 
 @media (max-width: 1023px) {
   .page {
-    gap: 16px;
+    gap: 8px;
     max-width: none;
+  }
+
+  .navRow {
+    gap: 0;
+    margin: 0;
+  }
+
+  .salesKpis {
+    gap: 6px;
   }
 
   .headerMain {

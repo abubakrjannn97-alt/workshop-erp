@@ -152,22 +152,18 @@
 .recipeRow {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px;
+  gap: 6px;
+  padding: 8px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface);
 }
 
-.qtyRow {
-  display: flex;
-  gap: 8px;
+.qtyUnit {
+  display: grid;
+  grid-template-columns: 1fr minmax(72px, 88px) auto;
+  gap: 6px;
   align-items: center;
-}
-
-.qtyRow .ui-input,
-.qtyRow :global(.ui-input) {
-  flex: 1;
 }
 
 .removeBtn {
@@ -234,8 +230,8 @@
 
 .priceGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: 1fr;
+  gap: 8px;
   align-items: start;
 }
 
@@ -271,10 +267,4 @@
 .saveBtn {
   width: 100%;
   min-height: 44px;
-}
-
-@media (max-width: 389px) {
-  .priceGrid {
-    grid-template-columns: 1fr;
-  }
 }

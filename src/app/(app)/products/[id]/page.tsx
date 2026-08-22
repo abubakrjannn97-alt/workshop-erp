@@ -1,12 +1,13 @@
-import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
+import { getTranslator } from "@core/shared/i18n/locale";
 import { notFound } from "next/navigation";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, canSeeMaterialCost } from "@core/auth/authz";
 import { updateProduct } from "@/app/actions/products";
 import { materialCostForRecipe } from "@core/costing/costing";
-import { D, moneyDisplay } from "@core/shared/decimal";
+import { D } from "@core/shared/decimal";
 import { RecipeEditor } from "./recipe-editor";
 import { NeedPreview } from "./need-preview";
+import { FoldSection } from "./fold-section";
 import { FormField } from "@/components/form-field";
 import { HeaderBackButton } from "@/components/header-back-button";
 import { AppSelect } from "@/components/app-select";
@@ -62,13 +63,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         <div className={`${styles.sectionBody} ${catalogStyles.sectionTightBody}`}>
           <form action={updateProduct} className={catalogStyles.paramForm} data-tour="products-form">
             <input type="hidden" name="id" value={product.id} />
-            <input type="hidden" name="price" value={currentPrice?.price.toString() ?? "0"} />
-
             <div className={`${catalogStyles.paramGroup} ${catalogStyles.paramGroupMain}`}>
               <p className={catalogStyles.paramGroupTitle}>{t("products.groupBasic")}</p>
               <div className={catalogStyles.paramRow}>
                 <FormField label={t("common.name")}>
-                  <input name="name" defaultValue={product.name} disabled={!canManage} className="ui-input" />
+                  <input name="name" defaultValue={product.name} disabled={!canManage} maxLength={40} className="ui-input" />
                 </FormField>
                 <FormField label={t("common.category")}>
                   <input name="category" defaultValue={product.category} disabled={!canManage} className="ui-input" />
@@ -97,7 +96,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 </FormField>
               </div>
               <div className={catalogStyles.paramRow}>
-                <FormField label={t("products.recipeBaseSimple")} hint={t("products.tipRecipe")}>
+                <FormField label={t("products.recipeBaseSimple")}>
                   <input
                     name="recipeBaseQty"
                     defaultValue={product.recipeBaseQty.toString()}
@@ -107,12 +106,12 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                     inputMode="decimal"
                   />
                 </FormField>
-                <FormField label={t("products.outputSimple")} hint={t("products.tipOutput")}>
+                <FormField label={t("products.outputSimple")}>
                   <input
                     name="outputPerBase"
                     defaultValue={product.outputPerBase.toString()}
                     disabled={!canManage}
-                    placeholder="10"
+                    placeholder="1"
                     className="ui-input"
                     inputMode="decimal"
                   />
@@ -122,18 +121,21 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
             <div className={`${catalogStyles.paramGroup} ${catalogStyles.paramGroupStock}`}>
               <p className={catalogStyles.paramGroupTitle}>{t("products.groupStock")}</p>
-              <div className={catalogStyles.paramRow}>
-                <FormField label={t("products.minPriceShort")} hint={t("products.minPriceHint")}>
+              <input type="hidden" name="maxStock" value={product.maxStock.toString()} />
+              <div className={`${catalogStyles.paramRow} ${catalogStyles.paramRowOne}`}>
+                <FormField label={t("products.salePriceShort")}>
                   <input
-                    name="minPrice"
-                    defaultValue={product.minPrice.toString()}
+                    name="price"
+                    defaultValue={currentPrice?.price.toString() ?? "0"}
                     disabled={!canManage}
                     placeholder="0"
                     className="ui-input"
                     inputMode="decimal"
                   />
                 </FormField>
-                <FormField label={t("products.laborRate")} hint={t("products.laborRateHint")}>
+              </div>
+              <div className={catalogStyles.paramRow}>
+                <FormField label={t("products.laborRate")}>
                   <input
                     name="laborRate"
                     defaultValue={product.laborRate.toString()}
@@ -143,22 +145,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                     inputMode="decimal"
                   />
                 </FormField>
-              </div>
-              <div className={catalogStyles.paramRow}>
-                <FormField label={t("products.minStockSimple")} hint={t("products.minStockHint")}>
+                <FormField label={t("products.minStockSimple")}>
                   <input
                     name="minStock"
                     defaultValue={product.minStock.toString()}
-                    disabled={!canManage}
-                    placeholder="0"
-                    className="ui-input"
-                    inputMode="decimal"
-                  />
-                </FormField>
-                <FormField label={t("products.maxStockSimple")} hint={t("products.maxStockHint")}>
-                  <input
-                    name="maxStock"
-                    defaultValue={product.maxStock.toString()}
                     disabled={!canManage}
                     placeholder="0"
                     className="ui-input"
@@ -178,71 +168,35 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       </section>
 
       {cost || D(String(product.laborRate)).gt(0) ? (
-        <section className={styles.section}>
-          <div className={`${styles.sectionBody} ${catalogStyles.sectionTightBody}`}>
-            <NeedPreview
-              lines={(cost?.lines ?? []).map((l) => ({
-                materialName: l.materialName,
-                quantity: l.quantity,
-                unitSymbol: l.unitSymbol,
-                lineCost: canSeeCost ? l.lineCost : null,
-              }))}
-              saleSymbol={product.saleUnit.symbol}
-              recipeBaseQty={product.recipeBaseQty.toString()}
-              laborRate={product.laborRate.toString()}
-              locale={locale}
-              showCosts={canSeeCost}
-            />
-          </div>
-        </section>
+        <FoldSection title={t("products.costPerM2", { u: product.saleUnit.symbol })}>
+          <NeedPreview
+            hideTitle
+            lines={(cost?.lines ?? []).map((l) => ({
+              materialName: l.materialName,
+              quantity: l.quantity,
+              unitSymbol: l.unitSymbol,
+              lineCost: canSeeCost ? l.lineCost : null,
+            }))}
+            saleSymbol={product.saleUnit.symbol}
+            recipeBaseQty={product.recipeBaseQty.toString()}
+            laborRate={product.laborRate.toString()}
+            locale={locale}
+            showCosts={canSeeCost}
+          />
+        </FoldSection>
       ) : null}
 
-      <section className={styles.section}>
-        <div className={styles.sectionHead}><h2 className={styles.sectionTitle}>{t("products.recipe")}</h2></div>
-        <div className={styles.sectionBody}>
-          <p style={{ fontSize: 12, color: "var(--ink-3)", margin: "0 0 8px" }}>{t("products.recipeHint")}</p>
-          {currentVersion ? (
-            <p style={{ fontSize: 13, color: "var(--ink-2)" }}>{t("products.currentVer")}: V{currentVersion.versionNumber} · {currentVersion.validFrom.toLocaleDateString(intlLocale(locale))}</p>
-          ) : null}
-          {canRecipe ? (
-            <div style={{ marginTop: 14 }}>
-              <RecipeEditor
-                productId={product.id}
-                materials={materials.map((m) => ({ id: m.id, name: m.name }))}
-                units={units.map((u) => ({ id: u.id, name: u.name, extra: u.symbol }))}
-                initial={currentVersion?.items.map((item) => ({ materialId: item.materialId, quantity: item.quantity.toString(), unitId: item.unitId })) ?? []}
-                locale={locale}
-              />
-            </div>
-          ) : null}
-          <div style={{ marginTop: 20 }}>
-            {product.recipe?.versions.map((version) => (
-              <div key={version.id} style={{ padding: "8px 12px", marginBottom: 6, borderRadius: 8, background: "var(--surface-2)", fontSize: 12, color: "var(--ink-3)" }}>
-                V{version.versionNumber}: {version.validFrom.toLocaleDateString(intlLocale(locale))}
-                {version.validTo ? ` — ${version.validTo.toLocaleDateString(intlLocale(locale))}` : ` — ${t("common.active")}`}
-                {version.comment ? ` · ${version.comment}` : ""}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <div className={styles.sectionHead}><h2 className={styles.sectionTitle}>{t("products.priceHistory")}</h2></div>
-        <div className={styles.sectionBody}>
-          <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-            {product.prices.map((row) => (
-              <li key={row.id} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--line)", fontSize: 13 }}>
-                <span style={{ color: "var(--ink-2)" }}>
-                  {row.validFrom.toLocaleDateString(intlLocale(locale))}
-                  {row.validTo ? ` — ${row.validTo.toLocaleDateString(intlLocale(locale))}` : ` — ${t("common.active")}`}
-                </span>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 600 }}>{moneyDisplay(row.price)} с</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
+      <FoldSection title={t("products.recipe")}>
+        {canRecipe ? (
+          <RecipeEditor
+            productId={product.id}
+            materials={materials.map((m) => ({ id: m.id, name: m.name }))}
+            units={units.map((u) => ({ id: u.id, name: u.name, extra: u.symbol }))}
+            initial={currentVersion?.items.map((item) => ({ materialId: item.materialId, quantity: item.quantity.toString(), unitId: item.unitId })) ?? []}
+            locale={locale}
+          />
+        ) : null}
+      </FoldSection>
     </div>
   );
 }

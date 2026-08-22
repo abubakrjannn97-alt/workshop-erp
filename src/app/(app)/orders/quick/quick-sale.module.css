@@ -14,6 +14,8 @@
   border-radius: 14px;
   background: #fff;
   box-shadow: 0 1px 6px rgba(28, 35, 43, 0.04);
+  overflow: visible;
+  isolation: isolate;
 }
 
 .lockHint {
@@ -242,7 +244,7 @@
 
 .customerWrap {
   position: relative;
-  z-index: 20;
+  z-index: 80;
 }
 
 .picker {
@@ -250,14 +252,15 @@
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  z-index: 40;
-  max-height: min(240px, 42vh);
+  z-index: 90;
+  max-height: min(280px, 50vh);
   overflow-y: auto;
-  padding: 6px;
+  overflow-x: hidden;
+  padding: 4px;
   border: 1px solid #e5e2dc;
   border-radius: 14px;
   background: #fff;
-  box-shadow: 0 12px 32px rgba(28, 35, 43, 0.16);
+  box-shadow: 0 16px 40px rgba(28, 35, 43, 0.22);
   scrollbar-width: none;
 }
 
@@ -318,6 +321,9 @@
   font-weight: 600;
   color: var(--ink);
   line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pickerPhone {
@@ -345,7 +351,7 @@
 
 .productWrap {
   position: relative;
-  z-index: 30;
+  z-index: 5;
 }
 
 .productTrigger {
@@ -472,6 +478,13 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+}
+
+.sumLocked {
+  background: #f6f5f2;
+  color: var(--ink);
+  cursor: pointer;
+  caret-color: transparent;
 }
 
 .payBlock {

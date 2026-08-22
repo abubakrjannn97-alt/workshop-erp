@@ -18,6 +18,7 @@ export function NeedPreview({
   laborRate,
   locale,
   showCosts = true,
+  hideTitle = false,
 }: {
   lines: Line[];
   saleSymbol: string;
@@ -25,6 +26,7 @@ export function NeedPreview({
   laborRate: string;
   locale: Locale;
   showCosts?: boolean;
+  hideTitle?: boolean;
 }) {
   const t = createT(locale);
   const base = (() => {
@@ -53,7 +55,7 @@ export function NeedPreview({
 
   return (
     <div className={styles.box}>
-      <p className={styles.title}>{t("products.costPerM2", { u: saleSymbol })}</p>
+      {hideTitle ? null : <p className={styles.title}>{t("products.costPerM2", { u: saleSymbol })}</p>}
       <ul className={styles.list}>
         {lines.map((line) => (
           <li key={line.materialName} className={styles.row}>

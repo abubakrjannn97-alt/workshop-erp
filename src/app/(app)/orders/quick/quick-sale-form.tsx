@@ -125,6 +125,7 @@ export function QuickSaleForm({
     moneyDisplay(D(products[0]?.ratePerUnit ?? products[0]?.price ?? "0")),
   );
   const [priceTouched, setPriceTouched] = useState(false);
+  const [sumUnlocked, setSumUnlocked] = useState(false);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [nextKey, setNextKey] = useState(1);
   const [payMode, setPayMode] = useState<PayMode>("paid");
@@ -198,6 +199,7 @@ export function QuickSaleForm({
     setProductId(id);
     setQuantity("1");
     setPriceTouched(false);
+    setSumUnlocked(false);
     if (p) setLineTotal(calcLineTotal(p, "1"));
     setProductOpen(false);
   }
@@ -231,6 +233,7 @@ export function QuickSaleForm({
     setProductId(p?.id ?? "");
     setQuantity("1");
     setPriceTouched(false);
+    setSumUnlocked(false);
     setLineTotal(p ? calcLineTotal(p, "1") : "");
   }
 
@@ -333,7 +336,10 @@ export function QuickSaleForm({
               <button
                 type="button"
                 className={styles.pickLink}
-                onClick={() => setPickerOpen((v) => !v)}
+                onClick={() => {
+                  setProductOpen(false);
+                  setPickerOpen((v) => !v);
+                }}
               >
                 {labels.pickCustomer}
               </button>
@@ -493,13 +499,26 @@ export function QuickSaleForm({
           <FormField label={labels.unitPrice} required className={styles.field}>
             <input
               required
-              className="ui-input"
-              inputMode="decimal"
+              className={`ui-input ${sumUnlocked ? "" : styles.sumLocked}`}
+              inputMode={sumUnlocked ? "decimal" : "none"}
               autoComplete="off"
+              readOnly={!sumUnlocked}
               value={lineTotal}
-              onFocus={() => setPriceTouched(true)}
-              onChange={(e) => onLineTotalChange(e.target.value)}
-              onInput={(e) => onLineTotalChange((e.target as HTMLInputElement).value)}
+              onClick={() => {
+                setSumUnlocked(true);
+                setPriceTouched(true);
+              }}
+              onFocus={() => {
+                if (sumUnlocked) setPriceTouched(true);
+              }}
+              onChange={(e) => {
+                if (!sumUnlocked) return;
+                onLineTotalChange(e.target.value);
+              }}
+              onInput={(e) => {
+                if (!sumUnlocked) return;
+                onLineTotalChange((e.target as HTMLInputElement).value);
+              }}
             />
           </FormField>
         </div>

@@ -1,15 +1,15 @@
 .metricGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .metricCard {
   display: flex;
-  min-height: 96px;
+  min-height: 0;
   flex-direction: column;
-  gap: 4px;
-  padding: 12px;
+  gap: 2px;
+  padding: 8px 8px 7px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--surface);
@@ -24,12 +24,7 @@
 }
 
 .metricIcon {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  flex-shrink: 0;
-  place-items: center;
-  border-radius: 12px;
+  display: none;
 }
 
 .metricGold .metricIcon {
@@ -55,20 +50,23 @@
 .metricLabel {
   margin: 0;
   min-width: 0;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 16px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 14px;
   color: var(--ink-2);
 }
 
 .metricValue {
   margin: 2px 0 0;
-  font-size: 24px;
+  font-size: 15px;
   font-weight: 700;
-  line-height: 28px;
+  line-height: 18px;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .metricHint {
@@ -629,15 +627,16 @@
 @media (min-width: 1024px) {
   .metricGrid {
     max-width: 560px;
-    gap: 10px;
+    gap: 8px;
   }
 
   .metricCard {
-    min-height: 104px;
+    min-height: 72px;
+    padding: 10px;
   }
 
   .metricValue {
-    font-size: 24px;
-    line-height: 28px;
+    font-size: 18px;
+    line-height: 22px;
   }
 }

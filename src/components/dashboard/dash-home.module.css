@@ -57,7 +57,7 @@
 }
 
 .homeMobile {
-  gap: 14px;
+  gap: 8px;
   max-width: none;
   position: relative;
 }
@@ -324,7 +324,7 @@
 .kpiStripCompact {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 6px;
   padding: 0;
   align-items: stretch;
 }
@@ -344,10 +344,10 @@
   display: flex;
   width: 100%;
   height: 100%;
-  min-height: 118px;
+  min-height: 84px;
   flex-direction: column;
-  gap: 4px;
-  padding: 12px 10px 10px;
+  gap: 2px;
+  padding: 8px 8px 7px;
   overflow: hidden;
   border-radius: 16px;
   border: 1px solid rgba(232, 236, 241, 0.95);
@@ -368,8 +368,8 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 16px 16px 16px 14px;
+  gap: 8px;
+  padding: 8px 10px;
   background:
     linear-gradient(120deg, #fff8f1 0%, #ffffff 42%, #ffffff 100%);
   border-color: rgba(216, 137, 66, 0.18);
@@ -567,7 +567,7 @@
 }
 
 .panelMobileList .panelHead {
-  padding: 0 0 12px;
+  padding: 0 0 4px;
 }
 
 .panelMobileList .panelBody {
@@ -591,7 +591,7 @@
 }
 
 .panel.panelMobileList .panelHead {
-  padding: 0 0 12px;
+  padding: 0 0 4px;
 }
 
 .panel.panelMobileList .panelBodyFlush {
@@ -701,7 +701,7 @@
   max-width: 360px;
   margin-inline: auto;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 6px;
   overflow: visible;
   padding: 0;
   scroll-snap-type: none;
@@ -718,8 +718,8 @@
   flex: none;
   width: 100%;
   height: auto;
-  min-height: 108px;
-  padding: 14px 8px 12px;
+  min-height: 72px;
+  padding: 8px 6px 7px;
   border-radius: 18px;
   border: 1px solid rgba(232, 236, 241, 0.95);
   background:
@@ -987,7 +987,7 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 }
 
 /* Shared mobile glass card — KPI, orders */
@@ -1002,8 +1002,8 @@
 
 .orderCard {
   display: block;
-  padding: 14px 14px 12px;
-  min-height: 78px;
+  padding: 8px 10px;
+  min-height: 64px;
   border-radius: 18px;
   color: var(--ink);
   text-decoration: none;
@@ -1318,8 +1318,8 @@ a.row:hover .rowTitle {
   }
 
   .actionsMobileStrip .actionStrip {
-    min-height: 96px;
-    padding: 12px 6px 10px;
+    min-height: 68px;
+    padding: 8px 6px 7px;
   }
 
   .actionsMobileStrip .actionIcon {
