@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import pg from "pg";
+import { prisma } from "@core/infrastructure/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,31 +22,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const dbUrl = process.env.DATABASE_URL?.trim();
-  if (!dbUrl) {
-    return NextResponse.json({ error: "no_database_url" }, { status: 503 });
-  }
-
-  const client = new pg.Client({
-    connectionString: dbUrl,
-    ssl: dbUrl.includes("sslmode=require") ? { rejectUnauthorized: false } : undefined,
-  });
-
   try {
-    await client.connect();
     for (const sql of PATCHES) {
-      await client.query(sql);
+      await prisma.$executeRawUnsafe(sql);
     }
-    const sample = await client.query(
-      `SELECT id, "laborRate", "minStock", "maxStock" FROM "products" LIMIT 1`,
-    );
-    return NextResponse.json({ ok: true, sample: sample.rows[0] ?? null });
+    const sample = await prisma.product.findFirst({
+      select: { id: true, laborRate: true, minStock: true, maxStock: true },
+    });
+    return NextResponse.json({ ok: true, sample });
   } catch (err) {
     return NextResponse.json(
       { error: "patch_failed", detail: err instanceof Error ? err.message : String(err) },
       { status: 500 },
     );
-  } finally {
-    await client.end().catch(() => undefined);
   }
 }
