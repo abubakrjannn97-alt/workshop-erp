@@ -32,6 +32,73 @@
   min-width: 0;
 }
 
+.periodSeg {
+  width: 100%;
+  padding: 3px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.periodSeg :global(a.ui-seg-item) {
+  flex: 1;
+  min-height: 36px;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.periodSeg :global(a.ui-seg-item-on) {
+  box-shadow: 0 1px 4px rgba(28, 35, 43, 0.08);
+}
+
+.turnoverSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 14px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(166, 132, 64, 0.22);
+  background: linear-gradient(145deg, #fffaf2 0%, #ffffff 55%);
+  box-shadow: 0 4px 18px rgba(28, 35, 43, 0.05);
+}
+
+.turnoverHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.turnoverTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.turnoverRange {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.turnoverValue {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 750;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: #8a6628;
+}
+
 /* Hero result */
 .hero {
   display: flex;
@@ -589,7 +656,28 @@
 
 @media (max-width: 767px) {
   .summaryRow {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .summaryCard {
+    padding: 10px 8px;
+  }
+
+  .summaryValue {
+    font-size: 14px;
+  }
+
+  .summaryLabel {
+    font-size: 10px;
+  }
+
+  .summaryMeta {
+    font-size: 9px;
+  }
+
+  .turnoverValue {
+    font-size: 28px;
   }
 }
 

@@ -1,5 +1,6 @@
 import { requireSession } from "@core/auth/authz";
 import { refreshOwnerAlerts } from "@core/inventory/alerts";
+import { getShellData } from "@core/infrastructure/shell-data";
 import { getTranslator } from "@core/shared/i18n/locale";
 import {
   DashOwnerHomeBody,
@@ -16,8 +17,11 @@ import styles from "@/components/dashboard/dash-home.module.css";
  * Only wrapper class differs for desktop max-width / centering.
  */
 export async function DesktopHome() {
-  await requireSession();
-  const { t, n } = await getTranslator();
+  const session = await requireSession();
+  const [{ t, n, locale }, shell] = await Promise.all([
+    getTranslator(),
+    getShellData(session.user.id),
+  ]);
 
   const snapshots = await fetchOwnerDashboardSnapshots(t, n);
   await refreshOwnerAlerts();
@@ -39,6 +43,8 @@ export async function DesktopHome() {
         emptyOrders={t("crm.noOrders")}
         ordersPeriodHref="/orders?period=month"
         viewAllOrdersLabel={t("home.viewAllOrders")}
+        unread={shell.unread}
+        locale={locale}
         quickActions={
           <DashSection title={t("home.quickActions")} tour="home-shortcuts" flush mobileList>
             <DashQuickActions actions={ownerMobileQuickActions(t)} layout="mobileStrip" />

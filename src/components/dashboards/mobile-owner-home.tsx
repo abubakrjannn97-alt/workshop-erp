@@ -1,4 +1,5 @@
 import { requireSession } from "@core/auth/authz";
+import { getShellData } from "@core/infrastructure/shell-data";
 import { getTranslator } from "@core/shared/i18n/locale";
 import {
   DashOwnerHomeBody,
@@ -11,8 +12,11 @@ import { fetchOwnerDashboardSnapshots } from "@/components/dashboard/owner-kpi-d
 import styles from "@/components/dashboard/dash-home.module.css";
 
 export async function MobileOwnerHome() {
-  await requireSession();
-  const { t, n } = await getTranslator();
+  const session = await requireSession();
+  const [{ t, n, locale }, shell] = await Promise.all([
+    getTranslator(),
+    getShellData(session.user.id),
+  ]);
 
   const snapshots = await fetchOwnerDashboardSnapshots(t, n);
 
@@ -33,6 +37,8 @@ export async function MobileOwnerHome() {
         emptyOrders={t("crm.noOrders")}
         ordersPeriodHref="/orders?period=month"
         viewAllOrdersLabel={t("home.viewAllOrders")}
+        unread={shell.unread}
+        locale={locale}
         quickActions={
           <DashSection title={t("home.quickActions")} tour="home-shortcuts" flush mobileList>
             <DashQuickActions actions={ownerMobileQuickActions(t)} layout="mobileStrip" />

@@ -1,5 +1,7 @@
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
+import { ChevronLeft } from "lucide-react";
 import { BackButton } from "@/components/back-button";
+import { ICON_STROKE } from "@/components/nav-icons";
 
 export function PageHeader({
   title,
@@ -25,7 +27,15 @@ export function PageHeader({
       {actions || meta || backHref ? (
         <div className="page-header-actions">
           {backHref && backLabel ? (
-            <BackButton href={backHref} label={backLabel} className="ui-header-icon max-lg:hidden" />
+            <Suspense
+              fallback={
+                <button type="button" className="ui-header-icon max-lg:hidden" aria-hidden tabIndex={-1}>
+                  <ChevronLeft size={22} strokeWidth={ICON_STROKE} aria-hidden />
+                </button>
+              }
+            >
+              <BackButton href={backHref} label={backLabel} className="ui-header-icon max-lg:hidden" />
+            </Suspense>
           ) : null}
           {meta}
           {actions}

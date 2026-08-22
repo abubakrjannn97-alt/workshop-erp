@@ -2,17 +2,15 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
-import { NotificationBell } from "@/components/notification-bell";
+import { WorkshopMark } from "@/components/workshop-mark";
 import { MobileHeaderMenu } from "@/components/mobile-header-menu";
 import { MobileHeaderNavSlot } from "@/components/mobile-header-nav-slot";
-import { WorkshopMark } from "@/components/workshop-mark";
 import { bottomTabsForRole, tabHrefSet } from "@core/shared/nav";
 import type { Locale } from "@core/shared/i18n/i18n";
 import { createT } from "@core/shared/i18n/i18n";
 import styles from "./app-shell-mobile-header.module.css";
 
 export function AppShellMobileHeader({
-  unread,
   locale,
   userName,
   roleName,
@@ -20,7 +18,6 @@ export function AppShellMobileHeader({
   permissions,
   workerShell = false,
 }: {
-  unread: number;
   locale: Locale;
   userName: string;
   roleName: string;
@@ -30,6 +27,7 @@ export function AppShellMobileHeader({
 }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const isHome = pathname === "/";
   const tabRoots = useMemo(
     () => tabHrefSet(bottomTabsForRole(roleCode, permissions)),
     [roleCode, permissions],
@@ -41,6 +39,8 @@ export function AppShellMobileHeader({
   }, [pathname]);
 
   const isWorker = workerShell;
+
+  if (isHome) return null;
 
   return (
     <>
@@ -61,7 +61,7 @@ export function AppShellMobileHeader({
           </div>
         </div>
         <div className={styles.actions}>
-          {!isWorker ? <NotificationBell unread={unread} locale={locale} /> : null}
+          <span className={styles.menuSpacer} aria-hidden />
         </div>
       </header>
       {!isWorker ? (

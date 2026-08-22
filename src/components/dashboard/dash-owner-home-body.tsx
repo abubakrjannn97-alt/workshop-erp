@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { Trash2, Layers } from "lucide-react";
+import { NotificationBell } from "@/components/notification-bell";
 import { DashHomePeriodPicker } from "./dash-home-period-picker";
 import { DashMetricStrip } from "./dash-metrics";
 import { DashProfitHero } from "./dash-profit-hero";
 import { DashRecentOrdersSerialized } from "./dash-recent-orders";
 import type { HomeProfitPeriod, OwnerDashboardSnapshots } from "./owner-kpi-data";
+import type { Locale } from "@core/shared/i18n/i18n";
 import styles from "./dash-home.module.css";
 
 export function DashOwnerHomeBody({
@@ -22,6 +24,8 @@ export function DashOwnerHomeBody({
   ordersPeriodHref,
   viewAllOrdersLabel,
   quickActions,
+  unread = 0,
+  locale,
 }: {
   snapshots: OwnerDashboardSnapshots;
   greetingTitle: string;
@@ -34,6 +38,8 @@ export function DashOwnerHomeBody({
   ordersPeriodHref: string;
   viewAllOrdersLabel: string;
   quickActions?: ReactNode;
+  unread?: number;
+  locale: Locale;
 }) {
   const [period, setPeriod] = useState<HomeProfitPeriod>("today");
   const data = snapshots[period];
@@ -42,12 +48,17 @@ export function DashOwnerHomeBody({
     <>
       <div className={styles.homeTopBar}>
         <h1 className={styles.homeTopBarTitle}>{greetingTitle}</h1>
-        <DashHomePeriodPicker
-          period={period}
-          onPeriodChange={setPeriod}
-          periodLabels={periodLabels}
-          inline
-        />
+        <div className={styles.homeTopBarCenter}>
+          <DashHomePeriodPicker
+            period={period}
+            onPeriodChange={setPeriod}
+            periodLabels={periodLabels}
+            inline
+          />
+        </div>
+        <div className={styles.homeTopBarBell}>
+          <NotificationBell unread={unread} locale={locale} />
+        </div>
       </div>
 
       <DashProfitHero

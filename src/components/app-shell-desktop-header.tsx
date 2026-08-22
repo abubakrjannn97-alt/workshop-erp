@@ -5,7 +5,6 @@ import { HeaderBackButton } from "@/components/header-back-button";
 import { HeaderSearch } from "@/components/header-search";
 import { HelpHeaderLink } from "@/components/help-guide";
 import { LanguageSwitcher } from "@/components/language-switcher";
-import { NotificationBell } from "@/components/notification-bell";
 import { isNestedShellPath, shellPageContext } from "@/components/shell-page-context";
 import type { Locale } from "@core/shared/i18n/i18n";
 import { createT } from "@core/shared/i18n/i18n";
@@ -23,13 +22,11 @@ function initialsOf(name: string) {
 export function AppShellDesktopHeader({
   userName,
   roleName,
-  unread,
   locale,
   workerShell = false,
 }: {
   userName: string;
   roleName: string;
-  unread: number;
   locale: Locale;
   workerShell?: boolean;
 }) {
@@ -51,7 +48,6 @@ export function AppShellDesktopHeader({
         </div>
       ) : null}
       <div className={styles.actions}>
-        {!workerShell ? <NotificationBell unread={unread} locale={locale} /> : null}
         {!workerShell ? <HelpHeaderLink locale={locale} /> : null}
         <LanguageSwitcher locale={locale} />
         <div className={styles.user}>

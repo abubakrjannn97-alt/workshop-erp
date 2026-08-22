@@ -48,7 +48,6 @@ export function AppShell({
         <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden lg:bg-transparent">
           <div className="z-[110] shrink-0 print:hidden lg:hidden">
             <AppShellMobileHeader
-              unread={unread}
               locale={locale}
               userName={userName}
               roleName={roleName}
@@ -62,7 +61,6 @@ export function AppShell({
             <AppShellDesktopHeader
               userName={userName}
               roleName={roleName}
-              unread={unread}
               locale={locale}
               workerShell={workerShell}
             />

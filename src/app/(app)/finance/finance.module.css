@@ -414,44 +414,54 @@
 }
 
 .debtsTabs {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  padding: 4px;
-  border-radius: 14px;
+  display: flex;
+  gap: 6px;
+  padding: 3px;
+  border-radius: 12px;
   border: 1px solid var(--line);
   background: var(--surface-2);
 }
 
 .debtsTab {
-  display: flex;
-  min-height: 44px;
-  flex-direction: column;
+  display: inline-flex;
+  min-height: 38px;
+  flex: 1;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  padding: 8px 10px;
+  gap: 6px;
+  padding: 0 10px;
   border: 0;
-  border-radius: 10px;
+  border-radius: 9px;
   background: transparent;
   font-size: 13px;
   font-weight: 650;
   color: var(--ink-2);
   cursor: pointer;
-  transition: background 0.12s, color 0.12s;
+  transition: background 0.12s, color 0.12s, box-shadow 0.12s;
+  white-space: nowrap;
 }
 
 .debtsTabActive {
   background: var(--surface);
   color: var(--ink);
-  box-shadow: 0 1px 4px rgba(28, 35, 43, 0.06);
+  box-shadow: 0 1px 3px rgba(28, 35, 43, 0.06);
 }
 
-.debtsTabBadge {
-  font-size: 12px;
+.debtsTabCount {
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(28, 35, 43, 0.06);
+  font-size: 11px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: var(--bad, #b42318);
+  line-height: 18px;
+  color: var(--ink-3);
+}
+
+.debtsTabActive .debtsTabCount {
+  background: rgba(28, 35, 43, 0.08);
+  color: var(--ink-2);
 }
 
 .debtDetailList {
@@ -464,10 +474,19 @@
 }
 
 .debtDetailCard {
+  display: block;
   padding: 12px 14px;
   border-radius: 12px;
   border: 1px solid var(--line);
   background: var(--surface-2);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.debtDetailCard:hover {
+  border-color: var(--line-strong, var(--line));
+  background: var(--surface);
 }
 
 .debtDetailHead {
@@ -509,10 +528,10 @@
 }
 
 .debtLine {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  gap: 8px;
+  display: flex;
   align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
   font-size: 12px;
 }
 

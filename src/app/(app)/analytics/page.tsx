@@ -160,11 +160,11 @@ export default async function AnalyticsPage({
     <div className={styles.page}>
       <header className={styles.header}>
         <h1 className={styles.title}>{t("page.analytics")}</h1>
-        <p className={styles.period}>{rangeLabel}</p>
       </header>
 
       <div className={styles.periodWrap} data-tour="an-period">
         <Segmented
+          className={styles.periodSeg}
           aria-label={t("orders.period")}
           items={[
             { href: "/analytics?period=today", label: t("orders.periodToday"), active: period === "today" },
@@ -175,10 +175,38 @@ export default async function AnalyticsPage({
         />
       </div>
 
-      <section className={`${styles.hero} ${styles.heroGold}`} data-tour="an-turnover">
-        <p className={styles.heroLabel}>{t("an.workshopTurnover")}</p>
-        <p className={styles.heroValue}>{moneyDisplay(sold)} с</p>
-        <p className={styles.heroSub}>{rangeLabel}</p>
+      <section className={styles.turnoverSection} data-tour="an-turnover">
+        <div className={styles.turnoverHead}>
+          <h2 className={styles.turnoverTitle}>{t("an.workshopTurnover")}</h2>
+          <p className={styles.turnoverRange}>{rangeLabel}</p>
+        </div>
+        <p className={styles.turnoverValue}>{moneyDisplay(sold)} с</p>
+
+        <div className={styles.summaryRow} data-tour="an-summary">
+          <article className={`${styles.summaryCard} ${netPositive ? styles.summaryOk : styles.summaryBad}`}>
+            <p className={styles.summaryLabel}>{t("an.net")}</p>
+            <p className={styles.summaryValue}>{moneyDisplay(net)} с</p>
+            <p className={styles.summaryMeta}>{netPositive ? t("an.netOkSub") : t("an.netBadSub")}</p>
+          </article>
+          <article className={`${styles.summaryCard} ${styles.summaryMuted}`}>
+            <p className={styles.summaryLabel}>{t("an.totalExpenses")}</p>
+            <p className={styles.summaryValue}>{moneyDisplay(totalExpenses)} с</p>
+            <p className={styles.summaryMeta}>{rangeLabel}</p>
+          </article>
+          <article className={`${styles.summaryCard} ${styles.summaryScrap}`}>
+            <p className={styles.summaryLabel}>{t("an.scrapMonth")}</p>
+            <p className={styles.summaryValue}>{qtyDisplay(scrapQty)} м²</p>
+            <p className={styles.summaryMeta}>
+              {scrapCost.gt(0) ? (
+                <>
+                  {t("an.scrapDamage")}: <strong>{moneyDisplay(scrapCost)} с</strong>
+                </>
+              ) : (
+                t("an.scrapNone")
+              )}
+            </p>
+          </article>
+        </div>
       </section>
 
       <section className={styles.card}>
@@ -216,32 +244,6 @@ export default async function AnalyticsPage({
           </Link>
         </div>
       </section>
-
-      <div className={styles.summaryRow} data-tour="an-summary">
-        <article className={`${styles.summaryCard} ${netPositive ? styles.summaryOk : styles.summaryBad}`}>
-          <p className={styles.summaryLabel}>{t("an.net")}</p>
-          <p className={styles.summaryValue}>{moneyDisplay(net)} с</p>
-          <p className={styles.summaryMeta}>{netPositive ? t("an.netOkSub") : t("an.netBadSub")}</p>
-        </article>
-        <article className={`${styles.summaryCard} ${styles.summaryMuted}`}>
-          <p className={styles.summaryLabel}>{t("an.totalExpenses")}</p>
-          <p className={styles.summaryValue}>{moneyDisplay(totalExpenses)} с</p>
-          <p className={styles.summaryMeta}>{rangeLabel}</p>
-        </article>
-        <article className={`${styles.summaryCard} ${styles.summaryScrap}`}>
-          <p className={styles.summaryLabel}>{t("an.scrapMonth")}</p>
-          <p className={styles.summaryValue}>{qtyDisplay(scrapQty)} м²</p>
-          <p className={styles.summaryMeta}>
-            {scrapCost.gt(0) ? (
-              <>
-                {t("an.scrapDamage")}: <strong>{moneyDisplay(scrapCost)} с</strong>
-              </>
-            ) : (
-              t("an.scrapNone")
-            )}
-          </p>
-        </article>
-      </div>
 
       {scraps.length > 0 ? (
         <section className={styles.card}>

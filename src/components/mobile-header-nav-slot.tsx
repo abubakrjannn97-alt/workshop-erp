@@ -1,9 +1,8 @@
 "use client";
 
 import { Suspense } from "react";
-import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
-import { BackButton } from "@/components/back-button";
+import { usePathname, useRouter } from "next/navigation";
+import { ChevronLeft, Menu, X } from "lucide-react";
 import { useNavBackTarget } from "@/components/use-nav-back-target";
 import { ICON_STROKE } from "@/components/nav-icons";
 import { resolveBackHref } from "@core/shared/back-nav";
@@ -25,16 +24,20 @@ function MobileHeaderNavSlotInner({
   onMenuToggle: () => void;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const fallback = resolveBackHref(pathname, { tabRoots });
   const backTarget = useNavBackTarget(fallback, { tabRoots });
 
   if (backTarget) {
     return (
-      <BackButton
-        href={fallback ?? backTarget}
-        label={backLabel}
+      <button
+        type="button"
         className={styles.menuBtn}
-      />
+        aria-label={backLabel}
+        onClick={() => router.push(backTarget)}
+      >
+        <ChevronLeft size={20} strokeWidth={ICON_STROKE} aria-hidden />
+      </button>
     );
   }
 

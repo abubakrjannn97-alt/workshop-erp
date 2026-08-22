@@ -60,6 +60,7 @@
   gap: 8px;
   max-width: none;
   position: relative;
+  padding-top: max(var(--safe-top), 10px);
 }
 
 .homeMobile .homeTopBar {
@@ -373,9 +374,9 @@
 /* ─── Home top bar: greeting + period on one line ─── */
 
 .homeTopBar {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
   width: 100%;
   margin: 0;
@@ -385,13 +386,27 @@
 .homeTopBarTitle {
   margin: 0;
   min-width: 0;
-  flex: 1;
+  justify-self: start;
   font-family: var(--font-sans);
   font-size: 17px;
   font-weight: 600;
   line-height: 22px;
   letter-spacing: -0.01em;
   color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.homeTopBarCenter {
+  justify-self: center;
+  flex-shrink: 0;
+}
+
+.homeTopBarBell {
+  display: flex;
+  justify-self: end;
+  flex-shrink: 0;
 }
 
 .homeDesktop .homeTopBarTitle {

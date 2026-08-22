@@ -2,16 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { moneyDisplay, D } from "@core/shared/decimal";
+import { moneyDisplay } from "@core/shared/decimal";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
 import styles from "./finance.module.css";
 
-export type DebtLine = { label: string; detail: string; amount?: string };
+export type DebtLine = { label: string; detail: string };
 
 export type CustomerDebtRow = {
   id: string;
   name: string;
-  number: string;
+  orderLabel: string;
   debt: string;
   lines: DebtLine[];
 };
@@ -21,7 +21,6 @@ export type SupplierDebtRow = {
   supplierName: string;
   orderNo: string;
   debt: string;
-  total: string;
   lines: DebtLine[];
 };
 
@@ -52,8 +51,8 @@ export function FinanceDebtsView({
           onClick={() => setTab("customers")}
         >
           {t("fin.theyOweUs")}
-          {D(customerTotal).gt(0) ? (
-            <span className={styles.debtsTabBadge}>{moneyDisplay(customerTotal)} с</span>
+          {customerDebts.length > 0 ? (
+            <span className={styles.debtsTabCount}>{customerDebts.length}</span>
           ) : null}
         </button>
         <button
@@ -64,8 +63,8 @@ export function FinanceDebtsView({
           onClick={() => setTab("suppliers")}
         >
           {t("an.weOwe")}
-          {D(supplierTotal).gt(0) ? (
-            <span className={styles.debtsTabBadge}>{moneyDisplay(supplierTotal)} с</span>
+          {supplierDebts.length > 0 ? (
+            <span className={styles.debtsTabCount}>{supplierDebts.length}</span>
           ) : null}
         </button>
       </div>
@@ -85,29 +84,26 @@ export function FinanceDebtsView({
             ) : (
               <ul className={styles.debtDetailList}>
                 {customerDebts.map((row) => (
-                  <li key={row.id} className={styles.debtDetailCard}>
-                    <div className={styles.debtDetailHead}>
-                      <div className={styles.debtDetailMain}>
-                        <Link href={`/orders/${row.id}`} className={styles.debtLinkName}>
-                          {row.name}
-                        </Link>
-                        <span className={styles.tdMuted}>#{row.number}</span>
+                  <li key={row.id}>
+                    <Link href={`/orders/${row.id}`} className={styles.debtDetailCard}>
+                      <div className={styles.debtDetailHead}>
+                        <div className={styles.debtDetailMain}>
+                          <span className={styles.debtLinkName}>{row.name}</span>
+                          <span className={styles.tdMuted}>{row.orderLabel}</span>
+                        </div>
+                        <span className={styles.balanceValueBad}>{moneyDisplay(row.debt)} с</span>
                       </div>
-                      <span className={styles.balanceValueBad}>{moneyDisplay(row.debt)} с</span>
-                    </div>
-                    {row.lines.length > 0 ? (
-                      <ul className={styles.debtLines}>
-                        {row.lines.map((line, i) => (
-                          <li key={i} className={styles.debtLine}>
-                            <span className={styles.debtLineLabel}>{line.label}</span>
-                            <span className={styles.debtLineDetail}>{line.detail}</span>
-                            {line.amount ? (
-                              <span className={styles.debtLineAmount}>{moneyDisplay(line.amount)} с</span>
-                            ) : null}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
+                      {row.lines.length > 0 ? (
+                        <ul className={styles.debtLines}>
+                          {row.lines.map((line, i) => (
+                            <li key={i} className={styles.debtLine}>
+                              <span className={styles.debtLineLabel}>{line.label}</span>
+                              <span className={styles.debtLineDetail}>{line.detail}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -129,31 +125,26 @@ export function FinanceDebtsView({
             ) : (
               <ul className={styles.debtDetailList}>
                 {supplierDebts.map((row) => (
-                  <li key={row.id} className={styles.debtDetailCard}>
-                    <div className={styles.debtDetailHead}>
-                      <div className={styles.debtDetailMain}>
-                        <Link href={`/purchasing/${row.id}`} className={styles.debtLinkName}>
-                          {row.orderNo}
-                        </Link>
-                        <span className={styles.tdMuted}>{row.supplierName}</span>
-                      </div>
-                      <div className={styles.debtDetailRight}>
+                  <li key={row.id}>
+                    <Link href={`/purchasing/${row.id}`} className={styles.debtDetailCard}>
+                      <div className={styles.debtDetailHead}>
+                        <div className={styles.debtDetailMain}>
+                          <span className={styles.debtLinkName}>{row.orderNo}</span>
+                          <span className={styles.tdMuted}>{row.supplierName}</span>
+                        </div>
                         <span className={styles.balanceValueBad}>{moneyDisplay(row.debt)} с</span>
-                        <span className={styles.debtPaidHint}>
-                          {t("common.debt")} · {t("list.col.sum")} {moneyDisplay(row.total)} с
-                        </span>
                       </div>
-                    </div>
-                    {row.lines.length > 0 ? (
-                      <ul className={styles.debtLines}>
-                        {row.lines.map((line, i) => (
-                          <li key={i} className={styles.debtLine}>
-                            <span className={styles.debtLineLabel}>{line.label}</span>
-                            <span className={styles.debtLineDetail}>{line.detail}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
+                      {row.lines.length > 0 ? (
+                        <ul className={styles.debtLines}>
+                          {row.lines.map((line, i) => (
+                            <li key={i} className={styles.debtLine}>
+                              <span className={styles.debtLineLabel}>{line.label}</span>
+                              <span className={styles.debtLineDetail}>{line.detail}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </Link>
                   </li>
                 ))}
               </ul>

@@ -1120,7 +1120,7 @@ export const ru: Dict = {
   "an.contribShort": "После сырья и зарплат",
   "an.pageHint": "Прибыль и себестоимость за месяц — продажи, долги и склад смотрите в своих разделах",
   "an.thisMonth": "За этот месяц",
-  "an.workshopTurnover": "Оборот цеха",
+  "an.workshopTurnover": "Обороты цеха",
   "an.totalExpenses": "Общий расход",
   "an.net": "Чистая прибыль",
   "an.netHint": "Что осталось после всех постоянных расходов",
