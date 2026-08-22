@@ -42,7 +42,7 @@ async function login() {
   const body = new URLSearchParams({
     csrfToken,
     email: "owner@workshop.local",
-    password: "ChangeMeNow!",
+    password: process.env.OWNER_PASSWORD ?? "ChangeMeNow!",
     callbackUrl: `${base}/`,
     json: "true",
   });

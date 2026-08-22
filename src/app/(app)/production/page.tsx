@@ -1,4 +1,5 @@
 import { getTranslator } from "@core/shared/i18n/locale";
+import { redirect } from "next/navigation";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { isProductionScopedWorker } from "@core/production/batch-auth";
@@ -47,6 +48,7 @@ export default async function ProductionPage({
 }) {
   const { t } = await getTranslator();
   const session = await requirePermission("production.view");
+  if (session.user.roleCode === "worker") redirect("/me");
   const params = await searchParams;
 
   const scoped = isProductionScopedWorker(session.user.roleCode, session.user.permissions ?? []);

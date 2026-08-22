@@ -1,5 +1,6 @@
 import { getTranslator } from "@core/shared/i18n/locale";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, canSeeMaterialCost } from "@core/auth/authz";
 import { materialCostForRecipe } from "@core/costing/costing";
@@ -38,6 +39,7 @@ function ProductThumb({
 export default async function ProductsPage() {
   const { t } = await getTranslator();
   const session = await requirePermission("products.view");
+  if (session.user.roleCode === "worker") redirect("/warehouse");
   const canManage = session.user.roleCode === "owner" || session.user.permissions.includes("products.manage");
   const canSeeCost = canSeeMaterialCost(session.user.permissions, session.user.roleCode);
 

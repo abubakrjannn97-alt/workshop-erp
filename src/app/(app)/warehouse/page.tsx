@@ -10,6 +10,14 @@ import { Plus } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import styles from "./warehouse.module.css";
 
+function shortProductName(name: string) {
+  const quoted = name.match(/[«"]([^»"]+)[»"]/);
+  if (quoted?.[1]?.trim()) return quoted[1].trim();
+  const cleaned = name.replace(/^(декоративный\s+камень|цоколь|плитка)\s*/i, "").trim();
+  const base = cleaned || name.trim();
+  return base.length > 24 ? `${base.slice(0, 22)}…` : base;
+}
+
 export default async function WarehousePage({
   searchParams,
 }: {
@@ -17,9 +25,10 @@ export default async function WarehousePage({
 }) {
   const { t } = await getTranslator();
   const session = await requirePermission("inventory.view");
+  const isWorker = session.user.roleCode === "worker";
   const canReceive = hasPermission(session.user.permissions, session.user.roleCode, "inventory.receive");
   const params = await searchParams;
-  const activeId = params.view === "raw" ? "raw" : "products";
+  const activeId = isWorker ? "products" : params.view === "raw" ? "raw" : "products";
 
   const [fg, raw] = await Promise.all([getFgWarehouse(), getRawWarehouse()]);
 
@@ -32,11 +41,13 @@ export default async function WarehousePage({
       },
       orderBy: { name: "asc" },
     }),
-    prisma.material.findMany({
-      where: { archivedAt: null, isActive: true },
-      include: { storageUnit: true, stockItems: { where: { warehouseId: raw.id } } },
-      orderBy: { name: "asc" },
-    }),
+    isWorker
+      ? Promise.resolve([])
+      : prisma.material.findMany({
+          where: { archivedAt: null, isActive: true },
+          include: { storageUnit: true, stockItems: { where: { warehouseId: raw.id } } },
+          orderBy: { name: "asc" },
+        }),
   ]);
 
   const productRows = products.map((p) => {
@@ -55,94 +66,134 @@ export default async function WarehousePage({
     return D(String(stock?.qtyOnHand ?? 0)).lt(m.minStock);
   });
 
-  const metrics = [
-    {
-      id: "products",
-      label: t("wh.kpiFgProducts"),
-      value: String(products.length),
-      hint: lowFgCount > 0 ? t("wh.kpiFgLowHint", { n: String(lowFgCount) }) : t("wh.kpiFgOkHint"),
-      tone: (lowFgCount > 0 ? "warn" : "green") as "warn" | "green",
-      icon: "waiting" as const,
-    },
-    {
-      id: "raw",
-      label: t("wh.kpiUrgentShortage"),
-      value: String(urgentMaterials.length),
-      hint: t("wh.kpiUrgentHint"),
-      tone: "warn" as const,
-      icon: "urgent" as const,
-    },
-  ];
+  const metrics = isWorker
+    ? [
+        {
+          id: "products",
+          label: t("wh.kpiFgProducts"),
+          value: String(lowFgCount),
+          hint: lowFgCount > 0 ? t("wh.kpiFgLowHint", { n: String(lowFgCount) }) : t("wh.kpiFgOkHint"),
+          tone: (lowFgCount > 0 ? "warn" : "green") as "warn" | "green",
+          icon: "waiting" as const,
+        },
+      ]
+    : [
+        {
+          id: "products",
+          label: t("wh.kpiFgProducts"),
+          value: String(products.length),
+          hint: lowFgCount > 0 ? t("wh.kpiFgLowHint", { n: String(lowFgCount) }) : t("wh.kpiFgOkHint"),
+          tone: (lowFgCount > 0 ? "warn" : "green") as "warn" | "green",
+          icon: "waiting" as const,
+        },
+        {
+          id: "raw",
+          label: t("wh.kpiUrgentShortage"),
+          value: String(urgentMaterials.length),
+          hint: t("wh.kpiUrgentHint"),
+          tone: "warn" as const,
+          icon: "urgent" as const,
+        },
+      ];
+
+  const sortedRows = isWorker
+    ? [...productRows].sort((a, b) => Number(b.low) - Number(a.low))
+    : productRows;
 
   return (
     <div className={styles.page}>
       <WarehouseMetrics items={metrics} activeId={activeId} />
 
-      <div className={styles.toolbar}>
-        <p className={styles.toolbarHint}>
-          {activeId === "products" ? t("wh.fgListHint") : t("wh.rawListHint")}
-        </p>
-        {canReceive ? (
-          <Link
-            href="/warehouse/add"
-            className={styles.iconBtn}
-            aria-label={t("wh.addMaterial")}
-          >
-            <Plus size={18} strokeWidth={ICON_STROKE} />
-          </Link>
-        ) : null}
-      </div>
+      {!isWorker ? (
+        <div className={styles.toolbar}>
+          <p className={styles.toolbarHint}>
+            {activeId === "products" ? t("wh.fgListHint") : t("wh.rawListHint")}
+          </p>
+          {canReceive ? (
+            <Link href="/warehouse/add" className={styles.iconBtn} aria-label={t("wh.addMaterial")}>
+              <Plus size={18} strokeWidth={ICON_STROKE} />
+            </Link>
+          ) : null}
+        </div>
+      ) : (
+        <p className={styles.toolbarHint}>{t("me.fgHint")}</p>
+      )}
 
       {activeId === "products" ? (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
             <h2 className={styles.sectionTitle}>{t("wh.fgTitle")}</h2>
+            {isWorker ? (
+              <Link href="/me" className={styles.ghostLink}>
+                {t("me.fgAddShort")} →
+              </Link>
+            ) : null}
           </div>
-          {productRows.length === 0 ? (
+          {sortedRows.length === 0 ? (
             <div className={styles.sectionBody}>
               <p className={styles.emptyNote}>{t("me.fgEmptyProducts")}</p>
             </div>
           ) : (
             <ul className={styles.productGrid}>
-              {productRows.map(({ product, onHand, min, max, low, short, atLimit }) => (
+              {sortedRows.map(({ product, onHand, min, low, short }) => (
                 <li key={product.id}>
-                  <Link href={`/products/${product.id}`} className={`${styles.productCard} ${low ? styles.productCardLow : ""} ${atLimit ? styles.productCardOk : ""}`}>
-                    <div className={styles.productPhoto}>
-                      {product.photoUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={product.photoUrl} alt="" className={styles.productImg} />
-                      ) : (
-                        <span className={styles.productPhotoEmpty}>{product.name.slice(0, 1)}</span>
-                      )}
-                    </div>
-                    <div className={styles.productBody}>
-                      <p className={styles.productName}>{product.name}</p>
-                      <p className={styles.productStock}>
-                        {t("wh.fgOnHand")}:{" "}
-                        <strong>
-                          {qtyDisplay(onHand)} {product.saleUnit.symbol}
-                        </strong>
-                        <span className={styles.productUnit}> · {product.saleUnit.symbol}</span>
-                      </p>
-                      {(min.gt(0) || max.gt(0)) ? (
-                        <p className={low ? styles.productNeed : atLimit ? styles.productLimitOk : styles.productMeta}>
-                          {min.gt(0) ? (
-                            <>
-                              {t("me.fgMin")}: {qtyDisplay(min)}
-                              {low ? ` · ${t("me.fgNeed")} ${qtyDisplay(short)}` : ""}
-                            </>
-                          ) : null}
-                          {min.gt(0) && max.gt(0) ? " · " : null}
-                          {max.gt(0) ? (
-                            <>
-                              {t("wh.fgLimit")}: {qtyDisplay(max)}
-                              {atLimit ? ` · ${t("wh.fgLimitReached")}` : ""}
-                            </>
-                          ) : null}
+                  {isWorker ? (
+                    <div
+                      className={`${styles.productCard} ${low ? styles.productCardLow : ""}`.trim()}
+                    >
+                      <div className={styles.productPhoto}>
+                        {product.photoUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={product.photoUrl} alt="" className={styles.productImg} />
+                        ) : (
+                          <span className={styles.productPhotoEmpty}>{product.name.slice(0, 1)}</span>
+                        )}
+                      </div>
+                      <div className={styles.productBody}>
+                        <p className={styles.productName}>{shortProductName(product.name)}</p>
+                        <p className={styles.productStock}>
+                          <strong>
+                            {qtyDisplay(onHand)} {product.saleUnit.symbol}
+                          </strong>
                         </p>
-                      ) : null}
+                        {min.gt(0) ? (
+                          <p className={low ? styles.productNeed : styles.productMeta}>
+                            {t("me.fgMin")}: {qtyDisplay(min)}
+                            {low ? ` · ${t("me.fgNeed")} ${qtyDisplay(short)}` : ""}
+                          </p>
+                        ) : null}
+                      </div>
                     </div>
-                  </Link>
+                  ) : (
+                    <Link
+                      href={`/products/${product.id}`}
+                      className={`${styles.productCard} ${low ? styles.productCardLow : ""}`}
+                    >
+                      <div className={styles.productPhoto}>
+                        {product.photoUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={product.photoUrl} alt="" className={styles.productImg} />
+                        ) : (
+                          <span className={styles.productPhotoEmpty}>{product.name.slice(0, 1)}</span>
+                        )}
+                      </div>
+                      <div className={styles.productBody}>
+                        <p className={styles.productName}>{product.name}</p>
+                        <p className={styles.productStock}>
+                          {t("wh.fgOnHand")}:{" "}
+                          <strong>
+                            {qtyDisplay(onHand)} {product.saleUnit.symbol}
+                          </strong>
+                        </p>
+                        {min.gt(0) ? (
+                          <p className={low ? styles.productNeed : styles.productMeta}>
+                            {t("me.fgMin")}: {qtyDisplay(min)}
+                            {low ? ` · ${t("me.fgNeed")} ${qtyDisplay(short)}` : ""}
+                          </p>
+                        ) : null}
+                      </div>
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

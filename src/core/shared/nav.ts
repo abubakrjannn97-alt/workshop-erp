@@ -228,6 +228,15 @@ export const JOBS_ITEM: NavLeaf = {
   icon: "jobs",
 };
 
+/** Worker mobile home — same as nav.home but routes to /me */
+export const WORKER_HOME: BottomTab = {
+  id: "worker-home",
+  href: "/me",
+  labelKey: "nav.home",
+  permission: "production.view",
+  icon: "home",
+};
+
 export const HISTORY_ITEM: NavLeaf = {
   id: "history",
   href: "/me/history",
@@ -304,6 +313,21 @@ export function canSee(permissions: string[], roleCode: string, item: NavLeaf) {
 }
 
 export function sidebarGroups(permissions: string[], roleCode: string): NavGroup[] {
+  if (roleCode === "worker") {
+    return [
+      {
+        id: "home",
+        labelKey: "nav.overview",
+        items: [{ ...HOME_ITEM, href: "/me" }],
+      },
+      {
+        id: "shop",
+        labelKey: "nav.shopShort",
+        items: [WAREHOUSE_ITEM],
+      },
+    ];
+  }
+
   return NAV_GROUPS.map((g) => ({
     ...g,
     items: g.items.filter((item) => canSee(permissions, roleCode, item)),
@@ -313,7 +337,7 @@ export function sidebarGroups(permissions: string[], roleCode: string): NavGroup
 function rawTabsForRole(roleCode: string): BottomTab[] {
   switch (roleCode) {
     case "worker":
-      return [JOBS_ITEM, HISTORY_ITEM, PROFILE_ITEM];
+      return [WORKER_HOME, WAREHOUSE_ITEM];
     case "employee":
       return [
         HOME_ITEM,
@@ -351,6 +375,7 @@ export function tabHrefSet(tabs: BottomTab[]): Set<string> {
 }
 
 export function moreGroupsForRole(roleCode: string, permissions: string[]): NavGroup[] {
+  if (roleCode === "worker") return [];
   const skip = tabHrefSet(bottomTabsForRole(roleCode, permissions));
   skip.add("/");
   return NAV_GROUPS.filter((g) => g.id !== "home")

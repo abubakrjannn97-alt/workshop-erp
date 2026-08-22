@@ -31,13 +31,15 @@ describe("mobile nav by role", () => {
     assert.equal(hrefs.includes("/orders"), false);
   });
 
-  it("worker has no dashboard and no more tab", () => {
+  it("worker gets home and warehouse only", () => {
     const tabs = bottomTabsForRole("worker", ROLE_PERMISSIONS.worker);
     assert.deepEqual(
       tabs.map((t) => t.href),
-      ["/me", "/me/history", "/me/profile"],
+      ["/me", "/warehouse"],
     );
     assert.equal(tabs.some((t) => t.isMore), false);
+    const more = moreGroupsForRole("worker", ROLE_PERMISSIONS.worker);
+    assert.equal(more.length, 0);
   });
 
   it("warehouse manager does not get a finance tab", () => {
@@ -66,11 +68,9 @@ describe("mobile nav by role", () => {
     assert.equal(hrefs.includes("/warehouse"), false);
   });
 
-  it("jobs tab is not active on /me/history", () => {
+  it("worker home tab is active on /me", () => {
     const tabs = bottomTabsForRole("worker", ROLE_PERMISSIONS.worker);
-    const jobs = tabs.find((t) => t.id === "jobs")!;
-    const history = tabs.find((t) => t.id === "history")!;
-    assert.equal(isTabActive("/me/history", history, tabs), true);
-    assert.equal(isTabActive("/me/history", jobs, tabs), false);
+    const home = tabs.find((t) => t.id === "worker-home")!;
+    assert.equal(isTabActive("/me", home, tabs), true);
   });
 });
