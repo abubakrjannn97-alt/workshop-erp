@@ -29,6 +29,20 @@
   min-width: 0;
 }
 
+.logoutFooter {
+  margin-top: 8px;
+  padding-top: 8px;
+  padding-bottom: calc(var(--mobile-chrome-bottom, 0px) + 8px);
+}
+
+.logoutBtn {
+  width: 100%;
+}
+
+.logoutBtn :global(.ui-btn-danger) {
+  min-height: 44px;
+}
+
 .periodSeg {
   display: flex;
   width: 100%;

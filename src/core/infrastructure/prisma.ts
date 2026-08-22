@@ -1,5 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPostgresAdapter } from "@prisma/adapter-ppg";
+import { getWorkshopIdFromContext } from "@core/workshop/workshop-context";
+import { scopeQueryArgs, WORKSHOP_SCOPED_MODELS } from "@core/workshop/workshop-scope";
 
 const globalForPrisma = globalThis as unknown as { prisma?: ReturnType<typeof createPrisma> };
 
@@ -32,10 +34,15 @@ const AUDIT_MUTATIONS = new Set(["update", "updateMany", "delete", "deleteMany"]
 function extendClient(client: PrismaClient) {
   return client.$extends({
     query: {
-      auditLog: {
-        async $allOperations({ operation, args, query }) {
-          if (AUDIT_MUTATIONS.has(operation)) {
+      $allModels: {
+        async $allOperations({ model, operation, args, query }) {
+          if (model === "AuditLog" && AUDIT_MUTATIONS.has(operation)) {
             throw new Error("Журнал аудита неизменяем.");
+          }
+          const workshopId = getWorkshopIdFromContext();
+          if (workshopId && WORKSHOP_SCOPED_MODELS.has(model)) {
+            const scoped = scopeQueryArgs(model, operation, args as Record<string, unknown>, workshopId);
+            return query(scoped);
           }
           return query(args);
         },
