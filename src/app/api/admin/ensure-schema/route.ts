@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import pg from "pg";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,25 +27,26 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "no_database_url" }, { status: 503 });
   }
 
-  // Runtime only has pooled Accelerate URL; DIRECT_URL is unreachable from Vercel.
-  const prisma = new PrismaClient({
-    datasources: { db: { url: dbUrl } },
+  const client = new pg.Client({
+    connectionString: dbUrl,
+    ssl: dbUrl.includes("sslmode=require") ? { rejectUnauthorized: false } : undefined,
   });
 
   try {
+    await client.connect();
     for (const sql of PATCHES) {
-      await prisma.$executeRawUnsafe(sql);
+      await client.query(sql);
     }
-    const sample = await prisma.product.findFirst({
-      select: { id: true, laborRate: true, minStock: true, maxStock: true },
-    });
-    return NextResponse.json({ ok: true, sample });
+    const sample = await client.query(
+      `SELECT id, "laborRate", "minStock", "maxStock" FROM "products" LIMIT 1`,
+    );
+    return NextResponse.json({ ok: true, sample: sample.rows[0] ?? null });
   } catch (err) {
     return NextResponse.json(
       { error: "patch_failed", detail: err instanceof Error ? err.message : String(err) },
       { status: 500 },
     );
   } finally {
-    await prisma.$disconnect();
+    await client.end().catch(() => undefined);
   }
 }
