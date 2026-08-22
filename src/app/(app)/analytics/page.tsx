@@ -5,29 +5,85 @@ import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { productLaborRate } from "@core/payroll/labor-rate";
 import { FUND, LEDGER, fundDelta } from "@core/finance/finance";
 import { contributionAndNet } from "@core/finance/profit";
-import { getTranslator } from "@core/shared/i18n/locale";
+import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
+import { orderPeriodLabel, resolveOrderDateRange, type OrderPeriod } from "@core/shared/order-period";
+import { Segmented } from "@/components/segmented";
 import { AnalyticsProductsSection } from "./analytics-products-section";
 import styles from "./analytics.module.css";
 
-export default async function AnalyticsPage() {
+type AnalyticsPeriod = Extract<OrderPeriod, "today" | "week" | "month" | "all">;
+
+function parsePeriod(raw?: string): AnalyticsPeriod {
+  if (raw === "today" || raw === "week" || raw === "month" || raw === "all") return raw;
+  return "month";
+}
+
+function createdAtRange(from?: Date, to?: Date) {
+  if (from && to) return { gte: from, lte: to };
+  return undefined;
+}
+
+export default async function AnalyticsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ period?: string }>;
+}) {
   await requirePermission("analytics.view");
   const { t, locale } = await getTranslator();
-  const monthStart = new Date();
-  monthStart.setDate(1);
-  monthStart.setHours(0, 0, 0, 0);
-  const [monthOrders, scraps, accruals, funds, entries, productItems] = await Promise.all([
+  const params = await searchParams;
+  const period = parsePeriod(params.period);
+  const range = resolveOrderDateRange({ period });
+  const dateFilter = createdAtRange(range.from, range.to);
+  const rangeLabel = orderPeriodLabel(period, t, range.from, range.to);
+  const loc = intlLocale(locale);
+
+  const orderWhere = {
+    ...(dateFilter ? { createdAt: dateFilter } : {}),
+    status: { code: { not: "CANCELLED" } },
+  };
+
+  const [periodOrders, scraps, accruals, funds, periodEntries, fundEntries, productItems] = await Promise.all([
     prisma.order.findMany({
-      where: { createdAt: { gte: monthStart }, status: { code: { not: "CANCELLED" } } },
+      where: orderWhere,
       include: { payments: true },
     }),
     prisma.scrapRecord.findMany({
-      where: { createdAt: { gte: monthStart } },
+      where: dateFilter ? { createdAt: dateFilter } : undefined,
+      include: {
+        batch: {
+          include: {
+            production: {
+              include: {
+                order: {
+                  include: {
+                    items: { include: { product: { include: { outputUnit: true } } } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
     }),
-    prisma.payrollAccrual.groupBy({ by: ["kind"], where: { status: "ACCRUED" }, _sum: { amount: true } }),
+    prisma.payrollAccrual.groupBy({
+      by: ["kind"],
+      where: {
+        status: "ACCRUED",
+        ...(dateFilter ? { createdAt: dateFilter } : {}),
+      },
+      _sum: { amount: true },
+    }),
     prisma.financialFund.findMany(),
+    prisma.ledgerEntry.findMany({
+      where: {
+        status: "POSTED",
+        ...(dateFilter ? { createdAt: dateFilter } : {}),
+      },
+    }),
     prisma.ledgerEntry.findMany({ where: { status: "POSTED" } }),
     prisma.orderItem.findMany({
-      where: { order: { createdAt: { gte: monthStart }, status: { code: { not: "CANCELLED" } } } },
+      where: { order: orderWhere },
       include: {
         product: { include: { saleUnit: true } },
         order: { include: { payments: true } },
@@ -35,19 +91,19 @@ export default async function AnalyticsPage() {
     }),
   ]);
 
-  const sold = monthOrders.reduce((s, o) => s.add(String(o.total)), D(0));
-  const received = monthOrders.reduce(
+  const sold = periodOrders.reduce((s, o) => s.add(String(o.total)), D(0));
+  const received = periodOrders.reduce(
     (s, o) => s.add(o.payments.reduce((p, pay) => p.add(String(pay.amount)), D(0))),
     D(0),
   );
   const profitFund = funds.find((f) => f.code === FUND.PROFIT);
-  const profit = profitFund ? entries.reduce((s, e) => s.add(fundDelta(e, profitFund.id)), D(0)) : D(0);
+  const profit = profitFund ? fundEntries.reduce((s, e) => s.add(fundDelta(e, profitFund.id)), D(0)) : D(0);
   const labor = D(String(accruals.find((a) => a.kind === "PRODUCTION")?._sum.amount ?? 0));
   const commission = D(String(accruals.find((a) => a.kind === "COMMISSION")?._sum.amount ?? 0));
   const scrapQty = scraps.reduce((s, r) => s.add(String(r.quantity)), D(0));
   const scrapCost = scraps.reduce((s, r) => s.add(String(r.materialCost ?? 0)), D(0));
-  const materialCost = monthOrders.reduce((s, o) => s.add(String(o.materialCost ?? 0)), D(0));
-  const expenses = entries
+  const materialCost = periodOrders.reduce((s, o) => s.add(String(o.materialCost ?? 0)), D(0));
+  const fixedExpenses = periodEntries
     .filter((e) => e.type === LEDGER.CASH_OUT && e.categoryId)
     .reduce((s, e) => s.add(String(e.amount)), D(0));
   const { net } = contributionAndNet({
@@ -55,10 +111,11 @@ export default async function AnalyticsPage() {
     materialCost,
     labor,
     commission,
-    fixedExpenses: expenses,
+    fixedExpenses,
   });
   const netPositive = net.gte(0);
   const payrollTotal = labor.add(commission);
+  const totalExpenses = materialCost.add(payrollTotal).add(fixedExpenses);
 
   type ProdRow = {
     name: string;
@@ -103,37 +160,26 @@ export default async function AnalyticsPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <h1 className={styles.title}>{t("page.analytics")}</h1>
-        <p className={styles.period}>{t("an.thisMonth")}</p>
+        <p className={styles.period}>{rangeLabel}</p>
       </header>
 
-      <section className={`${styles.hero} ${netPositive ? styles.heroOk : styles.heroBad}`} data-tour="an-kpis">
-        <p className={styles.heroLabel}>{t("an.net")}</p>
-        <p className={styles.heroValue}>{moneyDisplay(net)} с</p>
-        <p className={styles.heroSub}>{netPositive ? t("an.netOkSub") : t("an.netBadSub")}</p>
-      </section>
-
-      <div className={styles.kpiRow}>
-        <article className={`${styles.kpi} ${styles.kpiBlue}`}>
-          <p className={styles.kpiLabel}>{t("an.receivedReal")}</p>
-          <p className={styles.kpiValue}>{moneyDisplay(received)} с</p>
-          <p className={styles.kpiMeta}>
-            {t("an.sale")}: {moneyDisplay(sold)} с
-          </p>
-        </article>
-        <article className={`${styles.kpi} ${styles.kpiRed}`}>
-          <p className={styles.kpiLabel}>{t("an.scrapMonth")}</p>
-          <p className={styles.kpiValue}>{qtyDisplay(scrapQty)} м²</p>
-          <p className={styles.kpiMeta}>
-            {scrapCost.gt(0) ? (
-              <>
-                {t("an.scrapDamage")}: <strong>{moneyDisplay(scrapCost)} с</strong>
-              </>
-            ) : (
-              t("an.scrapNone")
-            )}
-          </p>
-        </article>
+      <div className={styles.periodWrap} data-tour="an-period">
+        <Segmented
+          aria-label={t("orders.period")}
+          items={[
+            { href: "/analytics?period=today", label: t("orders.periodToday"), active: period === "today" },
+            { href: "/analytics?period=week", label: t("orders.periodWeek"), active: period === "week" },
+            { href: "/analytics?period=month", label: t("orders.periodMonth"), active: period === "month" },
+            { href: "/analytics?period=all", label: t("orders.periodAll"), active: period === "all" },
+          ]}
+        />
       </div>
+
+      <section className={`${styles.hero} ${styles.heroGold}`} data-tour="an-turnover">
+        <p className={styles.heroLabel}>{t("an.workshopTurnover")}</p>
+        <p className={styles.heroValue}>{moneyDisplay(sold)} с</p>
+        <p className={styles.heroSub}>{rangeLabel}</p>
+      </section>
 
       <section className={styles.card}>
         <div className={styles.cardHead}>
@@ -158,7 +204,7 @@ export default async function AnalyticsPage() {
           </li>
           <li className={`${styles.row} ${styles.rowMuted}`}>
             <span>{t("an.fixedExp")}</span>
-            <strong>−{moneyDisplay(expenses)} с</strong>
+            <strong>−{moneyDisplay(fixedExpenses)} с</strong>
           </li>
         </ul>
         <div className={styles.rowFoot}>
@@ -170,6 +216,65 @@ export default async function AnalyticsPage() {
           </Link>
         </div>
       </section>
+
+      <div className={styles.summaryRow} data-tour="an-summary">
+        <article className={`${styles.summaryCard} ${netPositive ? styles.summaryOk : styles.summaryBad}`}>
+          <p className={styles.summaryLabel}>{t("an.net")}</p>
+          <p className={styles.summaryValue}>{moneyDisplay(net)} с</p>
+          <p className={styles.summaryMeta}>{netPositive ? t("an.netOkSub") : t("an.netBadSub")}</p>
+        </article>
+        <article className={`${styles.summaryCard} ${styles.summaryMuted}`}>
+          <p className={styles.summaryLabel}>{t("an.totalExpenses")}</p>
+          <p className={styles.summaryValue}>{moneyDisplay(totalExpenses)} с</p>
+          <p className={styles.summaryMeta}>{rangeLabel}</p>
+        </article>
+        <article className={`${styles.summaryCard} ${styles.summaryScrap}`}>
+          <p className={styles.summaryLabel}>{t("an.scrapMonth")}</p>
+          <p className={styles.summaryValue}>{qtyDisplay(scrapQty)} м²</p>
+          <p className={styles.summaryMeta}>
+            {scrapCost.gt(0) ? (
+              <>
+                {t("an.scrapDamage")}: <strong>{moneyDisplay(scrapCost)} с</strong>
+              </>
+            ) : (
+              t("an.scrapNone")
+            )}
+          </p>
+        </article>
+      </div>
+
+      {scraps.length > 0 ? (
+        <section className={styles.card}>
+          <div className={styles.cardHead}>
+            <h2 className={styles.cardTitle}>{t("an.scrapBy")}</h2>
+          </div>
+          <ul className={styles.scrapList}>
+            {scraps.map((s) => {
+              const product = s.batch.production.order.items[0]?.product;
+              const unitSymbol = product?.outputUnit?.symbol ?? t("common.unitGeneric");
+              const damage = D(String(s.materialCost ?? 0));
+              return (
+                <li key={s.id} className={styles.scrapRow}>
+                  <div className={styles.scrapMain}>
+                    <p className={styles.scrapName}>{product?.name ?? "—"}</p>
+                    <p className={styles.scrapWhen}>{s.createdAt.toLocaleDateString(loc)}</p>
+                  </div>
+                  <div className={styles.scrapRight}>
+                    <p className={styles.scrapQty}>
+                      {qtyDisplay(s.quantity)} {unitSymbol}
+                    </p>
+                    {damage.gt(0) ? (
+                      <p className={styles.scrapDamageLine}>
+                        {t("an.scrapDamage")}: <strong>{moneyDisplay(damage)} с</strong>
+                      </p>
+                    ) : null}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ) : null}
 
       <AnalyticsProductsSection locale={locale} count={productRows.length}>
         <ul className={styles.productList}>

@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { Pencil } from "lucide-react";
+import { ICON_STROKE } from "@/components/nav-icons";
 import { createFinancialFund, updateFinancialFund } from "@/app/actions/finance";
 import { moneyDisplay } from "@core/shared/decimal";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
@@ -153,13 +155,14 @@ export function FinanceFundsSection({
                   <button
                     type="button"
                     className={styles.fundEditBtn}
+                    aria-label={t("common.edit")}
                     onClick={() => {
                       setEditId(f.id);
                       setAddOpen(false);
                       setError(null);
                     }}
                   >
-                    {t("common.edit")}
+                    <Pencil size={14} strokeWidth={ICON_STROKE} aria-hidden />
                   </button>
                 ) : null}
               </div>

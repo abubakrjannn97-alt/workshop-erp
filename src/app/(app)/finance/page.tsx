@@ -2,15 +2,11 @@ import { getTranslator } from "@core/shared/i18n/locale";
 
 import { requirePermission, hasPermission } from "@core/auth/authz";
 
-import { D, moneyDisplay } from "@core/shared/decimal";
-
 import { LEDGER } from "@core/finance/finance";
 
 import { buildFinanceMoneyCards, fetchFinanceDashboardData } from "@core/finance/finance-summary";
 
 import { FinanceFundsSection } from "./finance-funds-section";
-
-import { FinanceSupplierDebtCard } from "./finance-supplier-debt-card";
 
 import { FinanceJournal } from "./finance-journal";
 
@@ -47,10 +43,6 @@ export default async function FinancePage() {
     accountLabel: (code, name) => n("cash", code, name),
 
   });
-
-
-
-  const supplierDebtItems = data.purchaseDebts.filter((o) => D(String(o.total)).sub(o.paidAmount).gt(0));
 
 
 
@@ -156,41 +148,17 @@ export default async function FinancePage() {
 
 
 
-      <div className={styles.fundsDebtsRow}>
-
-        <FinanceFundsSection
-
-          locale={locale}
-
-          canManage={canManageFunds}
-
-          funds={data.fundBalances.map((f) => ({
-
-            id: f.id,
-
-            code: f.code,
-
-            name: n("fund", f.code, f.name),
-
-            balance: f.balance.toString(),
-
-            balanceNegative: f.balance.lt(0),
-
-          }))}
-
-        />
-
-        <FinanceSupplierDebtCard
-
-          locale={locale}
-
-          total={moneyDisplay(data.supplierDebt)}
-
-          count={supplierDebtItems.length}
-
-        />
-
-      </div>
+      <FinanceFundsSection
+        locale={locale}
+        canManage={canManageFunds}
+        funds={data.fundBalances.map((f) => ({
+          id: f.id,
+          code: f.code,
+          name: n("fund", f.code, f.name),
+          balance: f.balance.toString(),
+          balanceNegative: f.balance.lt(0),
+        }))}
+      />
 
 
 
