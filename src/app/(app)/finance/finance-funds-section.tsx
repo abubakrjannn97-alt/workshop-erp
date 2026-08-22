@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Pencil } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
-import { createFinancialFund, updateFinancialFund } from "@/app/actions/finance";
+import { createFinancialFund, deleteFinancialFund, updateFinancialFund } from "@/app/actions/finance";
 import { moneyDisplay } from "@core/shared/decimal";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
 import styles from "./finance.module.css";
@@ -15,6 +15,7 @@ export type FinanceFundRow = {
   name: string;
   balance: string;
   balanceNegative: boolean;
+  isSystem: boolean;
 };
 
 export function FinanceFundsSection({
@@ -44,6 +45,23 @@ export function FinanceFundsSection({
         return;
       }
       setAddOpen(false);
+      router.refresh();
+    });
+  }
+
+  function submitDelete() {
+    if (!editing) return;
+    if (!window.confirm(t("fin.deleteFundConfirm", { name: editing.name }))) return;
+    setError(null);
+    const body = new FormData();
+    body.set("id", editing.id);
+    startTransition(async () => {
+      const result = await deleteFinancialFund(body);
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+      setEditId(null);
       router.refresh();
     });
   }
@@ -127,6 +145,11 @@ export function FinanceFundsSection({
             <button type="submit" className={styles.fundAddSubmit} disabled={pending}>
               {pending ? t("common.sending") : t("common.save")}
             </button>
+            {!editing.isSystem ? (
+              <button type="button" className={styles.fundDeleteBtn} disabled={pending} onClick={submitDelete}>
+                {t("fin.deleteFund")}
+              </button>
+            ) : null}
             <button type="button" className={styles.fundEditCancel} onClick={() => setEditId(null)}>
               {t("common.cancel")}
             </button>

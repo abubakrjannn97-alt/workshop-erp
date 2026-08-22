@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { ChevronDown, Plus } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
-import { createWorkshopAction, switchWorkshopAction } from "@/app/actions/workshops";
+import { switchWorkshopAction } from "@/app/actions/workshops";
 import styles from "./dash-home.module.css";
 
 type WorkshopOption = { id: string; name: string; slug: string };
@@ -11,19 +11,11 @@ type WorkshopOption = { id: string; name: string; slug: string };
 export function WorkshopSwitcher({
   workshops,
   activeId,
-  addLabel,
-  placeholder,
-  canAdd,
 }: {
   workshops: WorkshopOption[];
   activeId: string;
-  addLabel: string;
-  placeholder: string;
-  canAdd: boolean;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [adding, setAdding] = useState(false);
-  const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -35,14 +27,10 @@ export function WorkshopSwitcher({
     const onPointer = (event: MouseEvent | TouchEvent) => {
       if (wrapRef.current && !wrapRef.current.contains(event.target as Node)) {
         setMenuOpen(false);
-        setAdding(false);
       }
     };
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setMenuOpen(false);
-        setAdding(false);
-      }
+      if (event.key === "Escape") setMenuOpen(false);
     };
     document.addEventListener("mousedown", onPointer);
     document.addEventListener("touchstart", onPointer);
@@ -63,22 +51,6 @@ export function WorkshopSwitcher({
         setError("");
         setMenuOpen(false);
       }
-    });
-  }
-
-  function onCreate(event: React.FormEvent) {
-    event.preventDefault();
-    if (pending || !name.trim()) return;
-    startTransition(async () => {
-      const result = await createWorkshopAction(name);
-      if (!result.ok) {
-        setError(result.error);
-        return;
-      }
-      setError("");
-      setName("");
-      setAdding(false);
-      setMenuOpen(false);
     });
   }
 
@@ -122,35 +94,6 @@ export function WorkshopSwitcher({
               </li>
             ))}
           </ul>
-
-          {canAdd ? (
-            adding ? (
-              <form className={styles.workshopMenuAddForm} onSubmit={onCreate}>
-                <input
-                  className={styles.workshopMenuAddInput}
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder={placeholder}
-                  autoFocus
-                  maxLength={60}
-                />
-                <button type="submit" className={styles.workshopMenuAddSubmit} disabled={pending || name.trim().length < 2}>
-                  OK
-                </button>
-              </form>
-            ) : (
-              <button
-                type="button"
-                className={styles.workshopMenuAddTrigger}
-                disabled={pending}
-                onClick={() => setAdding(true)}
-              >
-                <Plus size={14} strokeWidth={ICON_STROKE} aria-hidden />
-                {addLabel}
-              </button>
-            )
-          ) : null}
-
           {error ? <p className={styles.workshopMenuError}>{error}</p> : null}
         </div>
       ) : null}

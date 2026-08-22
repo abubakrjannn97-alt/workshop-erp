@@ -40,7 +40,7 @@ export default async function OrderPrintPage({
   if (session.user.roleCode === "sales_manager" && order.sellerId !== session.user.id) {
     redirect("/orders");
   }
-  const company = await prisma.setting.findUnique({ where: { key: SETTING_KEYS.companyName } });
+  const company = await findSetting(SETTING_KEYS.companyName);
   const companyName = typeof company?.value === "string" ? company.value : DEFAULT_SETTINGS.companyName;
   const debt = D(String(order.total)).sub(order.paidAmount);
   const dl = intlLocale(locale);

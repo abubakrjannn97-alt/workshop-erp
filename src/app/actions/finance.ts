@@ -7,7 +7,7 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money } from "@core/shared/decimal";
-import { accountByCode, FUND, LEDGER, postLedger } from "@core/finance/finance";
+import { accountByCode, FUND, fundDelta, LEDGER, postLedger } from "@core/finance/finance";
 import { assertOutboundPayment, loadBalanceContext, insufficientFundsMessage } from "@core/finance/balance-guard";
 
 function fundCodeFromName(name: string) {
@@ -247,6 +247,45 @@ export async function updateFinancialFund(formData: FormData) {
     entityType: "financial_fund",
     entityId: id,
     newValue: { name, adjustment: hasAdjustment ? adjustmentRaw : "0" },
+  });
+  revalidatePath("/finance");
+  revalidatePath("/analytics");
+  return { ok: true };
+}
+
+export async function deleteFinancialFund(formData: FormData) {
+  const session = await requirePermission("finance.expense.create");
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { error: "Фонд не найден." };
+
+  const fund = await prisma.financialFund.findUnique({ where: { id } });
+  if (!fund) return { error: "Фонд не найден." };
+  if (fund.isSystem) return { error: "Системный фонд нельзя удалить." };
+
+  const entries = await prisma.ledgerEntry.findMany({
+    where: { fundId: id, status: "POSTED" },
+    select: { type: true, amount: true, fundId: true },
+  });
+  const balance = entries.reduce((sum, entry) => sum.add(fundDelta(entry, id)), D(0));
+  if (!balance.eq(0)) {
+    return { error: "Сначала обнулите баланс фонда через «Изменение ±»." };
+  }
+
+  const categoryCount = await prisma.expenseCategory.count({
+    where: { fundCode: fund.code, archivedAt: null },
+  });
+  if (categoryCount > 0) {
+    return { error: "Фонд используется в категориях расходов." };
+  }
+
+  await prisma.financialFund.delete({ where: { id } });
+
+  await writeAudit({
+    userId: session.user.id,
+    action: "finance.fund.delete",
+    entityType: "financial_fund",
+    entityId: id,
+    oldValue: { code: fund.code, name: fund.name },
   });
   revalidatePath("/finance");
   revalidatePath("/analytics");

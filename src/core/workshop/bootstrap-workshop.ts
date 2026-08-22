@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import { DEFAULT_SETTINGS, SETTING_KEYS } from "@core/config/settings";
-import { DEFAULT_WORKSHOP_ID } from "@core/workshop/workshop-context";
+import { DEFAULT_WORKSHOP_ID, WORKSHOP_2_ID } from "@core/workshop/workshop-context";
 
 const RAW_CODE = "RAW";
 const FG_CODE = "FG";
@@ -8,14 +8,32 @@ const FG_CODE = "FG";
 export async function ensureDefaultWorkshop(prisma: PrismaClient) {
   await prisma.workshop.upsert({
     where: { id: DEFAULT_WORKSHOP_ID },
-    update: { name: "Основной цех", slug: "main", isActive: true },
+    update: { name: "Цех 1", slug: "ceh-1", isActive: true },
     create: {
       id: DEFAULT_WORKSHOP_ID,
-      name: "Основной цех",
-      slug: "main",
+      name: "Цех 1",
+      slug: "ceh-1",
       isActive: true,
     },
   });
+}
+
+export async function ensureSecondWorkshop(prisma: PrismaClient) {
+  await prisma.workshop.upsert({
+    where: { id: WORKSHOP_2_ID },
+    update: { name: "Цех 2", slug: "ceh-2", isActive: true },
+    create: {
+      id: WORKSHOP_2_ID,
+      name: "Цех 2",
+      slug: "ceh-2",
+      isActive: true,
+    },
+  });
+}
+
+export async function ensureTwoWorkshops(prisma: PrismaClient) {
+  await ensureDefaultWorkshop(prisma);
+  await ensureSecondWorkshop(prisma);
 }
 
 export async function bootstrapWorkshopStructure(prisma: PrismaClient, workshopId: string) {

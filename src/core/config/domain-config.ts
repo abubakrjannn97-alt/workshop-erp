@@ -1,6 +1,6 @@
 import { cache } from "react";
-import { prisma } from "@core/infrastructure/prisma";
 import { DOMAIN_SETTING_KEYS } from "@core/config/settings";
+import { findSettingsByKeys } from "@core/config/setting-store";
 import { getWorkshopDomain } from "@core/config/workshop-domain";
 import {
   DOMAIN_REGISTRY,
@@ -109,7 +109,7 @@ export function mergeDomainConfig(
 export const getDomainConfig = cache(async (): Promise<DomainConfig> => {
   const preset = getDomainPreset();
   const keys = Object.values(DOMAIN_SETTING_KEYS);
-  const rows = await prisma.setting.findMany({ where: { key: { in: keys } } });
+  const rows = await findSettingsByKeys(keys);
   const byKey = new Map(rows.map((row) => [row.key, parseSettingValue(row.value)]));
   return mergeDomainConfig(preset, byKey);
 });

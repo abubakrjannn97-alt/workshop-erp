@@ -29,9 +29,6 @@ export function DashOwnerHomeBody({
   locale,
   workshops,
   activeWorkshopId,
-  workshopAddLabel,
-  workshopNamePlaceholder,
-  canAddWorkshop,
 }: {
   snapshots: OwnerDashboardSnapshots;
   greetingTitle: string;
@@ -48,9 +45,6 @@ export function DashOwnerHomeBody({
   locale: Locale;
   workshops: { id: string; name: string; slug: string }[];
   activeWorkshopId: string;
-  workshopAddLabel: string;
-  workshopNamePlaceholder: string;
-  canAddWorkshop: boolean;
 }) {
   const [period, setPeriod] = useState<HomeProfitPeriod>("today");
   const data = snapshots[period];
@@ -68,13 +62,7 @@ export function DashOwnerHomeBody({
           />
         </div>
         <div className={styles.homeTopBarRight}>
-          <WorkshopSwitcher
-            workshops={workshops}
-            activeId={activeWorkshopId}
-            addLabel={workshopAddLabel}
-            placeholder={workshopNamePlaceholder}
-            canAdd={canAddWorkshop}
-          />
+          <WorkshopSwitcher workshops={workshops} activeId={activeWorkshopId} />
           <NotificationBell unread={unread} locale={locale} />
         </div>
       </div>

@@ -44,9 +44,6 @@ export async function MobileOwnerHome() {
         locale={locale}
         workshops={workshops}
         activeWorkshopId={activeWorkshopId}
-        workshopAddLabel={t("home.addWorkshop")}
-        workshopNamePlaceholder={t("home.workshopNamePlaceholder")}
-        canAddWorkshop={session.user.roleCode === "owner" || session.user.roleCode === "director"}
         quickActions={
           <DashSection title={t("home.quickActions")} tour="home-shortcuts" flush mobileList>
             <DashQuickActions actions={ownerMobileQuickActions(t)} layout="mobileStrip" />

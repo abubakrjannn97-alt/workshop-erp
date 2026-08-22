@@ -126,7 +126,7 @@ export async function postClientPayment(
   rest = rest.sub(toLabor);
   const toCommission = DecimalMin(rest, D(input.commissionAmount ?? "0"));
   rest = rest.sub(toCommission);
-  const opexRow = await tx.setting.findUnique({ where: { key: SETTING_KEYS.opexReservePercent } });
+  const opexRow = await findSetting(SETTING_KEYS.opexReservePercent, undefined, tx);
   const opexPct = D(typeof opexRow?.value === "string" ? opexRow.value : "0");
   const toOpex = DecimalMin(rest, abs.mul(opexPct).div(100));
   rest = rest.sub(toOpex);

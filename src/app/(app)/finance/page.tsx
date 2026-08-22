@@ -157,6 +157,7 @@ export default async function FinancePage() {
           name: n("fund", f.code, f.name),
           balance: f.balance.toString(),
           balanceNegative: f.balance.lt(0),
+          isSystem: f.isSystem,
         }))}
       />
 

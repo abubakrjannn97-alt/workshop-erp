@@ -3,8 +3,8 @@ import bcrypt from "bcryptjs";
 import { DEMO_PASSWORD } from "../../src/core/auth/demo-users";
 import { PERMISSIONS, ROLE_PERMISSIONS } from "../../src/core/rbac/permissions";
 import { isValidPhone, normalizePhone } from "../../src/core/shared/phone";
-import { ensureDefaultWorkshop, bootstrapWorkshopStructure } from "../../src/core/workshop/bootstrap-workshop";
-import { DEFAULT_WORKSHOP_ID } from "../../src/core/workshop/workshop-context";
+import { ensureTwoWorkshops, bootstrapWorkshopStructure } from "../../src/core/workshop/bootstrap-workshop";
+import { DEFAULT_WORKSHOP_ID, WORKSHOP_2_ID } from "../../src/core/workshop/workshop-context";
 
 const ROLE_DEFS = [
   { code: "owner", name: "Owner", description: "Полный доступ" },
@@ -163,8 +163,9 @@ export async function seedCore(prisma: PrismaClient) {
     },
   });
 
-  await ensureDefaultWorkshop(prisma);
+  await ensureTwoWorkshops(prisma);
   await bootstrapWorkshopStructure(prisma, DEFAULT_WORKSHOP_ID);
+  await bootstrapWorkshopStructure(prisma, WORKSHOP_2_ID);
 
   const ownerRole = await prisma.role.findUniqueOrThrow({ where: { code: "owner" } });
   const email = process.env.OWNER_EMAIL ?? "owner@workshop.local";
@@ -188,6 +189,11 @@ export async function seedCore(prisma: PrismaClient) {
     where: { userId_workshopId: { userId: owner.id, workshopId: DEFAULT_WORKSHOP_ID } },
     update: {},
     create: { userId: owner.id, workshopId: DEFAULT_WORKSHOP_ID },
+  });
+  await prisma.userWorkshop.upsert({
+    where: { userId_workshopId: { userId: owner.id, workshopId: WORKSHOP_2_ID } },
+    update: {},
+    create: { userId: owner.id, workshopId: WORKSHOP_2_ID },
   });
 
   const salesScheme = await prisma.payScheme.findUniqueOrThrow({

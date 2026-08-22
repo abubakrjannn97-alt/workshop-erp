@@ -6,6 +6,7 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
 import { SETTING_KEYS } from "@core/config/settings";
+import { findSettingsByKeys, upsertSetting } from "@core/config/setting-store";
 
 const schema = z.object({
   companyName: z.string().trim().min(1).max(200),
@@ -50,17 +51,11 @@ export async function updateBusinessSettings(formData: FormData) {
     [SETTING_KEYS.opexReservePercent]: parsed.data.opexReservePercent,
   };
 
-  const previous = await prisma.setting.findMany({
-    where: { key: { in: Object.keys(mapping) } },
-  });
+  const previous = await findSettingsByKeys(Object.keys(mapping));
 
   await prisma.$transaction(
     Object.entries(mapping).map(([key, value]) =>
-      prisma.setting.upsert({
-        where: { key },
-        update: { value, updatedBy: session.user.id },
-        create: { key, value, updatedBy: session.user.id },
-      }),
+      upsertSetting(key, value, session.user.id),
     ),
   );
 
@@ -96,11 +91,7 @@ export async function savePaymentCards(formData: FormData) {
   );
   if (cards.length === 0) return { error: "Проверьте поля карт." };
 
-  await prisma.setting.upsert({
-    where: { key: SETTING_KEYS.paymentCards },
-    update: { value: JSON.stringify(cards), updatedBy: session.user.id },
-    create: { key: SETTING_KEYS.paymentCards, value: JSON.stringify(cards), updatedBy: session.user.id },
-  });
+  await upsertSetting(SETTING_KEYS.paymentCards, JSON.stringify(cards), session.user.id);
 
   await writeAudit({
     userId: session.user.id,

@@ -37,8 +37,14 @@ export const DEFAULT_PAYMENT_CARDS: PaymentCard[] = [
   },
 ];
 
-function parseCards(raw: string | undefined): PaymentCard[] | null {
-  if (!raw?.trim()) return null;
+function parseCards(raw: unknown): PaymentCard[] | null {
+  if (raw == null) return null;
+  if (Array.isArray(raw)) {
+    const parsed = raw as PaymentCard[];
+    if (parsed.length === 0) return null;
+    return parsed.filter((c) => c.id && c.name && c.logoUrl);
+  }
+  if (typeof raw !== "string" || !raw.trim()) return null;
   try {
     const parsed = JSON.parse(raw) as PaymentCard[];
     if (!Array.isArray(parsed) || parsed.length === 0) return null;
@@ -50,7 +56,7 @@ function parseCards(raw: string | undefined): PaymentCard[] | null {
 
 export async function loadPaymentCards(): Promise<PaymentCard[]> {
   const row = await findSetting(SETTING_KEYS.paymentCards);
-  return parseCards(row?.value as string | undefined) ?? DEFAULT_PAYMENT_CARDS.filter((c) => c.isActive);
+  return parseCards(row?.value) ?? DEFAULT_PAYMENT_CARDS.filter((c) => c.isActive);
 }
 
 export function serializePaymentCards(cards: PaymentCard[]): string {

@@ -8,26 +8,34 @@ import {
 export { getWorkshopIdFromContext, runWithWorkshop } from "./workshop-storage";
 
 export const DEFAULT_WORKSHOP_ID = "ws_default_main";
+export const WORKSHOP_2_ID = "ws_workshop_2";
+export const ALLOWED_WORKSHOP_IDS = [DEFAULT_WORKSHOP_ID, WORKSHOP_2_ID] as const;
 export const WORKSHOP_COOKIE = "active_workshop_id";
+
 export async function listUserWorkshops(userId: string, roleCode: string) {
+  const baseWhere = {
+    isActive: true,
+    id: { in: [...ALLOWED_WORKSHOP_IDS] },
+  };
   if (roleCode === "owner" || roleCode === "director") {
     return prisma.workshop.findMany({
-      where: { isActive: true },
-      orderBy: { createdAt: "asc" },
+      where: baseWhere,
+      orderBy: { slug: "asc" },
       select: { id: true, name: true, slug: true },
     });
   }
   return prisma.workshop.findMany({
     where: {
-      isActive: true,
+      ...baseWhere,
       members: { some: { userId } },
     },
-    orderBy: { createdAt: "asc" },
+    orderBy: { slug: "asc" },
     select: { id: true, name: true, slug: true },
   });
 }
 
 export async function userCanAccessWorkshop(userId: string, roleCode: string, workshopId: string) {
+  if (!ALLOWED_WORKSHOP_IDS.includes(workshopId as (typeof ALLOWED_WORKSHOP_IDS)[number])) return false;
   if (roleCode === "owner" || roleCode === "director") return true;
   const row = await prisma.userWorkshop.findUnique({
     where: { userId_workshopId: { userId, workshopId } },
