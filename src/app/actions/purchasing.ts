@@ -12,7 +12,7 @@ import { D, money, qty } from "@core/shared/decimal";
 import { receiveMaterial } from "@core/inventory/stock";
 import { accountByCode, accountForMethod, FUND, fundByCode, LEDGER, postLedger } from "@core/finance/finance";
 import { loadPaymentCards } from "@core/config/payment-cards";
-import { findRawWarehouse } from "@/core/config/resolve-warehouse";
+import { assertOutboundPayment, purchasePaymentComment } from "@core/finance/balance-guard";
 
 async function nextNumber() {
   const last = await prisma.purchaseOrder.findFirst({ orderBy: { createdAt: "desc" } });
@@ -42,7 +42,7 @@ async function postPurchasePaymentInTx(
     data: {
       purchaseOrderId: input.orderId,
       amount: money(input.amount),
-      comment: input.comment ?? null,
+      comment: purchasePaymentComment(input.method, input.comment ?? `Оплата поставщику ${input.orderNumber}`),
       createdById: input.userId,
     },
   });
@@ -282,6 +282,15 @@ export async function registerPurchasePayment(formData: FormData) {
     return { error: "Оплата больше суммы заказа." };
   }
 
+  const payAmount = D(amountRaw);
+  const cardId = method?.startsWith("card:") ? method.slice(5) : undefined;
+  const fundsCheck = await assertOutboundPayment({
+    cashAmount: method === "cash" || !method?.startsWith("card:") ? payAmount : D(0),
+    cardId,
+    cardAmount: method?.startsWith("card:") ? payAmount : D(0),
+  });
+  if ("error" in fundsCheck) return { error: fundsCheck.error };
+
   await prisma.$transaction(async (tx) => {
     await postPurchasePaymentInTx(tx, {
       orderId: id,
@@ -432,6 +441,15 @@ export async function receiveSupplierIntake(formData: FormData) {
         suffix: `${idempotencyKey}-cash`,
       });
     }
+  }
+
+  if (cardPaid.gt(0) || cashPaid.gt(0)) {
+    const fundsCheck = await assertOutboundPayment({
+      cashAmount: cashPaid,
+      cardId: parsed.data.cardId,
+      cardAmount: cardPaid,
+    });
+    if ("error" in fundsCheck) return { error: fundsCheck.error };
   }
 
   try {

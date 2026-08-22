@@ -10,11 +10,11 @@ import {
 } from "../src/core/shared/nav";
 
 describe("mobile nav by role", () => {
-  it("owner gets home orders warehouse without more tab", () => {
+  it("owner gets home orders warehouse finance analytics without more tab", () => {
     const tabs = bottomTabsForRole("owner", ROLE_PERMISSIONS.owner);
     assert.deepEqual(
       tabs.map((t) => t.href),
-      ["/", "/orders", "/warehouse"],
+      ["/", "/orders", "/warehouse", "/finance", "/analytics"],
     );
     assert.equal(tabs.some((t) => t.isMore), false);
   });

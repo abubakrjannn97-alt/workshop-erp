@@ -298,19 +298,36 @@ export function QuickSaleForm({
       return;
     }
 
-    setCart((prev) => [
-      ...prev,
-      {
-        key: nextKey,
-        productId: selected.id,
-        name: selected.name,
-        symbol: selected.symbol,
-        photoUrl: selected.photoUrl,
-        quantity: qty.toFixed(6),
-        unitPrice: unitPrice.toFixed(4),
-        amount: amount.toFixed(4),
-      },
-    ]);
+    setCart((prev) => {
+      const existing = prev.find((line) => line.productId === selected.id);
+      if (existing) {
+        const mergedQty = D(existing.quantity).plus(qty);
+        const mergedAmount = D(existing.amount).plus(amount);
+        return prev.map((line) =>
+          line.key === existing.key
+            ? {
+                ...line,
+                quantity: mergedQty.toFixed(6),
+                amount: mergedAmount.toFixed(4),
+                unitPrice: mergedAmount.div(mergedQty).toFixed(4),
+              }
+            : line,
+        );
+      }
+      return [
+        ...prev,
+        {
+          key: nextKey,
+          productId: selected.id,
+          name: selected.name,
+          symbol: selected.symbol,
+          photoUrl: selected.photoUrl,
+          quantity: qty.toFixed(6),
+          unitPrice: unitPrice.toFixed(4),
+          amount: amount.toFixed(4),
+        },
+      ];
+    });
     setNextKey((k) => k + 1);
     resetLineFields();
     setPickerOpen(false);

@@ -334,6 +334,51 @@
   border-top: 0;
 }
 
+.paymentSummary {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.payBreakdownList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.payBreakdownItem {
+  display: grid;
+  grid-template-columns: minmax(72px, auto) 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.payBreakdownAmount {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.payBreakdownMethod {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.payBreakdownDate {
+  font-size: 11px;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
 .debtBanner {
   margin: 0 0 8px;
   font-size: 14px;

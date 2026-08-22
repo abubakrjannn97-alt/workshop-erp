@@ -7,7 +7,8 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money } from "@core/shared/decimal";
-import { LEDGER, postLedger } from "@core/finance/finance";
+import { accountByCode, FUND, LEDGER, postLedger } from "@core/finance/finance";
+import { assertOutboundPayment, loadBalanceContext, insufficientFundsMessage } from "@core/finance/balance-guard";
 
 function normalizeAmount(value: string) {
   return value.trim().replace(",", ".");
@@ -30,6 +31,14 @@ export async function createExpense(formData: FormData) {
   const category = await prisma.expenseCategory.findUnique({ where: { id: categoryId } });
   if (!category) return { error: "Категория не найдена." };
   const fund = await prisma.financialFund.findUnique({ where: { code: category.fundCode } });
+
+  const ctx = await loadBalanceContext();
+  const accountRow = ctx.cashBalances.find((a) => a.id === accountId);
+  if (!accountRow) return { error: "Счёт не найден." };
+  const need = D(amount);
+  if (accountRow.balance.lt(need)) {
+    return { error: insufficientFundsMessage(accountRow.name, accountRow.balance, need) };
+  }
 
   await prisma.$transaction(async (tx) => {
     await postLedger(tx, {

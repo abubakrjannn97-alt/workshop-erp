@@ -128,6 +128,25 @@ export async function quickSaleFromFg(formData: FormData) {
     needByProduct.set(product.id, (needByProduct.get(product.id) ?? D(0)).plus(qtyVal));
   }
 
+  const mergedBuilt: typeof built = [];
+  const mergedMap = new Map<string, (typeof built)[0]>();
+  for (const line of built) {
+    const prev = mergedMap.get(line.productId);
+    if (!prev) {
+      mergedMap.set(line.productId, { ...line });
+      continue;
+    }
+    const totalQty = prev.quantity.plus(line.quantity);
+    const totalAmount = prev.amount.plus(line.amount);
+    mergedMap.set(line.productId, {
+      ...prev,
+      quantity: totalQty,
+      amount: totalAmount,
+      unitPrice: totalAmount.div(totalQty),
+    });
+  }
+  mergedBuilt.push(...mergedMap.values());
+
   for (const [productId, need] of needByProduct) {
     const product = byId.get(productId)!;
     const stock = stockByProduct.get(productId);
@@ -139,10 +158,10 @@ export async function quickSaleFromFg(formData: FormData) {
     }
   }
 
-  const orderTotal = built.reduce((sum, line) => sum.plus(line.amount), D(0));
-  const outputQty = built.reduce((sum, line) => sum.plus(line.quantity), D(0));
+  const orderTotal = mergedBuilt.reduce((sum, line) => sum.plus(line.amount), D(0));
+  const outputQty = mergedBuilt.reduce((sum, line) => sum.plus(line.quantity), D(0));
   let materialCostTotal = D(0);
-  for (const line of built) {
+  for (const line of mergedBuilt) {
     const product = byId.get(line.productId)!;
     const version = product.recipe?.versions[0];
     if (version) {
@@ -153,7 +172,7 @@ export async function quickSaleFromFg(formData: FormData) {
   }
   const laborAmountTotal = D(
     laborAmountForLines(
-      built.map((line) => ({
+      mergedBuilt.map((line) => ({
         quantity: line.quantity,
       })),
     ),
@@ -273,7 +292,7 @@ export async function quickSaleFromFg(formData: FormData) {
           dueAt: null,
           createdById: session.user.id,
           items: {
-            create: built.map((line) => ({
+            create: mergedBuilt.map((line) => ({
               productId: line.productId,
               quantity: line.quantity.toFixed(6),
               unitPrice: line.unitPrice.toFixed(4),
@@ -361,7 +380,7 @@ export async function quickSaleFromFg(formData: FormData) {
     entityType: "order",
     entityId: orderId,
     newValue: {
-      lines: built.map((l) => ({
+      lines: mergedBuilt.map((l) => ({
         productId: l.productId,
         quantity: l.quantity.toFixed(6),
         amount: l.amount.toFixed(4),

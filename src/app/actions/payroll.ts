@@ -9,6 +9,7 @@ import { D, money } from "@core/shared/decimal";
 import { accountByCode, FUND, LEDGER, postLedger } from "@core/finance/finance";
 import { periodKey } from "@core/payroll/payroll";
 import { loadPaymentCards } from "@core/config/payment-cards";
+import { assertOutboundPayment, payrollPayoutComment } from "@core/finance/balance-guard";
 
 export async function assignPayScheme(formData: FormData) {
   const session = await requirePermission("users.edit");
@@ -142,11 +143,17 @@ export async function payEmployee(_prev: unknown, formData: FormData) {
 
   const idempBase = `payout-${userId}-${money(debt)}-${money(amount)}-${Date.now()}`;
 
+  const fundsCheck = await assertOutboundPayment({ cashAmount: cashPaid, cardId, cardAmount: cardPaid });
+  if ("error" in fundsCheck) return { error: fundsCheck.error };
+
   await prisma.$transaction(async (tx) => {
     for (let i = 0; i < legs.length; i++) {
       const leg = legs[i];
       const account = await accountByCode(tx, leg.accountCode);
-      const note = userComment ? `${leg.payoutComment}|${userComment}` : leg.payoutComment;
+      const note =
+        leg.accountCode === "BANK"
+          ? payrollPayoutComment(cardId, userComment || undefined)
+          : userComment || "cash";
       await tx.payrollPayout.create({
         data: {
           userId,

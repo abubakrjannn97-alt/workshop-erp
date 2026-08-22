@@ -375,7 +375,7 @@ function rawTabsForRole(roleCode: string, permissions: string[]): BottomTab[] {
     case "accountant":
       return [HOME_ITEM, FINANCE_ITEM, EXPENSES_ITEM];
     default:
-      return [HOME_ITEM, ORDERS_ITEM, WAREHOUSE_ITEM];
+      return [HOME_ITEM, ORDERS_ITEM, WAREHOUSE_ITEM, FINANCE_ITEM, ANALYTICS_ITEM];
   }
 }
 

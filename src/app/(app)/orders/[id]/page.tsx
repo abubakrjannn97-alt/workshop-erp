@@ -16,6 +16,7 @@ import { PageHeader } from "@/components/page-header";
 import { StatusBadge, orderTone } from "@/components/status-badge";
 import { OrderStageProgress } from "../order-stage-progress";
 import { OrderPaymentPanel } from "../order-payment-panel";
+import { OrderPaymentBreakdown } from "../order-payment-breakdown";
 import { OrderPayStepPanel } from "../order-pay-step-panel";
 import detailStyles from "../order-detail.module.css";
 import listStyles from "../orders.module.css";
@@ -118,6 +119,36 @@ export default async function OrderPage({
   const orderDate = order.confirmedAt ?? order.createdAt;
   const orderDateLabel = order.confirmedAt ? t("orders.orderConfirmed") : t("orders.orderReceived");
   const shortDate = orderDate.toLocaleDateString(loc, { day: "2-digit", month: "2-digit" });
+
+  const mergedItems = order.items.reduce(
+    (acc, item) => {
+      const hit = acc.find((row) => row.productId === item.productId && row.unitPrice === String(item.unitPrice));
+      if (!hit) {
+        acc.push({
+          id: item.id,
+          productId: item.productId,
+          name: item.product.name,
+          symbol: item.product.saleUnit.symbol,
+          quantity: D(String(item.quantity)),
+          unitPrice: D(String(item.unitPrice)),
+          amount: D(String(item.amount)),
+        });
+        return acc;
+      }
+      hit.quantity = hit.quantity.plus(String(item.quantity));
+      hit.amount = hit.amount.plus(String(item.amount));
+      return acc;
+    },
+    [] as {
+      id: string;
+      productId: string;
+      name: string;
+      symbol: string;
+      quantity: ReturnType<typeof D>;
+      unitPrice: ReturnType<typeof D>;
+      amount: ReturnType<typeof D>;
+    }[],
+  );
 
   const currentStatusName = n("ostatus", order.status.code, order.status.name);
 
@@ -292,12 +323,12 @@ export default async function OrderPage({
       <section className={detailStyles.sectionPanel}>
         <h2 className={detailStyles.sectionTitle}>{t("orders.lines")}</h2>
         <ul className="ui-list">
-          {order.items.map((item) => (
+          {mergedItems.map((item) => (
             <li key={item.id} className={detailStyles.materialRow}>
               <div>
-                <p className={detailStyles.materialName}>{item.product.name}</p>
+                <p className={detailStyles.materialName}>{item.name}</p>
                 <p className={detailStyles.materialQty}>
-                  {qtyDisplay(item.quantity)} {item.product.saleUnit.symbol} × {moneyDisplay(item.unitPrice)} с
+                  {qtyDisplay(item.quantity)} {item.symbol} × {moneyDisplay(item.unitPrice)} с
                 </p>
               </div>
               <strong className="ui-num">{moneyDisplay(item.amount)} с</strong>
@@ -310,6 +341,22 @@ export default async function OrderPage({
           </p>
         ) : null}
       </section>
+
+      <OrderPaymentBreakdown
+        locale={locale}
+        orderTotal={String(order.total)}
+        paidAmount={String(order.paidAmount)}
+        payments={order.payments.map((p) => ({
+          id: p.id,
+          amount: String(p.amount),
+          method: p.method,
+          comment: p.comment,
+          createdAt: p.createdAt.toISOString(),
+          reversesId: p.reversesId,
+        }))}
+        cards={paymentCards}
+        loc={loc}
+      />
 
       {payError ? (
         <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900">
