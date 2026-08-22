@@ -10,7 +10,7 @@ import { D, moneyDisplay } from "@core/shared/decimal";
 import { formatPhone } from "@core/shared/format";
 import { loadPaymentCards } from "@core/config/payment-cards";
 import { formatOrderPaymentSummary } from "@core/orders/payment-method-label";
-import { isCustomerStatus } from "@core/crm/customer-status";
+import { getCustomerPipelineStatus } from "@core/crm/customer-pipeline";
 import { FormField } from "@/components/form-field";
 import { PendingButton } from "@/components/pending-button";
 import { CustomerStatusPicker } from "@/components/crm/customer-status-picker";
@@ -25,7 +25,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
   const { t, n, locale } = await getTranslator();
   const session = await requirePermission("crm.view");
   const { id } = await params;
-  const [customer, paymentCards] = await Promise.all([
+  const [customer, paymentCards, customerStatus] = await Promise.all([
     prisma.customer.findUnique({
       where: { id },
       include: {
@@ -40,6 +40,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
       },
     }),
     loadPaymentCards(),
+    getCustomerPipelineStatus(id),
   ]);
   if (!customer) notFound();
   if (session.user.roleCode === "sales_manager" && customer.managerId !== session.user.id) {
@@ -51,7 +52,6 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
   const debt = customer.orders.reduce((s, o) => s.add(D(String(o.total)).sub(String(o.paidAmount))), D(0));
   const loc = locale;
   const contactPhone = customer.phone || customer.whatsapp || "";
-  const customerStatus = isCustomerStatus(customer.pipelineStatus) ? customer.pipelineStatus : "NEW";
 
   async function save(formData: FormData) {
     "use server";

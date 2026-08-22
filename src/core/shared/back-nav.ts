@@ -62,6 +62,14 @@ function normalizePath(pathname: string) {
   return path || "/";
 }
 
+/** Bottom-tab / home — never show shell back (hamburger instead). */
+export function isShellRoot(pathname: string, tabRoots?: ReadonlySet<string>): boolean {
+  const path = normalizePath(pathname);
+  if (ALWAYS_ROOT.has(path)) return true;
+  if (tabRoots?.has(path)) return true;
+  return false;
+}
+
 export function resolveBackHref(pathname: string, opts?: BackNavOptions): string | null {
   const path = normalizePath(pathname);
   const tabs = opts?.tabRoots;

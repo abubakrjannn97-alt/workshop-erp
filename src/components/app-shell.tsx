@@ -1,8 +1,10 @@
+import { Suspense } from "react";
 import { Sidebar } from "@/components/sidebar";
 import { BottomNav } from "@/components/bottom-nav";
 import { AppShellMobileHeader } from "@/components/app-shell-mobile-header";
 import { AppShellDesktopHeader } from "@/components/app-shell-desktop-header";
 import { AppShellMain } from "@/components/app-shell-main";
+import { NavHistoryTracker } from "@/components/nav-history-tracker";
 import { HelpGuide } from "@/components/help-guide";
 import { NotificationWatch } from "@/components/notification-watch";
 import { OfflineSync } from "@/components/offline-sync";
@@ -67,6 +69,9 @@ export function AppShell({
         <AppShellMain>{children}</AppShellMain>
       </div>
       <BottomNav permissions={permissions} roleCode={roleCode} locale={locale} />
+      <Suspense fallback={null}>
+        <NavHistoryTracker />
+      </Suspense>
       {!workerShell ? <OfflineSync locale={locale} /> : null}
       {!workerShell ? <NotificationWatch locale={locale} /> : null}
       {!workerShell ? <HelpGuide locale={locale} /> : null}

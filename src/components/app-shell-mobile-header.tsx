@@ -1,14 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
-import { ChevronLeft, Menu, X } from "lucide-react";
 import { NotificationBell } from "@/components/notification-bell";
 import { MobileHeaderMenu } from "@/components/mobile-header-menu";
+import { MobileHeaderNavSlot } from "@/components/mobile-header-nav-slot";
 import { WorkshopMark } from "@/components/workshop-mark";
-import { ICON_STROKE } from "@/components/nav-icons";
-import { resolveBackHref } from "@core/shared/back-nav";
 import { bottomTabsForRole, tabHrefSet } from "@core/shared/nav";
 import type { Locale } from "@core/shared/i18n/i18n";
 import { createT } from "@core/shared/i18n/i18n";
@@ -37,7 +34,6 @@ export function AppShellMobileHeader({
     () => tabHrefSet(bottomTabsForRole(roleCode, permissions)),
     [roleCode, permissions],
   );
-  const backHref = resolveBackHref(pathname, { tabRoots });
   const t = createT(locale);
 
   useEffect(() => {
@@ -49,33 +45,14 @@ export function AppShellMobileHeader({
   return (
     <>
       <header className={styles.bar}>
-        {backHref && !isWorker ? (
-          <Link
-            href={backHref}
-            className={styles.menuBtn}
-            aria-label={t("common.back")}
-            scroll={false}
-          >
-            <ChevronLeft size={22} strokeWidth={ICON_STROKE} aria-hidden />
-          </Link>
-        ) : !isWorker ? (
-          <button
-            type="button"
-            className={styles.menuBtn}
-            aria-label={t("nav.more")}
-            aria-expanded={menuOpen}
-            aria-controls="mobile-header-menu"
-            onClick={() => setMenuOpen((open) => !open)}
-          >
-            {menuOpen ? (
-              <X size={20} strokeWidth={ICON_STROKE} aria-hidden />
-            ) : (
-              <Menu size={20} strokeWidth={ICON_STROKE} aria-hidden />
-            )}
-          </button>
-        ) : (
-          <span className={styles.menuSpacer} aria-hidden />
-        )}
+        <MobileHeaderNavSlot
+          tabRoots={tabRoots}
+          workerShell={isWorker}
+          backLabel={t("common.back")}
+          menuLabel={t("nav.more")}
+          menuOpen={menuOpen}
+          onMenuToggle={() => setMenuOpen((open) => !open)}
+        />
         <div className={styles.brand} aria-hidden>
           <WorkshopMark size={24} className={styles.brandLogo} />
           <div className={styles.brandText}>
