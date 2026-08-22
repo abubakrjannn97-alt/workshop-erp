@@ -1,20 +1,14 @@
-import { AsyncLocalStorage } from "async_hooks";
 import { cookies } from "next/headers";
 import { prisma } from "@core/infrastructure/prisma";
+import {
+  enterWorkshopContext,
+  patchWorkshopContext,
+} from "./workshop-storage";
+
+export { getWorkshopIdFromContext, runWithWorkshop } from "./workshop-storage";
 
 export const DEFAULT_WORKSHOP_ID = "ws_default_main";
 export const WORKSHOP_COOKIE = "active_workshop_id";
-
-const workshopStorage = new AsyncLocalStorage<{ workshopId: string }>();
-
-export function getWorkshopIdFromContext(): string | undefined {
-  return workshopStorage.getStore()?.workshopId;
-}
-
-export function runWithWorkshop<T>(workshopId: string, fn: () => T): T {
-  return workshopStorage.run({ workshopId }, fn);
-}
-
 export async function listUserWorkshops(userId: string, roleCode: string) {
   if (roleCode === "owner" || roleCode === "director") {
     return prisma.workshop.findMany({
@@ -56,13 +50,9 @@ export async function resolveActiveWorkshopId(userId: string, roleCode: string):
 
 export async function bindWorkshopContext(userId: string, roleCode: string): Promise<string> {
   const workshopId = await resolveActiveWorkshopId(userId, roleCode);
-  const store = workshopStorage.getStore();
-  if (store) {
-    store.workshopId = workshopId;
-    return workshopId;
+  if (!patchWorkshopContext(workshopId)) {
+    enterWorkshopContext(workshopId);
   }
-  // When called outside runWithWorkshop, set ALS for remainder of async chain via enterWith
-  workshopStorage.enterWith({ workshopId });
   return workshopId;
 }
 

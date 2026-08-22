@@ -1,4 +1,4 @@
-import { getWorkshopIdFromContext } from "./workshop-context";
+import { getWorkshopIdFromContext } from "./workshop-storage";
 
 /** Models with a direct workshopId column — auto-scoped by Prisma extension. */
 export const WORKSHOP_SCOPED_MODELS = new Set([

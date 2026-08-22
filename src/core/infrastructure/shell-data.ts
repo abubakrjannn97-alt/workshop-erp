@@ -2,12 +2,14 @@ import { unstable_cache } from "next/cache";
 import { prisma } from "@core/infrastructure/prisma";
 import { DEFAULT_SETTINGS, SETTING_KEYS } from "@core/config/settings";
 
-export function getShellData(userId: string) {
+export function getShellData(userId: string, workshopId: string) {
   return unstable_cache(
     async () => {
       const [company, unread] = await Promise.all([
-        prisma.setting.findUnique({ where: { key: SETTING_KEYS.companyName } }),
-        prisma.notification.count({ where: { userId, readAt: null } }),
+        prisma.setting.findUnique({
+          where: { workshopId_key: { workshopId, key: SETTING_KEYS.companyName } },
+        }),
+        prisma.notification.count({ where: { userId, workshopId, readAt: null } }),
       ]);
       return {
         companyName:
@@ -15,7 +17,7 @@ export function getShellData(userId: string) {
         unread,
       };
     },
-    ["shell-data", userId],
+    ["shell-data", userId, workshopId],
     { revalidate: 15 },
   )();
 }

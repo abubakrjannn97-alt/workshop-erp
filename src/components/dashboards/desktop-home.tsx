@@ -10,6 +10,7 @@ import {
 } from "@/components/dashboard/dashboard-system";
 import { greetingTitle } from "@/components/dashboard/dash-greeting";
 import { fetchOwnerDashboardSnapshots } from "@/components/dashboard/owner-kpi-data";
+import { listUserWorkshops, resolveActiveWorkshopId } from "@core/workshop/workshop-context";
 import styles from "@/components/dashboard/dash-home.module.css";
 
 /**
@@ -18,9 +19,11 @@ import styles from "@/components/dashboard/dash-home.module.css";
  */
 export async function DesktopHome() {
   const session = await requireSession();
-  const [{ t, n, locale }, shell] = await Promise.all([
+  const activeWorkshopId = await resolveActiveWorkshopId(session.user.id, session.user.roleCode ?? "employee");
+  const [{ t, n, locale }, shell, workshops] = await Promise.all([
     getTranslator(),
-    getShellData(session.user.id),
+    getShellData(session.user.id, activeWorkshopId),
+    listUserWorkshops(session.user.id, session.user.roleCode ?? "employee"),
   ]);
 
   const snapshots = await fetchOwnerDashboardSnapshots(t, n);
@@ -45,6 +48,11 @@ export async function DesktopHome() {
         viewAllOrdersLabel={t("home.viewAllOrders")}
         unread={shell.unread}
         locale={locale}
+        workshops={workshops}
+        activeWorkshopId={activeWorkshopId}
+        workshopAddLabel={t("home.addWorkshop")}
+        workshopNamePlaceholder={t("home.workshopNamePlaceholder")}
+        canAddWorkshop={session.user.roleCode === "owner" || session.user.roleCode === "director"}
         quickActions={
           <DashSection title={t("home.quickActions")} tour="home-shortcuts" flush mobileList>
             <DashQuickActions actions={ownerMobileQuickActions(t)} layout="mobileStrip" />

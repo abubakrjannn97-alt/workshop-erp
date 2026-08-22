@@ -372,6 +372,104 @@
   color: var(--bad);
 }
 
+/* ─── Workshop switcher (multi-цех isolation) ─── */
+
+.workshopBar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.workshopPills {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px 0;
+}
+
+.workshopPills::-webkit-scrollbar {
+  display: none;
+}
+
+.workshopPill,
+.workshopPillActive {
+  display: inline-flex;
+  flex-shrink: 0;
+  min-height: 34px;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink-2);
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.workshopPillActive {
+  border-color: rgba(154, 115, 56, 0.35);
+  background: linear-gradient(180deg, #fffaf2 0%, #f3ead8 100%);
+  color: #8b6e2f;
+}
+
+.workshopAddBtn {
+  display: inline-grid;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px dashed rgba(166, 132, 64, 0.45);
+  background: rgba(255, 250, 242, 0.6);
+  color: #8a6628;
+  cursor: pointer;
+}
+
+.workshopAddForm {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.workshopAddInput {
+  flex: 1;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.workshopAddSubmit {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--navy);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--on-navy);
+  cursor: pointer;
+}
+
+.workshopError {
+  margin: 0;
+  font-size: 12px;
+  color: var(--bad);
+}
+
 /* ─── Home top bar: greeting + period on one line ─── */
 
 .homeTopBar {

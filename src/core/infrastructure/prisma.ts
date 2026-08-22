@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPostgresAdapter } from "@prisma/adapter-ppg";
-import { getWorkshopIdFromContext } from "@core/workshop/workshop-context";
+import { getWorkshopIdFromContext } from "@core/workshop/workshop-storage";
 import { scopeQueryArgs, WORKSHOP_SCOPED_MODELS } from "@core/workshop/workshop-scope";
 
 const globalForPrisma = globalThis as unknown as { prisma?: ReturnType<typeof createPrisma> };

@@ -5,6 +5,7 @@ import { useState, type ReactNode } from "react";
 import { Trash2, Layers } from "lucide-react";
 import { NotificationBell } from "@/components/notification-bell";
 import { DashHomePeriodPicker } from "./dash-home-period-picker";
+import { WorkshopSwitcher } from "./workshop-switcher";
 import { DashMetricStrip } from "./dash-metrics";
 import { DashProfitHero } from "./dash-profit-hero";
 import { DashRecentOrdersSerialized } from "./dash-recent-orders";
@@ -26,6 +27,11 @@ export function DashOwnerHomeBody({
   quickActions,
   unread = 0,
   locale,
+  workshops,
+  activeWorkshopId,
+  workshopAddLabel,
+  workshopNamePlaceholder,
+  canAddWorkshop,
 }: {
   snapshots: OwnerDashboardSnapshots;
   greetingTitle: string;
@@ -40,12 +46,25 @@ export function DashOwnerHomeBody({
   quickActions?: ReactNode;
   unread?: number;
   locale: Locale;
+  workshops: { id: string; name: string; slug: string }[];
+  activeWorkshopId: string;
+  workshopAddLabel: string;
+  workshopNamePlaceholder: string;
+  canAddWorkshop: boolean;
 }) {
   const [period, setPeriod] = useState<HomeProfitPeriod>("today");
   const data = snapshots[period];
 
   return (
     <>
+      <WorkshopSwitcher
+        workshops={workshops}
+        activeId={activeWorkshopId}
+        addLabel={workshopAddLabel}
+        placeholder={workshopNamePlaceholder}
+        canAdd={canAddWorkshop}
+      />
+
       <div className={styles.homeTopBar}>
         <h1 className={styles.homeTopBarTitle}>{greetingTitle}</h1>
         <div className={styles.homeTopBarCenter}>
