@@ -10,6 +10,7 @@ export function StatisticsCard({
   value,
   subtitle,
   icon,
+  accent,
   trend,
   onMenuClick,
   menuAriaLabel,
@@ -18,12 +19,17 @@ export function StatisticsCard({
   className = "",
 }: StatisticsCardProps) {
   const menuVisible = Boolean(onMenuClick) && hideMenu !== true;
+  const accentClass = accent ? styles[`stat-card--${accent}`] : "";
 
   return (
-    <article className={[styles["stat-card"], className].filter(Boolean).join(" ")}>
+    <article className={[styles["stat-card"], accentClass, className].filter(Boolean).join(" ")}>
       <div className={styles["stat-card__body"]}>
         <header className={styles["stat-card__header"]}>
-          {icon ? <span className={styles["stat-card__icon"]}>{icon}</span> : null}
+          {icon ? (
+            <span className={[styles["stat-card__icon"], accent ? styles[`stat-card__icon--${accent}`] : ""].filter(Boolean).join(" ")}>
+              {icon}
+            </span>
+          ) : null}
           <h3 className={styles["stat-card__title"]}>{title}</h3>
           {menuVisible ? (
             <button

@@ -31,6 +31,7 @@
   flex-direction: column;
   gap: 2px;
   padding: 12px;
+  overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface);
@@ -43,6 +44,60 @@
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.metricBlue.metricCard {
+  border-color: var(--tone-blue-border);
+  background: var(--tone-blue-glass);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+  box-shadow: var(--tone-glass-shadow), var(--tone-glass-inset);
+}
+
+.metricPurple.metricCard {
+  border-color: var(--tone-purple-border);
+  background: var(--tone-purple-glass);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+  box-shadow: var(--tone-glass-shadow), var(--tone-glass-inset);
+}
+
+.metricGreen.metricCard {
+  border-color: var(--tone-green-border);
+  background: var(--tone-green-glass);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+  box-shadow: var(--tone-glass-shadow), var(--tone-glass-inset);
+}
+
+.metricWarn.metricCard {
+  border-color: var(--tone-warn-border);
+  background: var(--tone-warn-glass);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+  box-shadow: var(--tone-glass-shadow), var(--tone-glass-inset);
+}
+
+.metricBlue.metricCard::before,
+.metricPurple.metricCard::before,
+.metricGreen.metricCard::before,
+.metricWarn.metricCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.metricBlue.metricCard::before { background: var(--tone-blue-glow); }
+.metricPurple.metricCard::before { background: var(--tone-purple-glow); }
+.metricGreen.metricCard::before { background: var(--tone-green-glow); }
+.metricWarn.metricCard::before { background: var(--tone-warn-glow); }
+
+.metricCard > * {
+  position: relative;
+  z-index: 1;
 }
 
 .metricCard:hover {

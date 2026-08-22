@@ -84,10 +84,37 @@
     linear-gradient(155deg, #2a1f1f 0%, #3a2828 55%, #1c232b 100%);
 }
 .kpiWarn {
-  background: linear-gradient(180deg, #fff8f4 0%, #ffffff 60%);
+  border-color: var(--tone-warn-border);
+  background: var(--tone-warn-glass);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+  box-shadow: var(--tone-glass-shadow), var(--tone-glass-inset);
 }
+
 .kpiSoft {
-  background: linear-gradient(180deg, #f7faf8 0%, #ffffff 60%);
+  border-color: var(--tone-green-border);
+  background: var(--tone-green-glass);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+  box-shadow: var(--tone-glass-shadow), var(--tone-glass-inset);
+}
+
+.kpiWarn::before,
+.kpiSoft::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.kpiWarn::before { background: var(--tone-warn-glow); }
+.kpiSoft::before { background: var(--tone-green-glow); }
+
+.kpiWarn > *,
+.kpiSoft > * {
+  position: relative;
+  z-index: 1;
 }
 .kpiTop {
   display: flex;

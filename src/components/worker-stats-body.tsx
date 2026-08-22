@@ -44,7 +44,7 @@ export function WorkerStatsBody({
         }
       />
       <div className={styles.kpiGrid}>
-        <article className={styles.kpiCard}>
+        <article className={`${styles.kpiCard} ${styles.kpiCardPurple}`}>
           <span className={`${styles.kpiIcon} ${styles.kpiPurple}`}>
             <Layers size={20} strokeWidth={ICON_STROKE} aria-hidden />
           </span>
@@ -53,7 +53,7 @@ export function WorkerStatsBody({
             {data.producedDisplay} <span className={styles.kpiUnit}>м²</span>
           </p>
         </article>
-        <article className={styles.kpiCard}>
+        <article className={`${styles.kpiCard} ${styles.kpiCardGreen}`}>
           <span className={`${styles.kpiIcon} ${styles.kpiGreen}`}>
             <Wallet size={20} strokeWidth={ICON_STROKE} aria-hidden />
           </span>

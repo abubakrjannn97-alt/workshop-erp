@@ -82,9 +82,25 @@
 }
 
 .kpiWarn {
-  background:
-    linear-gradient(180deg, #fff8f4 0%, #ffffff 60%),
-    var(--surface);
+  border-color: var(--tone-warn-border);
+  background: var(--tone-warn-glass);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+  box-shadow: var(--tone-glass-shadow), var(--tone-glass-inset);
+}
+
+.kpiWarn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--tone-warn-glow);
+  pointer-events: none;
+}
+
+.kpiWarn > * {
+  position: relative;
+  z-index: 1;
 }
 
 .kpiTop {

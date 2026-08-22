@@ -37,15 +37,51 @@
 }
 
 .kpiCard {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 6px;
   min-height: 108px;
   padding: 14px;
+  overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 16px;
   background: linear-gradient(165deg, #ffffff 0%, #faf9f7 100%);
   box-shadow: 0 1px 3px rgba(28, 35, 43, 0.04);
+}
+
+.kpiCardPurple {
+  border-color: var(--tone-purple-border);
+  background: var(--tone-purple-glass);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+  box-shadow: var(--tone-glass-shadow), var(--tone-glass-inset);
+}
+
+.kpiCardGreen {
+  border-color: var(--tone-green-border);
+  background: var(--tone-green-glass);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+  box-shadow: var(--tone-glass-shadow), var(--tone-glass-inset);
+}
+
+.kpiCardPurple::before,
+.kpiCardGreen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.kpiCardPurple::before { background: var(--tone-purple-glow); }
+.kpiCardGreen::before { background: var(--tone-green-glow); }
+
+.kpiCard > * {
+  position: relative;
+  z-index: 1;
 }
 
 .kpiIcon {

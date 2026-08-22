@@ -31,6 +31,33 @@
   --kpi-green: #10b981;
   --kpi-blue: #3b82f6;
   --kpi-purple: #8b5cf6;
+
+  /* Tinted mirror-glass cards (soft tone from icon color) */
+  --tone-glass-shadow:
+    0 1px 2px rgba(28, 35, 43, 0.04),
+    0 8px 22px rgba(28, 35, 43, 0.035);
+  --tone-glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.74);
+  --tone-orange-glass: linear-gradient(140deg, rgba(255, 214, 176, 0.5) 0%, rgba(255, 255, 255, 0.88) 48%, rgba(255, 251, 246, 0.82) 100%);
+  --tone-orange-border: rgba(199, 119, 47, 0.24);
+  --tone-orange-glow: radial-gradient(ellipse 92% 72% at -6% 108%, rgba(255, 168, 98, 0.3) 0%, transparent 58%);
+  --tone-green-glass: linear-gradient(140deg, rgba(186, 232, 205, 0.48) 0%, rgba(255, 255, 255, 0.88) 48%, rgba(248, 252, 250, 0.82) 100%);
+  --tone-green-border: rgba(31, 138, 90, 0.22);
+  --tone-green-glow: radial-gradient(ellipse 92% 72% at -6% 108%, rgba(96, 200, 145, 0.28) 0%, transparent 58%);
+  --tone-blue-glass: linear-gradient(140deg, rgba(196, 218, 255, 0.48) 0%, rgba(255, 255, 255, 0.88) 48%, rgba(248, 250, 255, 0.82) 100%);
+  --tone-blue-border: rgba(63, 99, 194, 0.22);
+  --tone-blue-glow: radial-gradient(ellipse 92% 72% at -6% 108%, rgba(120, 160, 240, 0.28) 0%, transparent 58%);
+  --tone-purple-glass: linear-gradient(140deg, rgba(218, 204, 255, 0.46) 0%, rgba(255, 255, 255, 0.88) 48%, rgba(251, 248, 255, 0.82) 100%);
+  --tone-purple-border: rgba(111, 88, 184, 0.22);
+  --tone-purple-glow: radial-gradient(ellipse 92% 72% at -6% 108%, rgba(170, 140, 240, 0.26) 0%, transparent 58%);
+  --tone-red-glass: linear-gradient(140deg, rgba(255, 196, 196, 0.46) 0%, rgba(255, 255, 255, 0.88) 48%, rgba(255, 249, 249, 0.82) 100%);
+  --tone-red-border: rgba(196, 59, 59, 0.22);
+  --tone-red-glow: radial-gradient(ellipse 92% 72% at -6% 108%, rgba(240, 120, 120, 0.26) 0%, transparent 58%);
+  --tone-gold-glass: linear-gradient(140deg, rgba(237, 217, 184, 0.5) 0%, rgba(255, 255, 255, 0.88) 48%, rgba(255, 251, 244, 0.82) 100%);
+  --tone-gold-border: rgba(166, 132, 64, 0.24);
+  --tone-gold-glow: radial-gradient(ellipse 92% 72% at -6% 108%, rgba(210, 170, 100, 0.28) 0%, transparent 58%);
+  --tone-warn-glass: linear-gradient(140deg, rgba(255, 210, 186, 0.48) 0%, rgba(255, 255, 255, 0.88) 48%, rgba(255, 250, 246, 0.82) 100%);
+  --tone-warn-border: rgba(194, 65, 12, 0.22);
+  --tone-warn-glow: radial-gradient(ellipse 92% 72% at -6% 108%, rgba(255, 140, 90, 0.26) 0%, transparent 58%);
   --on-navy: #f8fafc;
   --on-accent: #1c232b;
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;

@@ -92,7 +92,33 @@
 
 /* ─── KPI metrics ─── */
 .metricGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.metricCard { display: flex; min-height: 88px; flex-direction: column; gap: 2px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-soft); text-decoration: none; color: inherit; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.metricCard { display: flex; position: relative; min-height: 88px; flex-direction: column; gap: 2px; padding: 10px; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-soft); text-decoration: none; color: inherit; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.metricGreen.metricCard {
+  border-color: var(--tone-green-border);
+  background: var(--tone-green-glass);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+  box-shadow: var(--tone-glass-shadow), var(--tone-glass-inset);
+}
+.metricWarn.metricCard {
+  border-color: var(--tone-warn-border);
+  background: var(--tone-warn-glass);
+  backdrop-filter: blur(var(--mobile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--mobile-glass-blur));
+  box-shadow: var(--tone-glass-shadow), var(--tone-glass-inset);
+}
+.metricGreen.metricCard::before,
+.metricWarn.metricCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+}
+.metricGreen.metricCard::before { background: var(--tone-green-glow); }
+.metricWarn.metricCard::before { background: var(--tone-warn-glow); }
+.metricCard > * { position: relative; z-index: 1; }
 .metricCardActive { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent); }
 .metricHead { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .metricIcon { display: grid; width: 32px; height: 32px; flex-shrink: 0; place-items: center; border-radius: 10px; }
