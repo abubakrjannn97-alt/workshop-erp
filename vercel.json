@@ -1,6 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "regions": ["fra1"],
-  "buildCommand": "npx prisma db push --skip-generate && npm run build"
+  "regions": ["fra1"]
 }
