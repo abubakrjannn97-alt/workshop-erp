@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronRight, Plus, Users, X } from "lucide-react";
 import { createCustomer } from "@/app/actions/customers";
 import { FormField } from "@/components/form-field";
+import { AppSelect } from "@/components/app-select";
 import { PendingButton } from "@/components/pending-button";
 import { EmptyState } from "@/components/empty-state";
 import { RevealList } from "@/components/reveal-list";
@@ -115,6 +116,16 @@ export function CrmClientsView({
               </FormField>
               <FormField label={t("crm.phoneWhatsapp")}>
                 <input name="phone" placeholder="+992 …" className="ui-input" inputMode="tel" />
+              </FormField>
+              <FormField label={t("crm.clientStatus")}>
+                <AppSelect
+                  name="pipelineStatus"
+                  defaultValue="NEW"
+                  options={CUSTOMER_STATUSES.map((code) => ({
+                    value: code,
+                    label: customerStatusLabel(code, t),
+                  }))}
+                />
               </FormField>
               {error ? <p className={styles.formError}>{error}</p> : null}
               <div className={styles.formActions}>

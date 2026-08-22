@@ -12,6 +12,7 @@ export function RevealList({
   limit = 5,
   className,
   as = "ul",
+  showCount = true,
 }: {
   children: ReactNode;
   moreLabel: string;
@@ -19,6 +20,7 @@ export function RevealList({
   limit?: number;
   className?: string;
   as?: "ul" | "tbody" | "div";
+  showCount?: boolean;
 }) {
   const items = Children.toArray(children);
   const [open, setOpen] = useState(false);
@@ -26,7 +28,7 @@ export function RevealList({
   const hidden = Math.max(0, items.length - limit);
   const toggle = (
     <button type="button" onClick={() => setOpen((v) => !v)} className={BTN}>
-      {open ? lessLabel : `${moreLabel} (${hidden})`}
+      {open ? lessLabel : showCount && hidden > 0 ? `${moreLabel} (${hidden})` : moreLabel}
     </button>
   );
 

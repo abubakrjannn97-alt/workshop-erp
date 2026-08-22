@@ -2,11 +2,11 @@ import { getTranslator } from "@core/shared/i18n/locale";
 import Link from "next/link";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
-import { moneyDisplay, D } from "@core/shared/decimal";
-import { intlLocale } from "@core/shared/i18n/i18n";
+import { moneyDisplay, D, qtyDisplay } from "@core/shared/decimal";
 import { orderPeriodLabel, resolveOrderDateRange, type OrderPeriod } from "@core/shared/order-period";
+import { formatPurchaseOrderNo } from "@core/shared/format";
 import { Segmented } from "@/components/segmented";
-import { StatusBadge, type BadgeTone } from "@/components/status-badge";
+import { StatusBadge } from "@/components/status-badge";
 import { RevealList } from "@/components/reveal-list";
 import { ChevronRight } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
@@ -19,43 +19,26 @@ function parsePeriod(raw?: string): Period {
   return "month";
 }
 
-function poLabel(t: (k: string) => string, status: string) {
-  const map: Record<string, string> = {
-    REQUEST: t("po.REQUEST"),
-    ORDERED: t("po.ORDERED"),
-    POSTED: t("po.POSTED"),
-    CANCELLED: t("po.CANCELLED"),
-    PARTIAL: t("po.ORDERED"),
-  };
-  return map[status] ?? status;
-}
-
-function poTone(status: string): BadgeTone {
-  if (status === "POSTED") return "good";
-  if (status === "CANCELLED") return "bad";
-  if (status === "ORDERED" || status === "PARTIAL") return "info";
-  if (status === "REQUEST") return "warn";
-  return "neutral";
-}
-
 export default async function PurchasingPage({
   searchParams,
 }: {
   searchParams: Promise<{ period?: string }>;
 }) {
-  const { t, locale } = await getTranslator();
+  const { t } = await getTranslator();
   await requirePermission("purchasing.view");
   const params = await searchParams;
   const period = parsePeriod(params.period);
   const range = resolveOrderDateRange({ period });
-  const loc = intlLocale(locale);
 
   const orders = await prisma.purchaseOrder.findMany({
     where:
       range.from && range.to
         ? { createdAt: { gte: range.from, lte: range.to } }
         : undefined,
-    include: { supplier: true },
+    include: {
+      supplier: true,
+      items: { include: { material: { include: { storageUnit: true } } } },
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -117,29 +100,34 @@ export default async function PurchasingPage({
         {orders.length === 0 ? (
           <div className={styles.empty}>{t("po.historyEmpty")}</div>
         ) : (
-          <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={5} className={styles.list}>
+          <RevealList moreLabel={t("po.showAll")} lessLabel={t("home.hide")} limit={5} showCount={false} className={styles.list}>
             {orders.map((order) => {
               const lineDebt = D(String(order.total)).sub(order.paidAmount);
+              const paid = lineDebt.lte(0);
               return (
                 <li key={order.id}>
                   <Link href={`/purchasing/${order.id}`} className={styles.row}>
                     <div className={styles.rowMain}>
-                      <p className={styles.rowTitle}>
-                        {order.number}
-                        <span className={styles.rowSupplier}> · {order.supplier.name}</span>
-                      </p>
-                      <p className={styles.rowMeta}>
-                        {order.createdAt.toLocaleDateString(loc, {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                        })}
-                        {lineDebt.gt(0) ? ` · ${t("common.debt")} ${moneyDisplay(lineDebt)} с` : ""}
-                      </p>
+                      <p className={styles.rowOrderNo}>{formatPurchaseOrderNo(order.number)}</p>
+                      <p className={styles.rowSupplierName}>{order.supplier.name}</p>
+                      {order.items.length > 0 ? (
+                        <ul className={styles.rowItems}>
+                          {order.items.map((item) => (
+                            <li key={item.id}>
+                              {item.material.name} · {qtyDisplay(item.quantity)}{" "}
+                              {item.material.storageUnit?.symbol ?? ""}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
                     </div>
                     <div className={styles.rowRight}>
                       <span className={styles.rowAmount}>{moneyDisplay(order.total)} с</span>
-                      <StatusBadge label={poLabel(t, order.status)} tone={poTone(order.status)} />
+                      {paid ? (
+                        <StatusBadge label={t("common.paid")} tone="good" />
+                      ) : (
+                        <StatusBadge label={`${t("common.debt")} ${moneyDisplay(lineDebt)} с`} tone="bad" />
+                      )}
                     </div>
                     <ChevronRight size={16} strokeWidth={ICON_STROKE} className={styles.chevron} aria-hidden />
                   </Link>

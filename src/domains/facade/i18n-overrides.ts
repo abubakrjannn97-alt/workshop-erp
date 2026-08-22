@@ -88,6 +88,7 @@ export const FACADE_I18N_OVERRIDES: Record<Locale, Dict> = {
     "emp.laborHint": "Сколько сомони платим за 1 м² годной плитки / камня. Брак не оплачивается.",
     "emp.currentRate": "Сейчас платим {n} с за 1 м²",
     "emp.goodOutput": "Годных м²",
+    "emp.periodOutput": "Общий м²",
 
     "an.scrapHint":
       "Это количество в м², а не деньги. Кто списал брак и по какому изделию (плитка / камень).",
@@ -177,6 +178,7 @@ export const FACADE_I18N_OVERRIDES: Record<Locale, Dict> = {
     "emp.laborHint": "Барои 1 м² плитка / санги хуб чанд сомонӣ. Нуқсон пардохт намешавад.",
     "emp.currentRate": "Ҳоло {n} с барои 1 м²",
     "emp.goodOutput": "м²-и хуб",
+    "emp.periodOutput": "Ҳамагӣ м²",
 
     "an.scrapHint":
       "Ин миқдор бо м² аст, на пул. Кӣ нуқсон навишт ва аз кадом маҳсулот (плитка / санг).",

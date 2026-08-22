@@ -18,6 +18,12 @@ export function orderNo(n: number | string) {
   return `№ ${n}`;
 }
 
+/** PO-0003 → №3 */
+export function formatPurchaseOrderNo(raw: string) {
+  const m = raw.match(/PO-0*(\d+)/i) ?? raw.match(/(\d+)/);
+  return m ? `№${m[1]}` : raw;
+}
+
 /** «Сланец» серый instead of Фасадная плитка «Сланец» серый */
 export function shortProductLabel(name: string, maxLen = 24): string {
   const quoted = name.match(/«([^»]+)»(?:\s+(\S+))?/);

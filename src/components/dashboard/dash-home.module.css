@@ -954,10 +954,10 @@
 .actions.actionsMobileStrip {
   display: grid;
   width: 100%;
-  max-width: 360px;
+  max-width: 100%;
   margin-inline: auto;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
   overflow: visible;
   padding: 0;
   scroll-snap-type: none;
@@ -974,9 +974,9 @@
   flex: none;
   width: 100%;
   height: auto;
-  min-height: 72px;
-  padding: 8px 6px 7px;
-  border-radius: 18px;
+  min-height: 68px;
+  padding: 6px 3px 5px;
+  border-radius: 14px;
   border: 1px solid rgba(232, 236, 241, 0.95);
   background:
     linear-gradient(165deg, #ffffff 0%, #fbfbfa 100%);
@@ -1007,10 +1007,10 @@
 }
 
 .actionsMobileStrip .actionIcon {
-  width: 46px;
-  height: 46px;
+  width: 38px;
+  height: 38px;
   flex-shrink: 0;
-  border-radius: 14px;
+  border-radius: 12px;
   opacity: 1;
   border: 1px solid rgba(255, 255, 255, 0.85);
   box-shadow:
@@ -1020,16 +1020,16 @@
 
 .actionsMobileStrip .actionLabel {
   width: 100%;
-  min-height: 28px;
-  max-height: 28px;
+  min-height: 24px;
+  max-height: 24px;
   overflow: hidden;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
-  line-height: 14px;
+  line-height: 12px;
   text-align: center;
   color: var(--ink);
   opacity: 1;

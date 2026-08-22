@@ -608,19 +608,27 @@
 
 .statusFilterRow {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
   padding: 0 12px 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.statusFilterRow::-webkit-scrollbar {
+  display: none;
 }
 
 .statusFilterBtn {
-  min-height: 32px;
-  padding: 0 10px;
+  min-height: 36px;
+  flex-shrink: 0;
+  padding: 0 12px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--surface);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 650;
   color: var(--ink-2);
   cursor: pointer;
 }

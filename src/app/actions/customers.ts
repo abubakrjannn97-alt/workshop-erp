@@ -16,6 +16,7 @@ const schema = z.object({
   source: z.string().trim().max(80).optional().or(z.literal("")),
   comment: z.string().trim().max(2000).optional().or(z.literal("")),
   managerId: z.string().optional().or(z.literal("")),
+  pipelineStatus: z.enum(CUSTOMER_STATUSES).optional(),
 });
 
 export async function createCustomer(formData: FormData) {
@@ -28,6 +29,7 @@ export async function createCustomer(formData: FormData) {
     source: formData.get("source") ?? "",
     comment: formData.get("comment") ?? "",
     managerId: formData.get("managerId") ?? "",
+    pipelineStatus: formData.get("pipelineStatus") ?? "NEW",
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Проверьте поля." };
 
@@ -46,7 +48,7 @@ export async function createCustomer(formData: FormData) {
       managerId,
     },
   });
-  await setCustomerPipelineStatus(customer.id, "NEW");
+  await setCustomerPipelineStatus(customer.id, parsed.data.pipelineStatus ?? "NEW");
   await writeAudit({
     userId: session.user.id,
     action: "customer.create",

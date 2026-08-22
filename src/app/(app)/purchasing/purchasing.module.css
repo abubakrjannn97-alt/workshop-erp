@@ -188,6 +188,33 @@
   min-width: 0;
 }
 
+.rowOrderNo {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 750;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.rowSupplierName {
+  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--ink-2);
+}
+
+.rowItems {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  color: var(--ink-3);
+  line-height: 1.35;
+}
+
 .rowTitle {
   margin: 0;
   font-size: 14px;

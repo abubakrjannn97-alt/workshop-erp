@@ -1,34 +1,60 @@
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
-import { moneyDisplay } from "@core/shared/decimal";
+import { moneyDisplay, D } from "@core/shared/decimal";
 import { LEDGER } from "@core/finance/finance";
 import { createExpense } from "@/app/actions/finance";
 import { getTranslator, intlLocale } from "@core/shared/i18n/locale";
+import { orderPeriodLabel, resolveOrderDateRange, type OrderPeriod } from "@core/shared/order-period";
 import { FormField } from "@/components/form-field";
 import { AppSelect } from "@/components/app-select";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
+import { Segmented } from "@/components/segmented";
+import { ExpensesMonthList } from "./expenses-month-list";
 import styles from "../finance.module.css";
 
-export default async function ExpensesPage() {
+type Period = Extract<OrderPeriod, "today" | "week" | "month" | "all">;
+
+function parsePeriod(raw?: string): Period {
+  if (raw === "today" || raw === "week" || raw === "month" || raw === "all") return raw;
+  return "month";
+}
+
+export default async function ExpensesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ period?: string }>;
+}) {
   const session = await requirePermission("finance.view");
   const { t, locale, n } = await getTranslator();
+  const params = await searchParams;
+  const period = parsePeriod(params.period);
+  const range = resolveOrderDateRange({ period });
+  const loc = intlLocale(locale);
   const canExpense = hasPermission(session.user.permissions, session.user.roleCode, "finance.expense.create");
-  const start = new Date();
-  start.setDate(1);
-  start.setHours(0, 0, 0, 0);
+
+  const dateFilter =
+    range.from && range.to ? { gte: range.from, lte: range.to } : undefined;
 
   const [accounts, categories, entries] = await Promise.all([
     prisma.cashAccount.findMany({ where: { archivedAt: null }, orderBy: { code: "asc" } }),
     prisma.expenseCategory.findMany({ where: { archivedAt: null }, orderBy: { name: "asc" } }),
     prisma.ledgerEntry.findMany({
-      where: { status: "POSTED", type: LEDGER.CASH_OUT, createdAt: { gte: start } },
+      where: { status: "POSTED", type: LEDGER.CASH_OUT, ...(dateFilter ? { createdAt: dateFilter } : {}) },
       orderBy: { createdAt: "desc" },
-      take: 40,
+      take: 80,
     }),
   ]);
 
+  const total = entries.reduce((s, e) => s.add(String(e.amount)), D(0));
   const defaultAccountId = accounts.find((a) => a.code === "CASH")?.id ?? accounts[0]?.id ?? "";
+  const rangeLabel = orderPeriodLabel(period, t, range.from, range.to);
+  const expenseRows = entries.map((e) => ({
+    id: e.id,
+    comment: e.comment,
+    amount: String(e.amount),
+    dateLabel: e.createdAt.toLocaleDateString(loc),
+  }));
 
   return (
     <div className={styles.page}>
@@ -38,6 +64,25 @@ export default async function ExpensesPage() {
           <p className={styles.subtitle}>{t("fin.expensesHint")}</p>
         </div>
       </header>
+
+      <div className={styles.periodWrap}>
+        <Segmented
+          aria-label={t("po.period")}
+          items={[
+            { href: "/finance/expenses?period=today", label: t("orders.periodToday"), active: period === "today" },
+            { href: "/finance/expenses?period=week", label: t("po.periodWeek"), active: period === "week" },
+            { href: "/finance/expenses?period=month", label: t("po.periodMonth"), active: period === "month" },
+            { href: "/finance/expenses?period=all", label: t("orders.periodAll"), active: period === "all" },
+          ]}
+        />
+      </div>
+
+      <section className={styles.expenseReport}>
+        <p className={styles.expenseReportEyebrow}>{t("fin.periodExpenses")}</p>
+        <p className={styles.expenseReportRange}>{rangeLabel}</p>
+        <p className={styles.expenseReportTotal}>{moneyDisplay(total)} с</p>
+        <p className={styles.expenseReportCount}>{t("fin.expenseCount", { n: String(entries.length) })}</p>
+      </section>
 
       {canExpense ? (
         <section className={styles.section} data-tour="fin-expense">
@@ -75,45 +120,7 @@ export default async function ExpensesPage() {
       ) : null}
 
       <section className={styles.section}>
-        <div className={styles.sectionHead}>
-          <h2 className={styles.sectionTitleAccent}>{t("fin.monthExpenses")}</h2>
-        </div>
-        {entries.length === 0 ? (
-          <div className={styles.empty}>{t("common.empty")}</div>
-        ) : (
-          <>
-            <div className={styles.tableWrap}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>{t("list.col.what")}</th>
-                    <th className={styles.thRight}>{t("list.col.sum")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {entries.map((e) => (
-                    <tr key={e.id}>
-                      <td>
-                        <span className={styles.tdBold}>{e.comment ?? t("fin.expense")}</span>
-                        <p className={styles.tdMuted}>{e.createdAt.toLocaleDateString(intlLocale(locale))}</p>
-                      </td>
-                      <td className={styles.tdRight}>{moneyDisplay(e.amount)} с</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <ul className={styles.mobileList}>
-              {entries.map((e) => (
-                <li key={e.id} className={styles.mobileCard}>
-                  <p className={styles.mobileName}>{e.comment ?? t("fin.expense")}</p>
-                  <p className={styles.mobileMeta}>{e.createdAt.toLocaleDateString(intlLocale(locale))}</p>
-                  <p className={styles.mobileValue}>{moneyDisplay(e.amount)} с</p>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
+        <ExpensesMonthList locale={locale} entries={expenseRows} />
       </section>
     </div>
   );

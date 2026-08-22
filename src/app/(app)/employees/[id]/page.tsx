@@ -10,6 +10,7 @@ import { intlLocale } from "@core/shared/i18n/i18n";
 import { EmployeeAccessForm } from "@/components/employee-access-form";
 import { EmployeePayoutForm } from "@/components/employee-payout-form";
 import { EmployeePayoutHistory } from "@/components/employee-payout-history";
+import { RevealList } from "@/components/reveal-list";
 import { EMPLOYEE_ASSIGNABLE, type PermissionCode } from "@core/rbac/permissions";
 import { formatPhoneDisplay } from "@core/shared/phone";
 import { archiveEmployee } from "@/app/actions/employees";
@@ -17,7 +18,6 @@ import { getDomainConfig } from "@core/config/domain-config";
 import { loadPaymentCards } from "@core/config/payment-cards";
 import { FormField } from "@/components/form-field";
 import { AppSelect } from "@/components/app-select";
-import { StatusBadge } from "@/components/status-badge";
 import styles from "../employees.module.css";
 
 export default async function EmployeePage({ params }: { params: Promise<{ id: string }> }) {
@@ -38,25 +38,37 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
   const canEdit = hasPermission(session.user.permissions, session.user.roleCode, "users.edit");
   const canPay = hasPermission(session.user.permissions, session.user.roleCode, "salary.approve");
 
-  const [schemes, accounts, accruals, payouts, m2, accruedAgg, paidAgg, assignablePerms, domainConfig, paymentCards] = await Promise.all([
+  const [schemes, accounts, accruals, payouts, assignablePerms, domainConfig, paymentCards] = await Promise.all([
     prisma.payScheme.findMany({ orderBy: { name: "asc" } }),
     prisma.cashAccount.findMany({ where: { archivedAt: null } }),
     prisma.payrollAccrual.findMany({ where: { userId: id }, orderBy: { createdAt: "desc" }, take: 40 }),
     prisma.payrollPayout.findMany({ where: { userId: id }, orderBy: { createdAt: "desc" }, take: 50 }),
-    prisma.payrollAccrual.aggregate({ where: { userId: id, kind: "PRODUCTION", status: "ACCRUED" }, _sum: { quantity: true, amount: true } }),
-    prisma.payrollAccrual.aggregate({ where: { userId: id, status: "ACCRUED" }, _sum: { amount: true } }),
-    prisma.payrollPayout.aggregate({ where: { userId: id }, _sum: { amount: true } }),
     isOwner && user.role.code === "employee"
       ? prisma.permission.findMany({ where: { code: { in: [...EMPLOYEE_ASSIGNABLE] } }, orderBy: [{ module: "asc" }, { code: "asc" }] })
       : Promise.resolve([]),
     getDomainConfig(),
     loadPaymentCards(),
   ]);
+
+  const lastPayoutAt = payouts[0]?.createdAt ?? user.hiredAt ?? new Date(0);
+  const [periodM2, periodEarnedAgg, accruedAgg, paidAgg] = await Promise.all([
+    prisma.payrollAccrual.aggregate({
+      where: { userId: id, kind: "PRODUCTION", status: { not: "REVERSED" }, createdAt: { gte: lastPayoutAt } },
+      _sum: { quantity: true },
+    }),
+    prisma.payrollAccrual.aggregate({
+      where: { userId: id, status: "ACCRUED", createdAt: { gte: lastPayoutAt } },
+      _sum: { amount: true },
+    }),
+    prisma.payrollAccrual.aggregate({ where: { userId: id, status: "ACCRUED" }, _sum: { amount: true } }),
+    prisma.payrollPayout.aggregate({ where: { userId: id }, _sum: { amount: true } }),
+  ]);
   const outputUnit = await prisma.unit.findUnique({ where: { code: domainConfig.product.defaultSaleUnit } });
   const outputUnitSymbol = outputUnit?.symbol ?? "м²";
   const permModules = [...new Set(assignablePerms.map((p) => p.module))];
   const selectedPermCodes = user.permissions.map((up) => up.permission.code as PermissionCode);
-  const workQty = D(String(m2._sum.quantity ?? 0));
+  const workQty = D(String(periodM2._sum.quantity ?? 0));
+  const periodEarned = D(String(periodEarnedAgg._sum.amount ?? 0));
 
   async function archiveAction(formData: FormData) { "use server"; await archiveEmployee(formData); }
 
@@ -104,101 +116,14 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
 
       <div className={`${styles.kpiStrip} ${styles.kpiStripTwo}`}>
         <div className={styles.kpiBox}>
-          <p className={styles.kpiLabel}>{t("emp.goodOutput")}</p>
+          <p className={styles.kpiLabel}>{t("emp.periodOutput")}</p>
           <p className={styles.kpiValueAccent}>{qtyDisplay(workQty)} {outputUnitSymbol}</p>
         </div>
         <div className={styles.kpiBox}>
-          <p className={styles.kpiLabel}>{t("emp.totalEarned")}</p>
-          <p className={styles.kpiValue}>{moneyDisplay(accrued)} с</p>
-          {paid.gt(0) ? (
-            <p className={styles.kpiSub}>
-              {t("emp.paidOut")}: {moneyDisplay(paid)} с · {t("common.debt")}: {moneyDisplay(debt)} с
-            </p>
-          ) : debt.gt(0) ? (
-            <p className={styles.kpiSub}>{t("common.debt")}: {moneyDisplay(debt)} с</p>
-          ) : null}
+          <p className={styles.kpiLabel}>{t("emp.periodEarned")}</p>
+          <p className={styles.kpiValue}>{moneyDisplay(periodEarned)} с</p>
         </div>
       </div>
-
-      <section className={styles.section}>
-        <div className={styles.sectionHead}>
-          <h2 className={styles.sectionTitle}>{t("emp.accruals")}</h2>
-        </div>
-        {accruals.length === 0 ? (
-          <div className={styles.sectionBody}>
-            <p style={{ fontSize: 14, color: "var(--ink-3)" }}>{t("emp.noneYet")}</p>
-          </div>
-        ) : (
-          <>
-            <div className={styles.tableWrap}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>{t("list.col.what")}</th>
-                    <th>{t("common.status")}</th>
-                    <th className={styles.thRight}>{t("list.col.sum")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {accruals.map((a) => (
-                    <tr key={a.id}>
-                      <td>
-                        <span className={styles.tdBold}>{accrualKindLabel(a.kind)}</span>
-                        {(a.comment || a.periodKey) ? <p className={styles.tdMuted}>{[a.comment, a.periodKey].filter(Boolean).join(" · ")}</p> : null}
-                      </td>
-                      <td>
-                        {a.status === "REVERSED"
-                          ? <StatusBadge label={t("common.reversal")} tone="warn" />
-                          : <StatusBadge label={a.status} tone="neutral" />}
-                      </td>
-                      <td className={styles.tdRight}>{moneyDisplay(a.amount)} с</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <ul className={styles.mobileList}>
-              {accruals.map((a) => (
-                <li key={a.id} className={styles.mobileCard} style={{ textDecoration: "none" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span className={styles.mobileName}>{accrualKindLabel(a.kind)}</span>
-                    <span style={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{moneyDisplay(a.amount)} с</span>
-                  </div>
-                  {(a.comment || a.periodKey) ? <p className={styles.mobileMeta}>{[a.comment, a.periodKey].filter(Boolean).join(" · ")}</p> : null}
-                  <div style={{ marginTop: 6 }}>
-                    {a.status === "REVERSED"
-                      ? <StatusBadge label={t("common.reversal")} tone="warn" />
-                      : <StatusBadge label={a.status} tone="neutral" />}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-      </section>
-
-      {canPay && debt.gt(0) ? (
-        <section className={styles.section}>
-          <div className={styles.sectionHead}>
-            <h2 className={styles.sectionTitle}>{t("emp.payout")}</h2>
-          </div>
-          <div className={styles.sectionBody}>
-            <EmployeePayoutForm
-              locale={locale}
-              userId={user.id}
-              defaultAmount={moneyDisplay(debt)}
-              paymentCards={paymentCards}
-            />
-          </div>
-        </section>
-      ) : null}
-
-      <section className={styles.section}>
-        <div className={styles.sectionHead}>
-          <h2 className={styles.sectionTitle}>{t("emp.payoutHistory")}</h2>
-        </div>
-        <EmployeePayoutHistory locale={locale} payouts={payoutRows} />
-      </section>
 
       {canEdit ? (
         <section className={styles.section}>
@@ -229,6 +154,54 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
               </FormField>
               <button type="submit" className="ui-btn-primary min-h-[44px]">{t("common.save")}</button>
             </form>
+          </div>
+        </section>
+      ) : null}
+
+      <section className={styles.section}>
+        <div className={styles.sectionHead}>
+          <h2 className={styles.sectionTitle}>{t("emp.accruals")}</h2>
+        </div>
+        {accruals.length === 0 ? (
+          <div className={styles.sectionBody}>
+            <p style={{ fontSize: 14, color: "var(--ink-3)" }}>{t("emp.noneYet")}</p>
+          </div>
+        ) : (
+          <RevealList moreLabel={t("po.showAll")} lessLabel={t("home.hide")} limit={5} showCount={false} className={styles.accrualList}>
+            {accruals.map((a) => (
+              <li key={a.id} className={styles.accrualRow}>
+                <div className={styles.accrualRowTop}>
+                  <span className={styles.accrualKind}>{accrualKindLabel(a.kind)}</span>
+                  <span className={styles.accrualAmount}>{moneyDisplay(a.amount)} с</span>
+                </div>
+                {(a.comment || a.periodKey) ? (
+                  <p className={styles.accrualMeta}>{[a.comment, a.periodKey].filter(Boolean).join(" · ")}</p>
+                ) : null}
+              </li>
+            ))}
+          </RevealList>
+        )}
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHead}>
+          <h2 className={styles.sectionTitle}>{t("emp.payoutHistory")}</h2>
+        </div>
+        <EmployeePayoutHistory locale={locale} payouts={payoutRows} />
+      </section>
+
+      {canPay && debt.gt(0) ? (
+        <section className={styles.section}>
+          <div className={styles.sectionHead}>
+            <h2 className={styles.sectionTitle}>{t("emp.payout")}</h2>
+          </div>
+          <div className={styles.sectionBody}>
+            <EmployeePayoutForm
+              locale={locale}
+              userId={user.id}
+              defaultAmount={moneyDisplay(debt)}
+              paymentCards={paymentCards}
+            />
           </div>
         </section>
       ) : null}

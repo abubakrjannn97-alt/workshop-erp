@@ -145,6 +145,49 @@
 .dangerBtn { border: none; background: none; cursor: pointer; min-height: 44px; font-size: 13px; font-weight: 600; color: var(--bad, #B42318); padding: 0 8px; border-radius: 8px; transition: background .12s; }
 .dangerBtn:hover { background: rgba(180,35,24,.06); }
 
+.accrualList {
+  margin: 0;
+  padding: 0 12px 12px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.accrualRow {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.accrualRowTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.accrualKind {
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.accrualAmount {
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.accrualMeta {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--ink-3);
+}
+
 /* ─── Responsive ─── */
 @media (max-width: 1023px) {
   .page { gap: 16px; max-width: none; }
