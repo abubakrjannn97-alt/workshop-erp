@@ -2,7 +2,7 @@ import { getTranslator } from "@core/shared/i18n/locale";
 import { redirect } from "next/navigation";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
-import { qtyDisplay, D } from "@core/shared/decimal";
+import { D } from "@core/shared/decimal";
 import { getRawWarehouse } from "@/core/config/resolve-warehouse";
 import { loadPaymentCards } from "@core/config/payment-cards";
 import { addRawMaterialToWarehouse } from "@/app/actions/inventory";
@@ -50,11 +50,10 @@ export default async function AddWarehouseMaterialPage({
   const defaultUnitCost = selectedRow?.lastPurchasePrice ? String(selectedRow.lastPurchasePrice) : "";
 
   const materialOptions = lowFirst.map((m) => {
-    const onHand = qtyDisplay(m.stockItems[0]?.qtyOnHand ?? 0);
     const low = D(String(m.stockItems[0]?.qtyOnHand ?? 0)).lt(m.minStock);
     return {
       id: m.id,
-      label: `${m.name} · ${onHand} ${m.storageUnit.symbol}${low ? " ↓" : ""}`,
+      label: low ? `${m.name} ↓` : m.name,
       defaultUnitCost: m.lastPurchasePrice ? String(m.lastPurchasePrice) : "",
     };
   });

@@ -39,7 +39,7 @@ export function WarehouseNewMaterialForm({
       <FormField label={t("common.category")}>
         <input name="category" placeholder={t("wh.addMaterialCategoryPh")} className="ui-input" />
       </FormField>
-      <div className="grid gap-2.5 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-2.5">
         <FormField label={t("common.quantity")} required>
           <input name="quantity" required inputMode="decimal" placeholder="100" className="ui-input" />
         </FormField>

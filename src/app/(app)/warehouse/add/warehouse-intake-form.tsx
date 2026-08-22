@@ -59,7 +59,7 @@ export function WarehouseIntakeForm({
         />
       </FormField>
 
-      <div className="grid gap-2.5 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-2.5">
         <FormField label={t("common.quantity")} required>
           <input name="quantity" required inputMode="decimal" className="ui-input" defaultValue={defaultQty} />
         </FormField>

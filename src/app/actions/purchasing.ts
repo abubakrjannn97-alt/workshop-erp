@@ -314,8 +314,10 @@ const intakeSchema = z.object({
   quantity: z.string().regex(/^\d+(\.\d{1,6})?$/),
   unitCost: z.string().regex(/^\d+(\.\d{1,6})?$/),
   payMode: z.enum(["paid", "partial", "debt"]),
-  payChannel: z.enum(["cash", "card"]).optional(),
+  payChannel: z.enum(["cash", "card", "split"]).optional(),
   cardId: z.string().optional(),
+  cardAmount: z.string().optional(),
+  cashAmount: z.string().optional(),
   paidAmount: z.string().optional(),
   comment: z.string().optional(),
 });
@@ -333,6 +335,8 @@ export async function receiveSupplierIntake(formData: FormData) {
     payMode: formData.get("payMode") ?? "paid",
     payChannel: String(formData.get("payChannel") ?? "") || undefined,
     cardId: String(formData.get("cardId") ?? "") || undefined,
+    cardAmount: String(formData.get("cardAmount") ?? "") || undefined,
+    cashAmount: String(formData.get("cashAmount") ?? "") || undefined,
     paidAmount: String(formData.get("paidAmount") ?? "") || undefined,
     comment: String(formData.get("comment") ?? "") || undefined,
   });
@@ -371,19 +375,64 @@ export async function receiveSupplierIntake(formData: FormData) {
     return { error: "Нет прав на оплату поставщику. Выберите «В долг» или обратитесь к руководителю." };
   }
 
-  if (parsed.data.payMode !== "debt" && parsed.data.payChannel === "card") {
-    const cards = await loadPaymentCards();
-    if (!parsed.data.cardId || !cards.some((c) => c.id === parsed.data.cardId)) {
-      return { error: "Выберите карту для оплаты." };
+  const payChannel = parsed.data.payChannel ?? "cash";
+  let cardPaid = D(parsed.data.cardAmount || "0");
+  let cashPaid = D(parsed.data.cashAmount || "0");
+
+  if (parsed.data.payMode !== "debt" && payAmount.gt(0)) {
+    if (payChannel === "card") {
+      cardPaid = payAmount;
+      cashPaid = D(0);
+    } else if (payChannel === "cash") {
+      cardPaid = D(0);
+      cashPaid = payAmount;
+    } else if (payChannel === "split") {
+      if (!cardPaid.plus(cashPaid).eq(payAmount)) {
+        return { error: "Сумма на карту и наличными должна равняться оплате." };
+      }
     }
+    if (cardPaid.gt(0)) {
+      const cards = await loadPaymentCards();
+      if (!parsed.data.cardId || !cards.some((c) => c.id === parsed.data.cardId)) {
+        return { error: "Выберите карту для оплаты." };
+      }
+    }
+  } else {
+    cardPaid = D(0);
+    cashPaid = D(0);
   }
 
   const raw = await findRawWarehouse();
   if (!raw) return { error: "Склад сырья не найден." };
 
   const idempotencyKey = String(formData.get("idempotencyKey") ?? randomUUID()).trim() || randomUUID();
-  const method = payAmount.gt(0) ? paymentMethodFromForm(parsed.data.payChannel ?? "cash", parsed.data.cardId ?? "") : null;
   const poNumber = await nextNumber();
+
+  const paymentLegs: { amount: ReturnType<typeof D>; method: string; comment: string; suffix: string }[] = [];
+  if (payAmount.gt(0)) {
+    const cards = await loadPaymentCards();
+    const card = cards.find((c) => c.id === parsed.data.cardId);
+    const cardLabel = card ? card.bank : "Карта";
+    if (cardPaid.gt(0)) {
+      paymentLegs.push({
+        amount: cardPaid,
+        method: `card:${parsed.data.cardId}`,
+        comment: `Оплата на карту: ${cardLabel}`,
+        suffix: `${idempotencyKey}-card`,
+      });
+    }
+    if (cashPaid.gt(0)) {
+      paymentLegs.push({
+        amount: cashPaid,
+        method: "cash",
+        comment:
+          parsed.data.payMode === "partial"
+            ? "Частичная оплата поставщику (нал)"
+            : "Оплата поставщику (нал)",
+        suffix: `${idempotencyKey}-cash`,
+      });
+    }
+  }
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -469,24 +518,18 @@ export async function receiveSupplierIntake(formData: FormData) {
         data: { status: "POSTED", receivedById: session.user.id, receivedAt: new Date() },
       });
 
-      if (payAmount.gt(0) && method) {
-        const cards = await loadPaymentCards();
-        const card = cards.find((c) => c.id === parsed.data.cardId);
-        const cardLabel = card ? `${card.name}` : "Карта";
-        await postPurchasePaymentInTx(tx, {
-          orderId: order.id,
-          orderNumber: order.number,
-          amount: money(payAmount),
-          method,
-          userId: session.user.id,
-          idempotencySuffix: idempotencyKey,
-          comment:
-            method.startsWith("card:")
-              ? `Оплата на карту: ${cardLabel}`
-              : parsed.data.payMode === "partial"
-                ? "Частичная оплата поставщику (нал)"
-                : "Оплата поставщику (нал)",
-        });
+      if (paymentLegs.length > 0) {
+        for (const leg of paymentLegs) {
+          await postPurchasePaymentInTx(tx, {
+            orderId: order.id,
+            orderNumber: order.number,
+            amount: money(leg.amount),
+            method: leg.method,
+            userId: session.user.id,
+            idempotencySuffix: leg.suffix,
+            comment: leg.comment,
+          });
+        }
       }
     });
   } catch (error) {
