@@ -15,14 +15,14 @@ import { IdempotencyField } from "@/components/idempotency-field";
 export default async function AddWarehouseMaterialPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; mode?: string }>;
+  searchParams: Promise<{ error?: string; mode?: string; material?: string; qty?: string }>;
 }) {
   const { t } = await getTranslator();
   const session = await requirePermission("inventory.view");
   if (!hasPermission(session.user.permissions, session.user.roleCode, "inventory.receive")) {
     redirect("/warehouse");
   }
-  const { error, mode } = await searchParams;
+  const { error, mode, material: materialId, qty } = await searchParams;
   const isNew = mode === "new";
   const raw = await getRawWarehouse();
 
@@ -37,6 +37,16 @@ export default async function AddWarehouseMaterialPage({
     const bLow = D(String(b.stockItems[0]?.qtyOnHand ?? 0)).lt(b.minStock) ? 0 : 1;
     return aLow - bLow || a.name.localeCompare(b.name, "ru");
   });
+
+  const selectedMaterial =
+    materialId && materials.some((m) => m.id === materialId)
+      ? materialId
+      : (lowFirst[0]?.id ?? "");
+  const selectedRow = materials.find((m) => m.id === selectedMaterial) ?? lowFirst[0];
+  const defaultQty = qty?.trim() || "";
+  const defaultUnitCost = selectedRow?.lastPurchasePrice
+    ? String(selectedRow.lastPurchasePrice)
+    : "";
 
   async function receiveExisting(formData: FormData) {
     "use server";
@@ -58,7 +68,7 @@ export default async function AddWarehouseMaterialPage({
 
   return (
     <div className="page-stack max-w-xl" style={{ gap: "10px" }}>
-      <PageHeader title={t("wh.addMaterial")} backHref="/warehouse" backLabel={t("common.back")} />
+      <PageHeader title={t("wh.addMaterial")} backHref="/warehouse?view=raw" backLabel={t("common.back")} />
       {error ? (
         <p className="m-0 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900">{error}</p>
       ) : null}
@@ -69,7 +79,7 @@ export default async function AddWarehouseMaterialPage({
           <FormField label={t("common.material")} required>
             <AppSelect
               name="materialId"
-              defaultValue={lowFirst[0]?.id ?? ""}
+              defaultValue={selectedMaterial}
               options={lowFirst.map((m) => {
                 const onHand = qtyDisplay(m.stockItems[0]?.qtyOnHand ?? 0);
                 const low = D(String(m.stockItems[0]?.qtyOnHand ?? 0)).lt(m.minStock);
@@ -82,7 +92,13 @@ export default async function AddWarehouseMaterialPage({
           </FormField>
           <div className="grid gap-2.5 sm:grid-cols-2">
             <FormField label={t("common.quantity")} required>
-              <input name="quantity" required inputMode="decimal" className="ui-input" />
+              <input
+                name="quantity"
+                required
+                inputMode="decimal"
+                className="ui-input"
+                defaultValue={defaultQty}
+              />
             </FormField>
             <FormField label={t("common.unitPrice")} required>
               <input
@@ -90,9 +106,7 @@ export default async function AddWarehouseMaterialPage({
                 required
                 inputMode="decimal"
                 className="ui-input"
-                defaultValue={
-                  lowFirst[0]?.lastPurchasePrice ? String(lowFirst[0].lastPurchasePrice) : ""
-                }
+                defaultValue={defaultUnitCost}
               />
             </FormField>
           </div>

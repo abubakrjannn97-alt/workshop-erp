@@ -7,7 +7,7 @@ import { qtyDisplay, moneyDisplay } from "@core/shared/decimal";
 import { D } from "@core/shared/decimal";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
 import { WarehouseMetrics } from "./warehouse-metrics";
-import { Plus } from "lucide-react";
+import { Plus, ChevronRight } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import styles from "./warehouse.module.css";
 
@@ -126,6 +126,12 @@ export default async function WarehousePage({
         },
       ];
 
+  const sortedUrgent = [...urgentMaterials].sort((a, b) => {
+    const aNeed = D(String(a.minStock)).sub(D(String(a.stockItems[0]?.qtyOnHand ?? 0)));
+    const bNeed = D(String(b.minStock)).sub(D(String(b.stockItems[0]?.qtyOnHand ?? 0)));
+    return bNeed.cmp(aNeed) || a.name.localeCompare(b.name, "ru");
+  });
+
   const sortedRows = isWorker
     ? [...productRows].sort((a, b) => Number(b.low) - Number(a.low))
     : productRows;
@@ -135,16 +141,9 @@ export default async function WarehousePage({
       <WarehouseMetrics items={metrics} activeId={activeId} />
 
       {!isWorker ? (
-        <div className={styles.toolbar}>
-          <p className={styles.toolbarHint}>
-            {activeId === "products" ? t("wh.fgListHint") : t("wh.rawListHint")}
-          </p>
-          {canReceive ? (
-            <Link href="/warehouse/add" className={styles.iconBtn} aria-label={t("wh.addMaterial")}>
-              <Plus size={18} strokeWidth={ICON_STROKE} />
-            </Link>
-          ) : null}
-        </div>
+        <p className={styles.toolbarHint}>
+          {activeId === "products" ? t("wh.fgListHint") : t("wh.rawListHint")}
+        </p>
       ) : (
         <p className={styles.toolbarHint}>{t("me.fgHint")}</p>
       )}
@@ -229,28 +228,54 @@ export default async function WarehousePage({
         <section className={styles.section}>
           <div className={styles.sectionHead}>
             <h2 className={styles.sectionTitle}>{t("wh.urgentList")}</h2>
+            {canReceive ? (
+              <Link href="/warehouse/add" className={styles.sectionAddBtn}>
+                <Plus size={16} strokeWidth={ICON_STROKE} aria-hidden />
+                {t("wh.addMaterial")}
+              </Link>
+            ) : null}
           </div>
-          {urgentMaterials.length === 0 ? (
+          {sortedUrgent.length === 0 ? (
             <div className={styles.sectionBody}>
-              <p className={styles.emptyNote}>{t("common.empty")}</p>
+              <p className={styles.emptyNote}>{t("wh.urgentEmpty")}</p>
             </div>
           ) : (
-            <ul className={styles.alertList}>
-              {urgentMaterials.map((material) => {
+            <ul className={styles.rawList}>
+              {sortedUrgent.map((material) => {
                 const stock = material.stockItems[0];
                 const onHand = D(String(stock?.qtyOnHand ?? 0));
-                const need = D(String(material.minStock)).sub(onHand);
+                const min = D(String(material.minStock));
+                const need = min.sub(onHand);
+                const unit = material.storageUnit.symbol;
+                const addHref = `/warehouse/add?material=${material.id}&qty=${encodeURIComponent(qtyDisplay(need))}`;
                 return (
                   <li key={material.id}>
-                    <Link href="/warehouse/add" className={styles.alertItemLink}>
-                      <div className={styles.alertMain}>
-                        <p className={styles.alertName}>{material.name}</p>
-                        <p className={styles.alertMeta}>
-                          {qtyDisplay(onHand)} / {qtyDisplay(material.minStock)} {material.storageUnit.symbol}
-                          {need.gt(0) ? ` · −${qtyDisplay(need)}` : null}
-                        </p>
-                        <p className={styles.alertHint}>{t("wh.urgentAddHint")}</p>
+                    <Link href={addHref} className={styles.rawCard}>
+                      <p className={styles.rawName}>{material.name}</p>
+                      <div className={styles.rawStats}>
+                        <div className={styles.rawStat}>
+                          <span className={styles.rawStatLabel}>{t("wh.urgentOnHand")}</span>
+                          <span className={styles.rawStatValue}>
+                            {qtyDisplay(onHand)} {unit}
+                          </span>
+                        </div>
+                        <div className={styles.rawStat}>
+                          <span className={styles.rawStatLabel}>{t("wh.urgentMin")}</span>
+                          <span className={styles.rawStatValue}>
+                            {qtyDisplay(min)} {unit}
+                          </span>
+                        </div>
+                        <div className={styles.rawStat}>
+                          <span className={styles.rawStatLabel}>{t("wh.urgentNeed")}</span>
+                          <span className={styles.rawStatNeed}>
+                            {qtyDisplay(need)} {unit}
+                          </span>
+                        </div>
                       </div>
+                      <span className={styles.rawAction}>
+                        {t("wh.urgentReceiveBtn")}
+                        <ChevronRight size={14} strokeWidth={ICON_STROKE} aria-hidden />
+                      </span>
                     </Link>
                   </li>
                 );
