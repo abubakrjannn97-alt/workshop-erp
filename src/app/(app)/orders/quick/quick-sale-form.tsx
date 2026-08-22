@@ -237,6 +237,19 @@ export function QuickSaleForm({
     setLineTotal(p ? calcLineTotal(p, "1") : "");
   }
 
+  function resetForm() {
+    setError(null);
+    setCustomerId("");
+    setCustomerName("");
+    setPhone("");
+    setPickerOpen(false);
+    setProductOpen(false);
+    setCart([]);
+    setPayMode("paid");
+    setPartialAmount("");
+    resetLineFields(products[0]?.id);
+  }
+
   function addToCart() {
     setError(null);
     if (!customerName.trim() || !phone.trim()) {
