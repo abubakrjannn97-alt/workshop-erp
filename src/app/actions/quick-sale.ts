@@ -341,7 +341,7 @@ export async function quickSaleFromFg(formData: FormData) {
 
       if (cardPaid.gt(0)) {
         const cardMethod = `card:${parsed.data.cardId}`;
-        const cardLabel = selectedCard ? `${selectedCard.bank} (${selectedCard.name})` : "Карта";
+        const cardLabel = selectedCard ? selectedCard.name : "Карта";
         await recordPayment(
           cardPaid,
           cardMethod,

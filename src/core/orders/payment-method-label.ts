@@ -1,22 +1,32 @@
 import type { PaymentCard } from "@core/config/payment-cards";
 
+function cardNameById(cards: PaymentCard[], cardId: string) {
+  return cards.find((c) => c.id === cardId)?.name ?? null;
+}
+
+function cardIdFromComment(comment: string | null | undefined): string | null {
+  if (!comment?.startsWith("card:")) return null;
+  return comment.slice(5).split("|")[0]?.trim() || null;
+}
+
 export function formatPaymentMethodLabel(
   method: string | null | undefined,
   cards: PaymentCard[],
   t: (key: string) => string,
   comment?: string | null,
 ): string {
-  if (!method) return comment?.trim() || "—";
-
-  if (method.startsWith("card:")) {
-    const cardId = method.slice(5);
-    const card = cards.find((c) => c.id === cardId);
-    if (card) {
-      const tail = card.last4 ? ` ···${card.last4}` : "";
-      return `${card.name}${tail}`;
-    }
-    return t("pay.method.card");
+  if (method?.startsWith("card:")) {
+    const name = cardNameById(cards, method.slice(5));
+    if (name) return name;
   }
+
+  const commentCardId = cardIdFromComment(comment);
+  if (commentCardId) {
+    const name = cardNameById(cards, commentCardId);
+    if (name) return name;
+  }
+
+  if (!method) return comment?.trim() || "—";
 
   if (method === "mixed") return t("pay.method.mixed");
   if (method === "cash") return t("pay.method.cash");
@@ -35,9 +45,6 @@ export function formatOrderPaymentSummary(
 ): string {
   const active = payments.filter((p) => !p.reversesId && !payments.some((x) => x.reversesId === p.id));
   if (active.length === 0) return "—";
-  const parts = active.map((p) => {
-    const label = formatPaymentMethodLabel(p.method, cards, t, p.comment);
-    return label;
-  });
+  const parts = active.map((p) => formatPaymentMethodLabel(p.method, cards, t, p.comment));
   return [...new Set(parts)].join(" · ");
 }

@@ -488,7 +488,7 @@ export function QuickSaleForm({
                       className={`${styles.cardOption} ${cardId === card.id ? styles.cardOptionActive : ""}`}
                       onClick={() => setCardId(card.id)}
                     >
-                      <span className={styles.cardName}>{card.bank}</span>
+                      <span className={styles.cardName}>{card.name}</span>
                     </button>
                   ))}
                 </div>

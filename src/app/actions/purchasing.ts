@@ -421,7 +421,7 @@ export async function receiveSupplierIntake(formData: FormData) {
   if (payAmount.gt(0)) {
     const cards = await loadPaymentCards();
     const card = cards.find((c) => c.id === parsed.data.cardId);
-    const cardLabel = card ? card.bank : "Карта";
+    const cardLabel = card ? card.name : "Карта";
     if (cardPaid.gt(0)) {
       paymentLegs.push({
         amount: cardPaid,
