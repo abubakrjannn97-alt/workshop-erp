@@ -21,7 +21,7 @@ export async function MobileOwnerHome() {
     listUserWorkshops(session.user.id, session.user.roleCode ?? "employee"),
   ]);
 
-  const snapshots = await fetchOwnerDashboardSnapshots(t, n);
+  const snapshots = await fetchOwnerDashboardSnapshots(t, n, activeWorkshopId);
 
   return (
     <div className={`${styles.home} ${styles.homeMobile}`}>

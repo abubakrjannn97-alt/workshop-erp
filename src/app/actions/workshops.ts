@@ -36,6 +36,12 @@ export async function switchWorkshopAction(workshopId: string) {
     sameSite: "lax",
   });
 
+  // Make sure subsequent work in this request (and prisma cookie fallback) sees the new workshop.
+  const { enterWorkshopContext, patchWorkshopContext } = await import("@core/workshop/workshop-storage");
+  if (!patchWorkshopContext(workshopId)) {
+    enterWorkshopContext(workshopId);
+  }
+
   revalidatePath("/", "layout");
   revalidatePath("/");
   return { ok: true as const };

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import { switchWorkshopAction } from "@/app/actions/workshops";
@@ -15,6 +16,7 @@ export function WorkshopSwitcher({
   workshops: WorkshopOption[];
   activeId: string;
 }) {
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
@@ -46,11 +48,13 @@ export function WorkshopSwitcher({
     if (id === activeId || pending) return;
     startTransition(async () => {
       const result = await switchWorkshopAction(id);
-      if (!result.ok) setError(result.error);
-      else {
-        setError("");
-        setMenuOpen(false);
+      if (!result.ok) {
+        setError(result.error);
+        return;
       }
+      setError("");
+      setMenuOpen(false);
+      router.refresh();
     });
   }
 

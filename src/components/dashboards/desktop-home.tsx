@@ -26,7 +26,7 @@ export async function DesktopHome() {
     listUserWorkshops(session.user.id, session.user.roleCode ?? "employee"),
   ]);
 
-  const snapshots = await fetchOwnerDashboardSnapshots(t, n);
+  const snapshots = await fetchOwnerDashboardSnapshots(t, n, activeWorkshopId);
   await refreshOwnerAlerts();
 
   return (

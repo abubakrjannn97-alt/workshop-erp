@@ -1,9 +1,34 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPostgresAdapter } from "@prisma/adapter-ppg";
-import { getWorkshopIdFromContext } from "@core/workshop/workshop-storage";
+import {
+  enterWorkshopContext,
+  getWorkshopIdFromContext,
+} from "@core/workshop/workshop-storage";
 import { scopeQueryArgs, WORKSHOP_SCOPED_MODELS } from "@core/workshop/workshop-scope";
 
 const globalForPrisma = globalThis as unknown as { prisma?: ReturnType<typeof createPrisma> };
+
+/** Must stay in sync with workshop-context ALLOWED_WORKSHOP_IDS / WORKSHOP_COOKIE. */
+const WORKSHOP_COOKIE = "active_workshop_id";
+const ALLOWED_WORKSHOP_IDS = new Set(["ws_default_main", "ws_workshop_2"]);
+
+async function resolveWorkshopIdForQuery(): Promise<string | undefined> {
+  const fromAls = getWorkshopIdFromContext();
+  if (fromAls) return fromAls;
+
+  // Next.js can lose AsyncLocalStorage across RSC boundaries — fall back to cookie.
+  try {
+    const { cookies } = await import("next/headers");
+    const value = (await cookies()).get(WORKSHOP_COOKIE)?.value?.trim();
+    if (value && ALLOWED_WORKSHOP_IDS.has(value)) {
+      enterWorkshopContext(value);
+      return value;
+    }
+  } catch {
+    // Outside a Next.js request (scripts, migrations).
+  }
+  return undefined;
+}
 
 function isPrismaPostgresUrl(url: string) {
   return url.includes("db.prisma.io") || url.includes("pooled.db.prisma.io");
@@ -39,7 +64,9 @@ function extendClient(client: PrismaClient) {
           if (model === "AuditLog" && AUDIT_MUTATIONS.has(operation)) {
             throw new Error("Журнал аудита неизменяем.");
           }
-          const workshopId = getWorkshopIdFromContext();
+          const workshopId = WORKSHOP_SCOPED_MODELS.has(model)
+            ? await resolveWorkshopIdForQuery()
+            : getWorkshopIdFromContext();
           if (workshopId && WORKSHOP_SCOPED_MODELS.has(model)) {
             const scoped = scopeQueryArgs(model, operation, args as Record<string, unknown>, workshopId);
             const result = await query(scoped);

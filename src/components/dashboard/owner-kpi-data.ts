@@ -4,6 +4,7 @@ import { materialCostForRecipe, scaleNeed } from "@core/costing/costing";
 import { productLaborRate } from "@core/payroll/labor-rate";
 import { ORDER_STATUS } from "@core/orders/orders";
 import { resolveOrderDateRange, type OrderPeriod } from "@core/shared/order-period";
+import { runWithWorkshop } from "@core/workshop/workshop-storage";
 
 export type HomeProfitPeriod = Extract<OrderPeriod, "today" | "week" | "month">;
 
@@ -176,7 +177,7 @@ function summarizeOrders(
   return { profit: sales.minus(cost), sales, orderCount };
 }
 
-export async function fetchOwnerProfitKpis(): Promise<OwnerProfitKpis> {
+export async function fetchOwnerProfitKpis(workshopId?: string): Promise<OwnerProfitKpis> {
   const todayRange = resolveOrderDateRange({ period: "today" });
   const weekRange = resolveOrderDateRange({ period: "week" });
   const monthRange = resolveOrderDateRange({ period: "month" });
@@ -187,6 +188,7 @@ export async function fetchOwnerProfitKpis(): Promise<OwnerProfitKpis> {
 
   const orders = await prisma.order.findMany({
     where: {
+      ...(workshopId ? { workshopId } : {}),
       createdAt: { gte: from, lte: to },
       status: { code: { not: ORDER_STATUS.CANCELLED } },
     },
@@ -298,7 +300,9 @@ function sumProducedInRange(
 export async function fetchOwnerDashboardSnapshots(
   t: (key: string) => string,
   n: (group: string, code: string, fallback: string) => string,
+  workshopId: string,
 ): Promise<OwnerDashboardSnapshots> {
+  return runWithWorkshop(workshopId, async () => {
   const todayRange = resolveOrderDateRange({ period: "today" });
   const weekRange = resolveOrderDateRange({ period: "week" });
   const monthRange = resolveOrderDateRange({ period: "month" });
@@ -312,17 +316,18 @@ export async function fetchOwnerDashboardSnapshots(
   const yesterdayEnd = endOfDay(new Date(Date.now() - 86_400_000));
 
   const [profitKpis, scrapRows, batchRows, recentOrderRows] = await Promise.all([
-    fetchOwnerProfitKpis(),
+    fetchOwnerProfitKpis(workshopId),
     prisma.scrapRecord.findMany({
-      where: { createdAt: { gte: from, lte: to } },
+      where: { workshopId, createdAt: { gte: from, lte: to } },
       select: { createdAt: true, quantity: true },
     }),
     prisma.productionBatch.findMany({
-      where: { status: "CLOSED", producedAt: { gte: from, lte: to } },
+      where: { workshopId, status: "CLOSED", producedAt: { gte: from, lte: to } },
       select: { producedAt: true, actualQty: true },
     }),
     prisma.order.findMany({
       where: {
+        workshopId,
         createdAt: { gte: from, lte: to },
         status: { code: { not: ORDER_STATUS.CANCELLED } },
       },
@@ -383,4 +388,5 @@ export async function fetchOwnerDashboardSnapshots(
   }
 
   return out;
+  });
 }
