@@ -1,7 +1,32 @@
 .wizard {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+}
+
+.foldHead {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.foldMeta {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #1b7a4a;
 }
 
 .error {
@@ -221,8 +246,8 @@
 .priceBlock {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px 12px;
+  gap: 8px;
+  padding: 10px;
   border-radius: 14px;
   border: 1px solid rgba(36, 149, 101, 0.22);
   background: linear-gradient(165deg, #f4fbf7 0%, #ffffff 60%);

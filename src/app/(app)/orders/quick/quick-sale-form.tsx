@@ -385,6 +385,7 @@ export function QuickSaleForm({
           </div>
         </FormField>
 
+        <div className={pickerOpen ? styles.maskedBelow : undefined}>
         <FormField label={labels.phone} required className={styles.field}>
           <input
             className="ui-input"
@@ -526,6 +527,7 @@ export function QuickSaleForm({
         <button type="button" className={`ui-btn-primary ${styles.addBtn}`} onClick={addToCart}>
           {labels.addLine}
         </button>
+        </div>
       </div>
 
       {cart.length > 0 ? (

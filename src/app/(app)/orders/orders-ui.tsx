@@ -9,7 +9,7 @@ import { ICON_STROKE } from "@/components/nav-icons";
 import { EmptyState } from "@/components/empty-state";
 import { OrdersStatusFilter } from "./orders-status-filter";
 import { StatusBadge, orderTone, type BadgeTone } from "@/components/status-badge";
-import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
+import { D, moneyDisplay } from "@core/shared/decimal";
 import styles from "./orders.module.css";
 
 export type OrderListItem = {
@@ -171,6 +171,9 @@ export function OrdersListPanel({
   statusLabel,
   attentionLabel,
   productMoreLabel,
+  showCost,
+  costLabel,
+  profitLabel,
   colCustomer,
   colProduct,
   colStatus,
@@ -182,6 +185,9 @@ export function OrdersListPanel({
   statusLabel: (code: string, name: string) => string;
   attentionLabel: string;
   productMoreLabel: (extra: number) => string;
+  showCost?: boolean;
+  costLabel?: string;
+  profitLabel?: string;
   colCustomer: string;
   colProduct: string;
   colStatus: string;
@@ -237,19 +243,16 @@ export function OrdersListPanel({
           const items = order.items ?? [];
           const first = items[0];
           const product = first?.product;
-          const unit = product?.saleUnit?.symbol ?? "";
-          const qty =
-            items.length === 0
-              ? "—"
-              : items.length === 1
-                ? `${qtyDisplay(String(first?.outputQty ?? first?.quantity ?? 0))} ${unit}`.trim()
-                : `${items.length} поз.`;
           const title =
             items.length === 0
               ? "—"
               : items.length === 1
                 ? shortProductName(product?.name ?? "—")
                 : `${shortProductName(product?.name ?? "—")} +${items.length - 1}`;
+          const profitTone =
+            order.profitSum && D(order.profitSum.replace(/\s/g, "")).lt(0)
+              ? styles.mobileSaleProfitBad
+              : styles.mobileSaleProfit;
           return (
             <li key={order.id}>
               <Link href={`/orders/${order.id}`} className={styles.mobileCard}>
@@ -279,8 +282,23 @@ export function OrdersListPanel({
                     <p className={styles.mobileSaleMeta}>{shortPersonName(order.customer.name)}</p>
                   </div>
                   <div className={styles.mobileSaleMetrics}>
-                    <span className={styles.mobileSaleQty}>{qty}</span>
-                    <span className={styles.mobileAmount}>{moneyDisplay(String(order.total))} с</span>
+                    {showCost ? (
+                      <>
+                        <span className={styles.mobileSaleMetricLabel}>{costLabel}</span>
+                        <span className={styles.mobileSaleCost}>
+                          {order.costSum != null ? `${order.costSum} с` : "—"}
+                        </span>
+                        <span className={styles.mobileSaleMetricLabel}>{profitLabel}</span>
+                        <span className={profitTone}>
+                          {order.profitSum != null ? `${order.profitSum} с` : "—"}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className={styles.mobileSaleQty}>—</span>
+                        <span className={styles.mobileAmount}>{moneyDisplay(String(order.total))} с</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </Link>

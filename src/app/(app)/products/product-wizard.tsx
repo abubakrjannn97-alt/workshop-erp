@@ -55,6 +55,7 @@ export function ProductCreateWizard({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [showMore, setShowMore] = useState(false);
+  const [showRecipe, setShowRecipe] = useState(false);
   const [nextKey, setNextKey] = useState(1);
   const [rows, setRows] = useState<RecipeRow[]>([
     { key: 0, materialId: "", quantity: "", unitId: units[0]?.id ?? "" },
@@ -74,7 +75,7 @@ export function ProductCreateWizard({
 
   const expense = useMemo(() => {
     let total = D(0);
-    let ok = false;
+    let matOk = false;
     for (const row of rows) {
       if (!row.materialId || !row.quantity) continue;
       const unitPrice = materialMap.get(row.materialId)?.unitCost;
@@ -83,14 +84,16 @@ export function ProductCreateWizard({
         const line = D(unitPrice).mul(row.quantity || "0");
         if (line.gte(0) && D(row.quantity || "0").gt(0)) {
           total = total.add(line);
-          ok = true;
+          matOk = true;
         }
       } catch {
         /* skip */
       }
     }
-    return ok ? total : null;
-  }, [rows, materialMap]);
+    const labor = D(laborRate || "0");
+    if (labor.gt(0)) total = total.add(labor);
+    return matOk || labor.gt(0) ? total : null;
+  }, [rows, materialMap, laborRate]);
 
   function onPickFile(file: File | null) {
     if (!file) return;
@@ -267,8 +270,26 @@ export function ProductCreateWizard({
       ) : null}
 
       <div className={styles.block}>
-        <p className={styles.blockTitle}>{t("products.recipeTitle")}</p>
+        <button
+          type="button"
+          className={styles.foldHead}
+          aria-expanded={showRecipe}
+          onClick={() => setShowRecipe((v) => !v)}
+        >
+          <span>{t("products.recipeTitle")}</span>
+          <span className={styles.foldMeta}>
+            {expense ? `${moneyDisplay(expense)} с / м²` : "—"}
+          </span>
+          <ChevronDown
+            size={16}
+            strokeWidth={ICON_STROKE}
+            className={showRecipe ? styles.moreChevronOpen : undefined}
+            aria-hidden
+          />
+        </button>
 
+        {showRecipe ? (
+          <>
         <ul className={styles.recipeList}>
           {rows.map((row, index) => (
               <li key={row.key} className={styles.recipeRow}>
@@ -337,10 +358,22 @@ export function ProductCreateWizard({
           {t("products.addMaterial")}
         </button>
 
+        <FormField label={t("products.laborRate")}>
+          <input
+            className="ui-input"
+            inputMode="decimal"
+            value={laborRate}
+            placeholder="0"
+            onChange={(e) => setLaborRate(e.target.value)}
+          />
+        </FormField>
+
         <div className={styles.expenseBox}>
           <span>{t("products.expenseTotal")}</span>
           <strong>{expense ? `${moneyDisplay(expense)} с` : "—"}</strong>
         </div>
+          </>
+        ) : null}
       </div>
 
       <div className={styles.priceBlock}>
@@ -354,15 +387,6 @@ export function ProductCreateWizard({
               placeholder={expense ? moneyDisplay(expense) : t("products.phSalePrice")}
               onChange={(e) => setPrice(e.target.value)}
               required
-            />
-          </FormField>
-          <FormField label={t("products.laborRate")} className={styles.priceFieldFull}>
-            <input
-              className="ui-input"
-              inputMode="decimal"
-              value={laborRate}
-              placeholder="0"
-              onChange={(e) => setLaborRate(e.target.value)}
             />
           </FormField>
         </div>

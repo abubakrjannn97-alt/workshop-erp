@@ -16,6 +16,12 @@
   box-shadow: 0 1px 6px rgba(28, 35, 43, 0.04);
   overflow: visible;
   isolation: isolate;
+  position: relative;
+}
+
+.maskedBelow {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .lockHint {
@@ -257,7 +263,7 @@
   left: 0;
   right: 0;
   z-index: 90;
-  max-height: min(280px, 50vh);
+  max-height: min(240px, 45vh);
   overflow-y: auto;
   overflow-x: hidden;
   padding: 4px;
@@ -285,11 +291,11 @@
   width: 100%;
   align-items: center;
   gap: 10px;
-  min-height: 48px;
-  padding: 8px 10px;
+  min-height: 44px;
+  padding: 6px 8px;
   border: 0;
   border-radius: 10px;
-  background: transparent;
+  background: #fff;
   text-align: left;
   cursor: pointer;
 }

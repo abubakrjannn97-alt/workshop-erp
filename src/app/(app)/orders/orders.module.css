@@ -872,9 +872,43 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 1px;
+  gap: 0;
   flex-shrink: 0;
   text-align: right;
+  min-width: 4.5rem;
+}
+
+.mobileSaleMetricLabel {
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.mobileSaleCost {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  margin-bottom: 3px;
+}
+
+.mobileSaleProfit {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #249565;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mobileSaleProfitBad {
+  composes: mobileSaleProfit;
+  color: #c2410c;
 }
 
 .mobileSaleQty {
@@ -936,8 +970,12 @@
 
 @media (max-width: 1023px) {
   .page {
-    gap: 8px;
+    gap: 6px;
     max-width: none;
+  }
+
+  .header {
+    gap: 4px;
   }
 
   .navRow {

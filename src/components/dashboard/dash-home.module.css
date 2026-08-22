@@ -57,7 +57,7 @@
 }
 
 .homeMobile {
-  gap: 8px;
+  gap: 4px;
   max-width: none;
   position: relative;
 }
@@ -85,6 +85,48 @@
 
 .homeMobile .greetingSub {
   display: none;
+}
+
+.homeMobile .kpiCardCompact {
+  min-height: 72px;
+  padding: 6px 8px 5px;
+}
+
+.homeMobile .kpiCardFeatured {
+  padding: 6px 8px;
+}
+
+.homeMobile .kpiValueFeatured {
+  font-size: 24px;
+  line-height: 28px;
+}
+
+.homeMobile .kpiValueCompact {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+.homeMobile .kpiHintCompact {
+  min-height: 0;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  font-size: 10px;
+  line-height: 13px;
+}
+
+.homeMobile .sectionTitle {
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.homeMobile .orderCard {
+  padding: 6px 8px;
+  min-height: 56px;
+}
+
+.homeMobile .actionsMobileStrip .actionStrip {
+  min-height: 56px;
+  padding: 6px 4px 5px;
 }
 
 /* ─── Desktop: same composition as mobile, constrained width ─── */
