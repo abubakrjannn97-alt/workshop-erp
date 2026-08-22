@@ -8,6 +8,7 @@ import { notifyRoles } from "@core/control/control";
 import { postClientPayment } from "@core/finance/finance";
 import { laborAmountForLines } from "@core/payroll/product-labor";
 import { reverseCommissionForPayment } from "@core/payroll/payroll";
+import { requireWorkshopId } from "@core/workshop/workshop-context";
 
 export type ApprovalDecision = "APPROVED" | "REJECTED";
 

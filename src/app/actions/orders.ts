@@ -11,6 +11,7 @@ import { D, money, qty, qtyDisplay } from "@core/shared/decimal";
 import { available, releaseMaterial, reserveMaterial } from "@core/inventory/stock";
 import { isPeriodClosedError } from "@core/control/control";
 import { postClientPayment } from "@core/finance/finance";
+import { requireWorkshopId } from "@core/workshop/workshop-context";
 import {
   accrueSellerCommission,
   commissionPercentNow,
@@ -73,6 +74,7 @@ async function recordInitialOrderPayment(
 
   const payment = await tx.payment.create({
     data: {
+      workshopId: requireWorkshopId(),
       orderId: input.orderId,
       amount: money(input.paidAmount),
       method: "cash",
@@ -497,6 +499,7 @@ export async function addPayment(formData: FormData) {
     try {
       payment = await tx.payment.create({
         data: {
+          workshopId: requireWorkshopId(),
           orderId,
           amount: money(amount),
           method,
@@ -608,6 +611,7 @@ export async function reversePayment(formData: FormData) {
     await prisma.$transaction(async (tx) => {
       const reversal = await tx.payment.create({
       data: {
+        workshopId: requireWorkshopId(),
         orderId: payment.orderId,
         amount: money(D(String(payment.amount)).neg()),
         method: payment.method,

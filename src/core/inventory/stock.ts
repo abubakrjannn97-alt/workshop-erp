@@ -1,8 +1,9 @@
 import { Prisma } from "@prisma/client";
-import { prisma } from "@core/infrastructure/prisma";
+import { prisma, type PrismaTx } from "@core/infrastructure/prisma";
 import { D, money, qty } from "@core/shared/decimal";
 import { assertPeriodOpen } from "@core/control/control";
 import { getDomainPreset } from "@core/config/domain-config";
+import { requireWorkshopId } from "@core/workshop/workshop-context";
 
 export const MOVEMENT = {
   RECEIPT: "RECEIPT",
@@ -18,7 +19,7 @@ export const MOVEMENT = {
   REVERSAL: "REVERSAL",
 } as const;
 
-type Tx = Prisma.TransactionClient;
+type Tx = PrismaTx;
 
 function n(value: { toString(): string } | string | number) {
   return D(String(value));
@@ -37,7 +38,8 @@ async function createMovementIdempotent(
   tx: Tx,
   data: Prisma.StockMovementUncheckedCreateInput | { data: Prisma.StockMovementUncheckedCreateInput },
 ) {
-  const payload = "data" in data ? data.data : data;
+  const raw = "data" in data ? data.data : data;
+  const payload = { ...raw, workshopId: raw.workshopId ?? requireWorkshopId() };
   try {
     return await tx.stockMovement.create({ data: payload });
   } catch (e) {
@@ -54,9 +56,10 @@ async function createMovementIdempotent(
 }
 
 export async function getOrCreateMaterialStock(tx: Tx, warehouseId: string, materialId: string) {
+  const workshopId = requireWorkshopId();
   return tx.stockItem.upsert({
     where: { warehouseId_materialId: { warehouseId, materialId } },
-    create: { warehouseId, materialId, qtyOnHand: "0", qtyReserved: "0", wacUnitCost: "0" },
+    create: { workshopId, warehouseId, materialId, qtyOnHand: "0", qtyReserved: "0", wacUnitCost: "0" },
     update: {},
   });
 }
@@ -73,6 +76,7 @@ export async function getOrCreateProductStock(
   if (found) return found;
   return tx.stockItem.create({
     data: {
+      workshopId: requireWorkshopId(),
       warehouseId,
       productId,
       variantId: variantId ?? null,

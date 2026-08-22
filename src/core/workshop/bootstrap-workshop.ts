@@ -1,6 +1,8 @@
 import type { PrismaClient } from "@prisma/client";
 import { DEFAULT_SETTINGS, SETTING_KEYS } from "@core/config/settings";
-import { DEFAULT_WORKSHOP_ID, WORKSHOP_2_ID } from "@core/workshop/workshop-context";
+
+const DEFAULT_WORKSHOP_ID = "ws_default_main";
+const WORKSHOP_2_ID = "ws_workshop_2";
 
 const RAW_CODE = "RAW";
 const FG_CODE = "FG";

@@ -16,6 +16,7 @@ import { nextOrderNumber, ORDER_STATUS, paymentStatusOf } from "@core/orders/ord
 import { issueOrderStockAndMarkIssued } from "@core/orders/issue-complete";
 import { postClientPayment } from "@core/finance/finance";
 import { laborAmountForLines } from "@core/payroll/product-labor";
+import { requireWorkshopId } from "@core/workshop/workshop-context";
 
 const NEW_CUSTOMER = "__new__";
 
@@ -318,6 +319,7 @@ export async function quickSaleFromFg(formData: FormData) {
         const key = `${payKey}-${suffix}`;
         const payment = await tx.payment.create({
           data: {
+            workshopId: requireWorkshopId(),
             orderId: order.id,
             amount: amount.toFixed(4),
             method,
