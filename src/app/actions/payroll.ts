@@ -6,8 +6,9 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
 import { D, money } from "@core/shared/decimal";
-import { FUND, LEDGER, postLedger } from "@core/finance/finance";
+import { accountByCode, FUND, LEDGER, postLedger } from "@core/finance/finance";
 import { periodKey } from "@core/payroll/payroll";
+import { loadPaymentCards } from "@core/config/payment-cards";
 
 export async function assignPayScheme(formData: FormData) {
   const session = await requirePermission("users.edit");
@@ -75,16 +76,36 @@ export async function updatePayScheme(formData: FormData) {
   return { ok: true };
 }
 
-export async function payEmployee(formData: FormData) {
+export async function payEmployee(_prev: unknown, formData: FormData) {
   const session = await requirePermission("salary.approve");
   const userId = String(formData.get("userId") ?? "");
   const amount = String(formData.get("amount") ?? "");
-  const accountId = String(formData.get("accountId") ?? "");
-  const comment = String(formData.get("comment") ?? "").trim();
+  const payChannel = String(formData.get("payChannel") ?? "cash");
+  const cardId = String(formData.get("cardId") ?? "");
+  const cardAmountRaw = String(formData.get("cardAmount") ?? "");
+  const cashAmountRaw = String(formData.get("cashAmount") ?? "");
+  const userComment = String(formData.get("comment") ?? "").trim();
+
   if (!z.string().regex(/^\d+(\.\d{1,4})?$/).safeParse(amount).success || D(amount).lte(0)) {
     return { error: "Сумма выплаты." };
   }
-  if (!accountId) return { error: "Выберите кассу." };
+
+  let cardPaid = D(cardAmountRaw || "0");
+  let cashPaid = D(cashAmountRaw || "0");
+  if (payChannel === "card") {
+    cardPaid = D(amount);
+    cashPaid = D(0);
+  } else if (payChannel === "cash") {
+    cardPaid = D(0);
+    cashPaid = D(amount);
+  } else if (!cardPaid.plus(cashPaid).eq(D(amount))) {
+    return { error: "Сумма карты и наличных должна равняться выплате." };
+  }
+
+  if (cardPaid.gt(0)) {
+    const cards = await loadPaymentCards();
+    if (!cards.find((c) => c.id === cardId)) return { error: "Выберите карту для выплаты." };
+  }
 
   const employee = await prisma.user.findUnique({ where: { id: userId } });
   if (!employee || employee.archivedAt) return { error: "Сотрудник не найден или архивирован." };
@@ -103,41 +124,63 @@ export async function payEmployee(formData: FormData) {
   const laborFund = await prisma.financialFund.findUnique({ where: { code: FUND.LABOR } });
   const category = await prisma.expenseCategory.findUnique({ where: { code: "SALARY" } });
 
-  const idempKey = `payout-${userId}-${money(debt)}-${money(amount)}`;
+  const legs: { legAmount: ReturnType<typeof D>; accountCode: "BANK" | "CASH"; payoutComment: string }[] = [];
+  if (cardPaid.gt(0)) {
+    legs.push({
+      legAmount: cardPaid,
+      accountCode: "BANK",
+      payoutComment: `card:${cardId}`,
+    });
+  }
+  if (cashPaid.gt(0)) {
+    legs.push({
+      legAmount: cashPaid,
+      accountCode: "CASH",
+      payoutComment: "cash",
+    });
+  }
+
+  const idempBase = `payout-${userId}-${money(debt)}-${money(amount)}-${Date.now()}`;
+
   await prisma.$transaction(async (tx) => {
-    await tx.payrollPayout.create({
-      data: {
-        userId,
-        amount: money(amount),
-        accountId,
-        periodKey: periodKey(),
-        comment: comment || "Выплата зарплаты/комиссии",
-        createdById: session.user.id,
-      },
-    });
-    await postLedger(tx, {
-      type: LEDGER.CASH_OUT,
-      amount: money(amount),
-      accountId,
-      categoryId: category?.id,
-      fundId: laborFund?.id,
-      relatedType: "payroll",
-      relatedId: userId,
-      comment: comment || "Выплата сотруднику",
-      idempotencyKey: `${idempKey}-cash`,
-      createdById: session.user.id,
-    });
-    if (laborFund) {
+    for (let i = 0; i < legs.length; i++) {
+      const leg = legs[i];
+      const account = await accountByCode(tx, leg.accountCode);
+      const note = userComment ? `${leg.payoutComment}|${userComment}` : leg.payoutComment;
+      await tx.payrollPayout.create({
+        data: {
+          userId,
+          amount: money(leg.legAmount),
+          accountId: account.id,
+          periodKey: periodKey(),
+          comment: note,
+          createdById: session.user.id,
+        },
+      });
       await postLedger(tx, {
-        type: LEDGER.FUND_OUT,
-        amount: money(amount),
-        fundId: laborFund.id,
+        type: LEDGER.CASH_OUT,
+        amount: money(leg.legAmount),
+        accountId: account.id,
         categoryId: category?.id,
+        fundId: laborFund?.id,
         relatedType: "payroll",
         relatedId: userId,
-        idempotencyKey: `${idempKey}-fund`,
+        comment: userComment || "Выплата сотруднику",
+        idempotencyKey: `${idempBase}-cash-${i}`,
         createdById: session.user.id,
       });
+      if (laborFund) {
+        await postLedger(tx, {
+          type: LEDGER.FUND_OUT,
+          amount: money(leg.legAmount),
+          fundId: laborFund.id,
+          categoryId: category?.id,
+          relatedType: "payroll",
+          relatedId: userId,
+          idempotencyKey: `${idempBase}-fund-${i}`,
+          createdById: session.user.id,
+        });
+      }
     }
   });
 
@@ -146,7 +189,7 @@ export async function payEmployee(formData: FormData) {
     action: "payroll.payout",
     entityType: "user",
     entityId: userId,
-    newValue: { amount },
+    newValue: { amount, payChannel, cardPaid: cardPaid.toFixed(4), cashPaid: cashPaid.toFixed(4) },
   });
   revalidatePath("/employees");
   revalidatePath(`/employees/${userId}`);

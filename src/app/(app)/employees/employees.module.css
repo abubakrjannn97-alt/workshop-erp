@@ -50,6 +50,98 @@
 .mobileRowLabel { color: var(--ink-3); }
 .mobileRowValue { font-weight: 600; color: var(--ink); }
 
+.kpiStripTwo { grid-template-columns: repeat(2, 1fr); }
+.kpiSub { margin: 6px 0 0; font-size: 12px; line-height: 18px; color: var(--ink-3); }
+
+/* ─── Collapsible sections ─── */
+.collapsibleSection {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 2px 12px rgba(28,35,43,.03);
+}
+.collapsibleHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 18px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+}
+.collapsibleSection .collapsibleHead { list-style: none; }
+.collapsibleSection summary::-webkit-details-marker { display: none; }
+.collapsibleChevron {
+  flex-shrink: 0;
+  color: var(--ink-3);
+  transition: transform .15s;
+}
+.collapsibleSection[open] .collapsibleChevron { transform: rotate(180deg); }
+.collapsibleChevronOpen { transform: rotate(180deg); }
+.collapsibleBody { padding: 0 18px 16px; }
+
+/* ─── Payout payment UI ─── */
+.payBlock { display: grid; gap: 6px; }
+.payLabel { margin: 0; font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.paySubLabel { margin: 0; font-size: 11px; font-weight: 600; color: var(--ink-3); }
+.paySeg3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3px;
+  padding: 3px;
+  border-radius: 10px;
+  background: #f3f1ec;
+}
+.payBtn {
+  min-height: 32px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+  line-height: 1.15;
+}
+.payBtnActive {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(28, 35, 43, 0.08);
+}
+.cardPicker { display: grid; gap: 6px; }
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.cardOption {
+  display: flex;
+  min-height: 52px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+}
+.cardOptionActive {
+  border-color: rgba(154, 115, 56, 0.45);
+  background: linear-gradient(180deg, #fffaf2 0%, #f3ead8 100%);
+  box-shadow: 0 0 0 1px rgba(154, 115, 56, 0.12);
+}
+.cardLogo { max-height: 22px; max-width: 54px; object-fit: contain; }
+.cardName { font-size: 9px; font-weight: 600; line-height: 1.1; color: var(--ink-2); text-align: center; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.fieldTight { margin-bottom: 0; }
+
 /* ─── Footer actions ─── */
 .footerActions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .dangerBtn { border: none; background: none; cursor: pointer; min-height: 44px; font-size: 13px; font-weight: 600; color: var(--bad, #B42318); padding: 0 8px; border-radius: 8px; transition: background .12s; }

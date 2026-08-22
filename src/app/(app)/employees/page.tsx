@@ -7,6 +7,7 @@ import { updatePayScheme } from "@/app/actions/payroll";
 import { AddEmployeeForm } from "@/components/add-employee-form";
 import { EMPLOYEE_ASSIGNABLE, type PermissionCode } from "@core/rbac/permissions";
 import { formatPhoneDisplay } from "@core/shared/phone";
+import { CommissionSchemeSection } from "@/components/commission-scheme-section";
 import { FormField } from "@/components/form-field";
 import { AppSelect } from "@/components/app-select";
 import { ChevronRight } from "lucide-react";
@@ -127,18 +128,14 @@ export default async function EmployeesPage() {
         const title = scheme.kind === "SALES_COMMISSION" ? t("emp.commissionTitle") : scheme.name;
         const hint = isCommission ? t("emp.commissionHint") : "";
         return (
-          <section key={scheme.id} className={styles.section}>
-            <div className={styles.sectionHead}>
-              <h2 className={styles.sectionTitle}>{title}</h2>
-            </div>
-            <div className={styles.sectionBody}>
-              {hint ? <p style={{ marginBottom: 12, fontSize: 13, color: "var(--ink-2)" }}>{hint}</p> : null}
-              {canEditScheme ? (
-                <form action={schemeAction} className="grid gap-3">
-                  <input type="hidden" name="id" value={scheme.id} />
-                  {isCommission ? (
-                    <>
-                      <FormField label={t("emp.model")} className="max-w-xl">
+          <CommissionSchemeSection key={scheme.id} title={title}>
+            {hint ? <p style={{ marginBottom: 12, fontSize: 13, color: "var(--ink-2)" }}>{hint}</p> : null}
+            {canEditScheme ? (
+              <form action={schemeAction} className="grid gap-3">
+                <input type="hidden" name="id" value={scheme.id} />
+                {isCommission ? (
+                  <>
+                    <FormField label={t("emp.model")} className="max-w-xl">
                         <AppSelect
                           name="commissionMode"
                           defaultValue={scheme.commissionMode ?? "PROGRESSIVE"}
@@ -177,8 +174,7 @@ export default async function EmployeesPage() {
                   ))}
                 </ul>
               )}
-            </div>
-          </section>
+          </CommissionSchemeSection>
         );
       })}
     </div>

@@ -13,12 +13,12 @@
 .kpiBoard {
   display: grid;
   gap: 12px;
-  grid-template-columns: 1.35fr 1fr 1fr;
+  grid-template-columns: 1fr;
 }
 .kpiStrip {
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .kpiCard {
   position: relative;
@@ -52,11 +52,21 @@
 }
 .kpiHero {
   background:
-    radial-gradient(120% 90% at 100% 0%, rgba(184, 149, 74, 0.22) 0%, transparent 55%),
-    linear-gradient(155deg, #1c232b 0%, #2a3340 55%, #1c232b 100%);
+    radial-gradient(120% 90% at 100% 0%, rgba(36, 149, 101, 0.28) 0%, transparent 55%),
+    linear-gradient(155deg, #1c232b 0%, #243028 55%, #1c232b 100%);
   border-color: transparent;
   color: #f7f4ee;
   box-shadow: 0 16px 36px rgba(28, 35, 43, 0.2);
+}
+.kpiHeroOk {
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(36, 149, 101, 0.28) 0%, transparent 55%),
+    linear-gradient(155deg, #1c232b 0%, #243028 55%, #1c232b 100%);
+}
+.kpiHeroBad {
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(180, 35, 24, 0.22) 0%, transparent 55%),
+    linear-gradient(155deg, #2a1f1f 0%, #3a2828 55%, #1c232b 100%);
 }
 .kpiWarn {
   background: linear-gradient(180deg, #fff8f4 0%, #ffffff 60%);
@@ -154,6 +164,93 @@
   margin: 4px 0 0;
 }
 
+/* ─── Money location cards ─── */
+.moneyWhereSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.moneyWhereTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  color: var(--ink);
+}
+
+.moneyCardGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.moneyCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 88px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(28, 35, 43, 0.04);
+}
+
+.moneyCardTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.moneyCardLogo {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.moneyCardIcon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--surface-2);
+  font-size: 14px;
+}
+
+.moneyCardLabel {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moneyCardValue {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 750;
+  line-height: 24px;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.moneyCardValueBad {
+  composes: moneyCardValue;
+  color: var(--bad, #B42318);
+}
+
 /* ─── Grid layouts ─── */
 .twoCol { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
 
@@ -242,6 +339,7 @@
   .subtitle { display: none; }
   .kpiBoard { grid-template-columns: 1fr; }
   .kpiStrip { grid-template-columns: 1fr; }
+  .moneyCardGrid { grid-template-columns: 1fr; }
   .kpiCard { min-height: 0; }
   .kpiHeroValue { font-size: 30px; }
   .kpiValue { font-size: 26px; }
@@ -252,8 +350,7 @@
 }
 
 @media (min-width: 640px) and (max-width: 1023px) {
-  .kpiBoard { grid-template-columns: 1fr 1fr; }
-  .kpiHero { grid-column: 1 / -1; }
+  .moneyCardGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (min-width: 1024px) {
