@@ -3,6 +3,7 @@ import Decimal from "decimal.js";
 import { periodKey } from "../../../src/core/payroll/payroll";
 import { productLaborRate } from "../../../src/core/payroll/labor-rate";
 import { getProductLaborRateMap, ensureProductLaborRateColumn } from "../../../src/core/payroll/product-labor-rate-db";
+import { insertProductionAccrual } from "../../../src/core/payroll/payroll-accrual-db";
 
 const SEED_TAG = "seed-worker-demo";
 const D = (v: string | number) => new Decimal(v);
@@ -124,18 +125,16 @@ async function seedWorkerTabData(
     const product = products[row.productIdx % products.length]!;
     const rate = productLaborRate(rateMap.get(product.id));
     const createdAt = atDaysAgo(row.daysAgo, 9 + (row.daysAgo % 4), 15);
-    await prisma.payrollAccrual.create({
-      data: {
+    await prisma.$transaction(async (tx) => {
+      await insertProductionAccrual(tx, {
         userId: worker.id,
-        kind: "PRODUCTION",
         amount: money(row.quantity * Number(rate.toString())),
         quantity: qty(row.quantity),
         productId: product.id,
         periodKey: periodKey(createdAt),
-        status: "ACCRUED",
         comment: `${SEED_TAG} · ${product.name}`,
         createdAt,
-      },
+      });
     });
   }
 

@@ -4,6 +4,7 @@ import { resolveOrderDateRange } from "@core/shared/order-period";
 import { productLaborRate } from "@core/payroll/labor-rate";
 import { getProductLaborRateMap, ensureProductLaborRateColumn } from "@core/payroll/product-labor-rate-db";
 import { findFinishedGoodsWarehouse } from "@/core/config/resolve-warehouse";
+import { fetchProductionAccruals } from "@core/payroll/payroll-accrual-db";
 
 export type WorkerPeriod = "today" | "week" | "month";
 
@@ -108,9 +109,10 @@ function resolveProductFromComment(
   products: { id: string; name: string; photoUrl: string | null }[],
 ) {
   if (!comment) return null;
-  const byPrefix = products.find((p) => comment.startsWith(`${p.name}:`));
+  const normalized = comment.includes(" · ") ? comment.split(" · ").pop()!.trim() : comment;
+  const byPrefix = products.find((p) => normalized.startsWith(`${p.name}:`) || comment.startsWith(`${p.name}:`));
   if (byPrefix) return byPrefix;
-  return products.find((p) => comment.includes(p.name)) ?? null;
+  return products.find((p) => normalized.includes(p.name) || comment.includes(p.name)) ?? null;
 }
 
 export async function fetchWorkerProductionByPeriod(userId: string): Promise<WorkerProductionByPeriod> {
@@ -119,21 +121,7 @@ export async function fetchWorkerProductionByPeriod(userId: string): Promise<Wor
   const to = ranges.month.to!;
 
   const [accruals, products] = await Promise.all([
-    prisma.payrollAccrual.findMany({
-      where: {
-        userId,
-        kind: "PRODUCTION",
-        status: "ACCRUED",
-        createdAt: { gte: from, lte: to },
-      },
-      select: {
-        productId: true,
-        quantity: true,
-        createdAt: true,
-        comment: true,
-      },
-      orderBy: { createdAt: "desc" },
-    }),
+    fetchProductionAccruals(userId, from, to),
     prisma.product.findMany({
       where: { archivedAt: null },
       select: { id: true, name: true, photoUrl: true },

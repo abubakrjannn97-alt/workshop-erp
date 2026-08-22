@@ -13,6 +13,7 @@ import { D, money, qty, qtyDisplay } from "@core/shared/decimal";
 import { productLaborRate } from "@core/payroll/labor-rate";
 import { getProductLaborRate } from "@core/payroll/product-labor-rate-db";
 import { periodKey } from "@core/payroll/payroll";
+import { insertProductionAccrual } from "@core/payroll/payroll-accrual-db";
 
 /** Worker / production: put finished goods onto FG warehouse (make-to-stock). */
 export async function stockFinishedGoods(formData: FormData) {
@@ -65,17 +66,13 @@ export async function stockFinishedGoods(formData: FormData) {
         tx,
       );
 
-      await tx.payrollAccrual.create({
-        data: {
-          userId: session.user.id,
-          kind: "PRODUCTION",
-          amount: money(qtyVal.mul(rate)),
-          quantity: qty(parsed.data.quantity),
-          productId: product.id,
-          periodKey: periodKey(),
-          status: "ACCRUED",
-          comment: `${product.name}: ${qtyDisplay(parsed.data.quantity)} ${product.saleUnit.symbol} × ${rate} с/ед.${scrapNote}`,
-        },
+      await insertProductionAccrual(tx, {
+        userId: session.user.id,
+        amount: money(qtyVal.mul(rate)),
+        quantity: qty(parsed.data.quantity),
+        productId: product.id,
+        periodKey: periodKey(),
+        comment: `${product.name}: ${qtyDisplay(parsed.data.quantity)} ${product.saleUnit.symbol} × ${rate} с/ед.${scrapNote}`,
       });
     });
   } catch (error) {
