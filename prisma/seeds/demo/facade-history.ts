@@ -23,6 +23,8 @@ export async function seedFacadeDemo(
   const demoHash = await bcrypt.hash("ChangeMeNow!", 12);
   await seedDemoUsers(prisma, demoHash, productionSchemeId, salesSchemeId);
   await seedWorkshopHistory(prisma, forceHistory ? { force: true } : undefined);
+  const { seedWorkerTabDemo } = await import("./demo/worker-demo");
+  await seedWorkerTabDemo(prisma);
 }
 
 async function seedDemoUsers(

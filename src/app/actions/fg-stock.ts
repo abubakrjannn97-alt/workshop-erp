@@ -20,17 +20,22 @@ export async function stockFinishedGoods(formData: FormData) {
     .object({
       productId: z.string().min(1),
       quantity: z.string().regex(/^\d+(\.\d{1,6})?$/),
+      scrapQty: z.string().regex(/^\d+(\.\d{1,6})?$/).optional(),
       comment: z.string().optional(),
     })
     .safeParse({
       productId: formData.get("productId"),
       quantity: formData.get("quantity"),
+      scrapQty: String(formData.get("scrapQty") ?? "0").trim() || "0",
       comment: formData.get("comment") || undefined,
     });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Проверьте поля." };
 
   const qtyVal = D(parsed.data.quantity);
   if (!qtyVal.gt(0)) return { error: "Укажите количество больше 0." };
+
+  const scrapVal = D(parsed.data.scrapQty ?? "0");
+  if (scrapVal.lt(0)) return { error: "Брак не может быть отрицательным." };
 
   const product = await prisma.product.findFirst({
     where: { id: parsed.data.productId, archivedAt: null, isActive: true },
@@ -41,6 +46,8 @@ export async function stockFinishedGoods(formData: FormData) {
   const fg = await getFgWarehouse();
   const idempotencyKey = String(formData.get("idempotencyKey") ?? randomUUID());
   const rate = productLaborRate();
+  const scrapNote = scrapVal.gt(0) ? ` · брак ${qtyDisplay(parsed.data.scrapQty!)} ${product.saleUnit.symbol}` : "";
+  const baseComment = parsed.data.comment?.trim() || `Выпуск · ${session.user.name}`;
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -51,7 +58,7 @@ export async function stockFinishedGoods(formData: FormData) {
           quantity: parsed.data.quantity,
           unitCost: "0",
           userId: session.user.id,
-          comment: parsed.data.comment?.trim() || `Выпуск · ${session.user.name}`,
+          comment: baseComment,
           idempotencyKey,
         },
         tx,
@@ -65,7 +72,7 @@ export async function stockFinishedGoods(formData: FormData) {
           quantity: qty(parsed.data.quantity),
           periodKey: periodKey(),
           status: "ACCRUED",
-          comment: `${product.name}: ${qtyDisplay(parsed.data.quantity)} ${product.saleUnit.symbol} × ${rate} с/ед.`,
+          comment: `${product.name}: ${qtyDisplay(parsed.data.quantity)} ${product.saleUnit.symbol} × ${rate} с/ед.${scrapNote}`,
         },
       });
     });
@@ -78,13 +85,17 @@ export async function stockFinishedGoods(formData: FormData) {
     action: "stock.fg_production",
     entityType: "product",
     entityId: product.id,
-    newValue: { quantity: parsed.data.quantity, warehouseId: fg.id },
+    newValue: {
+      quantity: parsed.data.quantity,
+      scrapQty: parsed.data.scrapQty ?? "0",
+      warehouseId: fg.id,
+    },
   });
 
   await notifyRoles(["owner", "director", "sales_manager", "warehouse_manager"], {
     type: "stock",
     title: "Пополнение склада ГП",
-    body: `${product.name}: +${qtyDisplay(parsed.data.quantity)} ${product.saleUnit.symbol} · ${session.user.name}`,
+    body: `${product.name}: +${qtyDisplay(parsed.data.quantity)} ${product.saleUnit.symbol}${scrapNote} · ${session.user.name}`,
     entityType: "product",
     entityId: product.id,
   });

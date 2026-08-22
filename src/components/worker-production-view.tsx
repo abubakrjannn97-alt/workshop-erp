@@ -15,6 +15,7 @@ export type WorkerProductRow = {
   name: string;
   unit: string;
   onHand: string;
+  photoUrl: string | null;
 };
 
 export function WorkerProductionView({
@@ -61,6 +62,14 @@ export function WorkerProductionView({
                 aria-expanded={open}
                 onClick={() => setOpenId(open ? null : row.id)}
               >
+                <div className={styles.cardPhoto}>
+                  {row.photoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={row.photoUrl} alt="" className={styles.cardPhotoImg} />
+                  ) : (
+                    <span className={styles.cardPhotoEmpty}>{row.name.slice(0, 1)}</span>
+                  )}
+                </div>
                 <div className={styles.cardMain}>
                   <p className={styles.cardName}>{row.name}</p>
                   <p className={styles.cardStock}>
@@ -87,6 +96,15 @@ export function WorkerProductionView({
                     className="ui-input"
                     placeholder="0"
                   />
+                  <label className={styles.fieldLabel}>{t("me.workerScrapQty")}</label>
+                  <input
+                    name="scrapQty"
+                    inputMode="decimal"
+                    className="ui-input"
+                    placeholder="0"
+                    defaultValue="0"
+                  />
+                  <p className={styles.fieldHint}>{t("me.workerScrapHint")}</p>
                   <button type="submit" className="ui-btn-primary min-h-[44px] w-full" disabled={pending}>
                     {pending ? t("common.sending") : t("me.workerSaveGp")}
                   </button>

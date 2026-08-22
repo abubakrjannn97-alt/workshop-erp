@@ -45,6 +45,7 @@ export async function fetchWorkerProducts() {
     name: p.name,
     unit: p.saleUnit.symbol,
     onHand: qtyDisplay(p.stockItems[0]?.qtyOnHand ?? 0),
+    photoUrl: p.photoUrl,
   }));
 }
 

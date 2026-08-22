@@ -18,6 +18,7 @@
     "db:seed:domain:bakery": "tsx prisma/seeds/run-domain-bakery.ts",
     "db:seed:demo": "tsx prisma/seed-demo.ts",
     "db:seed:demo:facade": "tsx prisma/seed-demo.ts",
+    "db:seed:worker-demo": "tsx prisma/seed-worker-demo.ts",
     "db:reset": "prisma migrate reset --force",
     "db:backup": "tsx scripts/backup-production.ts",
     "db:restore": "tsx scripts/restore-verify.ts",
