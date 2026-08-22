@@ -37,6 +37,7 @@ export async function switchWorkshopAction(workshopId: string) {
   });
 
   revalidatePath("/", "layout");
+  revalidatePath("/");
   return { ok: true as const };
 }
 
