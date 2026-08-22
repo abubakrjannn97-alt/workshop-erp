@@ -1,6 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "regions": ["fra1"],
-  "buildCommand": "prisma migrate deploy && npm run build"
+  "regions": ["fra1"]
 }
