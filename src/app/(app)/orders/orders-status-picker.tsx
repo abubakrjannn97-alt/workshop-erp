@@ -16,6 +16,7 @@ export function OrdersStatusPicker({
   q,
   allLabel,
   bucketLabels,
+  statusHint,
 }: {
   current?: string;
   period: string;
@@ -24,6 +25,7 @@ export function OrdersStatusPicker({
   q?: string;
   allLabel: string;
   bucketLabels: Record<OrderListSaleBucket, string>;
+  statusHint?: string;
 }) {
   function queryFor(status?: string) {
     return buildOrdersQuery({
@@ -62,6 +64,7 @@ export function OrdersStatusPicker({
           );
         })}
       </div>
+      {statusHint ? <p className={styles.hint}>{statusHint}</p> : null}
     </div>
   );
 }

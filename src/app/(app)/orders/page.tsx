@@ -295,6 +295,7 @@ export default async function OrdersPage({
             delivery: t("orders.bucketDelivery"),
             received: t("orders.bucketReceived"),
           }}
+          statusHint={t("orders.bucketStatusHint")}
         />
       </div>
 
