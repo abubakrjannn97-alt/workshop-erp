@@ -247,7 +247,7 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --app-height: 100dvh;
   --vv-bottom-inset: 0px;
-  --mobile-header-content-h: 40px;
+  --mobile-header-content-h: 0px;
   --mobile-header-btn: 34px;
   --mobile-header-logo: 20px;
   --mobile-nav-bar-h: 52px;
@@ -256,7 +256,7 @@
   --mobile-nav-icon-wrap: 28px;
   --mobile-nav-icon-wrap-active-w: 34px;
   --mobile-nav-icon-wrap-active-h: 26px;
-  --mobile-chrome-top: calc(var(--mobile-header-content-h) + var(--safe-top));
+  --mobile-chrome-top: var(--safe-top);
   --mobile-chrome-bottom: calc(var(--mobile-nav-bar-h) + var(--safe-bottom));
   --page-pad-x: 12px;
   --page-pad-y: 8px;
@@ -318,7 +318,7 @@ body {
 
   :root {
     /* XL phone / small tablet — roomiest mobile shell */
-    --mobile-header-content-h: 42px;
+    --mobile-header-content-h: 0px;
     --mobile-header-btn: 36px;
     --mobile-header-logo: 22px;
     --mobile-nav-bar-h: 52px;
@@ -327,7 +327,7 @@ body {
     --mobile-nav-icon-wrap: 28px;
     --mobile-nav-icon-wrap-active-w: 34px;
     --mobile-nav-icon-wrap-active-h: 26px;
-    --mobile-chrome-top: calc(var(--mobile-header-content-h) + var(--safe-top));
+    --mobile-chrome-top: var(--safe-top);
     --mobile-chrome-bottom: calc(var(--mobile-nav-bar-h) + var(--safe-bottom));
     --control-h-mobile: 40px;
     --font-size-display: 22px;
@@ -380,7 +380,7 @@ body {
 /* LG phones — iPhone Pro Max / Pixel XL class */
 @media (max-width: 639px) {
   :root {
-    --mobile-header-content-h: 40px;
+    --mobile-header-content-h: 0px;
     --mobile-header-btn: 34px;
     --mobile-header-logo: 20px;
     --mobile-nav-bar-h: 50px;
@@ -412,7 +412,7 @@ body {
 /* MD phones — iPhone 12/13/14 / common 390–428 */
 @media (max-width: 429px) {
   :root {
-    --mobile-header-content-h: 38px;
+    --mobile-header-content-h: 0px;
     --mobile-header-btn: 32px;
     --mobile-header-logo: 18px;
     --mobile-nav-bar-h: 48px;
@@ -447,7 +447,7 @@ body {
 /* SM phones — 360–389 */
 @media (max-width: 389px) {
   :root {
-    --mobile-header-content-h: 36px;
+    --mobile-header-content-h: 0px;
     --mobile-header-btn: 30px;
     --mobile-header-logo: 17px;
     --mobile-nav-bar-h: 46px;
@@ -483,7 +483,7 @@ body {
 /* XS phones — ≤359 (SE 1 / tiny) */
 @media (max-width: 359px) {
   :root {
-    --mobile-header-content-h: 34px;
+    --mobile-header-content-h: 0px;
     --mobile-header-btn: 28px;
     --mobile-header-logo: 16px;
     --mobile-nav-bar-h: 44px;

@@ -23,6 +23,16 @@ function createdAtRange(from?: Date, to?: Date) {
   return undefined;
 }
 
+type ProdRow = {
+  name: string;
+  unit: string;
+  qty: ReturnType<typeof D>;
+  revenue: ReturnType<typeof D>;
+  materials: ReturnType<typeof D>;
+  labor: ReturnType<typeof D>;
+  commission: ReturnType<typeof D>;
+};
+
 export default async function AnalyticsPage({
   searchParams,
 }: {
@@ -117,16 +127,7 @@ export default async function AnalyticsPage({
   const payrollTotal = labor.add(commission);
   const totalExpenses = materialCost.add(payrollTotal).add(fixedExpenses);
 
-  type ProdRow = {
-    name: string;
-    unit: string;
-    qty: ReturnType<typeof D>;
-    revenue: ReturnType<typeof D>;
-    materials: ReturnType<typeof D>;
-    labor: ReturnType<typeof D>;
-    commission: ReturnType<typeof D>;
-  };
-  const byProduct = new Map<string, ProdRow>();
+  const byProduct: Map<string, ProdRow> = new Map();
   for (const item of productItems) {
     const key = item.productId;
     const row =
