@@ -6,6 +6,7 @@ assertSafeProductionEnv();
 
 export const authConfig = {
   trustHost: true,
+  secret: process.env.AUTH_SECRET,
   session: {
     strategy: "jwt",
     maxAge: 60 * 60 * 12,
