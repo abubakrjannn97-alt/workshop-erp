@@ -67,6 +67,7 @@ export default async function ExpensesPage({
 
       <div className={styles.periodWrap}>
         <Segmented
+          className={styles.periodSeg}
           aria-label={t("po.period")}
           items={[
             { href: "/finance/expenses?period=today", label: t("orders.periodToday"), active: period === "today" },
@@ -86,7 +87,7 @@ export default async function ExpensesPage({
 
       {canExpense ? (
         <section className={styles.section} data-tour="fin-expense">
-          <div className={styles.sectionHead}>
+          <div className={`${styles.sectionHead} ${styles.sectionHeadForm}`}>
             <h2 className={styles.sectionTitle}>{t("fin.expense")}</h2>
           </div>
           <div className={styles.sectionBody}>

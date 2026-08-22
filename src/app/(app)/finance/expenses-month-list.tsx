@@ -28,7 +28,7 @@ export function ExpensesMonthList({
 
   return (
     <>
-      <div className={styles.sectionHead}>
+      <div className={`${styles.sectionHead} ${styles.sectionHeadAccent}`}>
         <h2 className={styles.sectionTitleAccent}>{t("fin.monthExpenses")}</h2>
         <button type="button" className={styles.toggleListBtn} onClick={() => setOpen((v) => !v)} aria-expanded={open}>
           {open ? t("fin.hideExpenses") : t("fin.showExpenses")}

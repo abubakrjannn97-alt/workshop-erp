@@ -9,23 +9,17 @@
 .header {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0;
+  padding-top: 2px;
 }
 
 .title {
   margin: 0;
-  font-size: var(--font-size-h1, 18px);
-  font-weight: 700;
-  line-height: var(--line-height-h1, 24px);
-  letter-spacing: -0.02em;
+  font-size: 22px;
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
   color: var(--ink);
-}
-
-.period {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--ink-2);
 }
 
 .periodWrap {
@@ -33,31 +27,37 @@
 }
 
 .periodSeg {
+  display: flex;
   width: 100%;
   padding: 3px;
   border-radius: 14px;
-  border: 1px solid var(--line);
-  background: var(--surface-2);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(166, 132, 64, 0.2);
+  background: linear-gradient(180deg, #fffaf2 0%, #f5f0e6 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 .periodSeg :global(a.ui-seg-item) {
   flex: 1;
-  min-height: 36px;
+  min-height: 38px;
   justify-content: center;
   border-radius: 10px;
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
+  color: var(--ink-2);
 }
 
 .periodSeg :global(a.ui-seg-item-on) {
-  box-shadow: 0 1px 4px rgba(28, 35, 43, 0.08);
+  background: #fff;
+  border-color: rgba(166, 132, 64, 0.28);
+  color: #8a6628;
+  font-weight: 700;
+  box-shadow: 0 1px 5px rgba(166, 132, 64, 0.14);
 }
 
 .turnoverSection {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   padding: 16px 14px 14px;
   border-radius: 18px;
   border: 1px solid rgba(166, 132, 64, 0.22);
@@ -65,38 +65,30 @@
   box-shadow: 0 4px 18px rgba(28, 35, 43, 0.05);
 }
 
-.turnoverHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.turnoverTitle {
+.turnoverEyebrow {
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ink-2);
 }
 
-.turnoverRange {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--ink-3);
-  white-space: nowrap;
-}
-
 .turnoverValue {
   margin: 0;
-  font-size: 32px;
+  font-size: 34px;
   font-weight: 750;
-  line-height: 1.08;
+  line-height: 1.05;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
   color: #8a6628;
+}
+
+.turnoverRange {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-3);
 }
 
 /* Hero result */
@@ -243,8 +235,28 @@
 }
 
 .cardHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
   padding: 14px 16px 10px;
   border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, #f4f7ff 0%, #fff 100%);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+  color: #3d4f6f;
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-3);
+  white-space: nowrap;
 }
 
 .cardHeadRow {
@@ -281,7 +293,10 @@
 .summaryRow {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(166, 132, 64, 0.14);
 }
 
 .summaryCard {
@@ -289,11 +304,10 @@
   min-width: 0;
   flex-direction: column;
   gap: 4px;
-  padding: 14px 12px;
-  border-radius: 16px;
-  border: 1px solid var(--line);
-  background: #fff;
-  box-shadow: 0 2px 10px rgba(28, 35, 43, 0.04);
+  padding: 10px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(28, 35, 43, 0.06);
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .summaryLabel {
@@ -433,13 +447,6 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: #b42318;
-}
-
-.cardTitle {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 650;
-  color: var(--ink);
 }
 
 .rows {
@@ -656,28 +663,30 @@
 
 @media (max-width: 767px) {
   .summaryRow {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
   }
 
   .summaryCard {
-    padding: 10px 8px;
+    padding: 8px 6px;
   }
 
   .summaryValue {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .summaryLabel {
-    font-size: 10px;
-  }
-
-  .summaryMeta {
     font-size: 9px;
+    line-height: 1.2;
   }
 
   .turnoverValue {
     font-size: 28px;
+  }
+
+  .periodSeg :global(a.ui-seg-item) {
+    min-height: 34px;
+    font-size: 11px;
+    padding-inline: 4px;
   }
 }
 

@@ -293,9 +293,31 @@
 
 /* ─── Section card ─── */
 .section { overflow: visible; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: 0 2px 12px rgba(28,35,43,.03); }
-.sectionHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px 12px; border-bottom: 1px solid var(--line); }
-.sectionTitle { margin: 0; font-size: 15px; font-weight: 600; line-height: 22px; color: var(--ink); }
-.sectionTitleAccent { composes: sectionTitle; color: var(--accent, #A68649); }
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, #f8f9fb 0%, #fff 100%);
+}
+.sectionHeadForm {
+  background: linear-gradient(180deg, #eef3fb 0%, #fff 100%);
+  border-bottom-color: rgba(74, 112, 208, 0.14);
+}
+.sectionHeadForm .sectionTitle {
+  color: #3d4f6f;
+}
+.sectionHeadAccent {
+  background: linear-gradient(180deg, #fffaf2 0%, #fff 100%);
+  border-bottom-color: rgba(166, 132, 64, 0.18);
+}
+.sectionHeadAccent .sectionTitleAccent {
+  color: #8a6628;
+}
+.sectionTitle { margin: 0; font-size: 15px; font-weight: 650; line-height: 22px; color: var(--ink); }
+.sectionTitleAccent { composes: sectionTitle; color: var(--accent, #A68649); font-weight: 700; }
 .sectionHeadLink {
   flex-shrink: 0;
   padding: 0;
@@ -586,14 +608,44 @@
 .periodWrap {
   display: flex;
   justify-content: center;
+  width: 100%;
+}
+
+.periodSeg {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  padding: 3px;
+  border-radius: 14px;
+  border: 1px solid rgba(166, 132, 64, 0.2);
+  background: linear-gradient(180deg, #fffaf2 0%, #f5f0e6 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.periodSeg :global(a.ui-seg-item) {
+  flex: 1;
+  min-height: 38px;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.periodSeg :global(a.ui-seg-item-on) {
+  background: #fff;
+  border-color: rgba(166, 132, 64, 0.28);
+  color: #8a6628;
+  font-weight: 700;
+  box-shadow: 0 1px 5px rgba(166, 132, 64, 0.14);
 }
 
 .expenseReport {
   padding: 14px 16px 12px;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  box-shadow: 0 2px 12px rgba(28, 35, 43, 0.03);
+  border-radius: 16px;
+  border: 1px solid rgba(166, 132, 64, 0.22);
+  background: linear-gradient(145deg, #fffaf2 0%, #ffffff 58%);
+  box-shadow: 0 4px 16px rgba(28, 35, 43, 0.05);
 }
 
 .expenseReportEyebrow {
@@ -602,7 +654,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: #a68649;
 }
 
 .expenseReportRange {
@@ -617,7 +669,7 @@
   font-weight: 750;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
-  color: var(--ink);
+  color: #8a6628;
 }
 
 .expenseReportCount {
