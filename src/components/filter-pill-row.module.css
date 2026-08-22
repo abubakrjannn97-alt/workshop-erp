@@ -1,8 +1,16 @@
-.block {
+.wrap {
   display: flex;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.block {
+  display: inline-flex;
   align-items: center;
   gap: 4px;
-  width: 100%;
+  width: auto;
+  max-width: 100%;
   padding: 4px;
   border-radius: 999px;
   border: 1px solid var(--line);
@@ -24,12 +32,12 @@
 .pill,
 .pillActive {
   display: inline-flex;
-  flex: 1 1 0;
+  flex: 0 0 auto;
   min-width: 0;
   min-height: 32px;
   align-items: center;
   justify-content: center;
-  padding: 0 8px;
+  padding: 0 12px;
   border-radius: 999px;
   border: 1px solid transparent;
   background: transparent;

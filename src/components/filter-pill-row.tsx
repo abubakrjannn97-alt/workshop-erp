@@ -23,24 +23,26 @@ export function FilterPillRow({
   "aria-label"?: string;
 }) {
   return (
-    <div
-      className={`${styles.block} ${scroll ? styles.scroll : ""} ${compact ? styles.compact : ""} ${className}`.trim()}
-      role="tablist"
-      aria-label={ariaLabel}
-      {...(tour ? { "data-tour": tour } : {})}
-    >
-      {items.map((item) => (
-        <Link
-          key={`${item.href}:${item.label}`}
-          href={item.href}
-          prefetch
-          role="tab"
-          aria-selected={Boolean(item.active)}
-          className={item.active ? styles.pillActive : styles.pill}
-        >
-          {item.label}
-        </Link>
-      ))}
+    <div className={styles.wrap}>
+      <div
+        className={`${styles.block} ${scroll ? styles.scroll : ""} ${compact ? styles.compact : ""} ${className}`.trim()}
+        role="tablist"
+        aria-label={ariaLabel}
+        {...(tour ? { "data-tour": tour } : {})}
+      >
+        {items.map((item) => (
+          <Link
+            key={`${item.href}:${item.label}`}
+            href={item.href}
+            prefetch
+            role="tab"
+            aria-selected={Boolean(item.active)}
+            className={item.active ? styles.pillActive : styles.pill}
+          >
+            {item.label}
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
