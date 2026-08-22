@@ -8,26 +8,26 @@ describe("resolveBackHref", () => {
     assert.equal(resolveBackHref("/more"), null);
   });
 
-  it("returns null on desktop for more-landing roots", () => {
-    assert.equal(resolveBackHref("/finance"), null);
-    assert.equal(resolveBackHref("/settings"), null);
-    assert.equal(resolveBackHref("/notifications"), null);
+  it("returns home for more-landing pages outside bottom tabs", () => {
+    assert.equal(resolveBackHref("/finance"), "/");
+    assert.equal(resolveBackHref("/settings"), "/");
+    assert.equal(resolveBackHref("/notifications"), "/");
   });
 
-  it("shows hamburger on mobile for more-landing roots", () => {
-    const tabs = new Set(["/", "/orders", "/warehouse"]);
+  it("returns null for more-landing pages that are bottom tabs", () => {
+    const tabs = new Set(["/", "/orders", "/warehouse", "/finance"]);
     assert.equal(resolveBackHref("/finance", { tabRoots: tabs }), null);
-    assert.equal(resolveBackHref("/settings", { tabRoots: tabs }), null);
-    assert.equal(resolveBackHref("/notifications", { tabRoots: tabs }), null);
-    assert.equal(resolveBackHref("/analytics", { tabRoots: tabs }), null);
-    assert.equal(resolveBackHref("/production", { tabRoots: tabs }), null);
+    assert.equal(resolveBackHref("/settings", { tabRoots: tabs }), "/");
+    assert.equal(resolveBackHref("/notifications", { tabRoots: tabs }), "/");
+    assert.equal(resolveBackHref("/analytics", { tabRoots: tabs }), "/");
+    assert.equal(resolveBackHref("/production", { tabRoots: tabs }), "/");
   });
 
-  it("keeps bottom tabs as roots on mobile", () => {
+  it("keeps bottom tabs as roots", () => {
     const tabs = new Set(["/", "/crm", "/orders", "/me/commission"]);
     assert.equal(resolveBackHref("/crm", { tabRoots: tabs }), null);
     assert.equal(resolveBackHref("/me/commission", { tabRoots: tabs }), null);
-    assert.equal(resolveBackHref("/finance", { tabRoots: tabs }), null);
+    assert.equal(resolveBackHref("/finance", { tabRoots: tabs }), "/");
   });
 
   it("returns crm root from customer card", () => {

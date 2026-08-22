@@ -30,7 +30,7 @@ function HeaderBackButtonInner({
 export function HeaderBackButton({
   locale,
   href,
-  className = "ui-header-icon max-lg:hidden",
+  className = "hidden",
 }: {
   locale: Locale;
   href?: string;

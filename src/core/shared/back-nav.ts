@@ -84,8 +84,7 @@ export function resolveBackHref(pathname: string, opts?: BackNavOptions): string
   }
 
   if (MORE_LANDING.has(path)) {
-    // Mobile: show hamburger (menu is the «Ещё» entry). Desktop: no shell back.
-    return null;
+    return "/";
   }
 
   if (path.startsWith("/settings/")) return "/settings";

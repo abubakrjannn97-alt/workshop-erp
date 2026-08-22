@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { Sidebar } from "@/components/sidebar";
 import { BottomNav } from "@/components/bottom-nav";
-import { AppShellMain } from "@/components/app-shell-main";
+import { AppShellContent } from "@/components/app-shell-content";
 import { NavHistoryTracker } from "@/components/nav-history-tracker";
 import { VisualViewportSync } from "@/components/visual-viewport-sync";
 import { HelpGuide } from "@/components/help-guide";
@@ -44,7 +44,9 @@ export function AppShell({
           locale={locale}
         />
         <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden lg:bg-transparent">
-          <AppShellMain>{children}</AppShellMain>
+          <AppShellContent locale={locale} roleCode={roleCode} permissions={permissions}>
+            {children}
+          </AppShellContent>
         </div>
         {!workerShell ? <OfflineSync locale={locale} /> : null}
         {!workerShell ? <NotificationWatch locale={locale} /> : null}

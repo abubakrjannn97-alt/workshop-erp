@@ -34,7 +34,7 @@ export function PageHeader({
                 </button>
               }
             >
-              <BackButton href={backHref} label={backLabel} className="ui-header-icon max-lg:hidden" />
+              <BackButton href={backHref} label={backLabel} className="hidden" />
             </Suspense>
           ) : null}
           {meta}
