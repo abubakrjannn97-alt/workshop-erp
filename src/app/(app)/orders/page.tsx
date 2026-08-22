@@ -12,7 +12,6 @@ import {
   resolveOrderDateRange,
 } from "@core/shared/order-period";
 import { orderListStatusWhere } from "@core/shared/orders-list-filter";
-import { Segmented } from "@/components/segmented";
 import { OrdersMobileHeaderTools } from "./orders-mobile-header-tools";
 import { OrdersPeriodPicker } from "./orders-period-picker";
 import { OrdersStatusPicker } from "./orders-status-picker";
@@ -242,44 +241,24 @@ export default async function OrdersPage({
       </div>
 
       <div className={styles.navRow}>
-        <div className={styles.periodMobile}>
-          <OrdersPeriodPicker
-            current={resolvedPeriod}
-            fromRaw={fromRaw}
-            toRaw={toRaw}
-            status={status}
-            q={q?.trim()}
-            presetLabels={{
-              today: t("orders.periodToday"),
-              week: t("orders.periodWeek"),
-              month: t("orders.periodMonth"),
-              "3m": t("orders.period3m"),
-            }}
-            customLabel={t("orders.periodCustom")}
-            calendarLabel={t("orders.periodCalendar")}
-            fromLabel={t("orders.dateFrom")}
-            toLabel={t("orders.dateTo")}
-            applyLabel={t("orders.periodApply")}
-          />
-        </div>
-        <div className={styles.periodDesktop}>
-          <Segmented
-            scroll
-            aria-label={t("home.period")}
-            items={(
-              [
-                ["today", t("orders.periodToday")],
-                ["week", t("orders.periodWeek")],
-                ["month", t("orders.periodMonth")],
-                ["3m", t("orders.period3m")],
-              ] as const
-            ).map(([p, label]) => ({
-              href: buildOrdersQuery({ ...baseQuery, period: p, page: undefined }),
-              label,
-              active: resolvedPeriod === p,
-            }))}
-          />
-        </div>
+        <OrdersPeriodPicker
+          current={resolvedPeriod}
+          fromRaw={fromRaw}
+          toRaw={toRaw}
+          status={status}
+          q={q?.trim()}
+          presetLabels={{
+            today: t("orders.periodToday"),
+            week: t("orders.periodWeek"),
+            month: t("orders.periodMonth"),
+            "3m": t("orders.period3m"),
+          }}
+          customLabel={t("orders.periodCustom")}
+          calendarLabel={t("orders.periodCalendar")}
+          fromLabel={t("orders.dateFrom")}
+          toLabel={t("orders.dateTo")}
+          applyLabel={t("orders.periodApply")}
+        />
       </div>
 
       <div className={styles.statusRow}>

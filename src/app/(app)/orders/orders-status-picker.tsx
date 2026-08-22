@@ -6,6 +6,7 @@ import {
   type OrderListSaleBucket,
 } from "@core/shared/orders-list-filter";
 import { buildOrdersQuery } from "@core/shared/order-period";
+import pillStyles from "@/components/filter-pill-row.module.css";
 import styles from "./orders-status-picker.module.css";
 
 export function OrdersStatusPicker({
@@ -42,10 +43,10 @@ export function OrdersStatusPicker({
 
   return (
     <div className={styles.wrap} role="group" aria-label={allLabel}>
-      <div className={styles.pills}>
+      <div className={`${pillStyles.block} ${pillStyles.scroll}`}>
         <Link
           href={`/orders${queryFor(undefined)}`}
-          className={!activeBucket ? styles.pillActive : styles.pill}
+          className={`${!activeBucket ? pillStyles.pillActive : pillStyles.pill} ${styles.statusPill}`.trim()}
           scroll={false}
         >
           {allLabel}
@@ -56,7 +57,7 @@ export function OrdersStatusPicker({
             <Link
               key={bucket.code}
               href={`/orders${queryFor(bucket.code)}`}
-              className={active ? styles.pillActive : styles.pill}
+              className={`${active ? pillStyles.pillActive : pillStyles.pill} ${styles.statusPill}`.trim()}
               scroll={false}
             >
               {bucketLabels[bucket.code]}

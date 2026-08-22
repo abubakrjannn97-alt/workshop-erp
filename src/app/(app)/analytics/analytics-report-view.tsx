@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { moneyDisplay } from "@core/shared/decimal";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
-import { Segmented } from "@/components/segmented";
+import { FilterPillRow } from "@/components/filter-pill-row";
 import { AnalyticsProductsSection } from "./analytics-products-section";
 import type { AnalyticsReportData } from "./load-analytics";
 import styles from "./analytics.module.css";
@@ -17,8 +17,7 @@ export function AnalyticsReportView({ locale, data }: { locale: Locale; data: An
       </header>
 
       <div className={styles.periodWrap} data-tour="an-period">
-        <Segmented
-          className={styles.periodSeg}
+        <FilterPillRow
           aria-label={t("orders.period")}
           items={[
             { href: "/analytics?period=today", label: t("orders.periodToday"), active: period === "today" },

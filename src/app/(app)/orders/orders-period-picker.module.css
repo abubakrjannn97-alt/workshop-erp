@@ -6,57 +6,6 @@
   width: 100%;
 }
 
-.pills {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 4px;
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  padding: 0;
-}
-
-.pills::-webkit-scrollbar {
-  display: none;
-}
-
-.pill,
-.pillActive {
-  display: inline-flex;
-  flex: 1 1 0;
-  min-width: 0;
-  min-height: 32px;
-  align-items: center;
-  justify-content: center;
-  padding: 0 6px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.2;
-  color: var(--ink-2);
-  text-decoration: none;
-  text-align: center;
-  white-space: nowrap;
-  box-shadow: var(--shadow-soft);
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-
-.pillActive {
-  border-color: rgba(154, 115, 56, 0.35);
-  background: linear-gradient(180deg, #fffaf2 0%, #f3ead8 100%);
-  color: #8b6e2f;
-}
-
-.calendarRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .calendarToggle {
   display: inline-grid;
   flex: 0 0 32px;
@@ -65,17 +14,23 @@
   place-items: center;
   padding: 0;
   border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--surface);
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--ink-2);
   cursor: pointer;
-  box-shadow: var(--shadow-soft);
+  transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+.calendarToggle:hover {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.55);
 }
 
 .calendarToggleActive {
-  border-color: rgba(154, 115, 56, 0.35);
-  background: linear-gradient(180deg, #fffaf2 0%, #f3ead8 100%);
-  color: #8b6e2f;
+  border-color: rgba(36, 99, 194, 0.28);
+  background: linear-gradient(180deg, #f5f8ff 0%, #e8efff 100%);
+  color: #3f63c2;
+  box-shadow: var(--shadow-soft);
 }
 
 .calendarPanel {

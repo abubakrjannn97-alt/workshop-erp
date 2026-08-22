@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Calendar } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import { buildOrdersQuery, type OrderPeriod } from "@core/shared/order-period";
+import pillStyles from "@/components/filter-pill-row.module.css";
 import styles from "./orders-period-picker.module.css";
 
 const PRESETS: OrderPeriod[] = ["today", "week", "month", "3m"];
@@ -54,14 +55,14 @@ export function OrdersPeriodPicker({
 
   return (
     <div className={styles.wrap}>
-      <div className={styles.pills}>
+      <div className={pillStyles.block}>
         {PRESETS.map((preset) => {
           const active = current === preset;
           return (
             <Link
               key={preset}
               href={`/orders${queryFor(preset)}`}
-              className={active ? styles.pillActive : styles.pill}
+              className={active ? pillStyles.pillActive : pillStyles.pill}
               scroll={false}
             >
               {presetLabels[preset]}

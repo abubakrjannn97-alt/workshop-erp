@@ -6,47 +6,6 @@
   width: 100%;
 }
 
-.pills {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px;
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  padding: 0;
-}
-
-.pills::-webkit-scrollbar {
-  display: none;
-}
-
-.pill,
-.pillActive {
-  display: inline-flex;
-  flex-shrink: 0;
-  min-height: 32px;
-  align-items: center;
-  padding: 0 10px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 18px;
-  color: var(--ink-2);
-  text-decoration: none;
-  box-shadow: var(--shadow-soft);
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-
-.pillActive {
-  border-color: rgba(36, 99, 194, 0.28);
-  background: linear-gradient(180deg, #f5f8ff 0%, #e8efff 100%);
-  color: #3f63c2;
-}
-
 .hint {
   margin: 0;
   max-width: 340px;
@@ -54,4 +13,9 @@
   font-size: 11px;
   line-height: 1.35;
   color: var(--ink-3);
+}
+
+.statusPill,
+.statusPillActive {
+  flex: 0 1 auto;
 }

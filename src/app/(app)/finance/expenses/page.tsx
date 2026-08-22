@@ -9,7 +9,7 @@ import { FormField } from "@/components/form-field";
 import { AppSelect } from "@/components/app-select";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
-import { Segmented } from "@/components/segmented";
+import { FilterPillRow } from "@/components/filter-pill-row";
 import { ExpensesMonthList } from "../expenses-month-list";
 import styles from "../finance.module.css";
 
@@ -66,8 +66,7 @@ export default async function ExpensesPage({
       </header>
 
       <div className={styles.periodWrap}>
-        <Segmented
-          className={styles.periodSeg}
+        <FilterPillRow
           aria-label={t("po.period")}
           items={[
             { href: "/finance/expenses?period=today", label: t("orders.periodToday"), active: period === "today" },

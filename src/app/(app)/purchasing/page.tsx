@@ -5,7 +5,7 @@ import { requirePermission } from "@core/auth/authz";
 import { moneyDisplay, D, qtyDisplay } from "@core/shared/decimal";
 import { orderPeriodLabel, resolveOrderDateRange, type OrderPeriod } from "@core/shared/order-period";
 import { formatPurchaseOrderNo } from "@core/shared/format";
-import { Segmented } from "@/components/segmented";
+import { FilterPillRow } from "@/components/filter-pill-row";
 import { StatusBadge } from "@/components/status-badge";
 import { RevealList } from "@/components/reveal-list";
 import { ChevronRight } from "lucide-react";
@@ -62,7 +62,7 @@ export default async function PurchasingPage({
       </header>
 
       <div className={styles.periodWrap} data-tour="po-period">
-        <Segmented
+        <FilterPillRow
           aria-label={t("po.period")}
           items={[
             { href: "/purchasing?period=today", label: t("orders.periodToday"), active: period === "today" },
