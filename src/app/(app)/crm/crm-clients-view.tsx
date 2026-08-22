@@ -11,6 +11,13 @@ import { RevealList } from "@/components/reveal-list";
 import { ICON_STROKE } from "@/components/nav-icons";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
 import { D, moneyDisplay } from "@core/shared/decimal";
+import {
+  CUSTOMER_STATUSES,
+  customerStatusLabel,
+  customerStatusTone,
+  type CustomerStatus,
+} from "@core/crm/customer-status";
+import { StatusBadge } from "@/components/status-badge";
 import styles from "./customers.module.css";
 
 export type CrmCustomerRow = {
@@ -20,6 +27,7 @@ export type CrmCustomerRow = {
   managerName: string | null;
   turnover: string;
   debt: string;
+  pipelineStatus: import("@core/crm/customer-status").CustomerStatus;
 };
 
 export function CrmClientsView({
@@ -34,8 +42,12 @@ export function CrmClientsView({
   const t = createT(locale);
   const [showForm, setShowForm] = useState(false);
   const [showList, setShowList] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<CustomerStatus | "all">("all");
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+
+  const filtered =
+    statusFilter === "all" ? customers : customers.filter((c) => c.pipelineStatus === statusFilter);
 
   function onCreate(formData: FormData) {
     setError(null);
@@ -101,14 +113,8 @@ export function CrmClientsView({
               <FormField label={t("crm.fioCompany")} required>
                 <input name="name" required placeholder={t("crm.fioCompany")} className="ui-input" />
               </FormField>
-              <FormField label={t("common.phone")}>
-                <input name="phone" placeholder={t("common.phone")} className="ui-input" inputMode="tel" />
-              </FormField>
-              <FormField label={t("common.whatsapp")}>
-                <input name="whatsapp" placeholder={t("common.whatsapp")} className="ui-input" inputMode="tel" />
-              </FormField>
-              <FormField label={t("crm.sourceOptional")}>
-                <input name="source" placeholder={t("crm.sourceOptional")} className="ui-input" />
+              <FormField label={t("crm.phoneWhatsapp")}>
+                <input name="phone" placeholder="+992 …" className="ui-input" inputMode="tel" />
               </FormField>
               {error ? <p className={styles.formError}>{error}</p> : null}
               <div className={styles.formActions}>
@@ -154,23 +160,54 @@ export function CrmClientsView({
           </div>
         ) : (
           <>
+            <div className={styles.statusFilterRow}>
+              <button
+                type="button"
+                className={`${styles.statusFilterBtn} ${statusFilter === "all" ? styles.statusFilterBtnActive : ""}`}
+                onClick={() => setStatusFilter("all")}
+              >
+                {t("common.all")}
+              </button>
+              {CUSTOMER_STATUSES.map((code) => (
+                <button
+                  key={code}
+                  type="button"
+                  className={`${styles.statusFilterBtn} ${statusFilter === code ? styles.statusFilterBtnActive : ""}`}
+                  onClick={() => setStatusFilter(code)}
+                >
+                  {customerStatusLabel(code, t)}
+                </button>
+              ))}
+            </div>
+
+            {filtered.length === 0 ? (
+              <div className={styles.sectionBody}>
+                <p className={styles.listCollapsed}>{t("crm.noCustomersForStatus")}</p>
+              </div>
+            ) : (
+              <>
             <div className={styles.tableHead}>
               <span>{t("home.col.customer")}</span>
               <span>{t("common.phone")}</span>
-              <span>{t("list.col.manager")}</span>
+              <span>{t("crm.clientStatus")}</span>
               <span className={styles.tableHeadRight}>{t("crm.turnover")}</span>
               <span className={styles.tableHeadRight}>{t("common.debt")}</span>
               <span aria-hidden />
             </div>
             <RevealList moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} className={styles.tableBody}>
-              {customers.map((c) => {
+              {filtered.map((c) => {
                 const debt = D(c.debt);
                 return (
                   <li key={c.id}>
                     <Link href={`/crm/customers/${c.id}`} className={styles.tableRow}>
                       <span className={styles.customerName}>{c.name}</span>
                       <span className={styles.cellText}>{c.phone ?? "—"}</span>
-                      <span className={styles.cellText}>{c.managerName ?? t("crm.noManager")}</span>
+                      <span>
+                        <StatusBadge
+                          label={customerStatusLabel(c.pipelineStatus, t)}
+                          tone={customerStatusTone(c.pipelineStatus)}
+                        />
+                      </span>
                       <span className={styles.cellMoney}>{moneyDisplay(c.turnover)} с</span>
                       <span className={debt.gt(0) ? styles.cellDebt : styles.cellMoney}>
                         {debt.gt(0) ? `${moneyDisplay(debt)} с` : "—"}
@@ -185,20 +222,22 @@ export function CrmClientsView({
             </RevealList>
 
             <ul className={styles.mobileList}>
-              {customers.map((c) => {
+              {filtered.map((c) => {
                 const debt = D(c.debt);
                 return (
                   <li key={c.id}>
                     <Link href={`/crm/customers/${c.id}`} className={styles.mobileCard}>
                       <div className={styles.mobileTop}>
                         <span className={styles.mobileName}>{c.name}</span>
+                        <StatusBadge
+                          label={customerStatusLabel(c.pipelineStatus, t)}
+                          tone={customerStatusTone(c.pipelineStatus)}
+                        />
                         <span className={styles.chevron} aria-hidden>
                           <ChevronRight size={16} strokeWidth={ICON_STROKE} />
                         </span>
                       </div>
-                      <p className={styles.mobileMeta}>
-                        {c.phone ?? "—"} · {c.managerName ?? t("crm.noManager")}
-                      </p>
+                      <p className={styles.mobileMeta}>{c.phone ?? "—"}</p>
                       <div className={styles.mobileBottom}>
                         <div className={styles.mobileStats}>
                           <span>{moneyDisplay(c.turnover)} с</span>
@@ -212,6 +251,8 @@ export function CrmClientsView({
                 );
               })}
             </ul>
+              </>
+            )}
           </>
         )}
       </section>

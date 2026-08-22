@@ -206,3 +206,65 @@ export function DashRecentOrdersFooterLink({ href, children }: { href: string; c
     </Link>
   );
 }
+
+export type SerializedRecentOrderCard = {
+  id: string;
+  customerName: string;
+  totalDisplay: string;
+  statusLabel: string;
+  statusCode: string;
+  productSummary: string;
+  photos: { url?: string; letter: string }[];
+};
+
+export function DashRecentOrdersSerialized({
+  orders,
+  empty,
+}: {
+  orders: SerializedRecentOrderCard[];
+  empty: string;
+}) {
+  if (orders.length === 0) {
+    return <p className={styles.empty}>{empty}</p>;
+  }
+
+  return (
+    <ul className={styles.orderCards}>
+      {orders.map((order) => (
+        <li key={order.id}>
+          <Link href={`/orders/${order.id}`} className={`${styles.orderCard} ${styles.mobileGlassCard}`}>
+            <div className={styles.orderCardPhotos} aria-hidden>
+              {order.photos.map((photo, index) => (
+                <span
+                  key={`${order.id}-ph-${index}`}
+                  className={styles.orderCardPhoto}
+                  style={index > 0 ? { marginLeft: -8 } : undefined}
+                >
+                  {photo.url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={photo.url} alt="" className={styles.orderCardPhotoImg} />
+                  ) : (
+                    <span className={styles.orderCardPhotoEmpty}>{photo.letter}</span>
+                  )}
+                </span>
+              ))}
+            </div>
+            <div className={styles.orderCardMain}>
+              <div className={styles.orderCardTop}>
+                <span className={styles.orderCardClient}>{order.customerName}</span>
+                <span className={styles.orderCardAmount}>{order.totalDisplay} с</span>
+              </div>
+              <div className={styles.orderCardBottom}>
+                <span className={styles.orderCardProduct}>{order.productSummary}</span>
+                <span className={`${styles.statusPill} ${statusTone(order.statusCode)}`}>{order.statusLabel}</span>
+                <span className={styles.orderCardGo}>
+                  <ChevronRight size={16} strokeWidth={ICON_STROKE} aria-hidden />
+                </span>
+              </div>
+            </div>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}

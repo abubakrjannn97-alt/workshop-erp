@@ -4,6 +4,8 @@ import { useState } from "react";
 import { AppSelect } from "@/components/app-select";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
+import type { PaymentCard } from "@core/config/payment-cards";
+import { formatPaymentMethodLabel } from "@core/orders/payment-method-label";
 import { PAYMENT_METHODS } from "@core/orders/order-constants";
 import { moneyDisplay } from "@core/shared/decimal";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
@@ -17,11 +19,11 @@ export function OrderPaymentPanel({
   reverseAction,
   canPay,
   payments,
+  cards,
   loc,
 }: {
   locale: Locale;
   orderId: string;
-  customerName: string;
   debtDefault: string;
   payAction: (formData: FormData) => Promise<void>;
   reverseAction: (formData: FormData) => Promise<void>;
@@ -30,21 +32,29 @@ export function OrderPaymentPanel({
     id: string;
     amount: string;
     method: string | null;
+    comment: string | null;
     createdAt: string;
     reversesId: string | null;
   }[];
+  cards: PaymentCard[];
   loc: string;
 }) {
   const t = createT(locale);
-  const [open, setOpen] = useState(Boolean(debtDefault));
+  const [open, setOpen] = useState(true);
   const [method, setMethod] = useState("cash");
   const hasDebt = Boolean(debtDefault);
+
+  if (!hasDebt) return null;
+
+  const activePayments = payments.filter(
+    (p) => !p.reversesId && !payments.some((x) => x.reversesId === p.id),
+  );
 
   return (
     <section className={detailStyles.sectionPanelCompact}>
       <div className={detailStyles.payPanelHead}>
         <h2 className={detailStyles.sectionTitle}>{t("orders.payFromCustomer")}</h2>
-        {canPay && hasDebt ? (
+        {canPay ? (
           <button
             type="button"
             className={open ? detailStyles.payStepTabOn : detailStyles.payStepTab}
@@ -55,7 +65,33 @@ export function OrderPaymentPanel({
         ) : null}
       </div>
 
-      {canPay && hasDebt && open ? (
+      <p className={detailStyles.debtBanner}>
+        {t("orders.debtDue")}: <strong>{debtDefault} с</strong>
+      </p>
+
+      {activePayments.length > 0 ? (
+        <ul className={detailStyles.payList}>
+          {activePayments.map((p) => (
+            <li key={p.id} className={detailStyles.payListItem}>
+              <span>
+                {moneyDisplay(p.amount)} с ·{" "}
+                {formatPaymentMethodLabel(p.method, cards, t, p.comment)} ·{" "}
+                {new Date(p.createdAt).toLocaleDateString(loc, { day: "2-digit", month: "2-digit" })}
+              </span>
+              {canPay ? (
+                <form action={reverseAction}>
+                  <input type="hidden" name="paymentId" value={p.id} />
+                  <button type="submit" className={detailStyles.linkDanger}>
+                    {t("orders.payUndo")}
+                  </button>
+                </form>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      {canPay && open ? (
         <form action={payAction} className={detailStyles.payFormCompact}>
           <input type="hidden" name="orderId" value={orderId} />
           <IdempotencyField prefix={`pay-${orderId}`} />
@@ -82,32 +118,6 @@ export function OrderPaymentPanel({
             {t("orders.payRecordBtn")}
           </PendingButton>
         </form>
-      ) : null}
-
-      {!hasDebt && canPay ? (
-        <p className={detailStyles.sectionNote}>{t("orders.payFullyPaid")}</p>
-      ) : null}
-
-      {payments.length > 0 ? (
-        <ul className={detailStyles.payList}>
-          {payments.map((p) => (
-            <li key={p.id} className={detailStyles.payListItem}>
-              <span>
-                {moneyDisplay(p.amount)} с · {p.method ? t(`pay.method.${p.method}`) : "—"} ·{" "}
-                {new Date(p.createdAt).toLocaleDateString(loc, { day: "2-digit", month: "2-digit" })}
-                {p.reversesId ? ` · ${t("orders.payCancelled")}` : ""}
-              </span>
-              {canPay && !p.reversesId && !payments.some((x) => x.reversesId === p.id) ? (
-                <form action={reverseAction}>
-                  <input type="hidden" name="paymentId" value={p.id} />
-                  <button type="submit" className={detailStyles.linkDanger}>
-                    {t("orders.payUndo")}
-                  </button>
-                </form>
-              ) : null}
-            </li>
-          ))}
-        </ul>
       ) : null}
     </section>
   );

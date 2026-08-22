@@ -501,16 +501,17 @@ model InventoryCountLine {
 }
 
 model Customer {
-  id         String    @id @default(cuid())
-  name       String
-  phone      String?
-  whatsapp   String?
-  address    String?
-  source     String?
-  managerId  String?
-  comment    String?
-  isActive   Boolean   @default(true)
-  archivedAt DateTime?
+  id             String    @id @default(cuid())
+  name           String
+  phone          String?
+  whatsapp       String?
+  address        String?
+  source         String?
+  pipelineStatus String    @default("NEW")
+  managerId      String?
+  comment        String?
+  isActive       Boolean   @default(true)
+  archivedAt     DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 

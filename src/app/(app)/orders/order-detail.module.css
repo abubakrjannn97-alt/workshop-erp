@@ -334,6 +334,26 @@
   border-top: 0;
 }
 
+.debtBanner {
+  margin: 0 0 8px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink);
+}
+
+.debtBanner strong {
+  font-variant-numeric: tabular-nums;
+  color: var(--danger);
+}
+
+.orderHeaderActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .compactField :global(.ui-label) {
   margin-bottom: 0;
 }

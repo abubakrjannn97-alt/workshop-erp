@@ -5,6 +5,7 @@ import { z } from "zod";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { writeAudit } from "@core/control/audit";
+import { CUSTOMER_STATUSES } from "@core/crm/customer-status";
 
 const schema = z.object({
   name: z.string().trim().min(1).max(200),
@@ -37,11 +38,12 @@ export async function createCustomer(formData: FormData) {
     data: {
       name: parsed.data.name,
       phone: parsed.data.phone || null,
-      whatsapp: parsed.data.whatsapp || null,
+      whatsapp: parsed.data.whatsapp || parsed.data.phone || null,
       address: parsed.data.address || null,
       source: parsed.data.source || null,
       comment: parsed.data.comment || null,
       managerId,
+      pipelineStatus: "NEW",
     },
   });
   await writeAudit({
@@ -76,7 +78,7 @@ export async function updateCustomer(formData: FormData) {
     data: {
       name: parsed.data.name,
       phone: parsed.data.phone || null,
-      whatsapp: parsed.data.whatsapp || null,
+      whatsapp: parsed.data.phone || parsed.data.whatsapp || null,
       address: formData.has("address") ? parsed.data.address || null : existing.address,
       source: parsed.data.source || null,
       comment: formData.has("comment") ? parsed.data.comment || null : existing.comment,
@@ -126,5 +128,36 @@ export async function restoreCustomer(formData: FormData) {
   });
   revalidatePath("/crm");
   revalidatePath(`/crm/customers/${id}`);
+  return { ok: true };
+}
+
+export async function updateCustomerStatus(formData: FormData) {
+  const session = await requirePermission("crm.manage");
+  const id = String(formData.get("id") ?? "");
+  const status = String(formData.get("status") ?? "");
+  if (!(CUSTOMER_STATUSES as readonly string[]).includes(status)) {
+    return { error: "Неверный статус." };
+  }
+
+  const existing = await prisma.customer.findUnique({ where: { id } });
+  if (!existing || existing.archivedAt) return { error: "Клиент не найден." };
+
+  await prisma.customer.update({
+    where: { id },
+    data: { pipelineStatus: status },
+  });
+  await writeAudit({
+    userId: session.user.id,
+    action: "customer.status",
+    entityType: "customer",
+    entityId: id,
+    newValue: { pipelineStatus: status },
+  });
+  revalidatePath("/crm");
+  revalidatePath(`/crm/customers/${id}`);
+  const orders = await prisma.order.findMany({ where: { customerId: id }, select: { id: true } });
+  for (const order of orders) {
+    revalidatePath(`/orders/${order.id}`);
+  }
   return { ok: true };
 }

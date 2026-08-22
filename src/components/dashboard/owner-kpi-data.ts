@@ -147,48 +147,6 @@ async function loadProductCostMaps(productIds: string[]) {
   return { matPerUnit, laborPerUnit };
 }
 
-async function profitForPeriod(period: HomeProfitPeriod): Promise<OwnerProfitPeriodKpi> {
-  const { from, to } = resolveOrderDateRange({ period });
-  const orders = await prisma.order.findMany({
-    where: {
-      ...(from || to
-        ? {
-            createdAt: {
-              ...(from ? { gte: from } : {}),
-              ...(to ? { lte: to } : {}),
-            },
-          }
-        : {}),
-      status: { code: { not: ORDER_STATUS.CANCELLED } },
-    },
-    select: {
-      total: true,
-      items: { select: { productId: true, quantity: true } },
-    },
-  });
-
-  const productIds = [...new Set(orders.flatMap((o) => o.items.map((i) => i.productId)))];
-  const { matPerUnit, laborPerUnit } = await loadProductCostMaps(productIds);
-
-  let sales = D(0);
-  let cost = D(0);
-  for (const order of orders) {
-    sales = sales.plus(D(String(order.total)));
-    for (const item of order.items) {
-      const qty = D(String(item.quantity));
-      const mat = matPerUnit.get(item.productId) ?? D(0);
-      const labor = laborPerUnit.get(item.productId) ?? D(0);
-      cost = cost.plus(qty.mul(mat)).plus(qty.mul(labor));
-    }
-  }
-
-  return {
-    profit: sales.minus(cost),
-    sales,
-    orderCount: orders.length,
-  };
-}
-
 function summarizeOrders(
   orders: {
     total: unknown;
@@ -247,4 +205,182 @@ export async function fetchOwnerProfitKpis(): Promise<OwnerProfitKpis> {
     week: summarizeOrders(orders, weekRange.from, weekRange.to, matPerUnit, laborPerUnit),
     month: summarizeOrders(orders, monthRange.from, monthRange.to, matPerUnit, laborPerUnit),
   };
+}
+
+export type SerializedRecentOrder = {
+  id: string;
+  customerName: string;
+  totalDisplay: string;
+  statusLabel: string;
+  statusCode: string;
+  productSummary: string;
+  photos: { url?: string; letter: string }[];
+};
+
+export type OwnerPeriodMetricSnapshot = {
+  profitDisplay: string;
+  profitNegative: boolean;
+  scrapValue: string;
+  scrapHint: string;
+  scrapHintTone: "positive" | "negative" | "neutral";
+  hasScrap: boolean;
+  producedValue: string;
+  producedHint: string;
+  producedHintTone: "positive" | "negative" | "neutral";
+  recentOrders: SerializedRecentOrder[];
+};
+
+export type OwnerDashboardSnapshots = Record<HomeProfitPeriod, OwnerPeriodMetricSnapshot>;
+
+type RecentOrderRow = {
+  id: string;
+  total: unknown;
+  createdAt: Date;
+  customer: { name: string };
+  status: { code: string; name: string };
+  items: { product: { name: string; photoUrl: string | null } }[];
+};
+
+function inRange(date: Date, from: Date | undefined, to: Date | undefined) {
+  if (from && date < from) return false;
+  if (to && date > to) return false;
+  return true;
+}
+
+function serializeRecentOrder(
+  order: RecentOrderRow,
+  n: (group: string, code: string, fallback: string) => string,
+): SerializedRecentOrder {
+  const items = order.items ?? [];
+  const first = items[0]?.product.name ?? "—";
+  const productSummary = items.length <= 1 ? first : `${first} +${items.length - 1}`;
+  const photos =
+    items.length === 0
+      ? [{ letter: "?" }]
+      : items.slice(0, 3).map((item) => ({
+          url: item.product.photoUrl ?? undefined,
+          letter: item.product.name.slice(0, 1),
+        }));
+
+  return {
+    id: order.id,
+    customerName: order.customer.name,
+    totalDisplay: moneyDisplay(String(order.total)),
+    statusLabel: n("ostatus", order.status.code, order.status.name),
+    statusCode: order.status.code,
+    productSummary,
+    photos,
+  };
+}
+
+function sumScrapInRange(
+  rows: { createdAt: Date; quantity: unknown }[],
+  from: Date | undefined,
+  to: Date | undefined,
+) {
+  return rows.reduce((sum, row) => {
+    if (!inRange(row.createdAt, from, to)) return sum;
+    return sum.plus(D(String(row.quantity)));
+  }, D(0));
+}
+
+function sumProducedInRange(
+  rows: { producedAt: Date | null; actualQty: unknown }[],
+  from: Date | undefined,
+  to: Date | undefined,
+) {
+  return rows.reduce((sum, row) => {
+    if (!row.producedAt || !inRange(row.producedAt, from, to)) return sum;
+    return sum.plus(D(String(row.actualQty)));
+  }, D(0));
+}
+
+export async function fetchOwnerDashboardSnapshots(
+  t: (key: string) => string,
+  n: (group: string, code: string, fallback: string) => string,
+): Promise<OwnerDashboardSnapshots> {
+  const todayRange = resolveOrderDateRange({ period: "today" });
+  const weekRange = resolveOrderDateRange({ period: "week" });
+  const monthRange = resolveOrderDateRange({ period: "month" });
+  const ranges = { today: todayRange, week: weekRange, month: monthRange };
+
+  const fromCandidates = [todayRange.from, weekRange.from, monthRange.from].filter(Boolean) as Date[];
+  const from = fromCandidates.reduce((min, d) => (d < min ? d : min));
+  const to = todayRange.to ?? endOfDay();
+
+  const yesterdayStart = startOfDay(new Date(Date.now() - 86_400_000));
+  const yesterdayEnd = endOfDay(new Date(Date.now() - 86_400_000));
+
+  const [profitKpis, scrapRows, batchRows, recentOrderRows] = await Promise.all([
+    fetchOwnerProfitKpis(),
+    prisma.scrapRecord.findMany({
+      where: { createdAt: { gte: from, lte: to } },
+      select: { createdAt: true, quantity: true },
+    }),
+    prisma.productionBatch.findMany({
+      where: { status: "CLOSED", producedAt: { gte: from, lte: to } },
+      select: { producedAt: true, actualQty: true },
+    }),
+    prisma.order.findMany({
+      where: {
+        createdAt: { gte: from, lte: to },
+        status: { code: { not: ORDER_STATUS.CANCELLED } },
+      },
+      include: {
+        customer: true,
+        status: true,
+        items: { include: { product: true }, orderBy: { id: "asc" }, take: 3 },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
+
+  const scrapUnit = t("home.kpi.scrapUnit").trim();
+  const producedYesterday = sumProducedInRange(batchRows, yesterdayStart, yesterdayEnd);
+
+  const out = {} as OwnerDashboardSnapshots;
+  for (const period of ["today", "week", "month"] as const) {
+    const range = ranges[period];
+    const profit = profitKpis[period];
+    const scrap = sumScrapInRange(scrapRows, range.from, range.to);
+    const produced = sumProducedInRange(batchRows, range.from, range.to);
+    const hasScrap = scrap.gt(0);
+
+    let producedHint = t("home.kpi.noChangeToday");
+    let producedHintTone: "positive" | "negative" | "neutral" = "neutral";
+    if (period === "today") {
+      const pct = pctChange(produced, producedYesterday);
+      if (pct !== null && pct > 0) {
+        producedHint = t("home.kpi.vsYesterdayUp").replace("{pct}", String(pct));
+        producedHintTone = "positive";
+      } else if (pct !== null && pct < 0) {
+        producedHint = t("home.kpi.vsYesterdayDown").replace("{pct}", String(Math.abs(pct)));
+        producedHintTone = "negative";
+      }
+    } else if (period === "week") {
+      producedHint = t("home.kpi.forWeek");
+    } else {
+      producedHint = t("home.kpi.forMonth");
+    }
+
+    const periodOrders = recentOrderRows
+      .filter((o) => inRange(o.createdAt, range.from, range.to))
+      .slice(0, 5)
+      .map((o) => serializeRecentOrder(o, n));
+
+    out[period] = {
+      profitDisplay: moneyDisplay(profit.profit),
+      profitNegative: profit.profit.lt(0),
+      scrapValue: scrapUnit ? `${formatFgQty(scrap)} ${scrapUnit}` : formatFgQty(scrap),
+      scrapHint: hasScrap ? t("home.kpi.scrapPeriodHint") : t("home.kpi.noScrapToday"),
+      scrapHintTone: hasScrap ? "negative" : "neutral",
+      hasScrap,
+      producedValue: `${formatFgQty(produced)} м²`,
+      producedHint,
+      producedHintTone,
+      recentOrders: periodOrders,
+    };
+  }
+
+  return out;
 }

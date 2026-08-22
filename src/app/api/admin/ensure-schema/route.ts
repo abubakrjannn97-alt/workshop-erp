@@ -8,6 +8,7 @@ const PATCHES = [
   `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "maxStock" DECIMAL(18,6) NOT NULL DEFAULT 0`,
   `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "laborRate" DECIMAL(18,4) NOT NULL DEFAULT 0`,
   `UPDATE "products" SET "laborRate" = 22 WHERE "laborRate" = 0`,
+  `ALTER TABLE "customers" ADD COLUMN IF NOT EXISTS "pipelineStatus" TEXT NOT NULL DEFAULT 'NEW'`,
 ];
 
 /** One-shot schema patch when migrate history is missing. Header: x-wipe-token */

@@ -9,6 +9,8 @@ export { DashKpiGrid } from "./dash-kpi-grid";
 export { DashGreeting } from "./dash-greeting";
 export { DashMetricStrip, DashSection } from "./dash-metrics";
 export { DashProfitHero } from "./dash-profit-hero";
+export { DashHomePeriodPicker } from "./dash-home-period-picker";
+export { DashOwnerHomeBody } from "./dash-owner-home-body";
 export {
   DashQuickActions,
   DashQuickActionsDesktop,
@@ -19,4 +21,4 @@ export {
   ownerSecondaryActions,
   type DashQuickAction,
 } from "./dash-quick-actions";
-export { DashRecentOrders, DashRecentOrdersAction, DashRecentOrdersFooterLink } from "./dash-recent-orders";
+export { DashRecentOrders, DashRecentOrdersAction, DashRecentOrdersFooterLink, DashRecentOrdersSerialized } from "./dash-recent-orders";

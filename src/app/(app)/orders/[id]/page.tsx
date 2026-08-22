@@ -8,7 +8,10 @@ import { PendingButton } from "@/components/pending-button";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { productLaborRate } from "@core/payroll/labor-rate";
 import { available } from "@core/inventory/stock";
-import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
+import { findFinishedGoodsWarehouse } from "@/core/config/resolve-warehouse";
+import { loadPaymentCards } from "@core/config/payment-cards";
+import { CustomerStatusPicker } from "@/components/crm/customer-status-picker";
+import { isCustomerStatus } from "@core/crm/customer-status";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge, orderTone } from "@/components/status-badge";
 import { OrderStageProgress } from "../order-stage-progress";
@@ -20,7 +23,6 @@ import {
   addPayment,
   cancelOrder,
   confirmOrder,
-  createPurchaseFromDeficit,
   issueOrderToCustomer,
   sellOrderFromFgStock,
   reversePayment,
@@ -46,7 +48,6 @@ export default async function OrderPage({
       seller: true,
       status: true,
       items: { include: { product: { include: { saleUnit: true, outputUnit: true } } } },
-      materials: { include: { material: { include: { storageUnit: true } } } },
       payments: { orderBy: { createdAt: "desc" } },
       production: true,
     },
@@ -60,7 +61,7 @@ export default async function OrderPage({
   const canCancel = hasPermission(session.user.permissions, session.user.roleCode, "orders.cancel");
   const canPay = hasPermission(session.user.permissions, session.user.roleCode, "payments.create");
   const canSeeCost = hasPermission(session.user.permissions, session.user.roleCode, "materials.view");
-  const canPurchase = hasPermission(session.user.permissions, session.user.roleCode, "purchasing.manage");
+  const canManageCrm = hasPermission(session.user.permissions, session.user.roleCode, "crm.manage");
   const canIssue = hasPermission(session.user.permissions, session.user.roleCode, "inventory.receive");
 
   const code = order.status.code;
@@ -77,8 +78,8 @@ export default async function OrderPage({
   const showInShop = ["CONFIRMED", "SCHEDULED", "IN_PRODUCTION", "PARTIAL"].includes(code);
   const showReady = canIssue && (code === "READY" || code === "IN_FG");
 
-  const raw = await findRawWarehouse();
   const fg = await findFinishedGoodsWarehouse();
+  const paymentCards = await loadPaymentCards();
   const fgStock = fg
     ? await prisma.stockItem.findMany({
         where: { warehouseId: fg.id, productId: { in: order.items.map((i) => i.productId) } },
@@ -95,26 +96,9 @@ export default async function OrderPage({
       return avail.gte(item.quantity);
     });
   const showWorkflow = showPayStep || showSendToShop || showInShop || showReady || canSellFromFg;
-  const stock = raw
-    ? await prisma.stockItem.findMany({
-        where: { warehouseId: raw.id, materialId: { in: order.materials.map((m) => m.materialId) } },
-      })
-    : [];
-  const stockMap = new Map(stock.map((s) => [s.materialId, s]));
-  const deficits = order.materials
-    .map((need) => {
-      const item = stockMap.get(need.materialId);
-      const avail = item ? available(item.qtyOnHand, item.qtyReserved) : D(0);
-      const reserved = D(String(need.reservedQty));
-      const planned = D(String(need.plannedQty));
-      const short = order.confirmedAt
-        ? planned.sub(reserved)
-        : planned.gt(avail)
-          ? planned.sub(avail)
-          : D(0);
-      return { need, avail, short, reserved };
-    })
-    .filter((row) => row.short.gt(0));
+  const customerStatus = isCustomerStatus(order.customer.pipelineStatus)
+    ? order.customer.pipelineStatus
+    : "NEW";
 
   const hasMaterialCost = order.materialCost != null && D(String(order.materialCost)).gte(0);
   let laborCost = D(0);
@@ -163,11 +147,6 @@ export default async function OrderPage({
       redirect(`/orders/${id}?payError=${encodeURIComponent(result.error)}`);
     }
   }
-  async function deficitAction(formData: FormData) {
-    "use server";
-    const result = await createPurchaseFromDeficit(formData);
-    if (result.ok && result.id) redirect(`/purchasing/${result.id}`);
-  }
   async function payLaterAction(formData: FormData) {
     "use server";
     await schedulePayLater(formData);
@@ -200,9 +179,19 @@ export default async function OrderPage({
         backHref="/orders"
         backLabel={t("common.back")}
         actions={
-          <Link href={`/crm/customers/${order.customer.id}`} className="ui-btn-secondary">
-            {t("orders.openCustomer")}
-          </Link>
+          <div className={detailStyles.orderHeaderActions}>
+            {canManageCrm ? (
+              <CustomerStatusPicker
+                customerId={order.customer.id}
+                status={customerStatus}
+                locale={locale}
+                compact
+              />
+            ) : null}
+            <Link href={`/crm/customers/${order.customer.id}`} className="ui-btn-secondary">
+              {t("orders.openCustomer")}
+            </Link>
+          </div>
         }
       />
 
@@ -339,69 +328,21 @@ export default async function OrderPage({
       <OrderPaymentPanel
         locale={locale}
         orderId={order.id}
-        customerName={order.customer.name}
         debtDefault={debt.gt(0) ? moneyDisplay(debt) : ""}
         payAction={payAction}
         reverseAction={reverseAction}
         canPay={canPay}
+        cards={paymentCards}
         payments={order.payments.map((p) => ({
           id: p.id,
           amount: String(p.amount),
           method: p.method,
+          comment: p.comment,
           createdAt: p.createdAt.toISOString(),
           reversesId: p.reversesId,
         }))}
         loc={loc}
       />
-
-      <section className={detailStyles.sectionPanel}>
-        <h2 className={detailStyles.sectionTitle}>{t("orders.materialsForOrder")}</h2>
-        {order.materials.length === 0 ? (
-          <p className={detailStyles.sectionNote}>{t("orders.materialsEmpty")}</p>
-        ) : (
-        <ul className="ui-list">
-          {order.materials.map((need) => (
-            <li key={need.id} className={detailStyles.materialRow}>
-              <div>
-                <p className={detailStyles.materialName}>{need.material.name}</p>
-                <p className={detailStyles.materialQty}>
-                  {t("orders.materialsNeed")}: {qtyDisplay(need.plannedQty)} {need.material.storageUnit.symbol}
-                  {" · "}
-                  {t("orders.materialsReserved")}: {qtyDisplay(need.reservedQty)} {need.material.storageUnit.symbol}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
-        )}
-        {!order.canProduceFully && order.confirmedAt ? (
-          <p className={detailStyles.sectionNote}>{t("orders.cannotProduce", { n: String(order.number) })}</p>
-        ) : null}
-        {deficits.length > 0 ? (
-          <div className="mt-2 rounded-lg bg-[var(--warning)]/10 p-3 text-sm">
-            <p className="font-medium">{t("orders.shortage")}</p>
-            <ul className="mt-1 list-disc pl-5">
-              {deficits.map((row) => (
-                <li key={row.need.id}>
-                  {row.need.material.name} — {qtyDisplay(row.short)} {row.need.material.storageUnit.symbol}
-                </li>
-              ))}
-            </ul>
-            {canPurchase ? (
-              <form action={deficitAction} className="mt-2">
-                <input type="hidden" name="orderId" value={order.id} />
-                <button type="submit" className="ui-btn-secondary min-h-[44px]">
-                  {t("orders.createPo")}
-                </button>
-              </form>
-            ) : (
-              <Link href="/purchasing" className="mt-2 inline-block text-sm text-[var(--titan-dark)] hover:underline">
-                {t("orders.openPurchasing")}
-              </Link>
-            )}
-          </div>
-        ) : null}
-      </section>
 
       {canCancel && order.status.code !== "CANCELLED" && order.status.code !== "COMPLETED" && order.status.code !== "ISSUED" ? (
         <form action={cancelAction} className={detailStyles.cancelOnly}>

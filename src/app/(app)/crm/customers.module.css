@@ -605,3 +605,66 @@
     display: none !important;
   }
 }
+
+.statusFilterRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 12px 10px;
+}
+
+.statusFilterBtn {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.statusFilterBtnActive {
+  border-color: var(--navy);
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.statusPicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.statusPill {
+  min-height: 36px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.statusPillActive {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 1px var(--navy);
+}
+
+.statusSelect {
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.mobilePayMethod {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ink-2);
+}
