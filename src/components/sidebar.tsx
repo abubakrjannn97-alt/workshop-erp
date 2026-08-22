@@ -9,7 +9,7 @@ import type { Locale } from "@core/shared/i18n/i18n";
 import { createT } from "@core/shared/i18n/i18n";
 import { WorkshopMark } from "@/components/workshop-mark";
 import { ICON_STROKE, NAV_ICONS } from "@/components/nav-icons";
-import { isNavItemActive, sidebarGroups, type NavLeaf } from "@core/shared/nav";
+import { isSidebarItemActive, sidebarGroups, type NavLeaf } from "@core/shared/nav";
 import styles from "./sidebar.module.css";
 
 const STORAGE_KEY = "workshop_sidebar_collapsed";
@@ -139,6 +139,7 @@ export function Sidebar({
     }))
     .filter((group) => group.items.length > 0);
   const secondaryItems = groups.flatMap((group) => group.items).filter((item) => SECONDARY_IDS.has(item.id));
+  const allNavHrefs = groups.flatMap((group) => group.items.map((item) => item.href));
   const activePath = pendingHref ?? path;
 
   useEffect(() => {
@@ -192,7 +193,7 @@ export function Sidebar({
               <NavLink
                 key={item.href}
                 item={item}
-                active={isNavItemActive(activePath, item.href)}
+                active={isSidebarItemActive(activePath, item.href, allNavHrefs)}
                 collapsed={collapsed}
                 label={t(item.labelKey)}
                 onNavigate={setPendingHref}
@@ -207,7 +208,7 @@ export function Sidebar({
               <NavLink
                 key={item.href}
                 item={item}
-                active={isNavItemActive(activePath, item.href)}
+                active={isSidebarItemActive(activePath, item.href, allNavHrefs)}
                 collapsed={collapsed}
                 label={t(item.labelKey)}
                 onNavigate={setPendingHref}

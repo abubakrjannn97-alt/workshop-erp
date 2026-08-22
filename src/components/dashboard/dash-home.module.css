@@ -88,11 +88,13 @@
 }
 
 .homeMobile .kpiCardCompact {
-  padding: 8px 10px;
+  padding: 12px 12px;
+  min-height: 58px;
 }
 
 .homeMobile .kpiCardFeatured {
-  padding: 10px 12px;
+  padding: 14px 14px;
+  min-height: 68px;
 }
 
 .homeMobile .kpiValueFeatured {
@@ -106,13 +108,13 @@
 }
 
 .homeMobile .kpiIconCompact {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
 }
 
 .homeMobile .kpiCardFeatured .kpiIconCompact {
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
 }
 
 .homeMobile .sectionTitle {
@@ -365,7 +367,7 @@
 .kpiStripCompact {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
+  gap: 8px;
   padding: 0;
   align-items: start;
 }
@@ -384,11 +386,11 @@
   width: 100%;
   flex-direction: row;
   align-items: center;
-  gap: 8px;
-  min-height: 0;
-  padding: 8px 10px;
+  gap: 10px;
+  min-height: 58px;
+  padding: 12px 12px;
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1px solid rgba(232, 236, 241, 0.95);
   background: linear-gradient(165deg, #ffffff 0%, #fbfbfa 100%);
   box-shadow: 0 1px 2px rgba(28, 35, 43, 0.03);
@@ -400,7 +402,8 @@
 }
 
 .kpiCardFeatured {
-  padding: 10px 12px;
+  padding: 14px 14px;
+  min-height: 68px;
   background: linear-gradient(120deg, #fff8f1 0%, #ffffff 55%);
   border-color: rgba(216, 137, 66, 0.18);
 }
@@ -410,14 +413,14 @@
   min-width: 0;
   flex: 1;
   flex-direction: column;
-  gap: 1px;
+  gap: 3px;
 }
 
 .kpiValueFeatured {
   margin: 0;
   font-size: 22px;
   font-weight: 700;
-  line-height: 26px;
+  line-height: 27px;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
@@ -432,16 +435,16 @@
 
 .kpiIconCompact {
   display: grid;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   flex-shrink: 0;
   place-items: center;
-  border-radius: 10px;
+  border-radius: 11px;
 }
 
 .kpiCardFeatured .kpiIconCompact {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 12px;
 }
 
@@ -478,7 +481,7 @@
   white-space: nowrap;
   font-size: 11px;
   font-weight: 500;
-  line-height: 14px;
+  line-height: 15px;
   color: var(--ink-2);
 }
 
@@ -491,7 +494,7 @@
   margin: 0;
   font-size: 18px;
   font-weight: 700;
-  line-height: 22px;
+  line-height: 23px;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   color: var(--ink);

@@ -4,7 +4,7 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
 import { qtyDisplay } from "@core/shared/decimal";
 import { D } from "@core/shared/decimal";
-import { getFgWarehouse, getRawWarehouse } from "@/core/config/resolve-warehouse";
+import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
 import { WarehouseMetrics } from "./warehouse-metrics";
 import { Plus } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
@@ -30,7 +30,18 @@ export default async function WarehousePage({
   const params = await searchParams;
   const activeId = isWorker ? "products" : params.view === "raw" ? "raw" : "products";
 
-  const [fg, raw] = await Promise.all([getFgWarehouse(), getRawWarehouse()]);
+  const [fg, raw] = await Promise.all([
+    findFinishedGoodsWarehouse(),
+    isWorker ? Promise.resolve(null) : findRawWarehouse(),
+  ]);
+
+  if (!fg) {
+    return (
+      <div className={styles.page}>
+        <p className={styles.emptyNote}>{t("wh.fgMissing")}</p>
+      </div>
+    );
+  }
 
   const [products, materials] = await Promise.all([
     prisma.product.findMany({
@@ -41,13 +52,13 @@ export default async function WarehousePage({
       },
       orderBy: { name: "asc" },
     }),
-    isWorker
-      ? Promise.resolve([])
-      : prisma.material.findMany({
+    raw
+      ? prisma.material.findMany({
           where: { archivedAt: null, isActive: true },
           include: { storageUnit: true, stockItems: { where: { warehouseId: raw.id } } },
           orderBy: { name: "asc" },
-        }),
+        })
+      : Promise.resolve([]),
   ]);
 
   const productRows = products.map((p) => {

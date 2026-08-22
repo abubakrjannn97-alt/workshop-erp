@@ -6,7 +6,6 @@ import { requirePermission, canSeeMaterialCost } from "@core/auth/authz";
 import { materialCostForRecipe } from "@core/costing/costing";
 import { moneyDisplay } from "@core/shared/decimal";
 import { archiveProduct } from "@/app/actions/products";
-import { RevealList } from "@/components/reveal-list";
 import { ChevronRight } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import styles from "@/styles/premium.module.css";
@@ -83,7 +82,7 @@ export default async function ProductsPage() {
                   <th>{t("products.output")}</th>
                   {canManage ? <th /> : null}
                 </tr></thead>
-                <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={10}>
+                <tbody>
                   {products.map((product) => {
                     const version = product.recipe?.versions[0];
                     const cost = version ? materialCostForRecipe(version.items) : { total: null, missingPrices: true };
@@ -107,7 +106,7 @@ export default async function ProductsPage() {
                       </tr>
                     );
                   })}
-                </RevealList>
+                </tbody>
               </table>
             </div>
             <ul className={styles.mobileList}>

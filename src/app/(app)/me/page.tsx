@@ -2,14 +2,17 @@ import { requirePermission } from "@core/auth/authz";
 import { prisma } from "@core/infrastructure/prisma";
 import { D, qtyDisplay } from "@core/shared/decimal";
 import { getTranslator } from "@core/shared/i18n/locale";
-import { getFgWarehouse } from "@core/config/resolve-warehouse";
+import { findFinishedGoodsWarehouse } from "@/core/config/resolve-warehouse";
 import { MeJobsView } from "@/components/me-jobs-view";
 import type { MeJobsSnapshot } from "@/lib/offline/types";
 
 export default async function MyJobsPage() {
   const session = await requirePermission("production.view");
   const { t, locale } = await getTranslator();
-  const fg = await getFgWarehouse();
+  const fg = await findFinishedGoodsWarehouse();
+  if (!fg) {
+    return <MeJobsView snapshot={{ updatedAt: new Date().toISOString(), current: null, jobs: [], fgStock: [] }} locale={locale} />;
+  }
 
   const [jobs, products] = await Promise.all([
     prisma.productionOrder.findMany({

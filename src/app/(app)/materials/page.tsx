@@ -57,7 +57,7 @@ export default async function MaterialsPage() {
                     {canManage ? <th /> : null}
                   </tr>
                 </thead>
-                <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={10}>
+                <tbody>
                   {materials.map((material) => {
                     const cost = unitCost(material.packagePrice, material.packageWeight);
                     return (
@@ -86,7 +86,7 @@ export default async function MaterialsPage() {
                       </tr>
                     );
                   })}
-                </RevealList>
+                </tbody>
               </table>
             </div>
             <ul className={styles.mobileList}>

@@ -172,7 +172,7 @@ export default async function SalesPage() {
                     <th>{t("home.col.status")}</th>
                   </tr>
                 </thead>
-                <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={8}>
+                <tbody>
                   {unpaid.map((o) => (
                     <tr key={o.id}>
                       <td>
@@ -188,7 +188,7 @@ export default async function SalesPage() {
                       </td>
                     </tr>
                   ))}
-                </RevealList>
+                </tbody>
               </table>
             </div>
             <ul className={premium.mobileList}>

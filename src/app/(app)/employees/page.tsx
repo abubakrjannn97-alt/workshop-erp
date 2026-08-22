@@ -72,7 +72,7 @@ export default async function EmployeesPage() {
                 <th className={styles.thRight}>{t("common.debt")}</th>
               </tr>
             </thead>
-            <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={10}>
+            <tbody>
               {users.map((u) => {
                 const acc = D(String(accMap.get(u.id)?._sum.amount ?? 0));
                 const paid = D(String(payMap.get(u.id)?._sum.amount ?? 0));
@@ -95,7 +95,7 @@ export default async function EmployeesPage() {
                   </tr>
                 );
               })}
-            </RevealList>
+            </tbody>
           </table>
         </div>
         <ul className={styles.mobileList}>

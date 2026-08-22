@@ -244,7 +244,7 @@ export default async function AnalyticsPage() {
                     <th className={styles.thRight}>{t("an.marginPct")}</th>
                   </tr>
                 </thead>
-                <RevealList as="tbody" moreLabel={t("home.seeAll")} lessLabel={t("home.hide")} limit={8}>
+                <tbody>
                   {productRows.map((row) => {
                     const fullCost = row.materials.add(row.labor).add(row.commission);
                     const profitRow = row.revenue.sub(fullCost);
@@ -262,7 +262,7 @@ export default async function AnalyticsPage() {
                       </tr>
                     );
                   })}
-                </RevealList>
+                </tbody>
               </table>
             </div>
           </>

@@ -397,6 +397,14 @@ function pathMatches(path: string, href: string) {
   return path === href || path.startsWith(`${href}/`);
 }
 
+/** Only the most specific matching nav href is active (avoids /finance + /finance/expenses). */
+export function isSidebarItemActive(path: string, href: string, allHrefs: string[]) {
+  const matches = allHrefs.filter((h) => pathMatches(path, h));
+  if (matches.length === 0) return false;
+  const best = matches.reduce((a, b) => (a.length >= b.length ? a : b));
+  return best === href;
+}
+
 export function isNavItemActive(path: string, href: string) {
   return pathMatches(path, href);
 }
