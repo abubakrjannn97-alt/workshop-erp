@@ -9,15 +9,8 @@ import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/reso
 import { WarehouseMetrics } from "./warehouse-metrics";
 import { Plus, ChevronRight } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
+import { shortProductLabel } from "@core/shared/format";
 import styles from "./warehouse.module.css";
-
-function shortProductName(name: string) {
-  const quoted = name.match(/[«"]([^»"]+)[»"]/);
-  if (quoted?.[1]?.trim()) return quoted[1].trim();
-  const cleaned = name.replace(/^(декоративный\s+камень|цоколь|плитка)\s*/i, "").trim();
-  const base = cleaned || name.trim();
-  return base.length > 24 ? `${base.slice(0, 22)}…` : base;
-}
 
 export default async function WarehousePage({
   searchParams,
@@ -87,6 +80,7 @@ export default async function WarehousePage({
       atLimit,
       costTotal,
       profitTotal,
+      unitCost: wac,
     };
   });
 
@@ -164,7 +158,7 @@ export default async function WarehousePage({
             </div>
           ) : (
             <ul className={styles.fgList}>
-              {sortedRows.map(({ product, onHand, low, costTotal, profitTotal }) => {
+              {sortedRows.map(({ product, onHand, low, costTotal, profitTotal, unitCost }) => {
                 const profitBad = profitTotal.lt(0);
                 const cardClass = `${styles.fgCard} ${low ? styles.fgCardLow : ""}`.trim();
                 const cardBody = (
@@ -179,8 +173,8 @@ export default async function WarehousePage({
                         )}
                       </div>
                       <div className={styles.fgBody}>
-                        <p className={styles.fgName}>
-                          {isWorker ? shortProductName(product.name) : product.name}
+                        <p className={styles.fgName} title={product.name}>
+                          {shortProductLabel(product.name)}
                         </p>
                       </div>
                     </div>
@@ -195,7 +189,12 @@ export default async function WarehousePage({
                         <>
                           <div className={styles.fgStat}>
                             <span className={styles.fgStatLabel}>{t("orders.kpiCostSum")}</span>
-                            <span className={styles.fgStatCost}>{moneyDisplay(costTotal)} с</span>
+                            <span className={styles.fgStatCostUnit}>
+                              {moneyDisplay(unitCost)} с/{product.saleUnit.symbol}
+                            </span>
+                            <span className={styles.fgStatCostTotal}>
+                              {t("wh.costTotal")} {moneyDisplay(costTotal)} с
+                            </span>
                           </div>
                           <div className={styles.fgStat}>
                             <span className={styles.fgStatLabel}>{t("orders.kpiMargin")}</span>
