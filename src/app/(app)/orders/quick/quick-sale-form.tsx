@@ -535,6 +535,7 @@ export function QuickSaleForm({
           {labels.addLine}
         </button>
         </div>
+        </div>
       </div>
 
       {cart.length > 0 ? (
