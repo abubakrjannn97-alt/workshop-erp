@@ -1,7 +1,7 @@
 import { getTranslator } from "@core/shared/i18n/locale";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
-import { getFgWarehouse } from "@core/config/resolve-warehouse";
+import { findFinishedGoodsWarehouse } from "@core/config/resolve-warehouse";
 import { available } from "@core/inventory/stock";
 import { materialCostForRecipe, scaleNeed } from "@core/costing/costing";
 import { D, money, qtyDisplay } from "@core/shared/decimal";
@@ -21,7 +21,16 @@ export default async function QuickSalePage() {
     );
   }
 
-  const fg = await getFgWarehouse();
+  const fg = await findFinishedGoodsWarehouse();
+  if (!fg) {
+    return (
+      <div className="page-stack">
+        <PageHeader title={t("sales.quickTitle")} backHref="/orders" backLabel={t("common.back")} />
+        <p className="text-sm text-[var(--ink-2)]">{t("wh.fgMissing")}</p>
+      </div>
+    );
+  }
+
   const [customers, products] = await Promise.all([
     prisma.customer.findMany({
       where: {

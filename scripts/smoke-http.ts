@@ -1,6 +1,6 @@
 import { writeFileSync } from "fs";
 
-const base = "http://localhost:3000";
+const base = process.env.SMOKE_BASE_URL ?? "http://localhost:3000";
 const routes = [
   "/",
   "/products",
@@ -9,12 +9,14 @@ const routes = [
   "/crm",
   "/orders",
   "/orders/new",
+  "/orders/quick",
   "/production",
   "/warehouse",
   "/warehouse/finished",
   "/warehouse/movements",
   "/purchasing",
   "/finance",
+  "/finance/expenses",
   "/employees",
   "/analytics",
   "/notifications",
@@ -27,6 +29,7 @@ const routes = [
   "/settings/backups",
   "/search",
   "/more",
+  "/me",
 ];
 
 async function login() {
@@ -81,7 +84,7 @@ async function main() {
         error = `redirect ${res.headers.get("location")}`;
       } else {
         const text = await res.text();
-        if (/Application error|Internal Server Error|Unhandled Runtime Error|digest=/i.test(text)) {
+        if (/Application error|Internal Server Error|Unhandled Runtime Error|digest=|error\.generic|Хатои ногаҳонӣ/i.test(text)) {
           error = "page contains error markup";
         }
       }
