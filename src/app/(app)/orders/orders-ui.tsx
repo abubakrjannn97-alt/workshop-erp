@@ -281,26 +281,31 @@ export function OrdersListPanel({
                     <p className={styles.mobileProduct}>{title}</p>
                     <p className={styles.mobileSaleMeta}>{shortPersonName(order.customer.name)}</p>
                   </div>
-                  <div className={styles.mobileSaleMetrics}>
-                    {showCost ? (
-                      <>
-                        <span className={styles.mobileSaleMetricLabel}>{costLabel}</span>
-                        <span className={styles.mobileSaleCost}>
-                          {order.costSum != null ? `${order.costSum} с` : "—"}
-                        </span>
-                        <span className={styles.mobileSaleMetricLabel}>{profitLabel}</span>
-                        <span className={profitTone}>
-                          {order.profitSum != null ? `${order.profitSum} с` : "—"}
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <span className={styles.mobileSaleQty}>—</span>
-                        <span className={styles.mobileAmount}>{moneyDisplay(String(order.total))} с</span>
-                      </>
-                    )}
-                  </div>
+                  {showCost ? (
+                    <span className={styles.mobileSaleTotal}>{moneyDisplay(String(order.total))} с</span>
+                  ) : (
+                    <div className={styles.mobileSaleMetrics}>
+                      <span className={styles.mobileSaleQty}>—</span>
+                      <span className={styles.mobileAmount}>{moneyDisplay(String(order.total))} с</span>
+                    </div>
+                  )}
                 </div>
+                {showCost ? (
+                  <div className={styles.mobileSaleStats}>
+                    <div className={styles.mobileSaleStat}>
+                      <span className={styles.mobileSaleStatLabel}>{costLabel}</span>
+                      <span className={styles.mobileSaleCost}>
+                        {order.costSum != null ? `${order.costSum} с` : "—"}
+                      </span>
+                    </div>
+                    <div className={styles.mobileSaleStat}>
+                      <span className={styles.mobileSaleStatLabel}>{profitLabel}</span>
+                      <span className={profitTone}>
+                        {order.profitSum != null ? `${order.profitSum} с` : "—"}
+                      </span>
+                    </div>
+                  </div>
+                ) : null}
               </Link>
             </li>
           );

@@ -35,7 +35,7 @@ export async function POST(req: Request) {
       await prisma.$executeRawUnsafe(sql);
     }
     const sample = await prisma.product.findFirst({
-      select: { id: true, laborRate: true, minStock: true, maxStock: true },
+      select: { id: true, minStock: true, maxStock: true },
     });
     return NextResponse.json({ ok: true, sample });
   } catch (err) {

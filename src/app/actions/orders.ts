@@ -240,7 +240,7 @@ export async function createOrder(formData: FormData) {
         orderTotal: money(total),
         materialCost: quote.materialCost,
         sellerId,
-        laborAmount: laborAmountForLines([{ quantity: quote.quantity, laborRate: product.laborRate }]),
+        laborAmount: laborAmountForLines([{ quantity: quote.quantity }]),
         userId: session.user.id,
       });
     }
@@ -476,7 +476,7 @@ export async function addPayment(formData: FormData) {
     where: { id: orderId },
     include: {
       status: true,
-      items: { include: { product: { select: { laborRate: true } } } },
+      items: { include: { product: true } },
       payments: true,
       seller: { include: { payScheme: { include: { tiers: true } } } },
     },
@@ -541,7 +541,7 @@ export async function addPayment(formData: FormData) {
       });
     }
     const laborFromProd = laborAmountForLines(
-      order.items.map((item) => ({ quantity: item.quantity, laborRate: item.product.laborRate })),
+      order.items.map((item) => ({ quantity: item.quantity })),
     );
     await postClientPayment(tx, {
       orderId,
@@ -588,7 +588,7 @@ export async function reversePayment(formData: FormData) {
     where: { id: paymentId },
     include: {
       reversedBy: true,
-      order: { include: { items: { include: { product: { select: { laborRate: true } } } } } },
+      order: { include: { items: { include: { product: true } } } },
     },
   });
   if (!payment) return { error: "Оплата не найдена." };
@@ -639,7 +639,7 @@ export async function reversePayment(formData: FormData) {
       orderTotal: String(payment.order.total),
       materialCost: payment.order.materialCost ? String(payment.order.materialCost) : null,
       laborAmount: laborAmountForLines(
-        payment.order.items.map((item) => ({ quantity: item.quantity, laborRate: item.product.laborRate })),
+        payment.order.items.map((item) => ({ quantity: item.quantity })),
       ),
       commissionAmount: commSum._sum.amount ? money(commSum._sum.amount) : "0",
       userId: session.user.id,
@@ -917,7 +917,7 @@ export async function createMultiItemOrder(formData: FormData) {
   const appliedDiscount = requestedOverLimit ? D(0) : discount;
 
   const quotes = [];
-  const laborLines: { quantity: string; laborRate: { toString(): string } }[] = [];
+  const laborLines: { quantity: string }[] = [];
   for (const item of items) {
     const product = await prisma.product.findUnique({ where: { id: item.productId } });
     if (!product || product.archivedAt) return { error: "Изделие не найдено." };
@@ -926,7 +926,7 @@ export async function createMultiItemOrder(formData: FormData) {
     }
     try {
       quotes.push(await quoteProduct(item.productId, item.quantity, item.unitPrice));
-      laborLines.push({ quantity: item.quantity, laborRate: product.laborRate });
+      laborLines.push({ quantity: item.quantity });
     } catch (e) {
       return { error: e instanceof Error ? e.message : "Не удалось рассчитать заказ." };
     }

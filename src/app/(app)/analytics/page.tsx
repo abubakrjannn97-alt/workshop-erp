@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
+import { productLaborRate } from "@core/payroll/labor-rate";
 import { FUND, LEDGER, fundDelta } from "@core/finance/finance";
 import { contributionAndNet } from "@core/finance/profit";
 import { coverageAndPurchaseNeed } from "@core/inventory/alerts";
@@ -91,7 +92,7 @@ export default async function AnalyticsPage() {
     const orderTotal = D(String(item.order.total));
     const share = orderTotal.gt(0) ? amount.div(orderTotal) : D(0);
     row.materials = row.materials.add(D(String(item.order.materialCost ?? 0)).mul(share));
-    row.labor = row.labor.add(qtySale.mul(D(String(item.product.laborRate ?? 0))));
+    row.labor = row.labor.add(qtySale.mul(productLaborRate()));
     const paid = item.order.payments.reduce((s, p) => s.add(String(p.amount)), D(0));
     const paidShare = orderTotal.gt(0) ? paid.mul(share) : D(0);
     row.commission = row.commission.add(paidShare.mul("0.03"));

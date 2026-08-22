@@ -6,6 +6,7 @@ import { requirePermission } from "@core/auth/authz";
 import { hasPermission } from "@core/auth/authz";
 import { PendingButton } from "@/components/pending-button";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
+import { productLaborRate } from "@core/payroll/labor-rate";
 import { available } from "@core/inventory/stock";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
 import { PageHeader } from "@/components/page-header";
@@ -118,7 +119,7 @@ export default async function OrderPage({
   const hasMaterialCost = order.materialCost != null && D(String(order.materialCost)).gte(0);
   let laborCost = D(0);
   for (const item of order.items) {
-    laborCost = laborCost.plus(D(String(item.quantity)).mul(D(String(item.product.laborRate ?? 0))));
+    laborCost = laborCost.plus(D(String(item.quantity)).mul(productLaborRate()));
   }
   const costSum = hasMaterialCost
     ? D(String(order.materialCost)).plus(laborCost)

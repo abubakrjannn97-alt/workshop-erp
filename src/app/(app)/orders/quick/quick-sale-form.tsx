@@ -301,11 +301,7 @@ export function QuickSaleForm({
   }
 
   function cancelSale() {
-    setCart([]);
-    setError(null);
-    setPayMode("paid");
-    setPartialAmount("");
-    resetLineFields(products[0]?.id);
+    resetForm();
   }
 
   function onFinish(formData: FormData) {
@@ -321,10 +317,7 @@ export function QuickSaleForm({
         setError(result.error);
         return;
       }
-      setCart([]);
-      setPayMode("paid");
-      setPartialAmount("");
-      resetLineFields(products[0]?.id);
+      resetForm();
       router.refresh();
     });
   }

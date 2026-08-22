@@ -4,6 +4,7 @@ import { requirePermission, hasPermission } from "@core/auth/authz";
 import { findFinishedGoodsWarehouse } from "@core/config/resolve-warehouse";
 import { available } from "@core/inventory/stock";
 import { materialCostForRecipe, scaleNeed } from "@core/costing/costing";
+import { productLaborRate } from "@core/payroll/labor-rate";
 import { D, money, qtyDisplay } from "@core/shared/decimal";
 import { PageHeader } from "@/components/page-header";
 import { QuickSaleForm } from "./quick-sale-form";
@@ -73,7 +74,7 @@ export default async function QuickSalePage() {
       const scale = scaleNeed(p.recipeBaseQty, 1);
       const mat = version ? materialCostForRecipe(version.items, Number(scale.toString())) : null;
       const matPerUnit = mat?.total ? D(mat.total) : D(0);
-      const laborPerUnit = D(String(p.laborRate ?? 0));
+      const laborPerUnit = productLaborRate();
       const costPerUnit = matPerUnit.plus(laborPerUnit);
       const rate = salePrice.gte(costPerUnit) ? salePrice : costPerUnit;
       return {

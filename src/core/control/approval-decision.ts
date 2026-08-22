@@ -223,7 +223,7 @@ async function executeRefund(payload: Record<string, unknown>, userId: string): 
     where: { id: paymentId },
     include: {
       reversedBy: true,
-      order: { include: { items: { include: { product: { select: { laborRate: true } } } } } },
+      order: { include: { items: { include: { product: true } } } },
     },
   });
   if (!payment) return { error: "Оплата не найдена." };
@@ -261,7 +261,7 @@ async function executeRefund(payload: Record<string, unknown>, userId: string): 
       orderTotal: String(payment.order.total),
       materialCost: payment.order.materialCost ? String(payment.order.materialCost) : null,
       laborAmount: laborAmountForLines(
-        payment.order.items.map((item) => ({ quantity: item.quantity, laborRate: item.product.laborRate })),
+        payment.order.items.map((item) => ({ quantity: item.quantity })),
       ),
       commissionAmount: commSum._sum.amount ? money(commSum._sum.amount) : "0",
       userId,

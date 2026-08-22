@@ -149,7 +149,6 @@ export async function quickSaleFromFg(formData: FormData) {
     laborAmountForLines(
       built.map((line) => ({
         quantity: line.quantity,
-        laborRate: byId.get(line.productId)?.laborRate,
       })),
     ),
   );

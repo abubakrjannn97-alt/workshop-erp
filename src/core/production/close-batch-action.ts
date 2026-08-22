@@ -8,6 +8,7 @@ import { writeAudit } from "@core/control/audit";
 import { D, money, qty } from "@core/shared/decimal";
 import { MOVEMENT, receiveProduct, releaseMaterial, writeOffMaterial } from "@core/inventory/stock";
 import { ORDER_STATUS } from "@core/orders/orders";
+import { productLaborRate } from "@core/payroll/labor-rate";
 import { accrueProductionWage } from "@core/payroll/payroll";
 import { notifyRoles } from "@core/control/control";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
@@ -158,13 +159,7 @@ export async function closeBatch(formData: FormData) {
 
       if (batch.responsibleUserId && good.gt(0)) {
         const productIds = [...new Set(fgLines.map((l) => l.productId))];
-        const products = productIds.length
-          ? await tx.product.findMany({
-              where: { id: { in: productIds } },
-              select: { id: true, laborRate: true },
-            })
-          : [];
-        const rateByProduct = new Map(products.map((p) => [p.id, D(String(p.laborRate ?? 0))]));
+        const rateByProduct = new Map(productIds.map((id) => [id, productLaborRate()]));
         let wageAmount = D(0);
         let wageQty = D(0);
         for (const line of fgLines) {

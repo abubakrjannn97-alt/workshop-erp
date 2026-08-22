@@ -4,6 +4,7 @@ import { requirePermission, hasPermission } from "@core/auth/authz";
 import { canSeeMaterialCost } from "@core/rbac/permissions";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { materialCostForRecipe, scaleNeed } from "@core/costing/costing";
+import { productLaborRate } from "@core/payroll/labor-rate";
 import { ORDER_STATUS } from "@core/orders/orders";
 import {
   ORDERS_PAGE_SIZE,
@@ -138,7 +139,7 @@ export default async function OrdersPage({
       const cost = materialCostForRecipe(version.items, Number(scale.toString()));
       matPerUnit.set(p.id, cost.total ? D(cost.total) : D(0));
     }
-    laborPerUnit.set(p.id, D(String(p.laborRate ?? 0)));
+    laborPerUnit.set(p.id, productLaborRate());
   }
 
   function orderCost(order: (typeof orders)[number]) {

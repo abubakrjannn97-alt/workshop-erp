@@ -739,9 +739,11 @@
 }
 
 .mobileCard {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   margin-bottom: 6px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface);
@@ -878,6 +880,40 @@
   min-width: 4.5rem;
 }
 
+.mobileSaleTotal {
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.mobileSaleStats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.mobileSaleStat {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mobileSaleStatLabel {
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
 .mobileSaleMetricLabel {
   font-size: 9px;
   font-weight: 600;
@@ -888,19 +924,18 @@
 }
 
 .mobileSaleCost {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.25;
   color: var(--ink-2);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  margin-bottom: 3px;
 }
 
 .mobileSaleProfit {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.25;
   color: #249565;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;

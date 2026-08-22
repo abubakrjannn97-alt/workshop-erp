@@ -5,6 +5,7 @@ import { requirePermission, canSeeMaterialCost } from "@core/auth/authz";
 import { updateProduct } from "@/app/actions/products";
 import { materialCostForRecipe } from "@core/costing/costing";
 import { D } from "@core/shared/decimal";
+import { DEFAULT_PRODUCT_LABOR_RATE } from "@core/payroll/labor-rate";
 import { RecipeEditor } from "./recipe-editor";
 import { NeedPreview } from "./need-preview";
 import { FoldSection } from "./fold-section";
@@ -138,7 +139,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 <FormField label={t("products.laborRate")}>
                   <input
                     name="laborRate"
-                    defaultValue={product.laborRate.toString()}
+                    defaultValue={DEFAULT_PRODUCT_LABOR_RATE}
                     disabled={!canManage}
                     placeholder="0"
                     className="ui-input"
@@ -167,7 +168,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         </div>
       </section>
 
-      {cost || D(String(product.laborRate)).gt(0) ? (
+      {cost || D(DEFAULT_PRODUCT_LABOR_RATE).gt(0) ? (
         <FoldSection title={t("products.costPerM2", { u: product.saleUnit.symbol })}>
           <NeedPreview
             hideTitle
@@ -179,7 +180,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             }))}
             saleSymbol={product.saleUnit.symbol}
             recipeBaseQty={product.recipeBaseQty.toString()}
-            laborRate={product.laborRate.toString()}
+            laborRate={DEFAULT_PRODUCT_LABOR_RATE}
             locale={locale}
             showCosts={canSeeCost}
           />
