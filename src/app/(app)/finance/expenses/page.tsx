@@ -10,7 +10,7 @@ import { AppSelect } from "@/components/app-select";
 import { IdempotencyField } from "@/components/idempotency-field";
 import { PendingButton } from "@/components/pending-button";
 import { Segmented } from "@/components/segmented";
-import { ExpensesMonthList } from "./expenses-month-list";
+import { ExpensesMonthList } from "../expenses-month-list";
 import styles from "../finance.module.css";
 
 type Period = Extract<OrderPeriod, "today" | "week" | "month" | "all">;
