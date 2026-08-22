@@ -34,7 +34,7 @@ export async function DesktopHome() {
       include: {
         customer: true,
         status: true,
-        items: { include: { product: true }, orderBy: { id: "asc" }, take: 2 },
+        items: { include: { product: true }, orderBy: { id: "asc" }, take: 3 },
       },
       orderBy: { createdAt: "desc" },
       take: 5,

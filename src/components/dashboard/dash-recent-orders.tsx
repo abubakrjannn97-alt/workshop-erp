@@ -13,7 +13,7 @@ type RecentOrder = {
   dueAt?: Date | null;
   customer: { name: string };
   status: { code: string; name: string };
-  items?: { product: { name: string } }[];
+  items?: { product: { name: string; photoUrl?: string | null } }[];
 };
 
 function productSummary(order: RecentOrder): string {
@@ -22,6 +22,12 @@ function productSummary(order: RecentOrder): string {
   const first = items[0]?.product.name ?? "—";
   if (items.length === 1) return first;
   return `${first} +${items.length - 1}`;
+}
+
+function orderPhotoItems(order: RecentOrder) {
+  const items = order.items ?? [];
+  if (items.length === 0) return [null];
+  return items.slice(0, 3);
 }
 
 function statusTone(code: string): string {
@@ -66,16 +72,38 @@ export function DashRecentOrders({
           return (
             <li key={order.id}>
               <Link href={`/orders/${order.id}`} className={`${styles.orderCard} ${styles.mobileGlassCard}`}>
-                <div className={styles.orderCardTop}>
-                  <span className={styles.orderCardClient}>{order.customer.name}</span>
-                  <span className={styles.orderCardAmount}>{moneyDisplay(String(order.total))} с</span>
+                <div className={styles.orderCardPhotos} aria-hidden>
+                  {orderPhotoItems(order).map((item, index) => {
+                    const photo = item?.product.photoUrl;
+                    const letter = (item?.product.name ?? "?").slice(0, 1);
+                    return (
+                      <span
+                        key={`${order.id}-ph-${index}`}
+                        className={styles.orderCardPhoto}
+                        style={index > 0 ? { marginLeft: -8 } : undefined}
+                      >
+                        {photo ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={photo} alt="" className={styles.orderCardPhotoImg} />
+                        ) : (
+                          <span className={styles.orderCardPhotoEmpty}>{letter}</span>
+                        )}
+                      </span>
+                    );
+                  })}
                 </div>
-                <div className={styles.orderCardBottom}>
-                  <span className={styles.orderCardProduct}>{productSummary(order)}</span>
-                  <span className={`${styles.statusPill} ${statusTone(order.status.code)}`}>{statusLabel}</span>
-                  <span className={styles.orderCardGo}>
-                    <ChevronRight size={16} strokeWidth={ICON_STROKE} aria-hidden />
-                  </span>
+                <div className={styles.orderCardMain}>
+                  <div className={styles.orderCardTop}>
+                    <span className={styles.orderCardClient}>{order.customer.name}</span>
+                    <span className={styles.orderCardAmount}>{moneyDisplay(String(order.total))} с</span>
+                  </div>
+                  <div className={styles.orderCardBottom}>
+                    <span className={styles.orderCardProduct}>{productSummary(order)}</span>
+                    <span className={`${styles.statusPill} ${statusTone(order.status.code)}`}>{statusLabel}</span>
+                    <span className={styles.orderCardGo}>
+                      <ChevronRight size={16} strokeWidth={ICON_STROKE} aria-hidden />
+                    </span>
+                  </div>
                 </div>
               </Link>
             </li>
