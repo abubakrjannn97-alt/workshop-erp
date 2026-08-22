@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, UserRound } from "lucide-react";
+import { ChevronDown, ChevronLeft, UserRound } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import { FormField } from "@/components/form-field";
 import { IdempotencyField } from "@/components/idempotency-field";
@@ -811,41 +811,45 @@ export function QuickSaleForm({
 
       {step === "payment" && cart.length > 0 ? (
         <div className={styles.paymentScreen}>
-          <div className={styles.paymentCard}>
-            {error ? <p className={styles.error}>{error}</p> : null}
+          <div className={styles.paymentBackdrop} aria-hidden />
+          <div className={styles.paymentInner}>
+            <button
+              type="button"
+              className={styles.paymentBackBtn}
+              onClick={backToReceipt}
+              disabled={pending}
+            >
+              <ChevronLeft size={18} strokeWidth={ICON_STROKE} aria-hidden />
+              {labels.backToReceipt}
+            </button>
 
-            <div className={styles.paymentHead}>
-              <div>
-                <h2 className={styles.paymentTitle}>{labels.pay}</h2>
-                <p className={styles.paymentSub}>
-                  {labels.forCustomer} {customerName}
-                </p>
-              </div>
-              <span className={styles.paymentTotal}>{moneyDisplay(cartTotal)} с</span>
+            <div className={styles.paymentHero}>
+              <span className={styles.paymentHeroBadge}>{labels.pay}</span>
+              <p className={styles.paymentHeroTotal}>
+                {moneyDisplay(cartTotal)}
+                <span className={styles.paymentHeroCurrency}> с</span>
+              </p>
+              <p className={styles.paymentHeroCustomer}>
+                {labels.forCustomer} {customerName}
+              </p>
             </div>
 
-            <form action={onFinish} className={styles.checkout} style={{ padding: 0, borderTop: 0 }}>
-              {renderCheckoutHiddenFields()}
-              {renderPaymentFields()}
+            <div className={styles.paymentSheet}>
+              {error ? <p className={styles.error}>{error}</p> : null}
 
-              <div className={styles.checkoutActions}>
+              <form action={onFinish} className={styles.paymentForm}>
+                {renderCheckoutHiddenFields()}
+                {renderPaymentFields()}
+
                 <PendingButton
-                  className={`ui-btn-primary ${styles.finishBtn}`}
+                  className={`ui-btn-primary ${styles.paymentConfirmBtn}`}
                   pendingLabel={labels.sending}
                   disabled={pending}
                 >
                   {labels.confirmSale}
                 </PendingButton>
-                <button
-                  type="button"
-                  className={styles.backToReceiptBtn}
-                  onClick={backToReceipt}
-                  disabled={pending}
-                >
-                  {labels.backToReceipt}
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       ) : null}

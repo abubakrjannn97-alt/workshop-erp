@@ -372,28 +372,8 @@ export async function addRawMaterialToWarehouse(formData: FormData) {
     });
   }
 
-  try {
-    await receiveMaterial({
-      warehouseId: raw.id,
-      materialId: material.id,
-      quantity: parsed.data.quantity,
-      unitCost: parsed.data.unitCost,
-      userId: session.user.id,
-      reason: "Приход",
-      comment: parsed.data.comment ?? "Добавлено на склад",
-      idempotencyKey: key(formData),
-    });
-  } catch (error) {
-    return { error: error instanceof Error ? error.message : "Ошибка прихода." };
-  }
-
-  await writeAudit({
-    userId: session.user.id,
-    action: "stock.receipt",
-    entityType: "stock_movement",
-    newValue: { materialId: material.id, quantity: parsed.data.quantity },
-  });
-  revalidatePath("/warehouse");
-  revalidatePath("/materials");
-  redirect("/warehouse");
+  formData.set("materialId", material.id);
+  formData.set("warehouseId", raw.id);
+  const { receiveSupplierIntake } = await import("@/app/actions/purchasing");
+  return receiveSupplierIntake(formData);
 }

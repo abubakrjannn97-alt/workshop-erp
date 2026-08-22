@@ -20,6 +20,68 @@ async function nextNumber() {
   return `PO-${String(Number.isFinite(n) ? n : 1).padStart(4, "0")}`;
 }
 
+async function postPurchasePaymentInTx(
+  tx: Prisma.TransactionClient,
+  input: {
+    orderId: string;
+    orderNumber: string;
+    amount: string;
+    method: string | null;
+    userId: string;
+    idempotencySuffix: string;
+    comment?: string | null;
+  },
+) {
+  const order = await tx.purchaseOrder.findUniqueOrThrow({ where: { id: input.orderId } });
+  const nextPaid = D(String(order.paidAmount)).add(input.amount);
+  if (nextPaid.gt(D(String(order.total)).mul("1.0001"))) {
+    throw new Error("Оплата больше суммы заказа.");
+  }
+
+  await tx.purchasePayment.create({
+    data: {
+      purchaseOrderId: input.orderId,
+      amount: money(input.amount),
+      comment: input.comment ?? null,
+      createdById: input.userId,
+    },
+  });
+  await tx.purchaseOrder.update({
+    where: { id: input.orderId },
+    data: { paidAmount: money(nextPaid) },
+  });
+
+  const account = await accountByCode(tx, accountForMethod(input.method));
+  const materialsFund = await fundByCode(tx, FUND.MATERIALS);
+  const suffix = input.idempotencySuffix;
+
+  await postLedger(tx, {
+    type: LEDGER.CASH_OUT,
+    amount: money(input.amount),
+    accountId: account.id,
+    relatedType: "purchase_order",
+    relatedId: input.orderId,
+    comment: input.comment ?? `Оплата поставщику ${input.orderNumber}`,
+    idempotencyKey: `po-pay-cash-${input.orderId}-${suffix}`,
+    createdById: input.userId,
+  });
+  await postLedger(tx, {
+    type: LEDGER.FUND_OUT,
+    amount: money(input.amount),
+    fundId: materialsFund.id,
+    relatedType: "purchase_order",
+    relatedId: input.orderId,
+    comment: `Сырьё ${input.orderNumber}`,
+    idempotencyKey: `po-pay-fund-${input.orderId}-${suffix}`,
+    createdById: input.userId,
+  });
+}
+
+function paymentMethodFromForm(payChannel: string, cardId: string) {
+  if (payChannel === "card" && cardId) return `card:${cardId}`;
+  return "cash";
+}
+
 export async function createPurchaseOrder(formData: FormData) {
   const session = await requirePermission("purchasing.manage");
   const supplierId = String(formData.get("supplierId") ?? "");
@@ -220,43 +282,15 @@ export async function registerPurchasePayment(formData: FormData) {
     return { error: "Оплата больше суммы заказа." };
   }
 
-  const { accountForMethod } = await import("@core/finance/finance");
-  const accountCode = accountForMethod(method);
-
   await prisma.$transaction(async (tx) => {
-    await tx.purchasePayment.create({
-      data: {
-        purchaseOrderId: id,
-        amount: money(amountRaw),
-        comment: String(formData.get("comment") ?? "") || null,
-        createdById: session.user.id,
-      },
-    });
-    await tx.purchaseOrder.update({
-      where: { id },
-      data: { paidAmount: money(nextPaid) },
-    });
-    const account = await accountByCode(tx, accountCode);
-    const materials = await fundByCode(tx, FUND.MATERIALS);
-    await postLedger(tx, {
-      type: LEDGER.CASH_OUT,
-      amount: money(amountRaw),
-      accountId: account.id,
-      relatedType: "purchase_order",
-      relatedId: id,
-      comment: `Оплата поставщику ${order.number}`,
-      idempotencyKey: `po-pay-cash-${id}-${money(nextPaid)}`,
-      createdById: session.user.id,
-    });
-    await postLedger(tx, {
-      type: LEDGER.FUND_OUT,
-      amount: money(amountRaw),
-      fundId: materials.id,
-      relatedType: "purchase_order",
-      relatedId: id,
-      comment: `Сырьё ${order.number}`,
-      idempotencyKey: `po-pay-fund-${id}-${money(nextPaid)}`,
-      createdById: session.user.id,
+    await postPurchasePaymentInTx(tx, {
+      orderId: id,
+      orderNumber: order.number,
+      amount: amountRaw,
+      method,
+      userId: session.user.id,
+      idempotencySuffix: money(nextPaid),
+      comment: String(formData.get("comment") ?? "") || null,
     });
   });
 
@@ -268,6 +302,211 @@ export async function registerPurchasePayment(formData: FormData) {
     newValue: { amount: amountRaw },
   });
   revalidatePath(`/purchasing/${id}`);
+  revalidatePath("/purchasing");
+  revalidatePath("/finance");
+  return { ok: true };
+}
+
+const intakeSchema = z.object({
+  warehouseId: z.string().min(1),
+  materialId: z.string().min(1),
+  supplierId: z.string().min(1),
+  quantity: z.string().regex(/^\d+(\.\d{1,6})?$/),
+  unitCost: z.string().regex(/^\d+(\.\d{1,6})?$/),
+  payMode: z.enum(["paid", "partial", "debt"]),
+  payChannel: z.enum(["cash", "card"]).optional(),
+  cardId: z.string().optional(),
+  paidAmount: z.string().optional(),
+  comment: z.string().optional(),
+});
+
+export async function receiveSupplierIntake(formData: FormData) {
+  const session = await requirePermission("inventory.receive");
+  const canPay = hasPermission(session.user.permissions, session.user.roleCode, "purchasing.manage");
+
+  const parsed = intakeSchema.safeParse({
+    warehouseId: formData.get("warehouseId"),
+    materialId: formData.get("materialId"),
+    supplierId: formData.get("supplierId"),
+    quantity: formData.get("quantity"),
+    unitCost: formData.get("unitCost"),
+    payMode: formData.get("payMode") ?? "paid",
+    payChannel: String(formData.get("payChannel") ?? "") || undefined,
+    cardId: String(formData.get("cardId") ?? "") || undefined,
+    paidAmount: String(formData.get("paidAmount") ?? "") || undefined,
+    comment: String(formData.get("comment") ?? "") || undefined,
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Проверьте поля." };
+
+  const supplier = await prisma.supplier.findFirst({
+    where: { id: parsed.data.supplierId, archivedAt: null },
+  });
+  if (!supplier) return { error: "Поставщик не найден." };
+
+  const material = await prisma.material.findFirst({
+    where: { id: parsed.data.materialId, archivedAt: null },
+    include: { storageUnit: true },
+  });
+  if (!material) return { error: "Материал не найден." };
+
+  const qtyVal = D(parsed.data.quantity);
+  const unitCost = D(parsed.data.unitCost);
+  if (qtyVal.lte(0) || unitCost.lt(0)) return { error: "Проверьте количество и цену." };
+
+  const total = qtyVal.mul(unitCost);
+  let payAmount = D(0);
+  if (parsed.data.payMode === "paid") {
+    payAmount = total;
+  } else if (parsed.data.payMode === "partial") {
+    if (!parsed.data.paidAmount || !/^\d+(\.\d{1,4})?$/.test(parsed.data.paidAmount)) {
+      return { error: "Укажите сумму оплаты." };
+    }
+    payAmount = D(parsed.data.paidAmount);
+    if (payAmount.lte(0) || payAmount.gte(total)) {
+      return { error: "Частичная оплата должна быть больше 0 и меньше итога." };
+    }
+  }
+
+  if (payAmount.gt(0) && !canPay) {
+    return { error: "Нет прав на оплату поставщику. Выберите «В долг» или обратитесь к руководителю." };
+  }
+
+  if (parsed.data.payMode !== "debt" && parsed.data.payChannel === "card") {
+    const cards = await loadPaymentCards();
+    if (!parsed.data.cardId || !cards.some((c) => c.id === parsed.data.cardId)) {
+      return { error: "Выберите карту для оплаты." };
+    }
+  }
+
+  const raw = await findRawWarehouse();
+  if (!raw) return { error: "Склад сырья не найден." };
+
+  const idempotencyKey = String(formData.get("idempotencyKey") ?? randomUUID()).trim() || randomUUID();
+  const method = payAmount.gt(0) ? paymentMethodFromForm(parsed.data.payChannel ?? "cash", parsed.data.cardId ?? "") : null;
+  const poNumber = await nextNumber();
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.supplierMaterial.upsert({
+        where: {
+          supplierId_materialId: { supplierId: supplier.id, materialId: material.id },
+        },
+        create: { supplierId: supplier.id, materialId: material.id },
+        update: {},
+      });
+
+      const order = await tx.purchaseOrder.create({
+        data: {
+          number: poNumber,
+          supplierId: supplier.id,
+          status: "ORDERED",
+          total: money(total),
+          paidAmount: "0",
+          comment: parsed.data.comment ?? "Приход на склад",
+          createdById: session.user.id,
+          confirmedById: session.user.id,
+          confirmedAt: new Date(),
+          items: {
+            create: [
+              {
+                materialId: material.id,
+                quantity: qty(parsed.data.quantity),
+                unitPrice: qty(unitCost),
+                amount: money(total),
+              },
+            ],
+          },
+        },
+        include: { items: true },
+      });
+
+      const item = order.items[0]!;
+      await receiveMaterial(
+        {
+          warehouseId: raw.id,
+          materialId: material.id,
+          quantity: qty(parsed.data.quantity),
+          unitCost: qty(unitCost),
+          userId: session.user.id,
+          reason: "Приход от поставщика",
+          relatedType: "purchase_order",
+          relatedId: order.id,
+          idempotencyKey: `${idempotencyKey}-recv`,
+        },
+        tx,
+      );
+
+      await tx.purchaseItem.update({
+        where: { id: item.id },
+        data: { receivedQty: qty(parsed.data.quantity) },
+      });
+
+      await tx.materialPriceHistory.updateMany({
+        where: { materialId: material.id, validTo: null },
+        data: { validTo: new Date() },
+      });
+      const packagePrice = unitCost.mul(material.packageWeight);
+      await tx.materialPriceHistory.create({
+        data: {
+          materialId: material.id,
+          packageWeight: material.packageWeight,
+          packagePrice: money(packagePrice),
+          unitPrice: qty(unitCost),
+          createdById: session.user.id,
+        },
+      });
+      await tx.material.update({
+        where: { id: material.id },
+        data: {
+          packagePrice: money(packagePrice),
+          lastPurchasePrice: qty(unitCost),
+          averagePurchasePrice: qty(unitCost),
+        },
+      });
+
+      await tx.purchaseOrder.update({
+        where: { id: order.id },
+        data: { status: "POSTED", receivedById: session.user.id, receivedAt: new Date() },
+      });
+
+      if (payAmount.gt(0) && method) {
+        const cards = await loadPaymentCards();
+        const card = cards.find((c) => c.id === parsed.data.cardId);
+        const cardLabel = card ? `${card.name}` : "Карта";
+        await postPurchasePaymentInTx(tx, {
+          orderId: order.id,
+          orderNumber: order.number,
+          amount: money(payAmount),
+          method,
+          userId: session.user.id,
+          idempotencySuffix: idempotencyKey,
+          comment:
+            method.startsWith("card:")
+              ? `Оплата на карту: ${cardLabel}`
+              : parsed.data.payMode === "partial"
+                ? "Частичная оплата поставщику (нал)"
+                : "Оплата поставщику (нал)",
+        });
+      }
+    });
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Не удалось оформить приход." };
+  }
+
+  await writeAudit({
+    userId: session.user.id,
+    action: "purchase.intake",
+    entityType: "purchase_order",
+    newValue: {
+      materialId: material.id,
+      supplierId: supplier.id,
+      quantity: parsed.data.quantity,
+      payMode: parsed.data.payMode,
+    },
+  });
+
+  revalidatePath("/warehouse");
+  revalidatePath("/materials");
   revalidatePath("/purchasing");
   revalidatePath("/finance");
   return { ok: true };

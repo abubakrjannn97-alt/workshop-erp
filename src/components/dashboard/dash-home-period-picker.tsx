@@ -12,10 +12,12 @@ export function DashHomePeriodPicker({
   period,
   onPeriodChange,
   periodLabels,
+  inline,
 }: {
   period: HomeProfitPeriod;
   onPeriodChange: (period: HomeProfitPeriod) => void;
   periodLabels: Record<HomeProfitPeriod, string>;
+  inline?: boolean;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -41,7 +43,7 @@ export function DashHomePeriodPicker({
   }, [menuOpen]);
 
   return (
-    <div className={styles.periodBar}>
+    <div className={inline ? styles.periodBarInline : styles.periodBar}>
       <div ref={wrapRef} className={styles.periodBarPicker}>
         <button
           type="button"

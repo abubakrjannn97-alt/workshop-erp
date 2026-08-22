@@ -35,7 +35,7 @@ export default async function SupplierPage({ params }: { params: Promise<{ id: s
   return (
     <div className="page-stack">
       <div>
-        <PageHeader title={supplier.name} backHref="/purchasing" backLabel={t("common.back")} />
+        <PageHeader title={supplier.name} backHref="/purchasing/suppliers" backLabel={t("common.back")} />
         <p className="text-sm text-[var(--text-muted)]">
           {supplier.phone ?? t("common.noPhone")} · {supplier.contact ?? t("po.noContact")}
         </p>

@@ -42,5 +42,7 @@ export async function createSupplier(formData: FormData) {
     newValue: { name: supplier.name },
   });
   revalidatePath("/purchasing");
-  return { ok: true };
+  revalidatePath("/purchasing/suppliers");
+  revalidatePath("/warehouse/add");
+  return { ok: true, id: supplier.id };
 }

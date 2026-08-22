@@ -81,7 +81,7 @@ export function resolveBackHref(pathname: string, opts?: BackNavOptions): string
   if (path.startsWith("/settings/")) return "/settings";
   if (path.startsWith("/more/")) return "/";
   if (path.startsWith("/crm/customers/")) return "/crm";
-  if (path.startsWith("/purchasing/suppliers/")) return "/purchasing";
+  if (path.startsWith("/purchasing/suppliers/")) return "/purchasing/suppliers";
 
   const segments = path.split("/").filter(Boolean);
   if (segments.length <= 1) {

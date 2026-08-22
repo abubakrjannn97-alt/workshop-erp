@@ -12,6 +12,7 @@ import styles from "./dash-home.module.css";
 
 export function DashOwnerHomeBody({
   snapshots,
+  greetingTitle,
   profitLabel,
   scrapLabel,
   producedLabel,
@@ -22,6 +23,7 @@ export function DashOwnerHomeBody({
   viewAllOrdersLabel,
 }: {
   snapshots: OwnerDashboardSnapshots;
+  greetingTitle: string;
   profitLabel: string;
   scrapLabel: string;
   producedLabel: string;
@@ -36,7 +38,15 @@ export function DashOwnerHomeBody({
 
   return (
     <>
-      <DashHomePeriodPicker period={period} onPeriodChange={setPeriod} periodLabels={periodLabels} />
+      <div className={styles.homeTopBar}>
+        <h1 className={styles.homeTopBarTitle}>{greetingTitle}</h1>
+        <DashHomePeriodPicker
+          period={period}
+          onPeriodChange={setPeriod}
+          periodLabels={periodLabels}
+          inline
+        />
+      </div>
 
       <DashProfitHero
         profitDisplay={data.profitDisplay}

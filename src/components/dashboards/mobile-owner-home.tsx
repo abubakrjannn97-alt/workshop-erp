@@ -1,12 +1,12 @@
 import { requireSession } from "@core/auth/authz";
 import { getTranslator } from "@core/shared/i18n/locale";
 import {
-  DashGreeting,
   DashOwnerHomeBody,
   DashQuickActions,
   DashSection,
   ownerMobileQuickActions,
 } from "@/components/dashboard/dashboard-system";
+import { greetingTitle } from "@/components/dashboard/dash-greeting";
 import { fetchOwnerDashboardSnapshots } from "@/components/dashboard/owner-kpi-data";
 import styles from "@/components/dashboard/dash-home.module.css";
 
@@ -18,10 +18,9 @@ export async function MobileOwnerHome() {
 
   return (
     <div className={`${styles.home} ${styles.homeMobile}`}>
-      <DashGreeting t={t} mobile />
-
       <DashOwnerHomeBody
         snapshots={snapshots}
+        greetingTitle={greetingTitle(t)}
         profitLabel={t("home.kpi.profit")}
         scrapLabel={t("home.kpi.scrapToday")}
         producedLabel={t("home.kpi.producedToday")}

@@ -57,9 +57,13 @@
 }
 
 .homeMobile {
-  gap: 4px;
+  gap: 8px;
   max-width: none;
   position: relative;
+}
+
+.homeMobile .homeTopBar {
+  margin-bottom: 0;
 }
 
 .homeMobile .hero {
@@ -366,13 +370,48 @@
   color: var(--bad);
 }
 
-/* ─── Period bar (home, separate from profit card) ─── */
+/* ─── Home top bar: greeting + period on one line ─── */
+
+.homeTopBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.homeTopBarTitle {
+  margin: 0;
+  min-width: 0;
+  flex: 1;
+  font-family: var(--font-sans);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.homeDesktop .homeTopBarTitle {
+  font-size: 17px;
+  line-height: 22px;
+}
+
+/* ─── Period bar (home) ─── */
 
 .periodBar {
   display: flex;
   justify-content: flex-end;
   width: 100%;
   margin-bottom: 4px;
+}
+
+.periodBarInline {
+  display: flex;
+  flex-shrink: 0;
+  margin: 0;
 }
 
 .periodBarPicker {

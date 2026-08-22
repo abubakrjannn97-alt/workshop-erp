@@ -89,6 +89,10 @@ export default async function PurchasingPage({
           <h1 className={styles.title}>{t("page.purchasing")}</h1>
           <p className={styles.subtitle}>{t("po.reportHint")}</p>
         </div>
+        <Link href="/purchasing/suppliers" className={styles.suppliersLink}>
+          {t("po.suppliers")}
+          <ChevronRight size={16} strokeWidth={ICON_STROKE} aria-hidden />
+        </Link>
       </header>
 
       <div className={styles.periodWrap} data-tour="po-period">
