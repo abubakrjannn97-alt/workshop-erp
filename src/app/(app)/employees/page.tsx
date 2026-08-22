@@ -7,7 +7,7 @@ import { updatePayScheme } from "@/app/actions/payroll";
 import { employeePaySchemeSections, listWorkshopPaySchemes } from "@core/payroll/employee-pay-schemes";
 import { AddEmployeeForm } from "@/components/add-employee-form";
 import { EMPLOYEE_ASSIGNABLE, type PermissionCode } from "@core/rbac/permissions";
-import { formatPhoneDisplay } from "@core/shared/phone";
+import { resolveEmployeeRoleLabel } from "@core/employee/employee-role-label";
 import { CommissionSchemeSection } from "@/components/commission-scheme-section";
 import { FormField } from "@/components/form-field";
 import { AppSelect } from "@/components/app-select";
@@ -26,7 +26,7 @@ export default async function EmployeesPage() {
   const [users, schemesRaw, accruals, payouts, assignablePerms] = await Promise.all([
     prisma.user.findMany({
       where: { archivedAt: null, role: { code: { not: "owner" } } },
-      include: { role: true, payScheme: true },
+      include: { role: true, payScheme: true, permissions: { include: { permission: true } } },
       orderBy: { name: "asc" },
     }),
     listWorkshopPaySchemes(session.user.id, roleCode),
@@ -40,6 +40,14 @@ export default async function EmployeesPage() {
   const payMap = new Map(payouts.map((p) => [p.userId, p]));
   const permModules = [...new Set(assignablePerms.map((p) => p.module))];
   const schemes = employeePaySchemeSections(schemesRaw);
+
+  function roleLabel(u: (typeof users)[number]) {
+    return resolveEmployeeRoleLabel(u, {
+      roleName: (code, fallback) => n("role", code, fallback),
+      salesManager: t("role.sales_manager"),
+      workshopWorker: t("emp.addRoleWorker"),
+    });
+  }
 
   async function schemeAction(formData: FormData) { "use server"; await updatePayScheme(formData); }
 
@@ -91,7 +99,7 @@ export default async function EmployeesPage() {
                       <Link href={`/employees/${u.id}`} className={styles.tdLink}>{u.name}</Link>
                       <p className={styles.tdMuted}>{u.phone ? formatPhoneDisplay(u.phone) : u.email}</p>
                     </td>
-                    <td data-label={t("emp.position")}>{n("role", u.role.code, u.role.name)}</td>
+                    <td data-label={t("emp.position")}>{roleLabel(u)}</td>
                     <td data-label={t("emp.scheme")} className={styles.tdMuted}>{schemeLabel}</td>
                     <td className={styles.tdRight} data-label={t("emp.accrued")}>{moneyDisplay(acc)} с</td>
                     <td className={styles.tdRight} data-label={t("emp.paidOut")}>{moneyDisplay(paid)} с</td>
@@ -113,7 +121,7 @@ export default async function EmployeesPage() {
                     <span className={styles.mobileName}>{u.name}</span>
                     <ChevronRight size={16} strokeWidth={ICON_STROKE} style={{ color: "var(--ink-3)" }} />
                   </div>
-                  <p className={styles.mobileMeta}>{n("role", u.role.code, u.role.name)} · {u.phone ? formatPhoneDisplay(u.phone) : u.email}</p>
+                  <p className={styles.mobileMeta}>{roleLabel(u)} · {u.phone ? formatPhoneDisplay(u.phone) : u.email}</p>
                   <div className={styles.mobileRow}>
                     <span><span className={styles.mobileRowLabel}>{t("emp.accrued")}: </span><span className={styles.mobileRowValue}>{moneyDisplay(acc)} с</span></span>
                     <span><span className={styles.mobileRowLabel}>{t("common.debt")}: </span><span className={styles.mobileRowValue}>{moneyDisplay(acc.sub(paid))} с</span></span>

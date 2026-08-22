@@ -12,7 +12,7 @@ import { EmployeePayoutForm } from "@/components/employee-payout-form";
 import { EmployeePayoutHistory } from "@/components/employee-payout-history";
 import { RevealList } from "@/components/reveal-list";
 import { EMPLOYEE_ASSIGNABLE, type PermissionCode } from "@core/rbac/permissions";
-import { formatPhoneDisplay } from "@core/shared/phone";
+import { resolveEmployeeRoleLabel } from "@core/employee/employee-role-label";
 import { archiveEmployee } from "@/app/actions/employees";
 import { getDomainConfig } from "@core/config/domain-config";
 import { employeePaySchemeOptions, listWorkshopPaySchemes } from "@core/payroll/employee-pay-schemes";
@@ -84,7 +84,11 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
   async function assign(formData: FormData) { "use server"; await assignPayScheme(formData); }
 
   const metaLine = [
-    n("role", user.role.code, user.role.name),
+    resolveEmployeeRoleLabel(user, {
+      roleName: (code, fallback) => n("role", code, fallback),
+      salesManager: t("role.sales_manager"),
+      workshopWorker: t("emp.addRoleWorker"),
+    }),
     user.phone ? formatPhoneDisplay(user.phone) : user.email,
     user.hiredAt ? `${t("common.from")} ${user.hiredAt.toLocaleDateString(intlLocale(locale))}` : null,
   ].filter(Boolean).join(" · ");
