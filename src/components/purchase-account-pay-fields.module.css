@@ -1,0 +1,112 @@
+.moneyCardGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.moneyCard {
+  display: flex;
+  min-height: 72px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: linear-gradient(165deg, #ffffff 0%, #faf9f7 100%);
+  box-shadow: 0 1px 3px rgba(28, 35, 43, 0.04);
+  cursor: pointer;
+  text-align: left;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.moneyCardCash {
+  border-color: rgba(166, 134, 73, 0.22);
+  background: linear-gradient(165deg, #fffdf8 0%, #ffffff 100%);
+}
+
+.moneyCardBank {
+  border-color: rgba(100, 116, 139, 0.16);
+}
+
+.moneyCardActive {
+  border-color: rgba(154, 115, 56, 0.55);
+  background: linear-gradient(180deg, #fffaf2 0%, #f3ead8 100%);
+  box-shadow: 0 0 0 1px rgba(154, 115, 56, 0.14);
+}
+
+.moneyCardLabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--ink-2);
+}
+
+.moneyCardCash .moneyCardLabel {
+  color: #8a6a45;
+}
+
+.moneyCardValue {
+  margin: 0;
+  font-size: clamp(16px, 4.2vw, 20px);
+  font-weight: 750;
+  line-height: 22px;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.moneyCardValueBad {
+  composes: moneyCardValue;
+  color: var(--bad, #b42318);
+}
+
+.payBlock {
+  display: grid;
+  gap: 8px;
+}
+
+.payLabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.paySeg3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--surface-2, #f3f2ef);
+}
+
+.payBtn {
+  min-height: 34px;
+  padding: 6px 4px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.payBtnActive {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 1px 4px rgba(28, 35, 43, 0.08);
+}
+
+.fieldTight {
+  margin-bottom: 0;
+}

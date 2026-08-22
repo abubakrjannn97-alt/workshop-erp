@@ -6,8 +6,8 @@ import { FormField } from "@/components/form-field";
 import { AppSelect } from "@/components/app-select";
 import { PendingButton } from "@/components/pending-button";
 import { IdempotencyField } from "@/components/idempotency-field";
-import { PurchasePayFields } from "@/components/purchase-pay-fields";
-import type { PaymentCard } from "@core/config/payment-cards";
+import { PurchaseAccountPayFields } from "@/components/purchase-account-pay-fields";
+import type { MoneyLocationCard } from "@core/finance/finance-summary";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
 
 type MaterialOpt = {
@@ -22,7 +22,7 @@ export function WarehouseIntakeForm({
   locale,
   materials,
   suppliers,
-  paymentCards,
+  payAccounts,
   selectedMaterialId,
   defaultQty,
   defaultUnitCost,
@@ -33,7 +33,7 @@ export function WarehouseIntakeForm({
   locale: Locale;
   materials: MaterialOpt[];
   suppliers: SupplierOpt[];
-  paymentCards: PaymentCard[];
+  payAccounts: MoneyLocationCard[];
   selectedMaterialId: string;
   defaultQty: string;
   defaultUnitCost: string;
@@ -50,7 +50,18 @@ export function WarehouseIntakeForm({
       <input type="hidden" name="warehouseId" value={warehouseId} />
       <IdempotencyField prefix="wh-raw-receive" />
 
-      <FormField label={t("common.material")} required>
+      <FormField
+        label={t("common.material")}
+        required
+        labelExtra={
+          <Link
+            href="/warehouse/add?mode=new"
+            className="text-[12px] font-semibold text-[var(--accent,#A68649)] hover:underline"
+          >
+            + {t("wh.addMaterialShort")}
+          </Link>
+        }
+      >
         <AppSelect
           name="materialId"
           value={materialId}
@@ -102,7 +113,7 @@ export function WarehouseIntakeForm({
       </FormField>
 
       {suppliers.length > 0 ? (
-        <PurchasePayFields locale={locale} paymentCards={paymentCards} totalHint={defaultUnitCost} />
+        <PurchaseAccountPayFields locale={locale} payAccounts={payAccounts} totalHint={defaultUnitCost} />
       ) : null}
 
       <PendingButton
@@ -112,13 +123,6 @@ export function WarehouseIntakeForm({
       >
         {t("wh.addMaterial")}
       </PendingButton>
-
-      <Link
-        href="/warehouse/add?mode=new"
-        className="text-center text-[13px] text-[var(--ink-2)] underline-offset-2 hover:underline"
-      >
-        {t("wh.addMaterialNew")}
-      </Link>
     </form>
   );
 }

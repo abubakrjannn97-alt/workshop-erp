@@ -5,6 +5,8 @@ import { requirePermission, hasPermission } from "@core/auth/authz";
 import { D } from "@core/shared/decimal";
 import { getRawWarehouse } from "@/core/config/resolve-warehouse";
 import { loadPaymentCards } from "@core/config/payment-cards";
+import { loadBalanceContext } from "@core/finance/balance-guard";
+import { buildFinanceMoneyCards } from "@core/finance/finance-summary";
 import { addRawMaterialToWarehouse } from "@/app/actions/inventory";
 import { receiveSupplierIntake } from "@/app/actions/purchasing";
 import { PageHeader } from "@/components/page-header";
@@ -16,7 +18,7 @@ export default async function AddWarehouseMaterialPage({
 }: {
   searchParams: Promise<{ error?: string; mode?: string; material?: string; qty?: string }>;
 }) {
-  const { t, locale } = await getTranslator();
+  const { t, locale, n } = await getTranslator();
   const session = await requirePermission("inventory.view");
   if (!hasPermission(session.user.permissions, session.user.roleCode, "inventory.receive")) {
     redirect("/warehouse");
@@ -25,7 +27,7 @@ export default async function AddWarehouseMaterialPage({
   const isNew = mode === "new";
   const raw = await getRawWarehouse();
 
-  const [materials, suppliers, paymentCards] = await Promise.all([
+  const [materials, suppliers, paymentCards, payments, balanceCtx] = await Promise.all([
     prisma.material.findMany({
       where: { archivedAt: null, isActive: true },
       include: { storageUnit: true, stockItems: { where: { warehouseId: raw.id } } },
@@ -33,7 +35,16 @@ export default async function AddWarehouseMaterialPage({
     }),
     prisma.supplier.findMany({ where: { archivedAt: null, isActive: true }, orderBy: { name: "asc" } }),
     loadPaymentCards(),
+    prisma.payment.findMany({ select: { id: true, amount: true, method: true, reversesId: true } }),
+    loadBalanceContext(),
   ]);
+
+  const payAccounts = buildFinanceMoneyCards({
+    cashBalances: balanceCtx.cashBalances,
+    paymentCards: paymentCards.filter((c) => c.isActive),
+    payments,
+    accountLabel: (code, name) => n("cash", code, name),
+  });
 
   const lowFirst = [...materials].sort((a, b) => {
     const aLow = D(String(a.stockItems[0]?.qtyOnHand ?? 0)).lt(a.minStock) ? 0 : 1;
@@ -88,7 +99,7 @@ export default async function AddWarehouseMaterialPage({
           locale={locale}
           materials={materialOptions}
           suppliers={suppliers.map((s) => ({ id: s.id, name: s.name }))}
-          paymentCards={paymentCards.filter((c) => c.isActive)}
+          payAccounts={payAccounts}
           selectedMaterialId={selectedMaterial}
           defaultQty={defaultQty}
           defaultUnitCost={defaultUnitCost}
@@ -100,7 +111,7 @@ export default async function AddWarehouseMaterialPage({
         <WarehouseNewMaterialForm
           locale={locale}
           suppliers={suppliers.map((s) => ({ id: s.id, name: s.name }))}
-          paymentCards={paymentCards.filter((c) => c.isActive)}
+          payAccounts={payAccounts}
           warehouseId={raw.id}
           createAction={createNew}
           addSupplierHref="/purchasing/suppliers"

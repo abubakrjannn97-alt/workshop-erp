@@ -5,8 +5,8 @@ import { FormField } from "@/components/form-field";
 import { AppSelect } from "@/components/app-select";
 import { PendingButton } from "@/components/pending-button";
 import { IdempotencyField } from "@/components/idempotency-field";
-import { PurchasePayFields } from "@/components/purchase-pay-fields";
-import type { PaymentCard } from "@core/config/payment-cards";
+import { PurchaseAccountPayFields } from "@/components/purchase-account-pay-fields";
+import type { MoneyLocationCard } from "@core/finance/finance-summary";
 import { createT, type Locale } from "@core/shared/i18n/i18n";
 
 type SupplierOpt = { id: string; name: string };
@@ -14,14 +14,14 @@ type SupplierOpt = { id: string; name: string };
 export function WarehouseNewMaterialForm({
   locale,
   suppliers,
-  paymentCards,
+  payAccounts,
   warehouseId,
   createAction,
   addSupplierHref,
 }: {
   locale: Locale;
   suppliers: SupplierOpt[];
-  paymentCards: PaymentCard[];
+  payAccounts: MoneyLocationCard[];
   warehouseId: string;
   createAction: (formData: FormData) => Promise<void>;
   addSupplierHref: string;
@@ -74,7 +74,7 @@ export function WarehouseNewMaterialForm({
         )}
       </FormField>
 
-      {suppliers.length > 0 ? <PurchasePayFields locale={locale} paymentCards={paymentCards} /> : null}
+      {suppliers.length > 0 ? <PurchaseAccountPayFields locale={locale} payAccounts={payAccounts} /> : null}
 
       <PendingButton
         className="ui-btn-primary min-h-[40px] w-full"
