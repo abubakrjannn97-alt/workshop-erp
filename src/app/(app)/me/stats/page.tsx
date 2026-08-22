@@ -13,6 +13,7 @@ export default async function WorkerStatsPage() {
 
   return (
     <WorkerStatsBody
+      title={t("nav.workerStats")}
       snapshots={snapshots}
       productionByPeriod={productionByPeriod}
       periodLabels={{

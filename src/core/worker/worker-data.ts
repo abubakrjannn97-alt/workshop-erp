@@ -2,6 +2,7 @@ import { prisma } from "@core/infrastructure/prisma";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { resolveOrderDateRange } from "@core/shared/order-period";
 import { productLaborRate } from "@core/payroll/labor-rate";
+import { getProductLaborRateMap, ensureProductLaborRateColumn } from "@core/payroll/product-labor-rate-db";
 import { findFinishedGoodsWarehouse } from "@/core/config/resolve-warehouse";
 
 export type WorkerPeriod = "today" | "week" | "month";
@@ -39,6 +40,7 @@ function inRange(date: Date, from?: Date, to?: Date) {
 }
 
 export async function fetchWorkerProducts() {
+  await ensureProductLaborRateColumn();
   const fg = await findFinishedGoodsWarehouse();
   if (!fg) return [];
 
@@ -103,7 +105,7 @@ export async function fetchWorkerPeriodSnapshots(userId: string): Promise<Worker
 
 function resolveProductFromComment(
   comment: string | null,
-  products: { id: string; name: string; photoUrl: string | null; laborRate: { toString(): string } }[],
+  products: { id: string; name: string; photoUrl: string | null }[],
 ) {
   if (!comment) return null;
   const byPrefix = products.find((p) => comment.startsWith(`${p.name}:`));
@@ -134,10 +136,11 @@ export async function fetchWorkerProductionByPeriod(userId: string): Promise<Wor
     }),
     prisma.product.findMany({
       where: { archivedAt: null },
-      select: { id: true, name: true, photoUrl: true, laborRate: true },
+      select: { id: true, name: true, photoUrl: true },
     }),
   ]);
 
+  const rateMap = await getProductLaborRateMap(products.map((p) => p.id));
   const productMap = new Map(products.map((p) => [p.id, p]));
   const out = {} as WorkerProductionByPeriod;
 
@@ -170,7 +173,7 @@ export async function fetchWorkerProductionByPeriod(userId: string): Promise<Wor
         name: product.name,
         photoUrl: product.photoUrl,
         quantityDisplay: qtyDisplay(qty),
-        rateDisplay: moneyDisplay(productLaborRate(product.laborRate)),
+        rateDisplay: moneyDisplay(productLaborRate(rateMap.get(product.id))),
       }))
       .sort((a, b) => a.name.localeCompare(b.name, "ru"));
   }

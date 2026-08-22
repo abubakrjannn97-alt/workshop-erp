@@ -7,14 +7,17 @@ import { PendingButton } from "@/components/pending-button";
 import { updateMyProfile } from "@/app/actions/profile";
 import type { Locale } from "@core/shared/i18n/i18n";
 import { translate } from "@core/shared/i18n/i18n";
+import { WorkerPageHeader } from "@/components/worker-page-header";
 import styles from "./worker-pages.module.css";
 
 export function WorkerProfileView({
+  title,
   locale,
   name,
   phone,
   roleLabel,
 }: {
+  title: string;
   locale: Locale;
   name: string;
   phone: string;
@@ -40,6 +43,7 @@ export function WorkerProfileView({
 
   return (
     <div className={styles.page}>
+      <WorkerPageHeader title={title} />
       <div className={styles.profileCard}>
         <div className={styles.profileLang}>
           <span className={styles.profileLabel}>{t("lang.switch")}</span>

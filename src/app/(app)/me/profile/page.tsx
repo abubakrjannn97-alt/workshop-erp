@@ -14,6 +14,7 @@ export default async function ProfilePage() {
 
   return (
     <WorkerProfileView
+      title={t("nav.profile")}
       locale={locale}
       name={user.name}
       phone={user.phone ?? ""}

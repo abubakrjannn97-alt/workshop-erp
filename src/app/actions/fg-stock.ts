@@ -11,6 +11,7 @@ import { getFgWarehouse } from "@core/config/resolve-warehouse";
 import { notifyRoles } from "@core/control/control";
 import { D, money, qty, qtyDisplay } from "@core/shared/decimal";
 import { productLaborRate } from "@core/payroll/labor-rate";
+import { getProductLaborRate } from "@core/payroll/product-labor-rate-db";
 import { periodKey } from "@core/payroll/payroll";
 
 /** Worker / production: put finished goods onto FG warehouse (make-to-stock). */
@@ -45,7 +46,7 @@ export async function stockFinishedGoods(formData: FormData) {
 
   const fg = await getFgWarehouse();
   const idempotencyKey = String(formData.get("idempotencyKey") ?? randomUUID());
-  const rate = productLaborRate(product.laborRate);
+  const rate = productLaborRate(await getProductLaborRate(product.id));
   const scrapNote = scrapVal.gt(0) ? ` · брак ${qtyDisplay(parsed.data.scrapQty!)} ${product.saleUnit.symbol}` : "";
   const baseComment = parsed.data.comment?.trim() || `Выпуск · ${session.user.name}`;
 

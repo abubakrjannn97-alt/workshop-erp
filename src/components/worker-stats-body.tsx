@@ -6,9 +6,11 @@ import { ICON_STROKE } from "@/components/nav-icons";
 import { DashHomePeriodPicker } from "@/components/dashboard/dash-home-period-picker";
 import type { HomeProfitPeriod } from "@/components/dashboard/owner-kpi-data";
 import type { WorkerPeriodSnapshots, WorkerProductionByPeriod } from "@core/worker/worker-data";
+import { WorkerPageHeader } from "@/components/worker-page-header";
 import styles from "./worker-pages.module.css";
 
 export function WorkerStatsBody({
+  title,
   snapshots,
   productionByPeriod,
   periodLabels,
@@ -18,6 +20,7 @@ export function WorkerStatsBody({
   rateLabel,
   emptyLabel,
 }: {
+  title: string;
   snapshots: WorkerPeriodSnapshots;
   productionByPeriod: WorkerProductionByPeriod;
   periodLabels: Record<HomeProfitPeriod, string>;
@@ -33,9 +36,12 @@ export function WorkerStatsBody({
 
   return (
     <div className={styles.page}>
-      <div className={styles.periodRow}>
-        <DashHomePeriodPicker period={period} onPeriodChange={setPeriod} periodLabels={periodLabels} inline />
-      </div>
+      <WorkerPageHeader
+        title={title}
+        trailing={
+          <DashHomePeriodPicker period={period} onPeriodChange={setPeriod} periodLabels={periodLabels} inline />
+        }
+      />
       <div className={styles.kpiGrid}>
         <article className={styles.kpiCard}>
           <span className={`${styles.kpiIcon} ${styles.kpiPurple}`}>

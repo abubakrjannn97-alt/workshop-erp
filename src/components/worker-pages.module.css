@@ -4,6 +4,27 @@
   gap: 12px;
 }
 
+.pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 36px;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.pageHeaderTrailing {
+  flex-shrink: 0;
+}
+
 .periodRow {
   display: flex;
   justify-content: flex-end;

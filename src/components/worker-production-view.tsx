@@ -8,6 +8,7 @@ import { IdempotencyField } from "@/components/idempotency-field";
 import { stockFinishedGoods } from "@/app/actions/fg-stock";
 import type { Locale } from "@core/shared/i18n/i18n";
 import { translate } from "@core/shared/i18n/i18n";
+import { WorkerPageHeader } from "@/components/worker-page-header";
 import styles from "./worker-production-view.module.css";
 
 export type WorkerProductRow = {
@@ -19,9 +20,11 @@ export type WorkerProductRow = {
 };
 
 export function WorkerProductionView({
+  title,
   products,
   locale,
 }: {
+  title: string;
   products: WorkerProductRow[];
   locale: Locale;
 }) {
@@ -50,7 +53,7 @@ export function WorkerProductionView({
 
   return (
     <div className={styles.page}>
-      <p className={styles.lead}>{t("me.workerProductionHint")}</p>
+      <WorkerPageHeader title={title} />
       <ul className={styles.list}>
         {products.map((row) => {
           const open = openId === row.id;

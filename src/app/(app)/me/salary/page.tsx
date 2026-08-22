@@ -20,6 +20,7 @@ export default async function WorkerSalaryPage() {
 
   return (
     <WorkerSalaryBody
+      title={t("nav.workerSalary")}
       locale={locale}
       payouts={payouts.map((p) => ({
         id: p.id,

@@ -5,8 +5,8 @@ import { WorkerProductionView } from "@/components/worker-production-view";
 
 export default async function WorkerProductionPage() {
   await requirePermission("production.view");
-  const { locale } = await getTranslator();
+  const { t, locale } = await getTranslator();
   const products = await fetchWorkerProducts();
 
-  return <WorkerProductionView products={products} locale={locale} />;
+  return <WorkerProductionView title={t("nav.production")} products={products} locale={locale} />;
 }
