@@ -2,11 +2,12 @@ import { getTranslator } from "@core/shared/i18n/locale";
 import { requirePermission } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { FUND, LEDGER } from "@core/finance/finance";
-import { buildMoneyLocationCards, fetchFinanceDashboardData } from "@core/finance/finance-summary";
-import { Banknote, Layers, TrendingUp } from "lucide-react";
+import { buildFinanceMoneyCards, fetchFinanceDashboardData } from "@core/finance/finance-summary";
+import { Banknote, Layers } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import { FinanceDebts } from "./finance-debts";
 import { FinanceJournal } from "./finance-journal";
+import { FinanceDashboardBody } from "./finance-dashboard-body";
 import styles from "./finance.module.css";
 
 const CASH_TYPES = new Set([LEDGER.CASH_IN, LEDGER.CASH_OUT, LEDGER.TRANSFER, LEDGER.REVERSAL]);
@@ -16,8 +17,7 @@ export default async function FinancePage() {
   await requirePermission("finance.view");
 
   const data = await fetchFinanceDashboardData();
-  const netPositive = data.netProfit.gte(0);
-  const moneyCards = buildMoneyLocationCards({
+  const moneyCards = buildFinanceMoneyCards({
     cashBalances: data.cashBalances,
     paymentCards: data.paymentCards,
     payments: data.payments,
@@ -61,43 +61,19 @@ export default async function FinancePage() {
         </div>
       </header>
 
-      <section className={styles.kpiBoard} data-tour="fin-money" aria-label={t("page.finance")}>
-        <article className={`${styles.kpiCard} ${styles.kpiHero} ${netPositive ? styles.kpiHeroOk : styles.kpiHeroBad}`}>
-          <div className={styles.kpiTop}>
-            <span className={`${styles.kpiIcon} ${styles.kpiIconHero}`}>
-              <TrendingUp size={22} strokeWidth={ICON_STROKE} aria-hidden />
-            </span>
-            <span className={styles.kpiSource}>{t("fin.netProfitLabel")}</span>
-          </div>
-          <p className={styles.kpiLabel}>{t("an.net")}</p>
-          <p className={styles.kpiHeroValue}>
-            {netPositive ? "" : "−"}
-            {moneyDisplay(data.netProfit.abs())} с
-          </p>
-          <p className={styles.kpiHint}>{netPositive ? t("an.netOkSub") : t("an.netBadSub")}</p>
-        </article>
-      </section>
-
-      {moneyCards.length > 0 ? (
-        <section className={styles.moneyWhereSection}>
-          <h2 className={styles.moneyWhereTitle}>{t("fin.moneyWhere")}</h2>
-          <ul className={styles.moneyCardGrid}>
-            {moneyCards.map((card) => (
-              <li key={card.id} className={styles.moneyCard}>
-                <div className={styles.moneyCardTop}>
-                  <span className={styles.moneyCardIcon} aria-hidden>
-                    {card.kind === "cash" ? "💵" : "💳"}
-                  </span>
-                  <span className={styles.moneyCardLabel}>{card.label}</span>
-                </div>
-                <p className={card.amount.lt(0) ? styles.moneyCardValueBad : styles.moneyCardValue}>
-                  {moneyDisplay(card.amount)} с
-                </p>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+      <FinanceDashboardBody
+        periodSnapshots={data.periodSnapshots}
+        moneyCards={moneyCards}
+        periodLabels={{
+          today: t("orders.periodToday"),
+          week: t("orders.periodWeek"),
+          month: t("orders.periodMonth"),
+        }}
+        netLabel={t("an.net")}
+        netOkHint={t("an.netOkSub")}
+        netBadHint={t("fin.netBadSubPeriod")}
+        netTotalLabel={t("fin.netProfitLabel")}
+      />
 
       <section className={styles.kpiStrip}>
         <article className={`${styles.kpiCard} ${styles.kpiSoft}`}>

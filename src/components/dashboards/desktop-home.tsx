@@ -39,11 +39,12 @@ export async function DesktopHome() {
         emptyOrders={t("crm.noOrders")}
         ordersPeriodHref="/orders?period=month"
         viewAllOrdersLabel={t("home.viewAllOrders")}
+        quickActions={
+          <DashSection title={t("home.quickActions")} tour="home-shortcuts" flush mobileList>
+            <DashQuickActions actions={ownerMobileQuickActions(t)} layout="mobileStrip" />
+          </DashSection>
+        }
       />
-
-      <DashSection title={t("home.quickActions")} tour="home-shortcuts" flush mobileList>
-        <DashQuickActions actions={ownerMobileQuickActions(t)} layout="mobileStrip" />
-      </DashSection>
     </div>
   );
 }

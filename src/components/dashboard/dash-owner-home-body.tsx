@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Trash2, Layers } from "lucide-react";
 import { DashHomePeriodPicker } from "./dash-home-period-picker";
 import { DashMetricStrip } from "./dash-metrics";
@@ -21,6 +21,7 @@ export function DashOwnerHomeBody({
   emptyOrders,
   ordersPeriodHref,
   viewAllOrdersLabel,
+  quickActions,
 }: {
   snapshots: OwnerDashboardSnapshots;
   greetingTitle: string;
@@ -32,6 +33,7 @@ export function DashOwnerHomeBody({
   emptyOrders: string;
   ordersPeriodHref: string;
   viewAllOrdersLabel: string;
+  quickActions?: ReactNode;
 }) {
   const [period, setPeriod] = useState<HomeProfitPeriod>("today");
   const data = snapshots[period];
@@ -78,6 +80,8 @@ export function DashOwnerHomeBody({
           },
         ]}
       />
+
+      {quickActions}
 
       <section className={styles.sectionBlock} data-tour="home-orders">
         <h2 className={styles.sectionTitle}>{recentOrdersTitle}</h2>

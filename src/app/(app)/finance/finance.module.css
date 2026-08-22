@@ -9,6 +9,21 @@
 .ghostLink { display: inline-flex; min-height: 44px; align-items: center; padding: 0 12px; border-radius: 8px; font-size: 14px; font-weight: 500; color: var(--accent, #A68649); text-decoration: none; transition: color .15s, background .15s; }
 .ghostLink:hover { color: var(--ink); background: var(--surface-2); }
 
+/* ─── Finance top bar (period) ─── */
+.finTopBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: -8px;
+}
+
+.finTopBarLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
 /* ─── KPI board ─── */
 .kpiBoard {
   display: grid;
@@ -186,6 +201,12 @@
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+@media (min-width: 640px) {
+  .moneyCardGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 .moneyCard {
