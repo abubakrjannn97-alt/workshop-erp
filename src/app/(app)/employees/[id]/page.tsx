@@ -13,6 +13,7 @@ import { EmployeePayoutHistory } from "@/components/employee-payout-history";
 import { RevealList } from "@/components/reveal-list";
 import { EMPLOYEE_ASSIGNABLE, type PermissionCode } from "@core/rbac/permissions";
 import { resolveEmployeeRoleLabel } from "@core/employee/employee-role-label";
+import { formatPhoneDisplay } from "@core/shared/phone";
 import { archiveEmployee } from "@/app/actions/employees";
 import { getDomainConfig } from "@core/config/domain-config";
 import { employeePaySchemeOptions, listWorkshopPaySchemes } from "@core/payroll/employee-pay-schemes";

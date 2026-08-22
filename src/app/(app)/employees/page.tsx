@@ -8,6 +8,7 @@ import { employeePaySchemeSections, listWorkshopPaySchemes } from "@core/payroll
 import { AddEmployeeForm } from "@/components/add-employee-form";
 import { EMPLOYEE_ASSIGNABLE, type PermissionCode } from "@core/rbac/permissions";
 import { resolveEmployeeRoleLabel } from "@core/employee/employee-role-label";
+import { formatPhoneDisplay } from "@core/shared/phone";
 import { CommissionSchemeSection } from "@/components/commission-scheme-section";
 import { FormField } from "@/components/form-field";
 import { AppSelect } from "@/components/app-select";

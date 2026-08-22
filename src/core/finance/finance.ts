@@ -1,12 +1,11 @@
-import type { Prisma } from "@prisma/client";
-import { prisma } from "@core/infrastructure/prisma";
+import { prisma, type PrismaTx } from "@core/infrastructure/prisma";
 import { D, money } from "@core/shared/decimal";
 import { assertPeriodOpen } from "@core/control/control";
 import { SETTING_KEYS } from "@core/config/settings";
 import { findSetting } from "@core/config/setting-store";
 import { requireWorkshopId } from "@core/workshop/workshop-context";
 
-type Tx = Pick<typeof prisma, "ledgerEntry" | "cashAccount" | "financialFund">;
+type Tx = PrismaTx;
 
 export const LEDGER = {
   CASH_IN: "CASH_IN",

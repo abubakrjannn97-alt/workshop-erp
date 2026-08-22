@@ -82,5 +82,9 @@ function createPrisma() {
 
 export const prisma = globalForPrisma.prisma ?? createPrisma();
 
+/** Extended client or transaction callback argument — use instead of Prisma.TransactionClient. */
+export type PrismaDb = typeof prisma;
+export type PrismaTx = Parameters<Parameters<PrismaDb["$transaction"]>[0]>[0];
+
 // Reuse one client per serverless instance (required on Vercel).
 globalForPrisma.prisma = prisma;

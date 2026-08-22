@@ -1,9 +1,9 @@
 import type { Prisma } from "@prisma/client";
-import { prisma } from "@core/infrastructure/prisma";
+import { prisma, type PrismaDb, type PrismaTx } from "@core/infrastructure/prisma";
 import { DEFAULT_WORKSHOP_ID } from "@core/workshop/workshop-context";
 import { getWorkshopIdFromContext } from "@core/workshop/workshop-storage";
 
-type SettingDb = Prisma.TransactionClient | typeof prisma;
+type SettingDb = PrismaDb | PrismaTx;
 
 export function resolveSettingWorkshopId(workshopId?: string) {
   return workshopId ?? getWorkshopIdFromContext() ?? DEFAULT_WORKSHOP_ID;

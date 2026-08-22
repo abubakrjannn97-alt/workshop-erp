@@ -1,11 +1,10 @@
-import type { Prisma } from "@prisma/client";
-import { prisma } from "@core/infrastructure/prisma";
+import { prisma, type PrismaDb, type PrismaTx } from "@core/infrastructure/prisma";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { loadPaymentCards } from "@core/config/payment-cards";
 import { buildFinanceMoneyCards } from "@core/finance/finance-summary";
 import { cashDelta } from "@core/finance/finance";
 
-type Tx = Prisma.TransactionClient | typeof prisma;
+type Tx = PrismaDb | PrismaTx;
 
 function parseCardIdFromComment(comment: string | null | undefined): string | null {
   if (!comment?.startsWith("card:")) return null;

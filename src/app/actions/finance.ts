@@ -56,10 +56,13 @@ export async function createExpense(formData: FormData) {
 
   const category = await prisma.expenseCategory.findUnique({ where: { id: categoryId } });
   if (!category) return { error: "Категория не найдена." };
-  const fund = await prisma.financialFund.findFirst({ where: { code: category.fundCode } });
+  const workshopId = requireWorkshopId();
+  const fund = await prisma.financialFund.findFirst({
+    where: { workshopId, code: category.fundCode },
+  });
 
   const ctx = await loadBalanceContext();
-  const accountRow = ctx.cashBalances.find((a) => a.id === accountId);
+  const accountRow = ctx.cashBalances.find((a: { id: string }) => a.id === accountId);
   if (!accountRow) return { error: "Счёт не найден." };
   const need = D(amount);
   if (accountRow.balance.lt(need)) {

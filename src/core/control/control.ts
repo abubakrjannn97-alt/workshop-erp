@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
-import { prisma } from "@core/infrastructure/prisma";
+import { prisma, type PrismaDb, type PrismaTx } from "@core/infrastructure/prisma";
 
-type Db = typeof prisma | Prisma.TransactionClient;
+type Db = PrismaDb | PrismaTx;
 
 export function canSelfApprove(roleCode: string | undefined) {
   return roleCode === "owner" || roleCode === "director";
@@ -23,7 +23,7 @@ export function isPeriodClosedError(error: unknown): error is PeriodClosedError 
   return error instanceof PeriodClosedError;
 }
 
-export async function assertPeriodOpen(at = new Date(), tx?: Prisma.TransactionClient) {
+export async function assertPeriodOpen(at = new Date(), tx?: PrismaTx) {
   const db: Db = tx ?? prisma;
   const year = at.getFullYear();
   const month = at.getMonth() + 1;

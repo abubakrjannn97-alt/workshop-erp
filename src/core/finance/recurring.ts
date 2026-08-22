@@ -1,6 +1,7 @@
 import { prisma } from "@core/infrastructure/prisma";
 import { LEDGER, postLedger } from "@core/finance/finance";
 import { money } from "@core/shared/decimal";
+import { requireWorkshopId } from "@core/workshop/workshop-context";
 
 export const OBLIGATION_INTERVAL = {
   MONTHLY: "MONTHLY",
@@ -19,10 +20,11 @@ export async function postDueRecurringObligations(userId: string, now = new Date
   const rows = await prisma.obligation.findMany({
     where: { interval: OBLIGATION_INTERVAL.MONTHLY, status: "OPEN" },
   });
-  const cash = await prisma.cashAccount.findUnique({ where: { code: "CASH" } });
-  const opex = await prisma.financialFund.findUnique({ where: { code: "OPEX" } });
+  const workshopId = requireWorkshopId();
+  const cash = await prisma.cashAccount.findFirst({ where: { workshopId, code: "CASH" } });
+  const opex = await prisma.financialFund.findFirst({ where: { workshopId, code: "OPEX" } });
   const category = await prisma.expenseCategory.findFirst({
-    where: { fundCode: "OPEX", archivedAt: null },
+    where: { workshopId, fundCode: "OPEX", archivedAt: null },
     orderBy: { isSystem: "desc" },
   });
   if (!cash) throw new Error("Касса CASH не найдена.");
