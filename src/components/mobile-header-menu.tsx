@@ -117,12 +117,6 @@ export function MobileHeaderMenu({
         ))}
 
         <div className={styles.account}>
-          <Link href="/help" className={styles.accountLink} onClick={closeAndNavigate}>
-            {t("nav.help")}
-          </Link>
-          <Link href="/me/profile" className={styles.accountLink} onClick={closeAndNavigate}>
-            {t("nav.profile")}
-          </Link>
           <div className={styles.accountLogout}>
             <LogoutButton label={t("nav.logout")} />
           </div>
