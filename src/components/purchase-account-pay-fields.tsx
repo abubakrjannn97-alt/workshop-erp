@@ -69,6 +69,7 @@ export function PurchaseAccountPayFields({
             <ul className={styles.moneyCardGrid} role="radiogroup" aria-label={t("sales.quickPayMethod")}>
               {payAccounts.map((account) => {
                 const active = selected?.id === account.id;
+                const valueLong = account.amountDisplay.replace(/\s/g, "").length > 7;
                 return (
                   <li key={account.id}>
                     <button
@@ -78,10 +79,23 @@ export function PurchaseAccountPayFields({
                       className={`${styles.moneyCard} ${account.kind === "cash" ? styles.moneyCardCash : styles.moneyCardBank} ${active ? styles.moneyCardActive : ""}`}
                       onClick={() => setAccountId(account.id)}
                     >
-                      <p className={styles.moneyCardLabel}>{account.label}</p>
-                      <p className={account.amountNegative ? styles.moneyCardValueBad : styles.moneyCardValue}>
-                        {account.amountDisplay} с
-                      </p>
+                      <div className={styles.moneyCardTop}>
+                        <p className={styles.moneyCardLabel}>{account.label}</p>
+                      </div>
+                      <div className={styles.moneyCardValueWrap}>
+                        <p
+                          className={[
+                            styles.moneyCardValue,
+                            valueLong ? styles.moneyCardValueLong : "",
+                            account.amountNegative ? styles.moneyCardValueBad : "",
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                        >
+                          {account.amountDisplay}
+                          <span className={styles.moneyCardCurrency}>с</span>
+                        </p>
+                      </div>
                     </button>
                   </li>
                 );
