@@ -241,14 +241,40 @@
   gap: 10px;
   padding: 14px 16px 10px;
   border-bottom: 1px solid var(--line);
-  background: linear-gradient(180deg, #f4f7ff 0%, #fff 100%);
+}
+
+.cardHeadBlue {
+  background: linear-gradient(180deg, #eef3fb 0%, #fff 100%);
+  border-bottom-color: rgba(74, 112, 208, 0.16);
+}
+
+.cardHeadBlue .cardTitle {
+  color: #3d4f6f;
+}
+
+.cardHeadRed {
+  background: linear-gradient(180deg, #fff5f4 0%, #fff 100%);
+  border-bottom-color: rgba(180, 35, 24, 0.16);
+}
+
+.cardHeadRed .cardTitle {
+  color: #9b3428;
+}
+
+.cardHeadGreen {
+  background: linear-gradient(180deg, #f0faf5 0%, #fff 100%);
+  border-bottom-color: rgba(36, 149, 101, 0.16);
+}
+
+.cardHeadGreen .cardTitle {
+  color: #1b6b47;
 }
 
 .cardTitle {
   margin: 0;
   font-size: 15px;
-  font-weight: 650;
-  color: #3d4f6f;
+  font-weight: 700;
+  color: var(--ink);
 }
 
 .cardHint {
@@ -266,6 +292,15 @@
   gap: 10px;
   padding: 14px 16px 10px;
   border-bottom: 1px solid var(--line);
+}
+
+.cardHeadRow.cardHeadGreen {
+  background: linear-gradient(180deg, #f0faf5 0%, #fff 100%);
+  border-bottom-color: rgba(36, 149, 101, 0.16);
+}
+
+.cardHeadRow.cardHeadGreen .cardTitle {
+  color: #1b6b47;
 }
 
 .cardToggle {

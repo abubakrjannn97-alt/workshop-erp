@@ -132,14 +132,16 @@
   justify-content: space-between;
   gap: 12px;
   padding: 12px 14px 8px;
+  border-bottom: 1px solid rgba(166, 132, 64, 0.16);
+  background: linear-gradient(180deg, #fffaf2 0%, #fff 100%);
 }
 
 .sectionTitle {
   margin: 0;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 22px;
-  color: var(--ink);
+  color: #8a6628;
 }
 
 .sectionBody {

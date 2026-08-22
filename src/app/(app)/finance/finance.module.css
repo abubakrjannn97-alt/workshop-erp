@@ -299,8 +299,8 @@
   justify-content: space-between;
   gap: 12px;
   padding: 14px 18px 12px;
-  border-bottom: 1px solid var(--line);
-  background: linear-gradient(180deg, #f8f9fb 0%, #fff 100%);
+  border-bottom: 1px solid rgba(166, 132, 64, 0.16);
+  background: linear-gradient(180deg, #fffaf2 0%, #fff 100%);
 }
 .sectionHeadForm {
   background: linear-gradient(180deg, #eef3fb 0%, #fff 100%);
@@ -310,13 +310,13 @@
   color: #3d4f6f;
 }
 .sectionHeadAccent {
-  background: linear-gradient(180deg, #fffaf2 0%, #fff 100%);
-  border-bottom-color: rgba(166, 132, 64, 0.18);
+  background: linear-gradient(180deg, #f0faf5 0%, #fff 100%);
+  border-bottom-color: rgba(36, 149, 101, 0.16);
 }
 .sectionHeadAccent .sectionTitleAccent {
-  color: #8a6628;
+  color: #1b6b47;
 }
-.sectionTitle { margin: 0; font-size: 15px; font-weight: 650; line-height: 22px; color: var(--ink); }
+.sectionTitle { margin: 0; font-size: 15px; font-weight: 700; line-height: 22px; color: #8a6628; }
 .sectionTitleAccent { composes: sectionTitle; color: var(--accent, #A68649); font-weight: 700; }
 .sectionHeadLink {
   flex-shrink: 0;

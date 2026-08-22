@@ -51,7 +51,7 @@ export function AnalyticsReportView({ locale, data }: { locale: Locale; data: An
       </section>
 
       <section className={styles.card}>
-        <div className={styles.cardHead}>
+        <div className={`${styles.cardHead} ${styles.cardHeadBlue}`}>
           <h2 className={styles.cardTitle}>{t("an.saleTotal")}</h2>
           <p className={styles.cardHint}>{data.rangeLabel}</p>
         </div>
@@ -89,7 +89,7 @@ export function AnalyticsReportView({ locale, data }: { locale: Locale; data: An
 
       {data.scraps.length > 0 ? (
         <section className={styles.card}>
-          <div className={styles.cardHead}>
+          <div className={`${styles.cardHead} ${styles.cardHeadRed}`}>
             <h2 className={styles.cardTitle}>{t("an.scrapBy")}</h2>
           </div>
           <ul className={styles.scrapList}>

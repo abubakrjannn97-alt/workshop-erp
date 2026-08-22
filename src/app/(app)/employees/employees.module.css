@@ -20,8 +20,8 @@
 
 /* ─── Section card ─── */
 .section { overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: 0 2px 12px rgba(28,35,43,.03); }
-.sectionHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px 12px; border-bottom: 1px solid var(--line); }
-.sectionTitle { margin: 0; font-size: 15px; font-weight: 600; line-height: 22px; color: var(--ink); }
+.sectionHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px 12px; border-bottom: 1px solid rgba(166, 132, 64, 0.16); background: linear-gradient(180deg, #fffaf2 0%, #fff 100%); }
+.sectionTitle { margin: 0; font-size: 15px; font-weight: 700; line-height: 22px; color: #8a6628; }
 .sectionBody { padding: 16px 18px; }
 
 /* ─── Desktop table ─── */

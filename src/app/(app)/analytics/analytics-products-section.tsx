@@ -18,7 +18,7 @@ export function AnalyticsProductsSection({
 
   return (
     <section className={styles.card}>
-      <div className={styles.cardHeadRow}>
+      <div className={`${styles.cardHeadRow} ${styles.cardHeadGreen}`}>
         <h2 className={styles.cardTitle}>{t("an.byProduct")}</h2>
         {count > 0 ? (
           <button type="button" className={styles.cardToggle} onClick={() => setOpen((v) => !v)}>
