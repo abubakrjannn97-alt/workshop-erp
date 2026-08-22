@@ -11,7 +11,7 @@ export async function listWorkshopPaySchemes(userId: string, roleCode: string) {
   return prisma.payScheme.findMany({
     where: { workshopId },
     include: { tiers: { orderBy: { fromCount: "asc" } } },
-    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+    orderBy: { name: "asc" },
   });
 }
 

@@ -6,7 +6,7 @@ import { SETTING_KEYS } from "@core/config/settings";
 import { findSetting } from "@core/config/setting-store";
 import { requireWorkshopId } from "@core/workshop/workshop-context";
 
-type Tx = Prisma.TransactionClient;
+type Tx = Pick<typeof prisma, "ledgerEntry" | "cashAccount" | "financialFund">;
 
 export const LEDGER = {
   CASH_IN: "CASH_IN",
@@ -77,14 +77,14 @@ export async function postLedger(
   });
 }
 
-export async function accountByCode(tx: Tx | typeof prisma, code: string) {
+export async function accountByCode(tx: Tx, code: string) {
   const workshopId = requireWorkshopId();
   const row = await tx.cashAccount.findFirst({ where: { workshopId, code } });
   if (!row) throw new Error(`Касса ${code} не найдена.`);
   return row;
 }
 
-export async function fundByCode(tx: Tx | typeof prisma, code: string) {
+export async function fundByCode(tx: Tx, code: string) {
   const workshopId = requireWorkshopId();
   const row = await tx.financialFund.findFirst({ where: { workshopId, code } });
   if (!row) throw new Error(`Фонд ${code} не найден.`);
