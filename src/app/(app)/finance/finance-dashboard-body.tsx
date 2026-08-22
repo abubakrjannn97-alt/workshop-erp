@@ -60,19 +60,12 @@ export function FinanceDashboardBody({
 
       <ul className={styles.moneyCardGrid}>
         {moneyCards.map((card) => (
-          <li key={card.id} className={styles.moneyCard}>
-            <div className={styles.moneyCardTop}>
-              {card.logoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={card.logoUrl} alt="" className={styles.moneyCardLogo} />
-              ) : (
-                <span className={styles.moneyCardIcon} aria-hidden>
-                  {card.kind === "cash" ? "💵" : "💳"}
-                </span>
-              )}
-              <span className={styles.moneyCardLabel}>{card.label}</span>
-            </div>
-            <p className={card.amount.lt(0) ? styles.moneyCardValueBad : styles.moneyCardValue}>
+          <li
+            key={card.id}
+            className={`${styles.moneyCard} ${card.kind === "cash" ? styles.moneyCardCash : styles.moneyCardBank}`}
+          >
+            <p className={styles.moneyCardLabel}>{card.label}</p>
+            <p className={card.amountNegative ? styles.moneyCardValueBad : styles.moneyCardValue}>
               {card.amountDisplay} с
             </p>
           </li>

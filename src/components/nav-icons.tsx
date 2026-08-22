@@ -38,7 +38,7 @@ import {
 import type { NavIcon } from "@core/shared/nav";
 
 /** Shared stroke for every Lucide glyph in the product. */
-export const ICON_STROKE = 1.75;
+export const ICON_STROKE = 2;
 
 export const NAV_ICONS: Record<NavIcon, LucideIcon> = {
   home: LayoutDashboard,

@@ -11,10 +11,9 @@ export type FinanceProfitPeriod = "today" | "week" | "month";
 export type MoneyLocationCard = {
   id: string;
   label: string;
-  amount: ReturnType<typeof D>;
   amountDisplay: string;
+  amountNegative: boolean;
   kind: "cash" | "card" | "bank";
-  logoUrl?: string;
 };
 
 export type FinancePeriodSnapshot = {
@@ -172,13 +171,12 @@ export function buildFinanceMoneyCards(input: {
     return bankBalance.div(activeCards.length);
   };
 
-  const toCard = (id: string, label: string, amount: ReturnType<typeof D>, kind: MoneyLocationCard["kind"], logoUrl?: string) => ({
+  const toCard = (id: string, label: string, amount: ReturnType<typeof D>, kind: MoneyLocationCard["kind"]) => ({
     id,
     label,
-    amount,
     amountDisplay: moneyDisplay(amount),
+    amountNegative: amount.lt(0),
     kind,
-    logoUrl,
   });
 
   const out: MoneyLocationCard[] = [
@@ -191,7 +189,7 @@ export function buildFinanceMoneyCards(input: {
   ];
 
   for (const card of activeCards) {
-    out.push(toCard(card.id, card.name, cardAmount(card.id), "card", card.logoUrl));
+    out.push(toCard(card.id, card.name, cardAmount(card.id), "card"));
   }
 
   return out;
