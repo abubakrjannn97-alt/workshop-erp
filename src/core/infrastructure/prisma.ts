@@ -3,8 +3,13 @@ import { PrismaClient } from "@prisma/client";
 const globalForPrisma = globalThis as unknown as { prisma?: ReturnType<typeof createPrisma> };
 
 function databaseUrl() {
-  const url = process.env.DATABASE_URL;
-  if (!url || url.includes("connection_limit=")) return url;
+  let url = process.env.DATABASE_URL;
+  if (!url) return url;
+  // Prisma Postgres: runtime traffic must use the pooler (Vercel cannot reach db.prisma.io).
+  if (url.includes("@db.prisma.io")) {
+    url = url.replace("@db.prisma.io", "@pooled.db.prisma.io");
+  }
+  if (url.includes("connection_limit=")) return url;
   const poolSize = process.env.DB_POOL_SIZE || "5";
   const sep = url.includes("?") ? "&" : "?";
   return `${url}${sep}connection_limit=${poolSize}`;
