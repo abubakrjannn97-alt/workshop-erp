@@ -4,6 +4,7 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { moneyDisplay, D } from "@core/shared/decimal";
 import { intlLocale } from "@core/shared/i18n/i18n";
+import { orderPeriodLabel, resolveOrderDateRange, type OrderPeriod } from "@core/shared/order-period";
 import { Segmented } from "@/components/segmented";
 import { StatusBadge, type BadgeTone } from "@/components/status-badge";
 import { RevealList } from "@/components/reveal-list";
@@ -11,24 +12,11 @@ import { ChevronRight } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import styles from "./purchasing.module.css";
 
-type Period = "week" | "month";
+type Period = Extract<OrderPeriod, "today" | "week" | "month" | "all">;
 
-function resolvePeriod(period: Period) {
-  const now = new Date();
-  if (period === "week") {
-    const day = now.getDay();
-    const mondayOffset = day === 0 ? -6 : 1 - day;
-    const from = new Date(now);
-    from.setDate(now.getDate() + mondayOffset);
-    from.setHours(0, 0, 0, 0);
-    const to = new Date(from);
-    to.setDate(from.getDate() + 6);
-    to.setHours(23, 59, 59, 999);
-    return { from, to };
-  }
-  const from = new Date(now.getFullYear(), now.getMonth(), 1);
-  const to = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-  return { from, to };
+function parsePeriod(raw?: string): Period {
+  if (raw === "today" || raw === "week" || raw === "month" || raw === "all") return raw;
+  return "month";
 }
 
 function poLabel(t: (k: string) => string, status: string) {
@@ -58,14 +46,15 @@ export default async function PurchasingPage({
   const { t, locale } = await getTranslator();
   await requirePermission("purchasing.view");
   const params = await searchParams;
-  const period: Period = params.period === "week" ? "week" : "month";
-  const { from, to } = resolvePeriod(period);
+  const period = parsePeriod(params.period);
+  const range = resolveOrderDateRange({ period });
   const loc = intlLocale(locale);
 
   const orders = await prisma.purchaseOrder.findMany({
-    where: {
-      createdAt: { gte: from, lte: to },
-    },
+    where:
+      range.from && range.to
+        ? { createdAt: { gte: range.from, lte: range.to } }
+        : undefined,
     include: { supplier: true },
     orderBy: { createdAt: "desc" },
   });
@@ -74,13 +63,7 @@ export default async function PurchasingPage({
   const total = active.reduce((s, o) => s.add(String(o.total)), D(0));
   const paid = active.reduce((s, o) => s.add(String(o.paidAmount)), D(0));
   const debt = total.sub(paid);
-  const rangeLabel =
-    period === "week"
-      ? t("po.weekRange", {
-          from: from.toLocaleDateString(loc, { day: "2-digit", month: "2-digit" }),
-          to: to.toLocaleDateString(loc, { day: "2-digit", month: "2-digit" }),
-        })
-      : from.toLocaleDateString(loc, { month: "long", year: "numeric" });
+  const rangeLabel = orderPeriodLabel(period, t, range.from, range.to);
 
   return (
     <div className={styles.page}>
@@ -99,8 +82,10 @@ export default async function PurchasingPage({
         <Segmented
           aria-label={t("po.period")}
           items={[
+            { href: "/purchasing?period=today", label: t("orders.periodToday"), active: period === "today" },
             { href: "/purchasing?period=week", label: t("po.periodWeek"), active: period === "week" },
             { href: "/purchasing?period=month", label: t("po.periodMonth"), active: period === "month" },
+            { href: "/purchasing?period=all", label: t("orders.periodAll"), active: period === "all" },
           ]}
         />
       </div>

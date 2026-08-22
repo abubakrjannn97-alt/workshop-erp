@@ -22,6 +22,7 @@ export default async function WarehousePage({
   const isWorker = session.user.roleCode === "worker";
   const showCost = canSeeMaterialCost(session.user.permissions, session.user.roleCode);
   const canReceive = hasPermission(session.user.permissions, session.user.roleCode, "inventory.receive");
+  const canManageProducts = hasPermission(session.user.permissions, session.user.roleCode, "products.manage");
   const params = await searchParams;
   const activeId = isWorker ? "products" : params.view === "raw" ? "raw" : "products";
 
@@ -144,6 +145,16 @@ export default async function WarehousePage({
             {isWorker ? (
               <Link href="/me" className={styles.ghostLink}>
                 {t("me.fgAddShort")} →
+              </Link>
+            ) : canManageProducts ? (
+              <Link href="/products/new" className={styles.sectionAddBtn}>
+                <Plus size={16} strokeWidth={ICON_STROKE} aria-hidden />
+                {t("products.new")}
+              </Link>
+            ) : canReceive ? (
+              <Link href="/warehouse/finished/receive" className={styles.sectionAddBtn}>
+                <Plus size={16} strokeWidth={ICON_STROKE} aria-hidden />
+                {t("common.receipt")}
               </Link>
             ) : null}
           </div>
