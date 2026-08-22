@@ -3,6 +3,7 @@ import { prisma } from "@core/infrastructure/prisma";
 import { D, money, qty } from "@core/shared/decimal";
 import { materialCostForRecipe, scaleNeed } from "@core/costing/costing";
 import { SETTING_KEYS } from "@core/config/settings";
+import { findSetting } from "@core/config/setting-store";
 
 export {
   LOST_REASONS,
@@ -28,7 +29,7 @@ export async function nextOrderNumber(tx: Prisma.TransactionClient | typeof pris
 }
 
 export async function discountLimitPercent() {
-  const row = await prisma.setting.findUnique({ where: { key: SETTING_KEYS.discountLimitPercent } });
+  const row = await findSetting(SETTING_KEYS.discountLimitPercent);
   const raw = row?.value;
   const value = typeof raw === "string" ? raw : raw == null ? "5" : String(raw);
   return D(value.replace(/"/g, "") || "5");

@@ -3,6 +3,7 @@ import { prisma } from "@core/infrastructure/prisma";
 import { D, money } from "@core/shared/decimal";
 import { assertPeriodOpen } from "@core/control/control";
 import { SETTING_KEYS } from "@core/config/settings";
+import { findSetting } from "@core/config/setting-store";
 
 type Tx = Prisma.TransactionClient;
 

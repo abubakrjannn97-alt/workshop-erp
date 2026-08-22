@@ -57,14 +57,6 @@ export function DashOwnerHomeBody({
 
   return (
     <>
-      <WorkshopSwitcher
-        workshops={workshops}
-        activeId={activeWorkshopId}
-        addLabel={workshopAddLabel}
-        placeholder={workshopNamePlaceholder}
-        canAdd={canAddWorkshop}
-      />
-
       <div className={styles.homeTopBar}>
         <h1 className={styles.homeTopBarTitle}>{greetingTitle}</h1>
         <div className={styles.homeTopBarCenter}>
@@ -75,7 +67,14 @@ export function DashOwnerHomeBody({
             inline
           />
         </div>
-        <div className={styles.homeTopBarBell}>
+        <div className={styles.homeTopBarRight}>
+          <WorkshopSwitcher
+            workshops={workshops}
+            activeId={activeWorkshopId}
+            addLabel={workshopAddLabel}
+            placeholder={workshopNamePlaceholder}
+            canAdd={canAddWorkshop}
+          />
           <NotificationBell unread={unread} locale={locale} />
         </div>
       </div>

@@ -1,5 +1,5 @@
-import { prisma } from "@core/infrastructure/prisma";
 import { SETTING_KEYS } from "@core/config/settings";
+import { findSetting } from "@core/config/setting-store";
 
 export type PaymentCard = {
   id: string;
@@ -49,8 +49,8 @@ function parseCards(raw: string | undefined): PaymentCard[] | null {
 }
 
 export async function loadPaymentCards(): Promise<PaymentCard[]> {
-  const row = await prisma.setting.findUnique({ where: { key: SETTING_KEYS.paymentCards } });
-  return parseCards(row?.value) ?? DEFAULT_PAYMENT_CARDS.filter((c) => c.isActive);
+  const row = await findSetting(SETTING_KEYS.paymentCards);
+  return parseCards(row?.value as string | undefined) ?? DEFAULT_PAYMENT_CARDS.filter((c) => c.isActive);
 }
 
 export function serializePaymentCards(cards: PaymentCard[]): string {

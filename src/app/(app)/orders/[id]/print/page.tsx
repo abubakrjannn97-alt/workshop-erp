@@ -3,6 +3,7 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission } from "@core/auth/authz";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { SETTING_KEYS, DEFAULT_SETTINGS } from "@core/config/settings";
+import { findSetting } from "@core/config/setting-store";
 import { PrintFrame } from "@/components/print-frame";
 import { getTranslator } from "@core/shared/i18n/locale";
 import { intlLocale } from "@core/shared/i18n/i18n";
