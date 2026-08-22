@@ -267,10 +267,6 @@ export async function updateFinancialFund(formData: FormData) {
 
 const PROTECTED_FUND_CODES = new Set<string>(Object.values(FUND));
 
-export function isProtectedFundCode(code: string) {
-  return PROTECTED_FUND_CODES.has(code);
-}
-
 export async function deleteFinancialFund(formData: FormData) {
   const session = await requirePermission("finance.expense.create");
   const id = String(formData.get("id") ?? "");
@@ -278,7 +274,7 @@ export async function deleteFinancialFund(formData: FormData) {
 
   const fund = await prisma.financialFund.findUnique({ where: { id } });
   if (!fund) return { error: "Фонд не найден." };
-  if (isProtectedFundCode(fund.code)) {
+  if (PROTECTED_FUND_CODES.has(fund.code)) {
     return { error: "Системный фонд нельзя удалить." };
   }
 
