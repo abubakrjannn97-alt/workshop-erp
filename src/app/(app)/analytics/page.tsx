@@ -12,6 +12,9 @@ import styles from "./analytics.module.css";
 export default async function AnalyticsPage() {
   await requirePermission("analytics.view");
   const { t } = await getTranslator();
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  monthStart.setHours(0, 0, 0, 0);
   const [monthOrders, scraps, accruals, funds, entries, cover, productItems] = await Promise.all([
     prisma.order.findMany({
       where: { createdAt: { gte: monthStart }, status: { code: { not: "CANCELLED" } } },
