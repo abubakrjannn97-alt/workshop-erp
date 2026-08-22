@@ -1,5 +1,6 @@
 import { prisma } from "@core/infrastructure/prisma";
 import { money } from "@core/shared/decimal";
+import { requireWorkshopId } from "@core/workshop/workshop-context";
 
 export const CRM_DOC = {
   CALCULATION: "CALCULATION",
@@ -25,6 +26,7 @@ export async function createCrmDocument(input: {
   const next = seq ? Number(seq) + 1 : 1001;
   return prisma.crmDocument.create({
     data: {
+      workshopId: requireWorkshopId(),
       leadId: input.leadId,
       type,
       number: `${prefix}-${next}`,

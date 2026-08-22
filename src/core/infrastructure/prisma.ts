@@ -42,7 +42,19 @@ function extendClient(client: PrismaClient) {
           const workshopId = getWorkshopIdFromContext();
           if (workshopId && WORKSHOP_SCOPED_MODELS.has(model)) {
             const scoped = scopeQueryArgs(model, operation, args as Record<string, unknown>, workshopId);
-            return query(scoped);
+            const result = await query(scoped);
+            // findUnique({ id }) cannot include workshopId in the unique selector —
+            // reject rows that belong to another workshop.
+            if (
+              (operation === "findUnique" || operation === "findFirst") &&
+              result &&
+              typeof result === "object" &&
+              "workshopId" in result &&
+              (result as { workshopId?: string }).workshopId !== workshopId
+            ) {
+              return null;
+            }
+            return result;
           }
           return query(args);
         },

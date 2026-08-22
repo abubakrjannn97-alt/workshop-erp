@@ -12,6 +12,7 @@ import { adjustToActual, receiveMaterial, receiveProduct, reverseMovement, trans
 import { getRawWarehouse } from "@core/config/resolve-warehouse";
 import { notifyRoles } from "@core/control/control";
 import { canSelfApprove, queueApproval } from "@core/control/control";
+import { requireWorkshopId } from "@core/workshop/workshop-context";
 
 function key(formData: FormData) {
   return String(formData.get("idempotencyKey") ?? randomUUID());
@@ -165,6 +166,7 @@ export async function createInventoryCount(formData: FormData) {
   const items = await prisma.stockItem.findMany({ where: { warehouseId } });
   const count = await prisma.inventoryCount.create({
     data: {
+      workshopId: requireWorkshopId(),
       warehouseId,
       status: "DRAFT",
       countedById: session.user.id,

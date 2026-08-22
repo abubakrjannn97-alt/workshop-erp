@@ -8,6 +8,7 @@ import { writeAudit } from "@core/control/audit";
 import { D, qty } from "@core/shared/decimal";
 import { ORDER_STATUS } from "@core/orders/orders";
 import { closeBatch as closeBatchCore } from "@/core/production/close-batch-action";
+import { requireWorkshopId } from "@core/workshop/workshop-context";
 
 function qtyStr(value: string) {
   return z.string().regex(/^\d+(\.\d{1,6})?$/).safeParse(value).success;
@@ -39,6 +40,7 @@ export async function createBatch(formData: FormData) {
   const batch = await prisma.$transaction(async (tx) => {
     const created = await tx.productionBatch.create({
       data: {
+        workshopId: requireWorkshopId(),
         productionOrderId,
         number: last + 1,
         status: "OPEN",

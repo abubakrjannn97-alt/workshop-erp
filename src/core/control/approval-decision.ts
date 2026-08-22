@@ -234,6 +234,7 @@ async function executeRefund(payload: Record<string, unknown>, userId: string): 
   await prisma.$transaction(async (tx) => {
     const reversal = await tx.payment.create({
       data: {
+        workshopId: requireWorkshopId(),
         orderId: payment.orderId,
         amount: money(D(String(payment.amount)).neg()),
         method: payment.method,

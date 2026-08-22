@@ -14,6 +14,7 @@ import { notifyRoles } from "@core/control/control";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
 import { resolveBatchFinishedGoods } from "@core/production/production-order";
 import { assertCanCloseBatch } from "@core/production/batch-auth";
+import { requireWorkshopId } from "@core/workshop/workshop-context";
 
 function qtyStr(value: string) {
   return z.string().regex(/^\d+(\.\d{1,6})?$/).safeParse(value).success;
@@ -135,6 +136,7 @@ export async function closeBatch(formData: FormData) {
           : D(0);
         await tx.scrapRecord.create({
           data: {
+            workshopId: requireWorkshopId(),
             batchId: batch.id,
             quantity: scrapQty,
             reason: scrapReason,

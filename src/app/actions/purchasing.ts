@@ -14,6 +14,7 @@ import { accountByCode, accountForMethod, FUND, fundByCode, LEDGER, postLedger }
 import { loadPaymentCards } from "@core/config/payment-cards";
 import { findRawWarehouse } from "@core/config/resolve-warehouse";
 import { assertOutboundPayment, purchasePaymentComment } from "@core/finance/balance-guard";
+import { requireWorkshopId } from "@core/workshop/workshop-context";
 
 async function nextNumber() {
   const last = await prisma.purchaseOrder.findFirst({ orderBy: { createdAt: "desc" } });
@@ -41,6 +42,7 @@ async function postPurchasePaymentInTx(
 
   await tx.purchasePayment.create({
     data: {
+      workshopId: requireWorkshopId(),
       purchaseOrderId: input.orderId,
       amount: money(input.amount),
       comment: purchasePaymentComment(input.method, input.comment ?? `Оплата поставщику ${input.orderNumber}`),
