@@ -75,6 +75,7 @@ type CartLine = {
 
 type PayMode = "paid" | "partial" | "debt";
 type PayChannel = "card" | "cash" | "split";
+type SaleStep = "receipt" | "payment";
 
 export function QuickSaleForm({
   customers,
@@ -114,6 +115,8 @@ export function QuickSaleForm({
     cartTotal: string;
     clientLocked: string;
     fgStock: string;
+    backToReceipt: string;
+    confirmSale: string;
   };
 }) {
   const router = useRouter();
@@ -143,6 +146,7 @@ export function QuickSaleForm({
   const [cardAmount, setCardAmount] = useState("");
   const [cashAmount, setCashAmount] = useState("");
   const [idempotencyKey, setIdempotencyKey] = useState(() => `quick-sale-${crypto.randomUUID()}`);
+  const [step, setStep] = useState<SaleStep>("receipt");
 
   const saleLocked = cart.length > 0;
 
@@ -263,6 +267,7 @@ export function QuickSaleForm({
     setPartialAmount("");
     setCardAmount("");
     setCashAmount("");
+    setStep("receipt");
     resetLineFields(products[0]?.id);
   }
 
@@ -314,6 +319,20 @@ export function QuickSaleForm({
 
   function cancelSale() {
     resetForm();
+  }
+
+  function proceedToPayment() {
+    setError(null);
+    if (cart.length === 0) {
+      setError("Добавьте хотя бы одно изделие.");
+      return;
+    }
+    setStep("payment");
+  }
+
+  function backToReceipt() {
+    setError(null);
+    setStep("receipt");
   }
 
   function resolvePaymentAmounts() {
@@ -392,8 +411,142 @@ export function QuickSaleForm({
 
   const selectedLeft = selected ? remainingStock(selected) : D(0);
 
+  function renderPaymentFields() {
+    return (
+      <div className={styles.payBlock}>
+        <p className={styles.payLabel}>{labels.payStatus}</p>
+        <div className={styles.paySeg3} role="radiogroup">
+          {(
+            [
+              ["paid", labels.paid],
+              ["partial", labels.partial],
+              ["debt", labels.debt],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              role="radio"
+              aria-checked={payMode === id}
+              className={`${styles.payBtn} ${payMode === id ? styles.payBtnActive : ""}`}
+              onClick={() => setPayMode(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {payMode !== "debt" ? (
+          <>
+            <p className={styles.payLabel}>{labels.payMethod}</p>
+            <div className={styles.paySeg3} role="radiogroup">
+              {(
+                [
+                  ["card", labels.payCard],
+                  ["cash", labels.payCash],
+                  ["split", labels.paySplit],
+                ] as const
+              ).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="radio"
+                  aria-checked={payChannel === id}
+                  className={`${styles.payBtn} ${payChannel === id ? styles.payBtnActive : ""}`}
+                  onClick={() => setPayChannel(id)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {payChannel !== "cash" && paymentCards.length > 0 ? (
+              <div className={styles.cardPicker}>
+                <p className={styles.paySubLabel}>{labels.pickCard}</p>
+                <div className={styles.cardGrid}>
+                  {paymentCards.map((card) => (
+                    <button
+                      key={card.id}
+                      type="button"
+                      className={`${styles.cardOption} ${cardId === card.id ? styles.cardOptionActive : ""}`}
+                      onClick={() => setCardId(card.id)}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={card.logoUrl} alt="" className={styles.cardLogo} />
+                      <span className={styles.cardName}>{card.bank}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {payMode === "partial" ? (
+              <FormField label={labels.paidAmount} required className={styles.fieldTight}>
+                <input
+                  required
+                  className="ui-input"
+                  inputMode="decimal"
+                  value={partialAmount}
+                  onChange={(e) => setPartialAmount(e.target.value)}
+                  placeholder="0"
+                />
+              </FormField>
+            ) : null}
+
+            {payChannel === "split" ? (
+              <div className={styles.row2}>
+                <FormField label={labels.cardAmount} className={styles.fieldTight}>
+                  <input
+                    className="ui-input"
+                    inputMode="decimal"
+                    value={cardAmount}
+                    onChange={(e) => setCardAmount(e.target.value)}
+                    placeholder="0"
+                  />
+                </FormField>
+                <FormField label={labels.cashAmount} className={styles.fieldTight}>
+                  <input
+                    className="ui-input"
+                    inputMode="decimal"
+                    value={cashAmount}
+                    onChange={(e) => setCashAmount(e.target.value)}
+                    placeholder="0"
+                  />
+                </FormField>
+              </div>
+            ) : null}
+          </>
+        ) : null}
+      </div>
+    );
+  }
+
+  function renderCheckoutHiddenFields() {
+    return (
+      <>
+        <IdempotencyField prefix="quick-sale" value={idempotencyKey} />
+        <input type="hidden" name="customerId" value={customerId || "__new__"} />
+        <input type="hidden" name="customerName" value={customerName} />
+        <input type="hidden" name="phone" value={phone} />
+        <input
+          type="hidden"
+          name="items"
+          value={JSON.stringify(
+            cart.map((line) => ({
+              productId: line.productId,
+              quantity: line.quantity,
+              unitPrice: line.unitPrice,
+            })),
+          )}
+        />
+        <input type="hidden" name="payMode" value={payMode} />
+      </>
+    );
+  }
+
   return (
     <>
+      {step === "receipt" ? (
       <div
         className={`${styles.wrap} ${cart.length > 0 ? styles.wrapWithCart : ""} ${productOpen || pickerOpen ? styles.wrapDropdownOpen : ""}`}
       >
@@ -597,8 +750,9 @@ export function QuickSaleForm({
         </div>
         </div>
       </div>
+      ) : null}
 
-      {cart.length > 0 ? (
+      {step === "receipt" && cart.length > 0 ? (
         <div className={styles.cartDock}>
           <div className={styles.cartPanel}>
             <div className={styles.cartHead}>
@@ -635,129 +789,44 @@ export function QuickSaleForm({
               </ul>
             </div>
 
-            <form action={onFinish} className={styles.checkout}>
-              <IdempotencyField prefix="quick-sale" value={idempotencyKey} />
-              <input type="hidden" name="customerId" value={customerId || "__new__"} />
-              <input type="hidden" name="customerName" value={customerName} />
-              <input type="hidden" name="phone" value={phone} />
-              <input
-                type="hidden"
-                name="items"
-                value={JSON.stringify(
-                  cart.map((line) => ({
-                    productId: line.productId,
-                    quantity: line.quantity,
-                    unitPrice: line.unitPrice,
-                  })),
-                )}
-              />
-              <input type="hidden" name="payMode" value={payMode} />
+            <div className={styles.receiptOnlyActions}>
+              <button
+                type="button"
+                className={`ui-btn-primary ${styles.proceedBtn}`}
+                onClick={proceedToPayment}
+              >
+                {labels.finish}
+              </button>
+              <button
+                type="button"
+                className={styles.cancelBtn}
+                onClick={cancelSale}
+              >
+                {labels.cancel}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
-              <div className={styles.payBlock}>
-                <p className={styles.payLabel}>{labels.payStatus}</p>
-                <div className={styles.paySeg3} role="radiogroup">
-                  {(
-                    [
-                      ["paid", labels.paid],
-                      ["partial", labels.partial],
-                      ["debt", labels.debt],
-                    ] as const
-                  ).map(([id, label]) => (
-                    <button
-                      key={id}
-                      type="button"
-                      role="radio"
-                      aria-checked={payMode === id}
-                      className={`${styles.payBtn} ${payMode === id ? styles.payBtnActive : ""}`}
-                      onClick={() => setPayMode(id)}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
+      {step === "payment" && cart.length > 0 ? (
+        <div className={styles.paymentScreen}>
+          <div className={styles.paymentCard}>
+            {error ? <p className={styles.error}>{error}</p> : null}
 
-                {payMode !== "debt" ? (
-                  <>
-                    <p className={styles.payLabel}>{labels.payMethod}</p>
-                    <div className={styles.paySeg3} role="radiogroup">
-                      {(
-                        [
-                          ["card", labels.payCard],
-                          ["cash", labels.payCash],
-                          ["split", labels.paySplit],
-                        ] as const
-                      ).map(([id, label]) => (
-                        <button
-                          key={id}
-                          type="button"
-                          role="radio"
-                          aria-checked={payChannel === id}
-                          className={`${styles.payBtn} ${payChannel === id ? styles.payBtnActive : ""}`}
-                          onClick={() => setPayChannel(id)}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-
-                    {payChannel !== "cash" && paymentCards.length > 0 ? (
-                      <div className={styles.cardPicker}>
-                        <p className={styles.paySubLabel}>{labels.pickCard}</p>
-                        <div className={styles.cardGrid}>
-                          {paymentCards.map((card) => (
-                            <button
-                              key={card.id}
-                              type="button"
-                              className={`${styles.cardOption} ${cardId === card.id ? styles.cardOptionActive : ""}`}
-                              onClick={() => setCardId(card.id)}
-                            >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={card.logoUrl} alt="" className={styles.cardLogo} />
-                              <span className={styles.cardName}>{card.bank}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {payMode === "partial" ? (
-                      <FormField label={labels.paidAmount} required className={styles.fieldTight}>
-                        <input
-                          required
-                          className="ui-input"
-                          inputMode="decimal"
-                          value={partialAmount}
-                          onChange={(e) => setPartialAmount(e.target.value)}
-                          placeholder="0"
-                        />
-                      </FormField>
-                    ) : null}
-
-                    {payChannel === "split" ? (
-                      <div className={styles.row2}>
-                        <FormField label={labels.cardAmount} className={styles.fieldTight}>
-                          <input
-                            className="ui-input"
-                            inputMode="decimal"
-                            value={cardAmount}
-                            onChange={(e) => setCardAmount(e.target.value)}
-                            placeholder="0"
-                          />
-                        </FormField>
-                        <FormField label={labels.cashAmount} className={styles.fieldTight}>
-                          <input
-                            className="ui-input"
-                            inputMode="decimal"
-                            value={cashAmount}
-                            onChange={(e) => setCashAmount(e.target.value)}
-                            placeholder="0"
-                          />
-                        </FormField>
-                      </div>
-                    ) : null}
-                  </>
-                ) : null}
+            <div className={styles.paymentHead}>
+              <div>
+                <h2 className={styles.paymentTitle}>{labels.pay}</h2>
+                <p className={styles.paymentSub}>
+                  {labels.forCustomer} {customerName}
+                </p>
               </div>
+              <span className={styles.paymentTotal}>{moneyDisplay(cartTotal)} с</span>
+            </div>
+
+            <form action={onFinish} className={styles.checkout} style={{ padding: 0, borderTop: 0 }}>
+              {renderCheckoutHiddenFields()}
+              {renderPaymentFields()}
 
               <div className={styles.checkoutActions}>
                 <PendingButton
@@ -765,15 +834,15 @@ export function QuickSaleForm({
                   pendingLabel={labels.sending}
                   disabled={pending}
                 >
-                  {labels.finish}
+                  {labels.confirmSale}
                 </PendingButton>
                 <button
                   type="button"
-                  className={styles.cancelBtn}
-                  onClick={cancelSale}
+                  className={styles.backToReceiptBtn}
+                  onClick={backToReceipt}
                   disabled={pending}
                 >
-                  {labels.cancel}
+                  {labels.backToReceipt}
                 </button>
               </div>
             </form>
