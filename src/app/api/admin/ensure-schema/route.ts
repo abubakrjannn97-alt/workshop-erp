@@ -9,6 +9,8 @@ const PATCHES = [
   `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "laborRate" DECIMAL(18,4) NOT NULL DEFAULT 0`,
   `UPDATE "products" SET "laborRate" = 22 WHERE "laborRate" = 0`,
   `ALTER TABLE "customers" ADD COLUMN IF NOT EXISTS "pipelineStatus" TEXT NOT NULL DEFAULT 'NEW'`,
+  `ALTER TABLE "payroll_accruals" ADD COLUMN IF NOT EXISTS "productId" TEXT`,
+  `CREATE INDEX IF NOT EXISTS "payroll_accruals_productId_idx" ON "payroll_accruals"("productId")`,
 ];
 
 /** One-shot schema patch when migrate history is missing. Header: x-wipe-token */

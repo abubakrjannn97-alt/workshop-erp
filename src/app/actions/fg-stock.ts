@@ -45,7 +45,7 @@ export async function stockFinishedGoods(formData: FormData) {
 
   const fg = await getFgWarehouse();
   const idempotencyKey = String(formData.get("idempotencyKey") ?? randomUUID());
-  const rate = productLaborRate();
+  const rate = productLaborRate(product.laborRate);
   const scrapNote = scrapVal.gt(0) ? ` · брак ${qtyDisplay(parsed.data.scrapQty!)} ${product.saleUnit.symbol}` : "";
   const baseComment = parsed.data.comment?.trim() || `Выпуск · ${session.user.name}`;
 
@@ -70,6 +70,7 @@ export async function stockFinishedGoods(formData: FormData) {
           kind: "PRODUCTION",
           amount: money(qtyVal.mul(rate)),
           quantity: qty(parsed.data.quantity),
+          productId: product.id,
           periodKey: periodKey(),
           status: "ACCRUED",
           comment: `${product.name}: ${qtyDisplay(parsed.data.quantity)} ${product.saleUnit.symbol} × ${rate} с/ед.${scrapNote}`,

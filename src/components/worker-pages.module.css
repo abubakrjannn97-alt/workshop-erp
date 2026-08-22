@@ -78,6 +78,84 @@
   color: var(--ink-3);
 }
 
+.prodList {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prodRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(28, 35, 43, 0.03);
+}
+
+.prodThumb {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #f3f1ec;
+  display: grid;
+  place-items: center;
+}
+
+.prodThumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.prodThumbEmpty {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink-3);
+}
+
+.prodMain {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.prodName {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prodRate {
+  font-size: 12px;
+  line-height: 1.2;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.prodQty {
+  font-size: 20px;
+  font-weight: 750;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  padding-left: 4px;
+}
+
 .sectionCard {
   overflow: hidden;
   border: 1px solid var(--line);

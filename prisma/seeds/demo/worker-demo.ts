@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import Decimal from "decimal.js";
 import { periodKey } from "../../../src/core/payroll/payroll";
-import { DEFAULT_PRODUCT_LABOR_RATE } from "../../../src/core/payroll/labor-rate";
+import { productLaborRate } from "../../../src/core/payroll/labor-rate";
 
 const SEED_TAG = "seed-worker-demo";
 const D = (v: string | number) => new Decimal(v);
@@ -34,6 +34,16 @@ export async function seedWorkerTabDemo(prisma: PrismaClient) {
 
   await backfillProductPhotos(prisma);
 
+  const products = await prisma.product.findMany({
+    where: { archivedAt: null, isActive: true },
+    orderBy: { name: "asc" },
+    take: 8,
+  });
+  if (products.length === 0) {
+    console.warn("[worker-demo] no products — skip accruals");
+    return;
+  }
+
   await prisma.payrollAccrual.deleteMany({
     where: { userId: worker.id, comment: { startsWith: SEED_TAG } },
   });
@@ -41,28 +51,29 @@ export async function seedWorkerTabDemo(prisma: PrismaClient) {
     where: { userId: worker.id, comment: { startsWith: SEED_TAG } },
   });
 
-  const rate = Number(DEFAULT_PRODUCT_LABOR_RATE);
   const accrualRows = [
-    { daysAgo: 0, quantity: 14, scrap: 1, label: "Сегодня · плитка серая" },
-    { daysAgo: 0, quantity: 8, scrap: 0, label: "Сегодня · камень «Скала»" },
-    { daysAgo: 2, quantity: 32, scrap: 2, label: "На этой неделе · кирпич" },
-    { daysAgo: 5, quantity: 18, scrap: 0, label: "На этой неделе · цоколь" },
-    { daysAgo: 12, quantity: 55, scrap: 3, label: "В этом месяце · травертин" },
-    { daysAgo: 20, quantity: 40, scrap: 1, label: "В этом месяце · плитка" },
+    { daysAgo: 0, quantity: 14, productIdx: 0 },
+    { daysAgo: 0, quantity: 8, productIdx: 1 },
+    { daysAgo: 2, quantity: 32, productIdx: 2 },
+    { daysAgo: 5, quantity: 18, productIdx: 3 },
+    { daysAgo: 12, quantity: 55, productIdx: 0 },
+    { daysAgo: 20, quantity: 40, productIdx: 1 },
   ] as const;
 
   for (const row of accrualRows) {
+    const product = products[row.productIdx % products.length]!;
+    const rate = productLaborRate(product.laborRate);
     const createdAt = atDaysAgo(row.daysAgo, 9 + (row.daysAgo % 4), 15);
-    const scrapNote = row.scrap > 0 ? `, брак ${row.scrap} м²` : "";
     await prisma.payrollAccrual.create({
       data: {
         userId: worker.id,
         kind: "PRODUCTION",
-        amount: money(row.quantity * rate),
+        amount: money(row.quantity * Number(rate.toString())),
         quantity: qty(row.quantity),
+        productId: product.id,
         periodKey: periodKey(createdAt),
         status: "ACCRUED",
-        comment: `${SEED_TAG} · ${row.label}${scrapNote}`,
+        comment: `${SEED_TAG} · ${product.name}`,
         createdAt,
       },
     });

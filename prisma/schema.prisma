@@ -225,6 +225,7 @@ model Product {
   outputUnitId   String
   minStock       Decimal   @default(0) @db.Decimal(18, 6)
   maxStock       Decimal   @default(0) @db.Decimal(18, 6)
+  laborRate      Decimal   @default(0) @db.Decimal(18, 4)
   isActive       Boolean   @default(true)
   archivedAt     DateTime?
   createdAt      DateTime  @default(now())
@@ -237,6 +238,7 @@ model Product {
   recipe     Recipe?
   stockItems StockItem[]
   orderItems OrderItem[]
+  payrollAccruals PayrollAccrual[]
 
   @@index([archivedAt])
   @@map("products")
@@ -899,17 +901,20 @@ model PayrollAccrual {
   percent    Decimal? @db.Decimal(18, 4)
   orderId    String?
   batchId    String?
+  productId  String?
   paymentId  String?
   periodKey  String
   status     String   @default("ACCRUED")
   comment    String?
   createdAt  DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id])
+  user    User     @relation(fields: [userId], references: [id])
+  product Product? @relation(fields: [productId], references: [id])
 
   @@index([userId, periodKey])
   @@index([paymentId])
   @@index([batchId])
+  @@index([productId])
   @@map("payroll_accruals")
 }
 

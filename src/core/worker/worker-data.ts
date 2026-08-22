@@ -1,6 +1,7 @@
 import { prisma } from "@core/infrastructure/prisma";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { resolveOrderDateRange } from "@core/shared/order-period";
+import { productLaborRate } from "@core/payroll/labor-rate";
 import { findFinishedGoodsWarehouse } from "@/core/config/resolve-warehouse";
 
 export type WorkerPeriod = "today" | "week" | "month";
@@ -12,6 +13,16 @@ export type WorkerPeriodSnapshot = {
 };
 
 export type WorkerPeriodSnapshots = Record<WorkerPeriod, WorkerPeriodSnapshot>;
+
+export type WorkerProductionLine = {
+  productId: string;
+  name: string;
+  photoUrl: string | null;
+  quantityDisplay: string;
+  rateDisplay: string;
+};
+
+export type WorkerProductionByPeriod = Record<WorkerPeriod, WorkerProductionLine[]>;
 
 function periodRanges() {
   return {
@@ -90,6 +101,83 @@ export async function fetchWorkerPeriodSnapshots(userId: string): Promise<Worker
   return out;
 }
 
+function resolveProductFromComment(
+  comment: string | null,
+  products: { id: string; name: string; photoUrl: string | null; laborRate: { toString(): string } }[],
+) {
+  if (!comment) return null;
+  const byPrefix = products.find((p) => comment.startsWith(`${p.name}:`));
+  if (byPrefix) return byPrefix;
+  return products.find((p) => comment.includes(p.name)) ?? null;
+}
+
+export async function fetchWorkerProductionByPeriod(userId: string): Promise<WorkerProductionByPeriod> {
+  const ranges = periodRanges();
+  const from = ranges.month.from!;
+  const to = ranges.month.to!;
+
+  const [accruals, products] = await Promise.all([
+    prisma.payrollAccrual.findMany({
+      where: {
+        userId,
+        kind: "PRODUCTION",
+        status: "ACCRUED",
+        createdAt: { gte: from, lte: to },
+      },
+      select: {
+        productId: true,
+        quantity: true,
+        createdAt: true,
+        comment: true,
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.product.findMany({
+      where: { archivedAt: null },
+      select: { id: true, name: true, photoUrl: true, laborRate: true },
+    }),
+  ]);
+
+  const productMap = new Map(products.map((p) => [p.id, p]));
+  const out = {} as WorkerProductionByPeriod;
+
+  for (const period of ["today", "week", "month"] as const) {
+    const range = ranges[period];
+    const scoped = accruals.filter((a) => inRange(a.createdAt, range.from, range.to));
+    const grouped = new Map<
+      string,
+      { product: (typeof products)[number]; qty: ReturnType<typeof D> }
+    >();
+
+    for (const row of scoped) {
+      const product =
+        (row.productId ? productMap.get(row.productId) : null) ??
+        resolveProductFromComment(row.comment, products);
+      if (!product) continue;
+
+      const prev = grouped.get(product.id);
+      const addQty = D(String(row.quantity ?? 0));
+      if (prev) {
+        prev.qty = prev.qty.add(addQty);
+      } else {
+        grouped.set(product.id, { product, qty: addQty });
+      }
+    }
+
+    out[period] = [...grouped.values()]
+      .map(({ product, qty }) => ({
+        productId: product.id,
+        name: product.name,
+        photoUrl: product.photoUrl,
+        quantityDisplay: qtyDisplay(qty),
+        rateDisplay: moneyDisplay(productLaborRate(product.laborRate)),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name, "ru"));
+  }
+
+  return out;
+}
+
 export async function fetchWorkerPayouts(userId: string, period: WorkerPeriod) {
   const range = periodRanges()[period];
   const payouts = await prisma.payrollPayout.findMany({
@@ -100,15 +188,21 @@ export async function fetchWorkerPayouts(userId: string, period: WorkerPeriod) {
         lte: range.to,
       },
     },
-    include: { account: true },
     orderBy: { createdAt: "desc" },
   });
+
+  const accountIds = [...new Set(payouts.map((p) => p.accountId).filter(Boolean))] as string[];
+  const accounts =
+    accountIds.length > 0
+      ? await prisma.cashAccount.findMany({ where: { id: { in: accountIds } } })
+      : [];
+  const accountMap = new Map(accounts.map((a) => [a.id, a.name]));
 
   return payouts.map((p) => ({
     id: p.id,
     amount: String(p.amount),
     comment: p.comment,
     createdAt: p.createdAt.toISOString(),
-    accountLabel: p.account?.name ?? "",
+    accountLabel: p.accountId ? accountMap.get(p.accountId) ?? "" : "",
   }));
 }
