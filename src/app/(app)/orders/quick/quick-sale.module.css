@@ -244,6 +244,10 @@
 
 .customerWrap {
   position: relative;
+  z-index: 5;
+}
+
+.stackFront {
   z-index: 80;
 }
 

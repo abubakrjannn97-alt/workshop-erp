@@ -84,9 +84,7 @@
 }
 
 .homeMobile .greetingSub {
-  font-size: 12px;
-  line-height: 16px;
-  color: #64748B;
+  display: none;
 }
 
 /* ─── Desktop: same composition as mobile, constrained width ─── */
@@ -502,6 +500,10 @@
   line-height: 16px;
   font-weight: 500;
   color: #64748b;
+}
+
+.homeMobile .kpiHintCompact {
+  display: none;
 }
 
 .kpiHintCompact.kpiHintPositive,

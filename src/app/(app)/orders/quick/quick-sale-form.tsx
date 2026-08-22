@@ -346,7 +346,7 @@ export function QuickSaleForm({
             ) : null
           }
         >
-          <div ref={pickerRef} className={styles.customerWrap}>
+          <div ref={pickerRef} className={`${styles.customerWrap} ${pickerOpen ? styles.stackFront : ""}`}>
             <input
               required
               className="ui-input"
@@ -403,7 +403,7 @@ export function QuickSaleForm({
         </FormField>
 
         <FormField label={labels.product} required className={styles.field}>
-          <div ref={productRef} className={styles.productWrap}>
+          <div ref={productRef} className={`${styles.productWrap} ${productOpen ? styles.stackFront : ""}`}>
             <button
               type="button"
               className={styles.productTrigger}

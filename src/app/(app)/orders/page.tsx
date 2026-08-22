@@ -4,7 +4,6 @@ import { requirePermission, hasPermission } from "@core/auth/authz";
 import { canSeeMaterialCost } from "@core/rbac/permissions";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { materialCostForRecipe, scaleNeed } from "@core/costing/costing";
-import { resolveProductionPaySchemeCode } from "@core/config/domain-config";
 import { ORDER_STATUS } from "@core/orders/orders";
 import {
   ORDERS_PAGE_SIZE,
@@ -80,9 +79,7 @@ export default async function OrdersPage({
     status: { code: { not: ORDER_STATUS.CANCELLED } },
   };
 
-  const productionSchemeCode = await resolveProductionPaySchemeCode();
-
-  const [orders, total, statuses, periodOrders, prodScheme] = await Promise.all([
+  const [orders, total, statuses, periodOrders] = await Promise.all([
     prisma.order.findMany({
       where,
       include: {
@@ -108,10 +105,7 @@ export default async function OrdersPage({
         items: { select: { productId: true, quantity: true } },
       },
     }),
-    prisma.payScheme.findUnique({ where: { code: productionSchemeCode } }),
   ]);
-
-  const laborRate = D(String(prodScheme?.productionRate ?? "0"));
   const productIds = [...new Set(periodOrders.flatMap((o) => o.items.map((i) => i.productId)))];
   const productsForCost =
     showCostKpis && productIds.length > 0
@@ -134,15 +128,28 @@ export default async function OrdersPage({
       : [];
 
   const matPerUnit = new Map<string, ReturnType<typeof D>>();
+  const laborPerUnit = new Map<string, ReturnType<typeof D>>();
   for (const p of productsForCost) {
     const version = p.recipe?.versions[0];
     if (!version) {
       matPerUnit.set(p.id, D(0));
-      continue;
+    } else {
+      const scale = scaleNeed(p.recipeBaseQty, 1);
+      const cost = materialCostForRecipe(version.items, Number(scale.toString()));
+      matPerUnit.set(p.id, cost.total ? D(cost.total) : D(0));
     }
-    const scale = scaleNeed(p.recipeBaseQty, 1);
-    const cost = materialCostForRecipe(version.items, Number(scale.toString()));
-    matPerUnit.set(p.id, cost.total ? D(cost.total) : D(0));
+    laborPerUnit.set(p.id, D(String(p.laborRate ?? 0)));
+  }
+
+  function orderCost(order: (typeof orders)[number]) {
+    let cost = D(0);
+    for (const item of order.items) {
+      const qty = D(String(item.quantity));
+      const mat = matPerUnit.get(item.productId) ?? D(0);
+      const labor = laborPerUnit.get(item.productId) ?? D(0);
+      cost = cost.plus(qty.mul(mat)).plus(qty.mul(labor));
+    }
+    return cost;
   }
 
   let salesSum = D(0);
@@ -153,7 +160,8 @@ export default async function OrdersPage({
     for (const item of order.items) {
       const qty = D(String(item.quantity));
       const mat = matPerUnit.get(item.productId) ?? D(0);
-      costSum = costSum.plus(mat.mul(qty)).plus(qty.mul(laborRate));
+      const labor = laborPerUnit.get(item.productId) ?? D(0);
+      costSum = costSum.plus(qty.mul(mat)).plus(qty.mul(labor));
     }
   }
   const marginSum = salesSum.minus(costSum);
@@ -171,7 +179,15 @@ export default async function OrdersPage({
 
   const statusLabel = (code: string, name: string) => n("ostatus", code, name);
   const productMoreLabel = (extra: number) => t("orders.productMore", { n: String(extra) });
-  const listOrders = orders as unknown as OrderListItem[];
+  const listOrders = orders.map((order) => {
+    const cost = showCostKpis ? orderCost(order) : null;
+    const total = D(String(order.total));
+    return {
+      ...order,
+      costSum: cost != null ? moneyDisplay(cost) : undefined,
+      profitSum: cost != null ? moneyDisplay(total.minus(cost)) : undefined,
+    };
+  }) as unknown as OrderListItem[];
 
   return (
     <div className={styles.page}>
@@ -294,6 +310,9 @@ export default async function OrdersPage({
           statusLabel={statusLabel}
           attentionLabel={t("orders.overdue")}
           productMoreLabel={productMoreLabel}
+          showCost={showCostKpis}
+          costLabel={t("orders.kpiCostSum")}
+          profitLabel={t("orders.kpiMargin")}
           colCustomer={t("common.customer")}
           colProduct={t("common.product")}
           colStatus={t("common.status")}

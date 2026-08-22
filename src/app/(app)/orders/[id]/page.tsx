@@ -8,14 +8,13 @@ import { PendingButton } from "@/components/pending-button";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { available } from "@core/inventory/stock";
 import { findFinishedGoodsWarehouse, findRawWarehouse } from "@/core/config/resolve-warehouse";
-import { resolveProductionPaySchemeCode } from "@core/config/domain-config";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge, orderTone } from "@/components/status-badge";
-import { OrderDetailMetrics } from "../order-detail-metrics";
 import { OrderStageProgress } from "../order-stage-progress";
 import { OrderPaymentPanel } from "../order-payment-panel";
 import { OrderPayStepPanel } from "../order-pay-step-panel";
 import detailStyles from "../order-detail.module.css";
+import listStyles from "../orders.module.css";
 import {
   addPayment,
   cancelOrder,
@@ -117,45 +116,23 @@ export default async function OrderPage({
     .filter((row) => row.short.gt(0));
 
   const hasMaterialCost = order.materialCost != null && D(String(order.materialCost)).gte(0);
-  const productionSchemeCode = await resolveProductionPaySchemeCode();
-  const prodScheme = await prisma.payScheme.findUnique({ where: { code: productionSchemeCode } });
-  const laborRate = D(String(prodScheme?.productionRate ?? "0"));
   let laborCost = D(0);
   for (const item of order.items) {
-    laborCost = laborCost.plus(D(String(item.quantity)).mul(laborRate));
+    laborCost = laborCost.plus(D(String(item.quantity)).mul(D(String(item.product.laborRate ?? 0))));
   }
-  const costSum = hasMaterialCost ? D(String(order.materialCost)).plus(laborCost) : laborCost;
+  const costSum = hasMaterialCost
+    ? D(String(order.materialCost)).plus(laborCost)
+    : laborCost.gt(0)
+      ? laborCost
+      : D(0);
   const profitSum = D(String(order.total)).sub(costSum);
+  const marginOk = profitSum.gte(0);
   const loc = intlLocale(locale);
   const paymentBlocked = Boolean(payError?.includes("закрыт") || payError?.includes("пӯшида"));
   const hasDiscount = D(String(order.discountPercent)).gt(0);
   const orderDate = order.confirmedAt ?? order.createdAt;
   const orderDateLabel = order.confirmedAt ? t("orders.orderConfirmed") : t("orders.orderReceived");
   const shortDate = orderDate.toLocaleDateString(loc, { day: "2-digit", month: "2-digit" });
-
-  const metricItems = [
-    {
-      id: "sales",
-      label: t("orders.kpiSalesSum"),
-      value: `${moneyDisplay(order.total)} с`,
-      tone: "gold" as const,
-      icon: "gold" as const,
-    },
-    {
-      id: "cost",
-      label: t("orders.kpiCostSum"),
-      value: canSeeCost ? `${moneyDisplay(costSum)} с` : "—",
-      tone: "blue" as const,
-      icon: "blue" as const,
-    },
-    {
-      id: "margin",
-      label: t("orders.kpiMargin"),
-      value: canSeeCost ? `${moneyDisplay(profitSum)} с` : "—",
-      tone: profitSum.gte(0) ? ("green" as const) : ("warn" as const),
-      icon: profitSum.gte(0) ? ("green" as const) : ("warn" as const),
-    },
-  ];
 
   const currentStatusName = n("ostatus", order.status.code, order.status.name);
 
@@ -228,7 +205,24 @@ export default async function OrderPage({
         }
       />
 
-      <OrderDetailMetrics items={metricItems} />
+      <div className={listStyles.salesKpis}>
+        <div className={`${listStyles.salesKpi} ${listStyles.salesKpiSales}`}>
+          <p className={listStyles.salesKpiLabel}>{t("orders.kpiSalesSum")}</p>
+          <p className={listStyles.salesKpiValue}>{moneyDisplay(order.total)} с</p>
+        </div>
+        <div className={`${listStyles.salesKpi} ${listStyles.salesKpiCost}`}>
+          <p className={listStyles.salesKpiLabel}>{t("orders.kpiCostSum")}</p>
+          <p className={listStyles.salesKpiValue}>{canSeeCost ? `${moneyDisplay(costSum)} с` : "—"}</p>
+        </div>
+        <div
+          className={`${listStyles.salesKpi} ${marginOk ? listStyles.salesKpiMargin : listStyles.salesKpiMarginBad}`}
+        >
+          <p className={listStyles.salesKpiLabel}>{t("orders.kpiMargin")}</p>
+          <p className={listStyles.salesKpiValue}>
+            {canSeeCost ? `${moneyDisplay(profitSum)} с` : "—"}
+          </p>
+        </div>
+      </div>
 
       {showWorkflow ? (
         <section className={detailStyles.statusPanel}>

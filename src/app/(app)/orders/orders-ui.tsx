@@ -20,6 +20,8 @@ export type OrderListItem = {
   dueAt: Date | null;
   customer: { name: string; id: string };
   status: { code: string; name: string };
+  costSum?: string;
+  profitSum?: string;
   items?: {
     quantity: unknown;
     outputQty: unknown;
