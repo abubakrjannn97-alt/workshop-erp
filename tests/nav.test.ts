@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { ROLE_PERMISSIONS } from "../src/core/rbac/permissions";
 import {
   bottomTabsForRole,
+  isSidebarItemActive,
   isTabActive,
   moreGroupsForRole,
   tabHrefSet,
@@ -68,9 +69,10 @@ describe("mobile nav by role", () => {
     assert.equal(hrefs.includes("/warehouse"), false);
   });
 
-  it("worker home tab is active on /me", () => {
-    const tabs = bottomTabsForRole("worker", ROLE_PERMISSIONS.worker);
-    const home = tabs.find((t) => t.id === "worker-home")!;
-    assert.equal(isTabActive("/me", home, tabs), true);
+  it("sidebar highlights only the longest matching href", () => {
+    const hrefs = ["/finance", "/finance/expenses", "/warehouse"];
+    assert.equal(isSidebarItemActive("/finance/expenses", "/finance/expenses", hrefs), true);
+    assert.equal(isSidebarItemActive("/finance/expenses", "/finance", hrefs), false);
+    assert.equal(isSidebarItemActive("/warehouse", "/warehouse", hrefs), true);
   });
 });

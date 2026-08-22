@@ -5,7 +5,6 @@ import { requirePermission } from "@core/auth/authz";
 import { archiveMaterial } from "@/app/actions/materials";
 import { moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { unitCost } from "@core/costing/costing";
-import { RevealList } from "@/components/reveal-list";
 import { ChevronRight } from "lucide-react";
 import { ICON_STROKE } from "@/components/nav-icons";
 import styles from "@/styles/premium.module.css";

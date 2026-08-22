@@ -4,7 +4,6 @@ import { prisma } from "@core/infrastructure/prisma";
 import { requirePermission, hasPermission } from "@core/auth/authz";
 import { D, moneyDisplay, qtyDisplay } from "@core/shared/decimal";
 import { updatePayScheme } from "@/app/actions/payroll";
-import { RevealList } from "@/components/reveal-list";
 import { AddEmployeeForm } from "@/components/add-employee-form";
 import { EMPLOYEE_ASSIGNABLE, type PermissionCode } from "@core/rbac/permissions";
 import { formatPhoneDisplay } from "@core/shared/phone";

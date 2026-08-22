@@ -6,7 +6,6 @@ import { requirePermission } from "@core/auth/authz";
 import { D, moneyDisplay } from "@core/shared/decimal";
 import { intlLocale } from "@core/shared/i18n/i18n";
 import { ICON_STROKE } from "@/components/nav-icons";
-import { RevealList } from "@/components/reveal-list";
 import { StatusBadge, orderTone, payTone } from "@/components/status-badge";
 import premium from "@/styles/premium.module.css";
 import styles from "./sales.module.css";
