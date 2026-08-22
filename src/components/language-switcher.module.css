@@ -87,17 +87,20 @@
     height: 42px;
   }
 
-  .opt {
+  .group .opt {
     min-height: 34px;
     min-width: 48px;
   }
 
   .groupSm {
-    height: 28px;
+    height: 26px;
+    padding: 2px;
   }
 
   .groupSm .opt {
-    min-width: 30px;
-    min-height: 24px;
+    min-width: 28px;
+    min-height: 22px;
+    padding: 0 7px;
+    font-size: 10px;
   }
 }

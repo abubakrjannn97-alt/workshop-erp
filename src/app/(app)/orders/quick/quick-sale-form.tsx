@@ -327,8 +327,9 @@ export function QuickSaleForm({
   const selectedLeft = selected ? remainingStock(selected) : D(0);
 
   return (
-    <div className={styles.wrap}>
-      <div className={styles.card}>
+    <>
+      <div className={`${styles.wrap} ${cart.length > 0 ? styles.wrapWithCart : ""}`}>
+        <div className={styles.card}>
         {error ? <p className={styles.error}>{error}</p> : null}
 
         <FormField
@@ -537,116 +538,120 @@ export function QuickSaleForm({
       </div>
 
       {cart.length > 0 ? (
-        <div className={styles.receiptBlock}>
-          <ul className={styles.receiptList}>
-            {cart.map((line) => (
-              <li key={line.key} className={styles.receiptCard}>
-                <span className={styles.receiptThumb}>
-                  {line.photoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={line.photoUrl} alt="" className={styles.receiptThumbImg} />
-                  ) : (
-                    <span className={styles.receiptThumbEmpty}>
-                      {shortProductName(line.name).slice(0, 1)}
-                    </span>
-                  )}
-                </span>
-                <span className={styles.receiptMain}>
-                  <span className={styles.receiptName}>{shortProductName(line.name)}</span>
-                  <span className={styles.receiptWho}>{shortPersonName(customerName)}</span>
-                </span>
-                <span className={styles.receiptMetrics}>
-                  <span className={styles.receiptQty}>
-                    {qtyDisplay(D(line.quantity))} {line.symbol}
-                  </span>
-                  <span className={styles.receiptSum}>{moneyDisplay(D(line.amount))} с</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-
-          <form action={onFinish} className={styles.checkout}>
-            <IdempotencyField prefix="quick-sale" value={idempotencyKey} />
-            <input type="hidden" name="customerId" value={customerId || "__new__"} />
-            <input type="hidden" name="customerName" value={customerName} />
-            <input type="hidden" name="phone" value={phone} />
-            <input
-              type="hidden"
-              name="items"
-              value={JSON.stringify(
-                cart.map((line) => ({
-                  productId: line.productId,
-                  quantity: line.quantity,
-                  unitPrice: line.unitPrice,
-                })),
-              )}
-            />
-            <input type="hidden" name="payMode" value={payMode} />
-
-            <div className={styles.totalRow}>
-              <span>{labels.cartTotal}</span>
-              <strong>{moneyDisplay(cartTotal)} с</strong>
+        <div className={styles.cartDock}>
+          <div className={styles.cartPanel}>
+            <div className={styles.cartHead}>
+              <span className={styles.cartTitle}>{labels.cartTotal}</span>
+              <span className={styles.cartHeadTotal}>{moneyDisplay(cartTotal)} с</span>
             </div>
 
-            <div className={styles.payBlock}>
-              <p className={styles.payLabel}>{labels.pay}</p>
-              <div className={styles.paySeg} role="radiogroup" aria-label={labels.pay}>
-                {(
-                  [
-                    ["paid", labels.paid],
-                    ["partial", labels.partial],
-                  ] as const
-                ).map(([id, label]) => (
-                  <button
-                    key={id}
-                    type="button"
-                    role="radio"
-                    aria-checked={payMode === id}
-                    className={`${styles.payBtn} ${payMode === id ? styles.payBtnActive : ""}`}
-                    onClick={() => setPayMode(id)}
-                  >
-                    {label}
-                  </button>
+            <div className={styles.receiptScroll}>
+              <ul className={styles.receiptList}>
+                {cart.map((line) => (
+                  <li key={line.key} className={styles.receiptCard}>
+                    <span className={styles.receiptThumb}>
+                      {line.photoUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={line.photoUrl} alt="" className={styles.receiptThumbImg} />
+                      ) : (
+                        <span className={styles.receiptThumbEmpty}>
+                          {shortProductName(line.name).slice(0, 1)}
+                        </span>
+                      )}
+                    </span>
+                    <span className={styles.receiptMain}>
+                      <span className={styles.receiptName}>{shortProductName(line.name)}</span>
+                      <span className={styles.receiptWho}>{shortPersonName(customerName)}</span>
+                    </span>
+                    <span className={styles.receiptMetrics}>
+                      <span className={styles.receiptQty}>
+                        {qtyDisplay(D(line.quantity))} {line.symbol}
+                      </span>
+                      <span className={styles.receiptSum}>{moneyDisplay(D(line.amount))} с</span>
+                    </span>
+                  </li>
                 ))}
+              </ul>
+            </div>
+
+            <form action={onFinish} className={styles.checkout}>
+              <IdempotencyField prefix="quick-sale" value={idempotencyKey} />
+              <input type="hidden" name="customerId" value={customerId || "__new__"} />
+              <input type="hidden" name="customerName" value={customerName} />
+              <input type="hidden" name="phone" value={phone} />
+              <input
+                type="hidden"
+                name="items"
+                value={JSON.stringify(
+                  cart.map((line) => ({
+                    productId: line.productId,
+                    quantity: line.quantity,
+                    unitPrice: line.unitPrice,
+                  })),
+                )}
+              />
+              <input type="hidden" name="payMode" value={payMode} />
+
+              <div className={styles.payBlock}>
+                <p className={styles.payLabel}>{labels.pay}</p>
+                <div className={styles.paySeg} role="radiogroup" aria-label={labels.pay}>
+                  {(
+                    [
+                      ["paid", labels.paid],
+                      ["partial", labels.partial],
+                    ] as const
+                  ).map(([id, label]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      role="radio"
+                      aria-checked={payMode === id}
+                      className={`${styles.payBtn} ${payMode === id ? styles.payBtnActive : ""}`}
+                      onClick={() => setPayMode(id)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {payMode === "partial" ? (
+                  <FormField label={labels.paidAmount} required className={styles.fieldTight}>
+                    <input
+                      name="paidAmount"
+                      required
+                      className="ui-input"
+                      inputMode="decimal"
+                      value={partialAmount}
+                      onChange={(e) => setPartialAmount(e.target.value)}
+                      placeholder="0"
+                    />
+                  </FormField>
+                ) : (
+                  <input type="hidden" name="paidAmount" value="" />
+                )}
               </div>
 
-              {payMode === "partial" ? (
-                <FormField label={labels.paidAmount} required className={styles.fieldTight}>
-                  <input
-                    name="paidAmount"
-                    required
-                    className="ui-input"
-                    inputMode="decimal"
-                    value={partialAmount}
-                    onChange={(e) => setPartialAmount(e.target.value)}
-                    placeholder="0"
-                  />
-                </FormField>
-              ) : (
-                <input type="hidden" name="paidAmount" value="" />
-              )}
-            </div>
-
-            <div className={styles.checkoutActions}>
-              <PendingButton
-                className={`ui-btn-primary ${styles.finishBtn}`}
-                pendingLabel={labels.sending}
-                disabled={pending}
-              >
-                {labels.finish}
-              </PendingButton>
-              <button
-                type="button"
-                className={styles.cancelBtn}
-                onClick={cancelSale}
-                disabled={pending}
-              >
-                {labels.cancel}
-              </button>
-            </div>
-          </form>
+              <div className={styles.checkoutActions}>
+                <PendingButton
+                  className={`ui-btn-primary ${styles.finishBtn}`}
+                  pendingLabel={labels.sending}
+                  disabled={pending}
+                >
+                  {labels.finish}
+                </PendingButton>
+                <button
+                  type="button"
+                  className={styles.cancelBtn}
+                  onClick={cancelSale}
+                  disabled={pending}
+                >
+                  {labels.cancel}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       ) : null}
-    </div>
+    </>
   );
 }

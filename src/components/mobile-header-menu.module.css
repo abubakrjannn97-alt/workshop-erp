@@ -33,14 +33,21 @@
 
 .headCard {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-2);
-  padding: var(--card-pad);
+  padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
   background: var(--surface);
   box-shadow: var(--shadow-soft);
+}
+
+.headActions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
 }
 
 .userBlock {
@@ -87,34 +94,6 @@
 .closeBtn:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-}
-
-.langPill {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 0;
-}
-
-.langPill :global([class*="group"]) {
-  width: auto;
-  min-width: 140px;
-  height: 36px;
-  justify-content: center;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid rgba(200, 194, 184, 0.6);
-  border-radius: 999px;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.85) 0%,
-    rgba(244, 240, 234, 0.6) 100%
-  );
-  box-shadow:
-    0 2px 8px rgba(28, 35, 43, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
 }
 
 .group {

@@ -40,11 +40,81 @@
   text-align: right;
 }
 
-.receiptBlock {
+.wrap {
   display: grid;
-  gap: 8px;
-  justify-items: stretch;
+  gap: 10px;
+  max-width: 22rem;
+  margin: 0 auto;
   width: 100%;
+}
+
+.wrapWithCart {
+  padding-bottom: calc(240px + var(--mobile-chrome-bottom, 0px));
+}
+
+@media (min-width: 1024px) {
+  .wrapWithCart {
+    padding-bottom: 220px;
+  }
+}
+
+.cartDock {
+  position: fixed;
+  z-index: 35;
+  left: 0;
+  right: 0;
+  bottom: var(--mobile-chrome-bottom, 0px);
+  padding: 0 10px 6px;
+  pointer-events: none;
+}
+
+.cartPanel {
+  pointer-events: auto;
+  max-width: 22rem;
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 16px 16px 12px 12px;
+  background: #fff;
+  box-shadow: 0 -8px 32px rgba(28, 35, 43, 0.14);
+}
+
+.cartHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px 8px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, #fafafa 0%, #fff 100%);
+}
+
+.cartTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cartHeadTotal {
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #1b7a4a;
+}
+
+.receiptScroll {
+  max-height: 108px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 6px 8px 0;
+  scrollbar-width: thin;
+}
+
+.receiptBlock {
+  display: none;
 }
 
 .receiptList {
@@ -52,7 +122,7 @@
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
 }
 
@@ -61,6 +131,7 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   column-gap: 8px;
+  min-height: 48px;
   padding: 6px 8px;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -146,35 +217,20 @@
 
 .checkout {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
-  max-width: 18rem;
-  margin: 0 auto;
-  padding: 10px;
-  border: 1px solid rgba(36, 149, 101, 0.22);
-  border-radius: 12px;
-  background: linear-gradient(165deg, #f4fbf7 0%, #ffffff 60%);
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--line);
+  background: #fff;
 }
 
 .totalRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 12px;
-  color: var(--ink-2);
-}
-
-.totalRow strong {
-  font-size: 15px;
-  font-weight: 700;
-  color: #1b7a4a;
-  font-variant-numeric: tabular-nums;
+  display: none;
 }
 
 .checkoutActions {
   display: grid;
-  gap: 6px;
+  gap: 8px;
   justify-items: stretch;
 }
 
@@ -186,26 +242,29 @@
 }
 
 .finishBtn {
-  min-height: 36px;
+  min-height: 44px;
   width: 100%;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .cancelBtn {
-  min-height: 34px;
+  min-height: 32px;
   width: 100%;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: #fff;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
   font-size: 12px;
   font-weight: 600;
-  color: var(--ink-2);
+  color: var(--ink-3);
   cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .cancelBtn:hover:not(:disabled) {
-  background: #f6f3ee;
   color: #991b1b;
+  background: transparent;
 }
 
 .cancelBtn:disabled {
@@ -514,17 +573,17 @@
   grid-template-columns: 1fr 1fr;
   gap: 4px;
   padding: 3px;
-  border-radius: 12px;
+  border-radius: 10px;
   background: #f3f1ec;
 }
 
 .payBtn {
-  min-height: 32px;
-  padding: 0 6px;
+  min-height: 36px;
+  padding: 0 8px;
   border: 0;
   border-radius: 8px;
   background: transparent;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--ink-2);
   cursor: pointer;

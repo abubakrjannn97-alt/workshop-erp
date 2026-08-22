@@ -271,7 +271,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     id: "sales",
     labelKey: "nav.sales",
-    items: [SALES_ITEM, CRM_ITEM, ORDERS_ITEM],
+    items: [CRM_ITEM, ORDERS_ITEM],
   },
   {
     id: "shop",

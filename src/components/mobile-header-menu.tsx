@@ -79,13 +79,12 @@ export function MobileHeaderMenu({
             <p className={styles.userName}>{userName}</p>
             <p className={styles.roleName}>{roleName}</p>
           </div>
-          <button type="button" className={styles.closeBtn} aria-label={t("help.close")} onClick={onClose}>
-            <X size={20} strokeWidth={ICON_STROKE} aria-hidden />
-          </button>
-        </div>
-
-        <div className={styles.langPill}>
-          <LanguageSwitcher locale={locale} />
+          <div className={styles.headActions}>
+            <LanguageSwitcher locale={locale} size="sm" />
+            <button type="button" className={styles.closeBtn} aria-label={t("help.close")} onClick={onClose}>
+              <X size={20} strokeWidth={ICON_STROKE} aria-hidden />
+            </button>
+          </div>
         </div>
 
         {groups.map((group) => (
