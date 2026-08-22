@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@core/infrastructure/prisma";
+import { PrismaClient } from "@prisma/client";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,6 +22,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
+  const dbUrl = process.env.DATABASE_URL?.trim();
+  if (!dbUrl) {
+    return NextResponse.json({ error: "no_database_url" }, { status: 503 });
+  }
+
+  // Runtime only has pooled Accelerate URL; DIRECT_URL is unreachable from Vercel.
+  const prisma = new PrismaClient({
+    datasources: { db: { url: dbUrl } },
+  });
+
   try {
     for (const sql of PATCHES) {
       await prisma.$executeRawUnsafe(sql);
@@ -35,5 +45,7 @@ export async function POST(req: Request) {
       { error: "patch_failed", detail: err instanceof Error ? err.message : String(err) },
       { status: 500 },
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }
