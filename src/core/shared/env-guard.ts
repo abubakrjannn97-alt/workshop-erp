@@ -13,7 +13,8 @@ export function assertSafeProductionEnv() {
       "FATAL: AUTH_BYPASS=1 is forbidden when NODE_ENV=production. Remove AUTH_BYPASS from production environment.",
     );
   }
-  if (!isBuildPhase && (!process.env.AUTH_SECRET || process.env.AUTH_SECRET.length < 32)) {
+  const secret = process.env.AUTH_SECRET?.trim() ?? "";
+  if (!isBuildPhase && secret.length < 32) {
     throw new Error("FATAL: AUTH_SECRET must be set and at least 32 characters in production.");
   }
   if (!isBuildPhase && !process.env.DATABASE_URL) {

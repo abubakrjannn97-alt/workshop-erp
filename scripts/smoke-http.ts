@@ -42,12 +42,15 @@ async function login() {
     const i = kv.indexOf("=");
     cookieJar.set(kv.slice(0, i), kv.slice(i + 1));
   }
+  const usePhone = process.env.SMOKE_USE_PHONE === "1" || base.includes("vercel.app");
   const body = new URLSearchParams({
     csrfToken,
-    email: "owner@workshop.local",
     password: process.env.OWNER_PASSWORD ?? "ChangeMeNow!",
     callbackUrl: `${base}/`,
     json: "true",
+    ...(usePhone
+      ? { phone: process.env.OWNER_PHONE ?? "+992900000001" }
+      : { email: process.env.OWNER_EMAIL ?? "owner@workshop.local" }),
   });
   const cookieHeader = [...cookieJar.entries()].map(([k, v]) => `${k}=${v}`).join("; ");
   const res = await fetch(`${base}/api/auth/callback/credentials`, {
@@ -59,10 +62,17 @@ async function login() {
     body,
     redirect: "manual",
   });
+  if (res.status >= 300 && res.headers.get("location")?.includes("error=Configuration")) {
+    throw new Error("Auth Configuration error — check AUTH_SECRET (min 32 chars) and AUTH_URL on server.");
+  }
   for (const c of res.headers.getSetCookie?.() ?? []) {
     const [kv] = c.split(";");
     const i = kv.indexOf("=");
     cookieJar.set(kv.slice(0, i), kv.slice(i + 1));
+  }
+  const session = [...cookieJar.keys()].some((k) => k.includes("session-token"));
+  if (!session) {
+    throw new Error(`Login failed (HTTP ${res.status}, location=${res.headers.get("location") ?? "none"})`);
   }
   return [...cookieJar.entries()].map(([k, v]) => `${k}=${v}`).join("; ");
 }

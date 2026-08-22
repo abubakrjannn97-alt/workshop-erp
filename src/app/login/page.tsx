@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 import { OwnerLoginForm } from "./login-form";
 import { LoginScreen } from "./login-screen";
 import { DevRolePicker } from "./dev-role-picker";
@@ -10,6 +12,9 @@ import styles from "./login-page.module.css";
 export const dynamic = "force-dynamic";
 
 export default async function LoginPage() {
+  const session = await auth();
+  if (session?.user?.id) redirect("/");
+
   const locale = await getLocale();
   const demoUsers = getDemoUsersForLogin();
 

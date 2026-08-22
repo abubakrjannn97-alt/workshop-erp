@@ -17,12 +17,10 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request }) {
       if (isAuthBypassEnabled()) return true;
-      const isLoggedIn = Boolean(auth?.user);
       const { pathname } = request.nextUrl;
-      if (pathname.startsWith("/login")) {
-        return isLoggedIn ? Response.redirect(new URL("/", request.nextUrl)) : true;
-      }
-      return isLoggedIn;
+      // Login must stay reachable; server page redirects when session is valid.
+      if (pathname.startsWith("/login")) return true;
+      return Boolean(auth?.user);
     },
     jwt({ token, user }) {
       if (user) {
